@@ -5,6 +5,8 @@ import { db } from '@/db';
 import * as actions from '@/app/seed';
 import { Avatar, Card, CardBody, CardHeader, Divider } from "@nextui-org/react";
 
+export const dynamic = 'force-dynamic'
+
 async function GetPerfumes() {
   return await db.perfume.findMany({
     orderBy: [
@@ -33,10 +35,10 @@ async function GetWorn() {
 
 export default async function Home() {
   let perfumes = await GetPerfumes();
-  if (perfumes.length == 0) { 
-    await actions.SeedCSV();
-    perfumes = await GetPerfumes();
-  }
+  // if (perfumes.length == 0) { 
+  //   await actions.SeedCSV();
+  //   perfumes = await GetPerfumes();
+  // }
   const worn = await GetWorn();
   return (
       <div >
