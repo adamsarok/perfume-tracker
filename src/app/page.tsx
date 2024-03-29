@@ -3,6 +3,7 @@ import React from "react";
 import PerfumeSelector from "./perfume-selector";
 import { db } from '@/db';
 import * as actions from '@/app/seed';
+import { Avatar, Card, CardBody, CardHeader, Divider } from "@nextui-org/react";
 
 async function GetPerfumes() {
   return await db.perfume.findMany({
@@ -38,17 +39,22 @@ export default async function Home() {
   }
   const worn = await GetWorn();
   return (
-      <div className="flex">
-        <div className="flex-initial w-1/3">
+      <div >
           <PerfumeSelector perfumes={perfumes} />
-        </div>
-        <div className="flex-initial w-2/3">
             {worn.map((wornon) => (
-                <div key={wornon.id}>
-                  <p>{wornon.wornOn.toDateString()} - {wornon.perfume.house} - {wornon.perfume.perfume}</p>
-                </div>
+                <Card key={wornon.id}>
+                  <CardHeader>
+                    <Avatar className="semi-bold" 
+                      name={wornon.perfume.perfume.split(" ").length > 1 ? 
+                          wornon.perfume.perfume.split(" ").map((x) => x[0]).slice(0,2).join("") 
+                          : wornon.perfume.perfume.slice(0,2).toUpperCase()} />
+                    <p className="text-small leading-none text-default-600 ml-4">{wornon.perfume.house} - {wornon.perfume.perfume}</p>
+                  </CardHeader>
+                  <CardBody>
+                    <p className="text-small tracking-tight text-default-400">{wornon.wornOn.toDateString()}</p>
+                  </CardBody>
+                </Card>
               ))}
-        </div>
       </div>
   );
 
