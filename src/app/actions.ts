@@ -1,21 +1,11 @@
 'use server';
 
 import { db } from "@/db";
-import { redirect } from "next/navigation";
 
 //warning todo utc
-export async function AddPerfume(id: number) {
-    /*
-    Error: 
-    Invalid `prisma.perfumeWorn.create()` invocation:
-
-    {
-    data: {
-        wornOn: new Date("2024-03-24T20:51:50.183Z"),
-        perfume: {
-        connect: {
-            id: "109"
-    */
+export async function WearPerfume(id: number) {
+    console.log("Perfume add fire with ID: " + id);
+    if (!id) return;
     const idNum: number = parseInt(id.toString()); //I dont get why I have to parse a number to a number...
     const today = new Date();
     today.setHours(0,0,0);
@@ -31,7 +21,7 @@ export async function AddPerfume(id: number) {
         }
     });
     if (alreadyWornToday) { 
-        console.log('already added this perfume today');
+        console.log("Already wearing this perfume today");
         return;
     }
     await db.perfumeWorn.create({

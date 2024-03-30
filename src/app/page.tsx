@@ -2,8 +2,8 @@
 import React from "react";
 import PerfumeSelector from "./perfume-selector";
 import { db } from '@/db';
-import * as actions from '@/app/seed';
-import { Avatar, Card, CardBody, CardHeader, Divider } from "@nextui-org/react";
+import { Perfume, PerfumeWorn } from "@prisma/client";
+import PerfumeCard from "@/components/perfumecard";
 
 export const dynamic = 'force-dynamic'
 
@@ -33,29 +33,35 @@ async function GetWorn() {
   });
 }
 
+function compareDates( a: PerfumeWorn, b:PerfumeWorn ) {
+  if ( a.wornOn < b.wornOn ){
+    return -1;
+  }
+  if ( a.wornOn > b.wornOn ){
+    return 1;
+  }
+  return 0;
+}
+
+function getSuggestion(perfumes: Perfume[], worn: PerfumeWorn[]) {
+  const wornPerfumes = new Set<number>;
+  worn.map((x: any) => wornPerfumes.add(x.perfumeId));
+  const notWorn = perfumes.find((x) => !wornPerfumes.has(x.id));
+  if (notWorn) return notWorn;
+  return perfumes.find((x) => x.id === worn.slice(-1)[0].perfumeId);
+}
+
 export default async function Home() {
-  let perfumes = await GetPerfumes();
-  // if (perfumes.length == 0) { 
-  //   await actions.SeedCSV();
-  //   perfumes = await GetPerfumes();
-  // }
+  const perfumes = await GetPerfumes();
   const worn = await GetWorn();
+  const suggestion = getSuggestion(perfumes, worn);
   return (
       <div >
-          <PerfumeSelector perfumes={perfumes} />
+       {suggestion && <PerfumeCard perfume={suggestion} wornOn={null} id={suggestion.id} avatar="🎁"></PerfumeCard>}
+ 
+          <PerfumeSelector perfumes={perfumes} defaultSelectedKey={suggestion?.id}/>
             {worn.map((wornon) => (
-                <Card key={wornon.id}>
-                  <CardHeader>
-                    <Avatar className="semi-bold" 
-                      name={wornon.perfume.perfume.split(" ").length > 1 ? 
-                          wornon.perfume.perfume.split(" ").map((x) => x[0]).slice(0,2).join("") 
-                          : wornon.perfume.perfume.slice(0,2).toUpperCase()} />
-                    <p className="text-small leading-none text-default-600 ml-4">{wornon.perfume.house} - {wornon.perfume.perfume}</p>
-                  </CardHeader>
-                  <CardBody>
-                    <p className="text-small tracking-tight text-default-400">{wornon.wornOn.toDateString()}</p>
-                  </CardBody>
-                </Card>
+                <PerfumeCard perfume={wornon.perfume} wornOn={wornon.wornOn} id={wornon.id} avatar={null}></PerfumeCard>
               ))}
       </div>
   );

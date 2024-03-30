@@ -6,10 +6,11 @@ import * as actions from "@/app/actions";
 import React from "react";
 
 export interface PerfumeSelectorProps {
-    perfumes: Perfume[]
+    perfumes: Perfume[],
+    defaultSelectedKey: number | undefined
 }
 
-export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
+export default function PerfumeSelector({perfumes, defaultSelectedKey}: PerfumeSelectorProps) {
     //const addWearAction = actions.AddPerfume().bind(null, snippet?.id);
     const [selectedKey, setSelectedKey] = React.useState(0);
 
@@ -17,18 +18,19 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
         setSelectedKey(id);
     };
       
-    const editSnippetAction = actions.AddPerfume.bind(null, selectedKey);
+    //console.log(defaultSelectedKey); why doesn't this work?
+    const addPerfume = actions.WearPerfume.bind(null, selectedKey);
 
     return ( <div> 
         <Autocomplete 
             defaultItems={perfumes}
-            //label="What are you wearing today?"
-            label="Milyen parfümöt hordasz ma?"
-            placeholder="Válassz parfümöt"
+            label="What are you wearing today?"
+            placeholder="Choose a Perfume"
             // className="max-w-xs border p-2 rounded"
             className="flex w-full flex-wrap md:flex-nowrap gap-4"
             onSelectionChange={onSelectionChange}
             variant="faded"
+            //selectedKey={defaultSelectedKey}
         >
             {perfumes.map((perfume) => (
                 <AutocompleteItem key={perfume.id}  value={perfume.house + " - " + perfume.perfume}>
@@ -38,19 +40,19 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
         </Autocomplete>
         <div className="flex">
             <form>
-                <Button type="submit"  formAction={editSnippetAction}
-                >Magamra fújom</Button>
+                <Button type="submit"  formAction={addPerfume}
+                >Spray On</Button>
             </form>
             <form className="flex">
-                <Slider label="Értékelés" 
+                <Slider label="Rating" 
                     step={0.5} 
                     maxValue={10} 
                     minValue={0} 
                     defaultValue={8}
                     className="flex-1 w-64 ml-2 mr-2"
-                >Értékelés</Slider>
-                <Button type="submit" formAction={editSnippetAction}
-                >Értékelés</Button>
+                >Rating</Slider>
+                <Button type="submit" formAction={addPerfume}
+                >Rate</Button>
             </form>
         </div>
       </div>
