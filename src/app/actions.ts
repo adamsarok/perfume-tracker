@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 
 export async function AddPerfume(formState: {}, formData: FormData) {
     try {
-
         const house = formData.get('house');
         const perfume = formData.get('perfume');
         const rating = formData.get('rating');
@@ -26,7 +25,6 @@ export async function AddPerfume(formState: {}, formData: FormData) {
                 message: 'Rating is empty?'
             };
         }
-        console.log('itt vagyug');
         var exists = await db.perfume.findFirst({
             where: {
                 house: house,
@@ -60,7 +58,7 @@ export async function AddPerfume(formState: {}, formData: FormData) {
 
 //warning todo utc
 export async function WearPerfume(id: number) {
-    console.log("Perfume add fire with ID: " + id);
+    console.log("Perfume add fire with ID: " + id); //replace with msg
     if (!id) return;
     const idNum: number = parseInt(id.toString()); //I dont get why I have to parse a number to a number...
     const today = new Date();
