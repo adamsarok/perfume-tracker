@@ -4,8 +4,9 @@ import PerfumeSelector from "./perfume-selector";
 import { db } from '@/db';
 import { Perfume, PerfumeWorn } from "@prisma/client";
 import PerfumeCard from "@/components/perfumecard";
+import { Button, Link } from "@nextui-org/react";
 
-export const dynamic = 'force-dynamic'
+//export const dynamic = 'force-dynamic'
 
 async function GetPerfumes() {
   return await db.perfume.findMany({
@@ -57,6 +58,8 @@ export default async function Home() {
   const suggestion = getSuggestion(perfumes, worn);
   return (
       <div >
+        <Button href="/new-perfume">New Perfume</Button>
+        <Link href="/new-perfume">New Perfume</Link>
        {suggestion && <PerfumeCard perfume={suggestion} wornOn={null} id={suggestion.id} avatar="🎁"></PerfumeCard>}
  
           <PerfumeSelector perfumes={perfumes} defaultSelectedKey={suggestion?.id}/>
