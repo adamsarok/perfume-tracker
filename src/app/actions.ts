@@ -9,7 +9,9 @@ export async function AddPerfume(formState: {}, formData: FormData) {
         const house = formData.get('house');
         const perfume = formData.get('perfume');
         const rating = formData.get('rating');
+        const notes = formData.get('notes');
 
+        //todo this is bad, zod validate!!!
         if (typeof house !== 'string' || house.length < 1) {
             return {
                 message: 'House must be longer'
@@ -25,6 +27,11 @@ export async function AddPerfume(formState: {}, formData: FormData) {
                 message: 'Rating is empty?'
             };
         }
+        if (typeof notes !== 'string' || notes.length < 1) {
+            return {
+                message: 'Notes must be longer'
+            };
+        }
         var exists = await db.perfume.findFirst({
             where: {
                 house: house,
@@ -38,7 +45,8 @@ export async function AddPerfume(formState: {}, formData: FormData) {
             data: {
                 house: house,
                 perfume: perfume,
-                rating: parseFloat(rating)
+                rating: parseFloat(rating),
+                notes: notes
             }
         });
     } catch (err: unknown) {
@@ -90,3 +98,43 @@ export async function WearPerfume(id: number) {
     });
     revalidatePath('/');
 }
+
+export interface PerfumeWornDTO {
+    perfumeId: number,
+    house: string,
+    perfume: string,
+    rating: number,
+    wornTimes: number | undefined,
+    lastWorn: Date | undefined,
+}
+
+export async function GetWornPerfumes(): Promise<PerfumeWornDTO[]> {
+    const worn = await db.perfumeWorn.groupBy({
+      by: ['perfumeId'],
+      _count: {
+        id: true
+      },
+      _max: {
+        wornOn: true
+      }
+    });
+    const perfumes = await db.perfume.findMany();
+    var m = new Map();
+    perfumes.forEach(function(x) {
+        let dto: PerfumeWornDTO = { 
+            perfumeId: x.id,
+            house: x.house,
+            perfume: x.perfume,
+            rating: x.rating,
+            wornTimes: undefined,
+            lastWorn: undefined
+        }
+        m.set(x.id, dto);
+    });
+    worn.forEach(function(x) {
+        let dto = m.get(x.perfumeId);
+        dto.wornTimes = x._count.id;
+        dto.lastWorn = x._max.wornOn;
+    })
+    return Array.from(m.values());
+  }

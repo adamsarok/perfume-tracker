@@ -58,8 +58,8 @@ export default async function Home() {
   const suggestion = getSuggestion(perfumes, worn);
   return (
       <div >
-        <Button href="/new-perfume">New Perfume</Button>
         <Link href="/new-perfume">New Perfume</Link>
+        <Link href="/stats">Stats</Link>
        {suggestion && <PerfumeCard perfume={suggestion} wornOn={null} id={suggestion.id} avatar="🎁"></PerfumeCard>}
  
           <PerfumeSelector perfumes={perfumes} defaultSelectedKey={suggestion?.id}/>

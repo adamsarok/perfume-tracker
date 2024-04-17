@@ -12,6 +12,7 @@ export default function NewPerfumePage() {
             <Input label="House" name="house">House</Input>
             <Input label="Perfume" name="perfume">Perfume</Input>
             <Input label="Rating" name="rating">Rating</Input>
+            <Input label="Notes" name="notes">Notes</Input>
             <Button type="submit">Add Perfume</Button>
             {formState.message ? <div className='my-2 p-2 bg-red-200 border rounded border-red-400'>{formState.message}</div> : null}
         </form>

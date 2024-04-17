@@ -19,6 +19,7 @@ model Perfume {
   house String
   perfume String
   rating Float
+  notes String @default("")
   worn PerfumeWorn[]
 }
 
