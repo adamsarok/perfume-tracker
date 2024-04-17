@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input, Link } from "@nextui-org/react";
 import { useFormState } from "react-dom";
 import *  as actions from "@/app/actions";
 
@@ -8,6 +8,7 @@ export default function NewPerfumePage() {
     const [formState, action] = useFormState(actions.AddPerfume, { message: '' });
     
     return <div>
+        <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
         <form action={action}>
             <Input label="House" name="house">House</Input>
             <Input label="Perfume" name="perfume">Perfume</Input>

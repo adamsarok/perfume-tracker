@@ -3,6 +3,7 @@
 import *  as actions from "@/app/actions";
 import { PerfumeWornDTO } from "@/app/actions";
 import PerfumeWornTable from "@/components/perfume-worn-table";
+import { Link, Spacer } from "@nextui-org/react";
 
 export default async function NewPerfumePage() {
     const perfumes = await actions.GetWornPerfumes();
@@ -14,6 +15,8 @@ export default async function NewPerfumePage() {
         return dateB.getTime() - dateA.getTime();
       });
     return <div>
-       <PerfumeWornTable perfumes={perfumes}></PerfumeWornTable>
+      <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
+      <Spacer></Spacer>
+      <PerfumeWornTable perfumes={perfumes}></PerfumeWornTable>
     </div>
 }
