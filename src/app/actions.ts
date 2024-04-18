@@ -3,39 +3,95 @@
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
+
+const perfumeSchema = z.object({
+    house: z.string().min(1),
+    perfume: z.string().min(1),
+    rating: z.string().min(1),
+    notes: z.string().min(3)
+})
+
+interface UpdatePerfumeFormState {
+    errors: {
+        house?: string[];
+        perfume?: string[];
+        rating?: string[];
+        notes?: string[];
+        _form?: string[];
+    }
+}
+
+export async function UpdatePerfume(id: number, formState: UpdatePerfumeFormState, formData: FormData)
+    : Promise<UpdatePerfumeFormState> {
+    try {
+        const perf = perfumeSchema.safeParse({   
+            house: formData.get('house'),
+            perfume: formData.get('perfume'),
+            rating: formData.get('rating'),
+            notes: formData.get('notes')
+        });
+        if (!perf.success) {
+            console.log(perf.error.flatten().fieldErrors);
+            return {
+                errors: perf.error.flatten().fieldErrors,
+            }
+        }
+        if (!parseFloat(perf.data.rating)) {
+            console.log('Not a valid rating');
+            return {
+                errors: { rating: [ 'Not a valid rating' ]}
+            }
+        }
+  
+        const result = await db.perfume.update({
+            where: {
+                id: id
+            },
+            data: {
+                house: perf.data.house,
+                perfume: perf.data.perfume,
+                rating: parseFloat(perf.data.rating),
+                notes: perf.data.notes
+            }
+        });
+        console.log(result);
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            return {
+                errors: { _form: [ err.message ] }
+            };
+        } else {
+            return {
+                errors: { _form: [ 'Unknown error occured' ] }
+            };
+        }
+    }
+    revalidatePath('/');
+    redirect('/');
+}
 
 export async function AddPerfume(formState: {}, formData: FormData) {
     try {
-        const house = formData.get('house');
-        const perfume = formData.get('perfume');
-        const rating = formData.get('rating');
-        const notes = formData.get('notes');
+        const perf = perfumeSchema.safeParse({
+            data: {
+                house: formData.get('house'),
+                perfume: formData.get('perfume'),
+                rating: formData.get('rating'),
+                notes: formData.get('notes')
+            }
+        })
 
-        //todo this is bad, zod validate!!!
-        if (typeof house !== 'string' || house.length < 1) {
+        if (!perf.success) {
             return {
-                message: 'House must be longer'
-            };
+                errors: perf.error.flatten().fieldErrors,
+            }
         }
-        if (typeof perfume !== 'string' || perfume.length < 1) {
-            return {
-                message: 'Perfume must be longer'
-            };
-        }
-        if (typeof rating !== 'string') {
-            return {
-                message: 'Rating is empty?'
-            };
-        }
-        if (typeof notes !== 'string' || notes.length < 1) {
-            return {
-                message: 'Notes must be longer'
-            };
-        }
+       
         var exists = await db.perfume.findFirst({
             where: {
-                house: house,
-                perfume: perfume
+                house: perf.data.house,
+                perfume: perf.data.perfume
             }
         });
         if (exists) return {
@@ -43,10 +99,10 @@ export async function AddPerfume(formState: {}, formData: FormData) {
         };
         await db.perfume.create({
             data: {
-                house: house,
-                perfume: perfume,
-                rating: parseFloat(rating),
-                notes: notes
+                house: perf.data.house,
+                perfume: perf.data.perfume,
+                rating: parseInt(perf.data.rating),
+                notes: perf.data.notes
             }
         });
     } catch (err: unknown) {

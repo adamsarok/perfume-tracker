@@ -8,7 +8,7 @@ import { Link, Spacer } from "@nextui-org/react";
 export default async function NewPerfumePage() {
     const perfumes = await actions.GetWornPerfumes();
     const past = new Date(0);
-    console.log(past);
+    //console.log(past);
     perfumes.sort((a, b) => {
         let dateA = a.lastWorn ? a.lastWorn : past;
         let dateB = b.lastWorn ? b.lastWorn : past;

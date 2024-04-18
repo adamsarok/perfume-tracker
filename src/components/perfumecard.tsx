@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardHeader, CardBody, Avatar, divider, Button } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Avatar, divider, Button, Link } from "@nextui-org/react";
 import { Perfume } from "@prisma/client";
 import * as actions from "@/app/actions";
 import React from "react";
@@ -27,9 +27,9 @@ export default function PerfumeCard({id, perfume, wornOn, avatar}: PerfumeCardPr
                   <CardHeader>
                     <Avatar className="semi-bold"
                       name={avatar} />
-                    <p className="text-small leading-none text-default-600 ml-4">
+                    <Link className="text-small leading-none text-default-600 ml-4" href={`/perfumes/${perfume.id}/`}>
                       {perfume.house} - {perfume.perfume}
-                    </p>
+                    </Link>
                   </CardHeader>
                   <CardBody>
                     <p className="text-small tracking-tight text-default-400">
