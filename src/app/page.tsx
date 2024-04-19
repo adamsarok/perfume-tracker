@@ -24,7 +24,7 @@ async function GetPerfumes() {
 async function GetWorn() {
   return await db.perfumeWorn.findMany({
     include: {
-      perfume: true,
+      perfume: true
     },
     orderBy: [
       {
@@ -57,7 +57,7 @@ function getSuggestion(perfumes: Perfume[], worn: PerfumeWorn[]) {
 }
 
 export default async function Home() {
-  const perfumes = await GetPerfumes();
+  const perfumes = (await GetPerfumes()).filter((x) => x.rating >= 8);
   const worn = await GetWorn();
   const suggestion = getSuggestion(perfumes, worn);
   return (

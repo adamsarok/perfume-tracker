@@ -18,7 +18,6 @@ export default function PerfumeCard({id, perfume, wornOn, avatar}: PerfumeCardPr
         ? perfume.perfume.split(" ").map((x) => x[0]).slice(0,2).join("") 
         : perfume.perfume.slice(0,2).toUpperCase();
 
-    //why doesn't the onPress work here?
     return (
       <form>
         <Link href={`/perfumes/${perfume.id}/`}> 
