@@ -7,12 +7,14 @@ import React from "react";
 
 export interface PerfumeSelectorProps {
     perfumes: Perfume[],
+    defaultInput: string | undefined,
     defaultSelectedKey: number | undefined
 }
 
-export default function PerfumeSelector({perfumes, defaultSelectedKey}: PerfumeSelectorProps) {
+export default function PerfumeSelector({perfumes, defaultInput, defaultSelectedKey}: PerfumeSelectorProps) {
     //const addWearAction = actions.AddPerfume().bind(null, snippet?.id);
-    const [selectedKey, setSelectedKey] = React.useState(0);
+
+    const [selectedKey, setSelectedKey] = React.useState(defaultSelectedKey ? defaultSelectedKey : 0);
 
     const onSelectionChange = (id: any) => {
         setSelectedKey(id);
@@ -30,7 +32,8 @@ export default function PerfumeSelector({perfumes, defaultSelectedKey}: PerfumeS
             className="flex w-full flex-wrap md:flex-nowrap gap-4"
             onSelectionChange={onSelectionChange}
             variant="faded"
-            //selectedKey={defaultSelectedKey}
+            defaultSelectedKey={defaultSelectedKey}
+            defaultInputValue={defaultInput}
         >
             {perfumes.map((perfume) => (
                 <AutocompleteItem key={perfume.id}  value={perfume.house + " - " + perfume.perfume}>

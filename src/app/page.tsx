@@ -47,9 +47,13 @@ function compareDates( a: PerfumeWorn, b:PerfumeWorn ) {
 function getSuggestion(perfumes: Perfume[], worn: PerfumeWorn[]) {
   const wornPerfumes = new Set<number>;
   worn.map((x: any) => wornPerfumes.add(x.perfumeId));
-  const notWorn = perfumes.find((x) => !wornPerfumes.has(x.id));
-  if (notWorn) return notWorn;
-  return perfumes.find((x) => x.id === worn.slice(-1)[0].perfumeId);
+  var list = perfumes.filter((x) => !wornPerfumes.has(x.id));
+  if (!list) {
+    let earliestWornIDs = worn.slice(-10).map(a => a.perfumeId);
+    list = perfumes.filter((x) => earliestWornIDs.includes(x.id)); 
+  }
+  const ind: number = Math.floor(Math.random() * list.length);
+  return list[ind];
 }
 
 export default async function Home() {
@@ -57,22 +61,13 @@ export default async function Home() {
   const worn = await GetWorn();
   const suggestion = getSuggestion(perfumes, worn);
   return (
-      <div >
-        <Link isBlock showAnchorIcon color="foreground" href="/new-perfume">New Perfume</Link>
-        <Link isBlock showAnchorIcon color="foreground" href="/stats">Stats</Link>
-       {suggestion && <PerfumeCard perfume={suggestion} wornOn={null} id={suggestion.id} avatar="🎁"></PerfumeCard>}
- 
-          <PerfumeSelector perfumes={perfumes} defaultSelectedKey={suggestion?.id}/>
-            {worn.map((wornon) => (
-                <PerfumeCard perfume={wornon.perfume} wornOn={wornon.wornOn} id={wornon.id} avatar={null}></PerfumeCard>
-              ))}
-      </div>
-  );
-
-//   <main className="flex min-h-screen flex-col items-center justify-between p-24">
-//   <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-//     <PerfumeSelector perfumes={perfumes} />
-//   </div>
-// </main>
-   
+    <div >
+      <Link isBlock showAnchorIcon color="foreground" href="/new-perfume">New Perfume</Link>
+      <Link isBlock showAnchorIcon color="foreground" href="/stats">Stats</Link>
+      <PerfumeSelector perfumes={perfumes} defaultInput={suggestion?.house + ' - ' + suggestion?.perfume} defaultSelectedKey={suggestion?.id}/> {/*defaultSelectedKey={suggestion?.id} */}
+        {worn.map((wornon) => (
+          <PerfumeCard perfume={wornon.perfume} wornOn={wornon.wornOn} id={wornon.id} avatar={null}></PerfumeCard>
+        ))}
+    </div>
+  );   
 }

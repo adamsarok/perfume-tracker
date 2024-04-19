@@ -18,26 +18,26 @@ export default function PerfumeCard({id, perfume, wornOn, avatar}: PerfumeCardPr
         ? perfume.perfume.split(" ").map((x) => x[0]).slice(0,2).join("") 
         : perfume.perfume.slice(0,2).toUpperCase();
 
-    const addPerfume = actions.WearPerfume.bind(null, id);
-
     //why doesn't the onPress work here?
     return (
       <form>
-        <Card key={id}>
+        <Link href={`/perfumes/${perfume.id}/`}> 
+        <Card key={id} className="min-w-96">
                   <CardHeader>
                     <Avatar className="semi-bold"
                       name={avatar} />
-                    <Link className="text-small leading-none text-default-600 ml-4" href={`/perfumes/${perfume.id}/`}>
+                
+                    <div className="text-small leading-none text-default-600 ml-4">
                       {perfume.house} - {perfume.perfume}
-                    </Link>
+                    </div>
                   </CardHeader>
                   <CardBody>
                     <p className="text-small tracking-tight text-default-400">
                       {"Last worn: " + (wornOn ? wornOn.toDateString() : "Never")}
-                      <Button className="ml-4" type="submit" formAction={addPerfume}>Wear</Button>  
                     </p>
                   </CardBody>
-                </Card>
+          </Card>
+        </Link>
       </form>
     );
   }
