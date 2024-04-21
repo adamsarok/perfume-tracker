@@ -1,12 +1,12 @@
 
 import React from "react";
-import PerfumeSelector from "./perfume-selector";
+import PerfumeSelector from "../components/perfume-selector";
 import { db } from '@/db';
 import { Perfume, PerfumeWorn } from "@prisma/client";
 import PerfumeCard from "@/components/perfumecard";
 import { Button, Link } from "@nextui-org/react";
 
-//export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic'
 
 async function GetPerfumes() {
   return await db.perfume.findMany({

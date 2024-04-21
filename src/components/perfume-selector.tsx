@@ -1,6 +1,6 @@
 'use client'
 
-import { Autocomplete, AutocompleteItem, Button, Slider } from "@nextui-org/react";
+import { Autocomplete, AutocompleteItem, Button, Divider, Slider } from "@nextui-org/react";
 import { Perfume } from "@prisma/client";
 import * as actions from "@/app/actions";
 import React from "react";
@@ -21,7 +21,7 @@ export default function PerfumeSelector({perfumes, defaultInput, defaultSelected
     };
       
     //console.log(defaultSelectedKey); why doesn't this work?
-    const addPerfume = actions.WearPerfume.bind(null, selectedKey);
+    const wearPerfume = actions.WearPerfume.bind(null, selectedKey);
 
     return ( <div> 
         <Autocomplete 
@@ -38,26 +38,19 @@ export default function PerfumeSelector({perfumes, defaultInput, defaultSelected
             {perfumes.map((perfume) => (
                 <AutocompleteItem key={perfume.id}  value={perfume.house + " - " + perfume.perfume}>
                     {perfume.house + " - " + perfume.perfume}
+                    
                 </AutocompleteItem>
             ))}
+            
         </Autocomplete>
-        <div className="flex">
+        <div className="flex mt-1 mb-1">
             <form>
-                <Button type="submit"  formAction={addPerfume}
+                <Button type="submit"  formAction={wearPerfume}
                 >Spray On</Button>
             </form>
-            <form className="flex">
-                <Slider label="Rating" 
-                    step={0.5} 
-                    maxValue={10} 
-                    minValue={0} 
-                    defaultValue={8}
-                    className="flex-1 w-64 ml-2 mr-2"
-                >Rating</Slider>
-                <Button type="submit" formAction={addPerfume}
-                >Rate</Button>
-            </form>
+    
         </div>
+        <Divider className="mb-1"></Divider>
       </div>
       
       );
