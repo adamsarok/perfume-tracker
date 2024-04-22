@@ -32,7 +32,6 @@ export async function UpdatePerfume(id: number, formState: UpdatePerfumeFormStat
             notes: formData.get('notes')
         });
         if (!perf.success) {
-            console.log(perf.error.flatten().fieldErrors);
             return {
                 errors: perf.error.flatten().fieldErrors,
             }
@@ -71,20 +70,23 @@ export async function UpdatePerfume(id: number, formState: UpdatePerfumeFormStat
     redirect('/');
 }
 
-export async function AddPerfume(formState: {}, formData: FormData) {
+export async function AddPerfume(formState: {}, formData: FormData) : Promise<UpdatePerfumeFormState> {
     try {
         const perf = perfumeSchema.safeParse({
-            data: {
-                house: formData.get('house'),
-                perfume: formData.get('perfume'),
-                rating: formData.get('rating'),
-                notes: formData.get('notes')
-            }
-        })
-
+            house: formData.get('house'),
+            perfume: formData.get('perfume'),
+            rating: formData.get('rating'),
+            notes: formData.get('notes') 
+        });
         if (!perf.success) {
             return {
                 errors: perf.error.flatten().fieldErrors,
+            }
+        }
+        if (!parseFloat(perf.data.rating)) {
+            console.log('Not a valid rating');
+            return {
+                errors: { rating: [ 'Not a valid rating' ]}
             }
         }
        
@@ -94,8 +96,10 @@ export async function AddPerfume(formState: {}, formData: FormData) {
                 perfume: perf.data.perfume
             }
         });
-        if (exists) return {
-            message: 'Perfume already added'
+        if (exists) {
+            return {
+                errors: { rating: [ 'Perfume already added' ]}
+            }
         };
         await db.perfume.create({
             data: {
@@ -108,11 +112,11 @@ export async function AddPerfume(formState: {}, formData: FormData) {
     } catch (err: unknown) {
         if (err instanceof Error) {
             return {
-                message: err.message
+                errors: { _form: [ err.message ] }
             };
         } else {
             return {
-                message: "Unknown error type"
+                errors: { _form: [ 'Unknown error occured' ] }
             };
         }
     }

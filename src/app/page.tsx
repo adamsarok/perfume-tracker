@@ -62,7 +62,7 @@ export default async function Home() {
   const suggestion = getSuggestion(perfumes, worn);
   return (
     <div >
-      <Link isBlock showAnchorIcon color="foreground" href="/new-perfume">New Perfume</Link>
+      <Link isBlock showAnchorIcon color="foreground" href="/perfumes/new-perfume">New Perfume</Link>
       <Link isBlock showAnchorIcon color="foreground" href="/stats">Stats</Link>
       <PerfumeSelector perfumes={perfumes} defaultInput={suggestion?.house + ' - ' + suggestion?.perfume} defaultSelectedKey={suggestion?.id}/> {/*defaultSelectedKey={suggestion?.id} */}
         {worn.map((wornon) => (
