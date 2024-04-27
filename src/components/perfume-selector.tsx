@@ -6,23 +6,23 @@ import * as actions from "@/app/actions";
 import React from "react";
 
 export interface PerfumeSelectorProps {
-    perfumes: Perfume[],
-    defaultInput: string | undefined,
-    defaultSelectedKey: number | undefined
+    perfumes: Perfume[]
 }
 
-export default function PerfumeSelector({perfumes, defaultInput, defaultSelectedKey}: PerfumeSelectorProps) {
+export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
     //const addWearAction = actions.AddPerfume().bind(null, snippet?.id);
 
-    const [selectedKey, setSelectedKey] = React.useState(defaultSelectedKey ? defaultSelectedKey : 0);
+    const [selectedKey, setSelectedKey] = React.useState(0);
 
     const onSelectionChange = (id: any) => {
         setSelectedKey(id);
     };
       
-    //console.log(defaultSelectedKey); why doesn't this work?
     const wearPerfume = actions.WearPerfume.bind(null, selectedKey);
+    const suggest = actions.getSuggestion.bind(null);
+    //how do I change the selected value?
 
+    //TODO: place suggestion button!
     return ( <div> 
         <Autocomplete 
             defaultItems={perfumes}
@@ -32,8 +32,8 @@ export default function PerfumeSelector({perfumes, defaultInput, defaultSelected
             className="flex w-full flex-wrap md:flex-nowrap gap-4"
             onSelectionChange={onSelectionChange}
             variant="faded"
-            defaultSelectedKey={defaultSelectedKey}
-            defaultInputValue={defaultInput}
+            //defaultSelectedKey={defaultSelectedKey}
+            //defaultInputValue={defaultInput}
         >
             {perfumes.map((perfume) => (
                 <AutocompleteItem key={perfume.id}  value={perfume.house + " - " + perfume.perfume}>
@@ -48,7 +48,12 @@ export default function PerfumeSelector({perfumes, defaultInput, defaultSelected
                 <Button type="submit"  formAction={wearPerfume}
                 >Spray On</Button>
             </form>
-    
+        </div>
+        <div className="flex mt-1 mb-1">
+            <form>
+                <Button type="submit"  formAction={suggest}
+                >Suggestion</Button>
+            </form>
         </div>
         <Divider className="mb-1"></Divider>
       </div>

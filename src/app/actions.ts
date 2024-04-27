@@ -1,6 +1,7 @@
 'use server';
 
 import { db } from "@/db";
+import { PerfumeWorn } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -69,6 +70,57 @@ export async function UpdatePerfume(id: number, formState: UpdatePerfumeFormStat
     revalidatePath('/');
     redirect('/');
 }
+
+export async function GetPerfumes() {
+    return await db.perfume.findMany({
+      orderBy: [
+        {
+          house: 'asc',
+        },
+        {
+          perfume: 'asc',
+        },
+      ]
+    });
+  }
+  
+  export  async function GetWorn() {
+    return await db.perfumeWorn.findMany({
+      include: {
+        perfume: true
+      },
+      orderBy: [
+        {
+          wornOn: 'desc',
+        },
+      ]
+    });
+  }
+
+export async function getSuggestion() {
+    const perfumes = (await GetPerfumes());
+    const worn = await GetWorn();
+
+    const wornPerfumes = new Set<number>;
+    worn.map((x: any) => wornPerfumes.add(x.perfumeId));
+    var list = perfumes.filter((x) => !wornPerfumes.has(x.id));
+    if (!list) {
+      let earliestWornIDs = worn.slice(-10).map(a => a.perfumeId);
+      list = perfumes.filter((x) => earliestWornIDs.includes(x.id)); 
+    }
+    const ind: number = Math.floor(Math.random() * list.length);
+    return list[ind].id;
+}
+  
+export async function compareDates( a: PerfumeWorn, b:PerfumeWorn ) {
+    if ( a.wornOn < b.wornOn ){
+      return -1;
+    }
+    if ( a.wornOn > b.wornOn ){
+      return 1;
+    }
+    return 0;
+  }
 
 export async function AddPerfume(formState: {}, formData: FormData) : Promise<UpdatePerfumeFormState> {
     try {
