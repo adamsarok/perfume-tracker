@@ -1,15 +1,17 @@
 'use client';
 
-import { Button, Input, Link } from "@nextui-org/react";
-import { Perfume } from "@prisma/client";
+import { Button, Divider, Input, Link } from "@nextui-org/react";
+import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as actions from "@/app/actions";
+import TagSelector from "./tag-selector";
 
 interface PerfumeEditFormProps {
-    perfume: Perfume
+    perfume: Perfume,
+    tags: Tag[]
 }
 
-export default function PerfumeEditForm({perfume}: PerfumeEditFormProps) {
+export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
     const [formState, action] = useFormState(actions.UpdatePerfume.bind(null, perfume.id), { errors: {} });
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
@@ -30,12 +32,17 @@ export default function PerfumeEditForm({perfume}: PerfumeEditFormProps) {
                 isInvalid={!!formState.errors.notes}
                 errorMessage={formState.errors.notes?.join(',')}
             ></Input>
-            <Button type="submit">Update Perfume</Button>
+            {/* <Input label="Tags" name="tags" defaultValue={perfume}
+                isInvalid={!!formState.errors.notes}
+                errorMessage={formState.errors.notes?.join(',')}
+            ></Input> */}
+            <Button className="mb-2 mt-2" type="submit">Update Perfume</Button>
             {formState.errors._form ? 
                 <div className="p-2 bg-red-200 border border-red-400 rounded">
                     {formState.errors._form?.join(',')}
                 </div> : null
             }
+            <TagSelector tags={tags}></TagSelector>
         </form>
     </div>
 }

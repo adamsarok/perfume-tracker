@@ -18,7 +18,15 @@ export default async function EditPerfumePage({params}: EditPerfumePageProps) {
         where: {
             id: parseInt(params.id)
         },
+        include: {
+            tags: {
+                include: {
+                    tag: true
+                }
+            }
+        }
     });
     if (!perfume) return notFound();
-    return <PerfumeEditForm perfume={perfume}></PerfumeEditForm>
+    const tags = await db.tag.findMany();
+    return <PerfumeEditForm perfume={perfume} tags={tags}></PerfumeEditForm>
 }

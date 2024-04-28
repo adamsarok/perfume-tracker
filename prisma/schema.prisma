@@ -21,6 +21,7 @@ model Perfume {
   rating Float
   notes String @default("")
   worn PerfumeWorn[]
+  tags PerfumeTag[]
 }
 
 model PerfumeWorn {
@@ -28,4 +29,19 @@ model PerfumeWorn {
   perfume Perfume @relation(fields: [perfumeId], references: [id])
   perfumeId Int
   wornOn DateTime
+}
+
+model PerfumeTag {
+  id Int @id @default(autoincrement())
+  perfume Perfume @relation(fields: [perfumeId], references: [id])
+  perfumeId Int
+  tag Tag @relation(fields: [tagId], references: [id])
+  tagId Int
+}
+
+model Tag {
+  id Int @id @default(autoincrement())
+  tag String
+  color String
+  perfumetags PerfumeTag[]
 }
