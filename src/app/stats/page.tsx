@@ -5,7 +5,9 @@ import { PerfumeWornDTO } from "@/app/actions";
 import PerfumeWornTable from "@/components/perfume-worn-table";
 import { Link, Spacer } from "@nextui-org/react";
 
-export default async function NewPerfumePage() {
+export const dynamic = 'force-dynamic'
+
+export default async function StatsPage() {
     const perfumes = await actions.GetWornPerfumes();
     const past = new Date(0);
     //console.log(past);
