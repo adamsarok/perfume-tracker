@@ -1,5 +1,3 @@
-//'use client';
-
 import *  as actions from "@/app/actions";
 import { PerfumeWornDTO } from "@/app/actions";
 import PerfumeWornTable from "@/components/perfume-worn-table";

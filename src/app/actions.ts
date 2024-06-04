@@ -23,15 +23,17 @@ interface UpdatePerfumeFormState {
     }
 }
 
-export async function UpdatePerfume(id: number, formState: UpdatePerfumeFormState, formData: FormData)
+export async function UpdatePerfume(id: number, isNsfw: boolean, formState: UpdatePerfumeFormState, formData: FormData)
     : Promise<UpdatePerfumeFormState> {
     try {
+        //console.log(isNsfw);
         const perf = perfumeSchema.safeParse({   
             house: formData.get('house'),
             perfume: formData.get('perfume'),
             rating: formData.get('rating'),
-            notes: formData.get('notes')
+            notes: formData.get('notes'),
         });
+
         if (!perf.success) {
             return {
                 errors: perf.error.flatten().fieldErrors,
@@ -52,7 +54,8 @@ export async function UpdatePerfume(id: number, formState: UpdatePerfumeFormStat
                 house: perf.data.house,
                 perfume: perf.data.perfume,
                 rating: parseFloat(perf.data.rating),
-                notes: perf.data.notes
+                notes: perf.data.notes,
+                nsfw: isNsfw
             }
         });
         console.log(result);

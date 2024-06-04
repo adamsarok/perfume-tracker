@@ -1,10 +1,11 @@
 'use client';
 
-import { Button, Divider, Input, Link } from "@nextui-org/react";
+import { Button, Checkbox, Divider, Input, Link } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as actions from "@/app/actions";
 import TagSelector from "./tag-selector";
+import { useState } from "react";
 
 interface PerfumeEditFormProps {
     perfume: Perfume,
@@ -12,10 +13,13 @@ interface PerfumeEditFormProps {
 }
 
 export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
-    const [formState, action] = useFormState(actions.UpdatePerfume.bind(null, perfume.id), { errors: {} });
+    const [isNsfw, setIsChecked] = useState(false);
+    const handleCheckboxChange = (e: any) => setIsChecked(e.target.checked);
+    const [formState, action] = useFormState(actions.UpdatePerfume.bind(null, perfume.id, isNsfw), { errors: {} });
+    console.log(perfume);
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
-        <form action={action}>
+        <form action={action} >
             <Input label="House" name="house" defaultValue={perfume.house}
                 isInvalid={!!formState.errors.house}
                 errorMessage={formState.errors.house?.join(',')}
@@ -32,10 +36,12 @@ export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
                 isInvalid={!!formState.errors.notes}
                 errorMessage={formState.errors.notes?.join(',')}
             ></Input>
-            {/* <Input label="Tags" name="tags" defaultValue={perfume}
-                isInvalid={!!formState.errors.notes}
-                errorMessage={formState.errors.notes?.join(',')}
-            ></Input> */}
+            <Checkbox name="nsfw" 
+                defaultSelected={perfume.nsfw}
+                onChange={handleCheckboxChange}
+                className="mt-1"
+            >Not Safe for Work</Checkbox>
+            <div></div>
             <Button className="mb-2 mt-2" type="submit">Update Perfume</Button>
             {formState.errors._form ? 
                 <div className="p-2 bg-red-200 border border-red-400 rounded">
