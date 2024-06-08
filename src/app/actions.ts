@@ -1,5 +1,6 @@
 'use server';
 
+import PerfumeSelector, { PerfumeSelectorDTO } from "@/components/perfume-selector";
 import { db } from "@/db";
 import { PerfumeWorn } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -74,8 +75,8 @@ export async function UpdatePerfume(id: number, isNsfw: boolean, formState: Upda
     redirect('/');
 }
 
-export async function GetPerfumes() {
-    return await db.perfume.findMany({
+export async function GetPerfumesForSelector() : Promise<PerfumeSelectorDTO[]> {
+    var perfumes = await db.perfume.findMany({
       orderBy: [
         {
           house: 'asc',
@@ -85,6 +86,24 @@ export async function GetPerfumes() {
         },
       ]
     });
+    let result: PerfumeSelectorDTO[] = perfumes.map(p => ({
+        perfume: p,
+        isSuggested: false,
+        wornOn: null
+    }));
+    const worn = await GetWorn();
+    const wornPerfumes = new Set<number>;
+    worn.map((x: any) => wornPerfumes.add(x.perfumeId));
+    let earliestWornIDs = worn.slice(-10).map(a => a.perfumeId); 
+    result.filter((x) => (!wornPerfumes.has(x.perfume.id) || earliestWornIDs.includes(x.perfume.id)) 
+            && x.perfume.rating >= 8)
+        .slice(3)
+        .forEach((p) => p.isSuggested = true);
+    result.forEach((x) => {
+        const w = worn.filter((w) => w.perfumeId == x.perfume.id);
+        if (w && w.length > 0) x.wornOn = w[0].wornOn;
+    });
+    return result;
   }
   
   export  async function GetWorn() {
@@ -100,20 +119,20 @@ export async function GetPerfumes() {
     });
   }
 
-export async function getSuggestion() {
-    const perfumes = (await GetPerfumes());
-    const worn = await GetWorn();
+// export async function getSuggestion() {
+//     const perfumes = (await GetPerfumes());
+//     const worn = await GetWorn();
 
-    const wornPerfumes = new Set<number>;
-    worn.map((x: any) => wornPerfumes.add(x.perfumeId));
-    var list = perfumes.filter((x) => !wornPerfumes.has(x.id));
-    if (!list) {
-      let earliestWornIDs = worn.slice(-10).map(a => a.perfumeId);
-      list = perfumes.filter((x) => earliestWornIDs.includes(x.id)); 
-    }
-    const ind: number = Math.floor(Math.random() * list.length);
-    return list[ind].id;
-}
+//     const wornPerfumes = new Set<number>;
+//     worn.map((x: any) => wornPerfumes.add(x.perfumeId));
+//     let earliestWornIDs = worn.slice(-10).map(a => a.perfumeId); 
+//     var list = perfumes
+//         .filter((x) => (!wornPerfumes.has(x.id) || earliestWornIDs.includes(x.id)) 
+//             && x.rating >= 8)
+//         .slice(10);
+//     //const ind: number = Math.floor(Math.random() * list.length);
+//     return list;
+// }
   
 export async function compareDates( a: PerfumeWorn, b:PerfumeWorn ) {
     if ( a.wornOn < b.wornOn ){

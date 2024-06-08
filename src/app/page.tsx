@@ -10,7 +10,7 @@ import * as actions from '@/app/actions';
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const perfumes = await actions.GetPerfumes();
+  const perfumes = await actions.GetPerfumesForSelector();
   const worn = await actions.GetWorn();
   return (
     <div >
@@ -18,7 +18,7 @@ export default async function Home() {
       <Link isBlock showAnchorIcon color="foreground" href="/stats">Stats</Link>
       <PerfumeSelector perfumes={perfumes}/>
         {worn.map((wornon) => (
-          <PerfumeCard perfume={wornon.perfume} wornOn={wornon.wornOn} id={wornon.id} avatar={null}></PerfumeCard>
+          <PerfumeCard perfume={wornon.perfume} wornOn={wornon.wornOn} id={wornon.id} avatar={null} children></PerfumeCard>
         ))}
     </div>
   );   

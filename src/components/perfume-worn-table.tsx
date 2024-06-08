@@ -52,6 +52,7 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
             <TableHeader>
                 <TableColumn key="house" allowsSorting>House</TableColumn>
                 <TableColumn key="perfume" allowsSorting>Perfume</TableColumn>
+                <TableColumn key="rating" allowsSorting>Rating</TableColumn>
                 <TableColumn key="wornTimes" allowsSorting>Worn X times</TableColumn>
                 <TableColumn key="lastWorn" allowsSorting>Last worn</TableColumn>
             </TableHeader>
@@ -60,6 +61,7 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
                     <TableRow key={perfume.perfumeId}>
                         <TableCell>{perfume.house}</TableCell>
                         <TableCell>{perfume.perfume}</TableCell>
+                        <TableCell>{perfume.rating}</TableCell>
                         <TableCell>{perfume.wornTimes}</TableCell>
                         <TableCell>{perfume.lastWorn?.toDateString()}</TableCell>
                     </TableRow>
