@@ -1,18 +1,13 @@
 'use client'
 
 import { Autocomplete, AutocompleteItem, Button, Divider, Input, Popover, PopoverContent, PopoverTrigger, Slider } from "@nextui-org/react";
-import { Perfume } from "@prisma/client";
+import { Perfume, PerfumeWorn } from "@prisma/client";
 import * as actions from "@/app/actions";
 import React, { useCallback } from "react";
 import PerfumeCard from "./perfumecard";
 
 export interface PerfumeSelectorDTO {
-    wornOn: Date | null;
-    // id: number
-    // house: string
-    // perfume: string
-    // rating: number
-    // nsfw: boolean
+    worn: PerfumeWorn | null,
     perfume: Perfume,
     isSuggested: boolean
 }
@@ -81,31 +76,25 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
                 Suggestions
                 </p>
                 <div className="mt-2 flex flex-col gap-2 w-full">
-                    <PerfumeCard children 
+                    <PerfumeCard 
                         perfume={suggested[0].perfume} 
-                        id={suggested[0].perfume.id} 
-                        wornOn={suggested[0].wornOn} 
-                        avatar={suggested[0].perfume.rating.toString()}>
+                        worn={suggested[0].worn}>
                     </PerfumeCard>
                     <form>
                         <Button type="submit" size="sm" formAction={firstSugg}>Wear</Button>
                     </form>
                     <Divider></Divider>
-                    <PerfumeCard children
-                        perfume={suggested[1].perfume}
-                        id={suggested[1].perfume.id}
-                        wornOn={suggested[1].wornOn} 
-                        avatar={suggested[1].perfume.rating.toString()}>
+                    <PerfumeCard 
+                        perfume={suggested[1].perfume} 
+                        worn={suggested[1].worn}>
                     </PerfumeCard>
                     <form>
                         <Button type="submit" size="sm" formAction={secondSugg}>Wear</Button>
                     </form>
                     <Divider></Divider>
-                    <PerfumeCard children 
-                        perfume={suggested[2].perfume} 
-                        id={suggested[2].perfume.id} 
-                        wornOn={suggested[2].wornOn} 
-                        avatar={suggested[2].perfume.rating.toString()}>
+                    <PerfumeCard 
+                        perfume={suggested[1].perfume} 
+                        worn={suggested[1].worn}>
                     </PerfumeCard>
                     <form>
                         <Button type="submit" size="sm" formAction={thirdSugg}>Wear</Button>
@@ -127,5 +116,5 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
 }
 
 function getDispName(dto: PerfumeSelectorDTO) : string {
-    return `${dto.perfume.house} - ${dto.perfume.perfume} Rating: ${dto.perfume.rating} Worn: ${dto.wornOn ? dto.wornOn : ""}`;
+    return `${dto.perfume.house} - ${dto.perfume.perfume} Rating: ${dto.perfume.rating} Worn: ${dto.worn?.wornOn ? dto.worn.wornOn : ""}`;
 }

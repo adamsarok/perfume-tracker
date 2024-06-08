@@ -38,11 +38,6 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
         },
     });
 
-    // {(item) => ( why does this fail on a date field?
-    //     <TableRow key={item.perfumeId}>
-    //         {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
-    //     </TableRow>
-    //     )}
 
     return <div>
         <Table isStriped

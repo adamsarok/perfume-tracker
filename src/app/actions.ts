@@ -89,7 +89,7 @@ export async function GetPerfumesForSelector() : Promise<PerfumeSelectorDTO[]> {
     let result: PerfumeSelectorDTO[] = perfumes.map(p => ({
         perfume: p,
         isSuggested: false,
-        wornOn: null
+        worn: null
     }));
     const worn = await GetWorn();
     const wornPerfumes = new Set<number>;
@@ -101,7 +101,7 @@ export async function GetPerfumesForSelector() : Promise<PerfumeSelectorDTO[]> {
         .forEach((p) => p.isSuggested = true);
     result.forEach((x) => {
         const w = worn.filter((w) => w.perfumeId == x.perfume.id);
-        if (w && w.length > 0) x.wornOn = w[0].wornOn;
+        if (w && w.length > 0) x.worn = w[0];
     });
     return result;
   }
@@ -196,6 +196,20 @@ export async function AddPerfume(formState: {}, formData: FormData) : Promise<Up
     }
     revalidatePath('/');
     redirect('/');
+}
+
+
+//warning todo utc
+export async function DeleteWear(id: number) {
+    console.log("Perfume add fire with ID: " + id); //replace with msg
+    if (!id) return;
+    const idNum: number = parseInt(id.toString()); //I dont get why I have to parse a number to a number...
+    await db.perfumeWorn.delete({
+        where: {
+            id
+        },
+    });
+    revalidatePath('/');
 }
 
 //warning todo utc
