@@ -96,9 +96,15 @@ export async function GetPerfumesForSelector() : Promise<PerfumeSelectorDTO[]> {
     worn.map((x: any) => wornPerfumes.add(x.perfumeId));
     let earliestWornIDs = worn.slice(-10).map(a => a.perfumeId); 
     result.filter((x) => (!wornPerfumes.has(x.perfume.id) || earliestWornIDs.includes(x.perfume.id)) 
-            && x.perfume.rating >= 8)
-        .slice(3)
+            && x.perfume.rating >= 5)
+        .sort((a, b) => b.perfume.rating - a.perfume.rating)
+        .slice(0, 3)
         .forEach((p) => p.isSuggested = true);
+
+    //todo this has to be two funcs
+    //1. get worns for front page
+    //2. get suggestions - worn should be grouped by perfume, now we got 1 perfume suggested twice
+
     result.forEach((x) => {
         const w = worn.filter((w) => w.perfumeId == x.perfume.id);
         if (w && w.length > 0) x.worn = w[0];

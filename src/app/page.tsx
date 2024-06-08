@@ -18,7 +18,7 @@ export default async function Home() {
       <Link isBlock showAnchorIcon color="foreground" href="/stats">Stats</Link>
       <PerfumeSelector perfumes={perfumes}/>
         {worn.map((wornon) => (
-          <PerfumeCard perfume={wornon.perfume} worn={wornon}></PerfumeCard>
+          <PerfumeCard perfume={wornon.perfume} worn={wornon} showDelete></PerfumeCard>
         ))}
     </div>
   );   

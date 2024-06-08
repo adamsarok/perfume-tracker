@@ -9,10 +9,11 @@ import React, { ReactNode } from "react";
 
 export interface PerfumeCardProps {
     worn: PerfumeWorn | null,
-    perfume: Perfume
+    perfume: Perfume,
+    showDelete: boolean
 }
 
-export default function PerfumeCard({worn, perfume}: PerfumeCardProps) { 
+export default function PerfumeCard({worn, perfume, showDelete}: PerfumeCardProps) { 
     if (!perfume || !perfume.perfume) return (<div></div>);
     const avatar = perfume.perfume.split(" ").length > 1 
         ? perfume.perfume.split(" ").map((x) => x[0]).slice(0,2).join("") 
@@ -27,19 +28,24 @@ export default function PerfumeCard({worn, perfume}: PerfumeCardProps) {
         {/* <Link href={`/perfumes/${perfume.id}/`}>  */}
         <Card key={worn ? worn.id : perfume.id} className="min-w-96">
                   <CardHeader>
+                  <Link href={`/perfumes/${perfume.id}/`}>
                     <Avatar className="semi-bold"
                       name={avatar} />
-                      <Link href={`/perfumes/${perfume.id}/`}>
+
                     <div className="text-small leading-none text-default-600 ml-4">
                       {perfume.house} - {perfume.perfume}
                     </div>
+                    <Avatar className="semi-bold ml-4"
+                      name={perfume.rating.toString()}
+                      color="secondary" />
                     </Link>
+                    {showDelete ? 
                     <Button color="danger" 
                           size="sm" className="absolute right-5  max-w-4"
                           onPress={() => {
                             if (worn) handlePressStart(worn.id);
                           }}
-                        >X</Button>
+                        >X</Button> : ""} 
                   </CardHeader>
                   <CardBody>
                   

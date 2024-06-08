@@ -18,6 +18,7 @@ export interface PerfumeSelectorProps {
 
 export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
     //const addWearAction = actions.AddPerfume().bind(null, snippet?.id);
+    console.log(perfumes);
     const suggested = perfumes.filter((x) => x.isSuggested);
     const [selectedKey, setSelectedKey] = React.useState(0);
 
@@ -59,15 +60,9 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
                 >Spray On</Button>
             </form>
         </div>
-        {/* <div className="flex mt-1 mb-1">
-            <form>
-                <Button type="submit"  formAction={suggest}
-                >Suggestion</Button>
-            </form>
-        </div> */}
         <Popover placement="bottom" showArrow offset={10}>
         <PopoverTrigger>
-            <Button color="primary">Suggestion</Button>
+            <Button color="primary">Suggestions</Button>
         </PopoverTrigger>
         <PopoverContent className="w-[400px]">
             {(titleProps) => (
@@ -78,7 +73,9 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
                 <div className="mt-2 flex flex-col gap-2 w-full">
                     <PerfumeCard 
                         perfume={suggested[0].perfume} 
-                        worn={suggested[0].worn}>
+                        worn={suggested[0].worn}
+                        showDelete={false}
+                        >
                     </PerfumeCard>
                     <form>
                         <Button type="submit" size="sm" formAction={firstSugg}>Wear</Button>
@@ -86,7 +83,8 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
                     <Divider></Divider>
                     <PerfumeCard 
                         perfume={suggested[1].perfume} 
-                        worn={suggested[1].worn}>
+                        worn={suggested[1].worn}
+                        showDelete={false}>
                     </PerfumeCard>
                     <form>
                         <Button type="submit" size="sm" formAction={secondSugg}>Wear</Button>
@@ -94,7 +92,8 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
                     <Divider></Divider>
                     <PerfumeCard 
                         perfume={suggested[1].perfume} 
-                        worn={suggested[1].worn}>
+                        worn={suggested[1].worn}
+                        showDelete={false}>
                     </PerfumeCard>
                     <form>
                         <Button type="submit" size="sm" formAction={thirdSugg}>Wear</Button>
