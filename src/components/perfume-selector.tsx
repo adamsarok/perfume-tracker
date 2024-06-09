@@ -5,21 +5,23 @@ import { Perfume, PerfumeWorn } from "@prisma/client";
 import * as actions from "@/app/actions";
 import React, { useCallback } from "react";
 import PerfumeCard from "./perfumecard";
+import { PerfumeWornDTO } from "@/app/actions";
 
-export interface PerfumeSelectorDTO {
-    worn: PerfumeWorn | null,
-    perfume: Perfume,
-    isSuggested: boolean
-}
+// export interface PerfumeWornDTO {
+//     worn: PerfumeWorn | null,
+//     perfume: Perfume,
+// }
 
 export interface PerfumeSelectorProps {
-    perfumes: PerfumeSelectorDTO[] 
+    perfumes: Perfume[],
+    suggested: PerfumeWornDTO[] 
 }
 
-export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
+export default function PerfumeSelector({perfumes, suggested}: PerfumeSelectorProps) {
     //const addWearAction = actions.AddPerfume().bind(null, snippet?.id);
     console.log(perfumes);
-    const suggested = perfumes.filter((x) => x.isSuggested);
+    console.log(suggested);
+    //const suggested = perfumes.filter((x) => x.isSuggested);
     const [selectedKey, setSelectedKey] = React.useState(0);
 
     const onSelectionChange = (id: any) => {
@@ -29,9 +31,9 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
     const wearPerfume = actions.WearPerfume.bind(null, selectedKey);
     //this is most likely terrible, maybe not necessary? dont want to test now
     const doNothingPromise = async (): Promise<void> => {};
-    const firstSugg = suggested.length > 0 ? actions.WearPerfume.bind(null, suggested[0].perfume.id) : doNothingPromise;
-    const secondSugg = suggested.length > 1 ? actions.WearPerfume.bind(null, suggested[1].perfume.id) : doNothingPromise;
-    const thirdSugg = suggested.length > 2 ? actions.WearPerfume.bind(null, suggested[2].perfume.id) : doNothingPromise;
+    const firstSugg = suggested && suggested.length > 0 ? actions.WearPerfume.bind(null, suggested[0].perfume.id) : doNothingPromise;
+    const secondSugg = suggested && suggested.length > 1 ? actions.WearPerfume.bind(null, suggested[1].perfume.id) : doNothingPromise;
+    const thirdSugg = suggested && suggested.length > 2 ? actions.WearPerfume.bind(null, suggested[2].perfume.id) : doNothingPromise;
 
     //TODO: place suggestion button!
     return ( <div> 
@@ -46,9 +48,9 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
             //defaultSelectedKey={defaultSelectedKey}
             //defaultInputValue={defaultInput}
         >
-            {perfumes.map((perfumeDto) => (
-                <AutocompleteItem key={perfumeDto.perfume.id}  value={perfumeDto.perfume.house + " - " + perfumeDto.perfume.perfume}>
-                    {perfumeDto.perfume.house + " - " + perfumeDto.perfume.perfume}
+            {perfumes.map((perfume) => (
+                <AutocompleteItem key={perfume.id}  value={perfume.house + " - " + perfume.perfume}>
+                    {perfume.house + " - " + perfume.perfume}
                     
                 </AutocompleteItem>
             ))}
@@ -73,8 +75,9 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
                 <div className="mt-2 flex flex-col gap-2 w-full">
                     <PerfumeCard 
                         perfume={suggested[0].perfume} 
-                        worn={suggested[0].worn}
-                        showDelete={false}
+                        wornCount={suggested[0].wornTimes}
+                        wornOn={suggested[0].lastWorn}
+                        wornId={undefined}
                         >
                     </PerfumeCard>
                     <form>
@@ -83,17 +86,21 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
                     <Divider></Divider>
                     <PerfumeCard 
                         perfume={suggested[1].perfume} 
-                        worn={suggested[1].worn}
-                        showDelete={false}>
+                        wornCount={suggested[1].wornTimes}
+                        wornOn={suggested[1].lastWorn}
+                        wornId={undefined}
+                    >
                     </PerfumeCard>
                     <form>
                         <Button type="submit" size="sm" formAction={secondSugg}>Wear</Button>
                     </form>
                     <Divider></Divider>
                     <PerfumeCard 
-                        perfume={suggested[1].perfume} 
-                        worn={suggested[1].worn}
-                        showDelete={false}>
+                         perfume={suggested[2].perfume} 
+                         wornCount={suggested[2].wornTimes}
+                         wornOn={suggested[2].lastWorn}
+                         wornId={undefined}
+                    >
                     </PerfumeCard>
                     <form>
                         <Button type="submit" size="sm" formAction={thirdSugg}>Wear</Button>
@@ -112,8 +119,4 @@ export default function PerfumeSelector({perfumes}: PerfumeSelectorProps) {
       </div>
       
       );
-}
-
-function getDispName(dto: PerfumeSelectorDTO) : string {
-    return `${dto.perfume.house} - ${dto.perfume.perfume} Rating: ${dto.perfume.rating} Worn: ${dto.worn?.wornOn ? dto.worn.wornOn : ""}`;
 }

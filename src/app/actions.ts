@@ -1,8 +1,7 @@
 'use server';
 
-import PerfumeSelector, { PerfumeSelectorDTO } from "@/components/perfume-selector";
 import { db } from "@/db";
-import { PerfumeWorn } from "@prisma/client";
+import { Perfume, PerfumeWorn } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -11,7 +10,8 @@ const perfumeSchema = z.object({
     house: z.string().min(1),
     perfume: z.string().min(1),
     rating: z.string().min(1),
-    notes: z.string().min(3)
+    notes: z.string().min(3),
+    ml: z.string().min(1),
 })
 
 interface UpdatePerfumeFormState {
@@ -20,6 +20,7 @@ interface UpdatePerfumeFormState {
         perfume?: string[];
         rating?: string[];
         notes?: string[];
+        ml?: string[];
         _form?: string[];
     }
 }
@@ -33,6 +34,7 @@ export async function UpdatePerfume(id: number, isNsfw: boolean, formState: Upda
             perfume: formData.get('perfume'),
             rating: formData.get('rating'),
             notes: formData.get('notes'),
+            ml: formData.get('ml'),
         });
 
         if (!perf.success) {
@@ -56,7 +58,8 @@ export async function UpdatePerfume(id: number, isNsfw: boolean, formState: Upda
                 perfume: perf.data.perfume,
                 rating: parseFloat(perf.data.rating),
                 notes: perf.data.notes,
-                nsfw: isNsfw
+                nsfw: isNsfw,
+                ml: parseInt(perf.data.ml),
             }
         });
         console.log(result);
@@ -75,8 +78,8 @@ export async function UpdatePerfume(id: number, isNsfw: boolean, formState: Upda
     redirect('/');
 }
 
-export async function GetPerfumesForSelector() : Promise<PerfumeSelectorDTO[]> {
-    var perfumes = await db.perfume.findMany({
+export async function GetPerfumesForSelector() : Promise<Perfume[]> {
+    return await db.perfume.findMany({
       orderBy: [
         {
           house: 'asc',
@@ -86,31 +89,22 @@ export async function GetPerfumesForSelector() : Promise<PerfumeSelectorDTO[]> {
         },
       ]
     });
-    let result: PerfumeSelectorDTO[] = perfumes.map(p => ({
-        perfume: p,
-        isSuggested: false,
-        worn: null
-    }));
-    const worn = await GetWorn();
-    const wornPerfumes = new Set<number>;
-    worn.map((x: any) => wornPerfumes.add(x.perfumeId));
-    let earliestWornIDs = worn.slice(-10).map(a => a.perfumeId); 
-    result.filter((x) => (!wornPerfumes.has(x.perfume.id) || earliestWornIDs.includes(x.perfume.id)) 
-            && x.perfume.rating >= 5)
-        .sort((a, b) => b.perfume.rating - a.perfume.rating)
+}
+
+export async function GetPerfumesForSuggestion() : Promise<PerfumeWornDTO[]> {
+    const worn = await GetAllPerfumesWithWearCount();
+    const sugg = worn.filter(x => x.perfume.rating >= 8 && x.perfume.ml > 0)
+        .sort((a, b) => (a.wornTimes ?? 0) - (b.wornTimes ?? 0))
         .slice(0, 3)
-        .forEach((p) => p.isSuggested = true);
-
-    //todo this has to be two funcs
-    //1. get worns for front page
-    //2. get suggestions - worn should be grouped by perfume, now we got 1 perfume suggested twice
-
-    result.forEach((x) => {
-        const w = worn.filter((w) => w.perfumeId == x.perfume.id);
-        if (w && w.length > 0) x.worn = w[0];
-    });
-    return result;
+    return sugg;
   }
+
+//   function shuffleArray(array) {
+//     for (let i = array.length - 1; i > 0; i--) {
+//         const j = Math.floor(Math.random() * (i + 1));
+//         [array[i], array[j]] = [array[j], array[i]];
+//     }
+//    }
   
   export  async function GetWorn() {
     return await db.perfumeWorn.findMany({
@@ -125,20 +119,7 @@ export async function GetPerfumesForSelector() : Promise<PerfumeSelectorDTO[]> {
     });
   }
 
-// export async function getSuggestion() {
-//     const perfumes = (await GetPerfumes());
-//     const worn = await GetWorn();
 
-//     const wornPerfumes = new Set<number>;
-//     worn.map((x: any) => wornPerfumes.add(x.perfumeId));
-//     let earliestWornIDs = worn.slice(-10).map(a => a.perfumeId); 
-//     var list = perfumes
-//         .filter((x) => (!wornPerfumes.has(x.id) || earliestWornIDs.includes(x.id)) 
-//             && x.rating >= 8)
-//         .slice(10);
-//     //const ind: number = Math.floor(Math.random() * list.length);
-//     return list;
-// }
   
 export async function compareDates( a: PerfumeWorn, b:PerfumeWorn ) {
     if ( a.wornOn < b.wornOn ){
@@ -254,15 +235,12 @@ export async function WearPerfume(id: number) {
 }
 
 export interface PerfumeWornDTO {
-    perfumeId: number,
-    house: string,
-    perfume: string,
-    rating: number,
+    perfume: Perfume,
     wornTimes: number | undefined,
     lastWorn: Date | undefined,
 }
 
-export async function GetWornPerfumes(): Promise<PerfumeWornDTO[]> {
+export async function GetAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
     const worn = await db.perfumeWorn.groupBy({
       by: ['perfumeId'],
       _count: {
@@ -276,10 +254,7 @@ export async function GetWornPerfumes(): Promise<PerfumeWornDTO[]> {
     var m = new Map();
     perfumes.forEach(function(x) {
         let dto: PerfumeWornDTO = { 
-            perfumeId: x.id,
-            house: x.house,
-            perfume: x.perfume,
-            rating: x.rating,
+            perfume: x,
             wornTimes: undefined,
             lastWorn: undefined
         }

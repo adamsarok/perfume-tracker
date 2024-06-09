@@ -6,7 +6,7 @@ import { Link, Spacer } from "@nextui-org/react";
 export const dynamic = 'force-dynamic'
 
 export default async function StatsPage() {
-    const perfumes = await actions.GetWornPerfumes();
+    const perfumes = await actions.GetAllPerfumesWithWearCount();
     const past = new Date(0);
     //console.log(past);
     perfumes.sort((a, b) => {

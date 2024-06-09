@@ -4,16 +4,18 @@ import { Card, CardHeader, CardBody, Avatar, divider, Button, Link } from "@next
 import { Perfume, PerfumeWorn } from "@prisma/client";
 import * as actions from "@/app/actions";
 import React, { ReactNode } from "react";
+import { string } from "zod";
 
 // export const dynamic = 'force-dynamic'
 
 export interface PerfumeCardProps {
-    worn: PerfumeWorn | null,
+    wornId: number | undefined,
+    wornOn: Date | undefined,
+    wornCount: number | undefined
     perfume: Perfume,
-    showDelete: boolean
 }
 
-export default function PerfumeCard({worn, perfume, showDelete}: PerfumeCardProps) { 
+export default function PerfumeCard({wornId, wornOn, wornCount, perfume}: PerfumeCardProps) { 
     if (!perfume || !perfume.perfume) return (<div></div>);
     const avatar = perfume.perfume.split(" ").length > 1 
         ? perfume.perfume.split(" ").map((x) => x[0]).slice(0,2).join("") 
@@ -26,7 +28,7 @@ export default function PerfumeCard({worn, perfume, showDelete}: PerfumeCardProp
     return (
       <form>
         {/* <Link href={`/perfumes/${perfume.id}/`}>  */}
-        <Card key={worn ? worn.id : perfume.id} className="min-w-96">
+        <Card key={wornId ? wornId : perfume.id} className="min-w-96">
                   <CardHeader>
                   <Link href={`/perfumes/${perfume.id}/`}>
                     <Avatar className="semi-bold"
@@ -39,18 +41,18 @@ export default function PerfumeCard({worn, perfume, showDelete}: PerfumeCardProp
                       name={perfume.rating.toString()}
                       color="secondary" />
                     </Link>
-                    {showDelete ? 
+                    {wornId ? 
                     <Button color="danger" 
                           size="sm" className="absolute right-5  max-w-4"
                           onPress={() => {
-                            if (worn) handlePressStart(worn.id);
+                            handlePressStart(wornId);
                           }}
                         >X</Button> : ""} 
                   </CardHeader>
                   <CardBody>
                   
                       <p className="text-small tracking-tight text-default-400">
-                        {"Last worn: " + (worn?.wornOn ? worn.wornOn.toDateString() : "Never")}
+                        {getWornStr(wornOn, wornCount)}
                       </p>
 
                   </CardBody>
@@ -58,4 +60,10 @@ export default function PerfumeCard({worn, perfume, showDelete}: PerfumeCardProp
         {/* </Link> */}
       </form>
     );
+  }
+
+  function getWornStr(wornOn: Date | undefined, wornCount: number | undefined): string {
+    if (wornOn && wornCount) return `Worn ${wornCount} times, last: ${wornOn.toDateString()}`;
+    if (wornOn) return `Worn on: ${wornOn.toDateString()}`;
+    return 'Never worn';
   }

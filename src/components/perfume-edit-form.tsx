@@ -32,6 +32,10 @@ export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
                 isInvalid={!!formState.errors.rating}
                 errorMessage={formState.errors.rating?.join(',')}
                 ></Input>
+            <Input label="Amount (ml)" name="ml" defaultValue={perfume.ml.toString()}
+                isInvalid={!!formState.errors.ml}
+                errorMessage={formState.errors.ml?.join(',')}
+            ></Input>
             <Input label="Notes" name="notes" defaultValue={perfume.notes}
                 isInvalid={!!formState.errors.notes}
                 errorMessage={formState.errors.notes?.join(',')}

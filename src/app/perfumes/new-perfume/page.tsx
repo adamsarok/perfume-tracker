@@ -22,6 +22,10 @@ export default function NewPerfumePage() {
                 isInvalid={!!formState.errors.rating}
                 errorMessage={formState.errors.rating?.join(',')}
             >Rating</Input>
+            <Input label="Amount (ml)" name="ml"
+                isInvalid={!!formState.errors.ml}
+                errorMessage={formState.errors.ml?.join(',')}
+            ></Input>
             <Input label="Notes" name="notes"
                 isInvalid={!!formState.errors.notes}
                 errorMessage={formState.errors.notes?.join(',')}

@@ -53,10 +53,10 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
             </TableHeader>
             <TableBody items={list.items as PerfumeWornDTO[]}>
                 {(perfume: PerfumeWornDTO) => (
-                    <TableRow key={perfume.perfumeId}>
-                        <TableCell>{perfume.house}</TableCell>
-                        <TableCell>{perfume.perfume}</TableCell>
-                        <TableCell>{perfume.rating}</TableCell>
+                    <TableRow key={perfume.perfume.id}>
+                        <TableCell>{perfume.perfume.house}</TableCell>
+                        <TableCell>{perfume.perfume.perfume}</TableCell>
+                        <TableCell>{perfume.perfume.rating}</TableCell>
                         <TableCell>{perfume.wornTimes}</TableCell>
                         <TableCell>{perfume.lastWorn?.toDateString()}</TableCell>
                     </TableRow>

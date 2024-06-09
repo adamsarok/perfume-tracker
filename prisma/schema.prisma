@@ -21,6 +21,7 @@ model Perfume {
   rating Float
   notes String @default("")
   nsfw Boolean @default(false)
+  ml Int @default(2)
   worn PerfumeWorn[]
   tags PerfumeTag[]
 }
