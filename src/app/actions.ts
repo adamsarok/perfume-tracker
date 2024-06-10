@@ -25,10 +25,9 @@ interface UpdatePerfumeFormState {
     }
 }
 
-export async function UpdatePerfume(id: number, isNsfw: boolean, formState: UpdatePerfumeFormState, formData: FormData)
+export async function UsertPerfume(id: number | null, isNsfw: boolean, formState: UpdatePerfumeFormState, formData: FormData)
     : Promise<UpdatePerfumeFormState> {
     try {
-        //console.log(isNsfw);
         const perf = perfumeSchema.safeParse({   
             house: formData.get('house'),
             perfume: formData.get('perfume'),
@@ -48,21 +47,33 @@ export async function UpdatePerfume(id: number, isNsfw: boolean, formState: Upda
                 errors: { rating: [ 'Not a valid rating' ]}
             }
         }
-  
-        const result = await db.perfume.update({
-            where: {
-                id: id
-            },
-            data: {
-                house: perf.data.house,
-                perfume: perf.data.perfume,
-                rating: parseFloat(perf.data.rating),
-                notes: perf.data.notes,
-                nsfw: isNsfw,
-                ml: parseInt(perf.data.ml),
-            }
-        });
-        console.log(result);
+        if (id) {
+            const result = await db.perfume.update({
+                where: {
+                    id: id
+                },
+                data: {
+                    house: perf.data.house,
+                    perfume: perf.data.perfume,
+                    rating: parseFloat(perf.data.rating),
+                    notes: perf.data.notes,
+                    nsfw: isNsfw,
+                    ml: parseInt(perf.data.ml),
+                }
+            });
+        } else {
+            const result = await db.perfume.create({
+                data: {
+                    house: perf.data.house,
+                    perfume: perf.data.perfume,
+                    rating: parseFloat(perf.data.rating),
+                    notes: perf.data.notes,
+                    nsfw: isNsfw,
+                    ml: parseInt(perf.data.ml),
+                }
+            });
+        }
+
     } catch (err: unknown) {
         if (err instanceof Error) {
             return {
@@ -130,60 +141,6 @@ export async function compareDates( a: PerfumeWorn, b:PerfumeWorn ) {
     }
     return 0;
   }
-
-export async function AddPerfume(formState: {}, formData: FormData) : Promise<UpdatePerfumeFormState> {
-    try {
-        const perf = perfumeSchema.safeParse({
-            house: formData.get('house'),
-            perfume: formData.get('perfume'),
-            rating: formData.get('rating'),
-            notes: formData.get('notes') 
-        });
-        if (!perf.success) {
-            return {
-                errors: perf.error.flatten().fieldErrors,
-            }
-        }
-        if (!parseFloat(perf.data.rating)) {
-            console.log('Not a valid rating');
-            return {
-                errors: { rating: [ 'Not a valid rating' ]}
-            }
-        }
-       
-        var exists = await db.perfume.findFirst({
-            where: {
-                house: perf.data.house,
-                perfume: perf.data.perfume
-            }
-        });
-        if (exists) {
-            return {
-                errors: { rating: [ 'Perfume already added' ]}
-            }
-        };
-        await db.perfume.create({
-            data: {
-                house: perf.data.house,
-                perfume: perf.data.perfume,
-                rating: parseInt(perf.data.rating),
-                notes: perf.data.notes
-            }
-        });
-    } catch (err: unknown) {
-        if (err instanceof Error) {
-            return {
-                errors: { _form: [ err.message ] }
-            };
-        } else {
-            return {
-                errors: { _form: [ 'Unknown error occured' ] }
-            };
-        }
-    }
-    revalidatePath('/');
-    redirect('/');
-}
 
 
 //warning todo utc
