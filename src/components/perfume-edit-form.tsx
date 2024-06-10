@@ -8,40 +8,42 @@ import TagSelector from "./tag-selector";
 import { useState } from "react";
 
 interface PerfumeEditFormProps {
-    perfume: Perfume,
+    perfume: Perfume | null,
     tags: Tag[]
 }
 
 export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
     const [isNsfw, setIsChecked] = useState(false);
     const handleCheckboxChange = (e: any) => setIsChecked(e.target.checked);
-    const [formState, action] = useFormState(actions.UpdatePerfume.bind(null, perfume.id, isNsfw), { errors: {} });
+    const [formState, action] = useFormState(
+        actions.UsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw) 
+        , { errors: {} });
     console.log(perfume);
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
         <form action={action} >
-            <Input label="House" name="house" defaultValue={perfume.house}
+            <Input label="House" name="house" defaultValue={perfume?.house}
                 isInvalid={!!formState.errors.house}
                 errorMessage={formState.errors.house?.join(',')}
             ></Input>
-            <Input label="Perfume" name="perfume" defaultValue={perfume.perfume}
+            <Input label="Perfume" name="perfume" defaultValue={perfume?.perfume}
                 isInvalid={!!formState.errors.perfume}
                 errorMessage={formState.errors.perfume?.join(',')}
                 ></Input>
-            <Input label="Rating" name="rating" defaultValue={perfume.rating.toString()}
+            <Input label="Rating" name="rating" defaultValue={perfume?.rating.toString()}
                 isInvalid={!!formState.errors.rating}
                 errorMessage={formState.errors.rating?.join(',')}
                 ></Input>
-            <Input label="Amount (ml)" name="ml" defaultValue={perfume.ml.toString()}
+            <Input label="Amount (ml)" name="ml" defaultValue={perfume?.ml.toString()}
                 isInvalid={!!formState.errors.ml}
                 errorMessage={formState.errors.ml?.join(',')}
             ></Input>
-            <Input label="Notes" name="notes" defaultValue={perfume.notes}
+            <Input label="Notes" name="notes" defaultValue={perfume?.notes}
                 isInvalid={!!formState.errors.notes}
                 errorMessage={formState.errors.notes?.join(',')}
             ></Input>
             <Checkbox name="nsfw" 
-                defaultSelected={perfume.nsfw}
+                defaultSelected={perfume?.nsfw}
                 onChange={handleCheckboxChange}
                 className="mt-1"
             >Not Safe for Work</Checkbox>
