@@ -207,6 +207,19 @@ export async function GetAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
         wornOn: true
       }
     });
+    // let whereClause: any;
+    // if (filterGood) {
+    //     whereClause = { 
+    //         where: {
+    //             rating: {
+    //                 gte: 8
+    //             },
+    //             ml: {
+    //                 gt: 0
+    //             }
+    //         }
+    //     };
+    // } else whereClause = {};
     const perfumes = await db.perfume.findMany();
     var m = new Map();
     perfumes.forEach(function(x) {

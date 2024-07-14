@@ -1,18 +1,30 @@
 'use client';
 
 import { PerfumeWornDTO } from "@/app/actions";
-import {  Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, getKeyValue } from "@nextui-org/react";
+import {  Checkbox, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, getKeyValue } from "@nextui-org/react";
 import { useState } from "react";
 import {useAsyncList} from "@react-stately/data";
+import React from "react";
 
 export interface PerfumeWornTableProps {
     perfumes: PerfumeWornDTO[]
 }
 export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
+    const [isSelected, setIsSelected] = React.useState(true);
+    const handleCheckboxChange = (newValue: boolean) => {
+      setIsSelected(newValue);
+      
+      //TODO: how to I reload the table?
+      //perfumes = await actions.GetAllPerfumesWithWearCount(isSelected);
+    }
+
+    
     let list = useAsyncList({
         async load({signal}) {
             return {
-                items: perfumes,
+                items: (isSelected ? 
+                    perfumes.filter((x) => x.perfume.rating >=8 && x.perfume.ml > 0) : 
+                    perfumes)
             };
         },
         async sort({items, sortDescriptor}: {items: Array<any>, sortDescriptor: any}) {
@@ -40,6 +52,9 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
 
 
     return <div>
+        <Checkbox isSelected={isSelected} onValueChange={setIsSelected}>
+            Show only good stuff
+        </Checkbox>
         <Table isStriped
             sortDescriptor={list.sortDescriptor}
             onSortChange={list.sort}

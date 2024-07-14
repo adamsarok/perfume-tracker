@@ -1,7 +1,7 @@
 import *  as actions from "@/app/actions";
 import { PerfumeWornDTO } from "@/app/actions";
 import PerfumeWornTable from "@/components/perfume-worn-table";
-import { Link, Spacer } from "@nextui-org/react";
+import { Checkbox, Link, Spacer } from "@nextui-org/react";
 
 export const dynamic = 'force-dynamic'
 
