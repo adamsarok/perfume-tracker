@@ -1,22 +1,28 @@
 import *  as actions from "@/app/actions";
 import { PerfumeWornDTO } from "@/app/actions";
 import PerfumeWornTable from "@/components/perfume-worn-table";
-import { Checkbox, Link, Spacer } from "@nextui-org/react";
+import { Card, CardBody, CardFooter, CardHeader, Divider } from "@nextui-org/react";
 
 export const dynamic = 'force-dynamic'
 
 export default async function StatsPage() {
-    const perfumes = await actions.GetAllPerfumesWithWearCount();
-    const past = new Date(0);
-    //console.log(past);
-    perfumes.sort((a, b) => {
-        let dateA = a.lastWorn ? a.lastWorn : past;
-        let dateB = b.lastWorn ? b.lastWorn : past;
-        return dateB.getTime() - dateA.getTime();
-      });
+    const ml = await actions.GetTotalMls();
     return <div>
-      <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
-      <Spacer></Spacer>
-      <PerfumeWornTable perfumes={perfumes}></PerfumeWornTable>
+        <Card className="max-w-[400px]">
+        <CardHeader className="flex gap-3">
+            <div className="flex flex-col">
+            <p className="text-md">Total Mls:</p>
+            <p className="text-small text-default-500">{ml}</p>
+            </div>
+        </CardHeader>
+        <Divider/>
+        <CardBody>
+            <p>TODO: split on category?</p>
+        </CardBody>
+        <Divider/>
+        <CardFooter>
+           
+        </CardFooter>
+    </Card>
     </div>
 }

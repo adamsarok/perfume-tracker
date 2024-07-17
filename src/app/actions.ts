@@ -25,6 +25,15 @@ interface UpdatePerfumeFormState {
     }
 }
 
+export async function GetTotalMls() : Promise<number> {
+    const res = await db.perfume.aggregate({
+        _sum: {
+            ml: true
+        }
+    });
+    return res._sum.ml ?? 0;
+}
+
 export async function UsertPerfume(id: number | null, isNsfw: boolean, formState: UpdatePerfumeFormState, formData: FormData)
     : Promise<UpdatePerfumeFormState> {
     try {

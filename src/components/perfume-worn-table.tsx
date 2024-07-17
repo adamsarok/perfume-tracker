@@ -1,7 +1,7 @@
 'use client';
 
 import { PerfumeWornDTO } from "@/app/actions";
-import {  Checkbox, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, getKeyValue } from "@nextui-org/react";
+import {  Checkbox, Divider, Link, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, getKeyValue } from "@nextui-org/react";
 import { useState } from "react";
 import {useAsyncList} from "@react-stately/data";
 import React from "react";
@@ -55,6 +55,7 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
         <Checkbox isSelected={isSelected} onValueChange={setIsSelected}>
             Show only good stuff
         </Checkbox>
+        <Divider></Divider>
         <Table isStriped
             sortDescriptor={list.sortDescriptor}
             onSortChange={list.sort}
@@ -68,13 +69,15 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
             </TableHeader>
             <TableBody items={list.items as PerfumeWornDTO[]}>
                 {(perfume: PerfumeWornDTO) => (
-                    <TableRow key={perfume.perfume.id}>
-                        <TableCell>{perfume.perfume.house}</TableCell>
-                        <TableCell>{perfume.perfume.perfume}</TableCell>
-                        <TableCell>{perfume.perfume.rating}</TableCell>
-                        <TableCell>{perfume.wornTimes}</TableCell>
-                        <TableCell>{perfume.lastWorn?.toDateString()}</TableCell>
-                    </TableRow>
+    
+                        <TableRow key={perfume.perfume.id} href={`/perfumes/${perfume.perfume.id}/`}>
+                        
+                            <TableCell>{perfume.perfume.house}</TableCell>
+                            <TableCell>{perfume.perfume.perfume}</TableCell>
+                            <TableCell>{perfume.perfume.rating}</TableCell>
+                            <TableCell>{perfume.wornTimes}</TableCell>
+                            <TableCell>{perfume.lastWorn?.toDateString()}</TableCell>
+                        </TableRow>
                 )}
             </TableBody>
         </Table>

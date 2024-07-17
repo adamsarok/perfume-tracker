@@ -16,6 +16,7 @@ export default async function Home() {
   return (
     <div >
       <Link isBlock showAnchorIcon color="foreground" href="/perfumes/new-perfume">New Perfume</Link>
+      <Link isBlock showAnchorIcon color="foreground" href="/worn-list">Worn List</Link>
       <Link isBlock showAnchorIcon color="foreground" href="/stats">Stats</Link>
       <PerfumeSelector perfumes={perfumes} suggested={suggested}/>
         {worn.map((wornon) => (
