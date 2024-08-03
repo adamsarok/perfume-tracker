@@ -1,0 +1,32 @@
+.chipRed {
+    background-color: #ff6961;
+    color: white;
+  }
+  
+  .chipBlue {
+    background-color: #aec6cf;
+    color: white;
+  }
+  
+  .chipGreen {
+    background-color: #77dd77;
+    color: white;
+  }
+  
+  .chipYellow {
+    background-color: #fdfd96;
+    color: black;
+  }
+  
+  .chipContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .chipItem {
+    cursor: pointer;
+    padding: 5px;
+  }
+

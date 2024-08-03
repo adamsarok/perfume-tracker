@@ -6,6 +6,7 @@ import { useFormState } from "react-dom";
 import * as actions from "@/app/actions";
 import TagSelector from "./tag-selector";
 import { useState } from "react";
+import ChipClouds, { ChipCloudProps, ChipProp } from "./chip-clouds";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -19,6 +20,11 @@ export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
         actions.UsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw) 
         , { errors: {} });
     console.log(perfume);
+    const topChipProps: ChipProp[] = [
+        { id: 1, label: 'red' },
+        { id: 2, label: 'green' }
+    ];
+    const bottomChipProps: ChipProp[] = []; 
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
         <form action={action} >
@@ -55,6 +61,7 @@ export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
                 </div> : null
             }
             <TagSelector tags={tags}></TagSelector>
+            <ChipClouds bottomChipProps={bottomChipProps} topChipProps={topChipProps}></ChipClouds>
         </form>
     </div>
 }
