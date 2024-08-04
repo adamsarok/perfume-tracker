@@ -4,7 +4,7 @@
   }
   
   .chipBlue {
-    background-color: #aec6cf;
+    background-color: #000ecf;
     color: white;
   }
   
@@ -17,16 +17,25 @@
     background-color: #fdfd96;
     color: black;
   }
+
+  .chipBlack {
+    background-color: #000000;
+    color: white;
+  }
+  
   
   .chipContainer {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 20px;
+    min-height: 50px;
+    background-color: #F4F4F5;
   }
   
   .chipItem {
     cursor: pointer;
     padding: 5px;
+    font-size: large;
   }
 

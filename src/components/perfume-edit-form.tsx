@@ -4,27 +4,41 @@ import { Button, Checkbox, Divider, Input, Link } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as actions from "@/app/actions";
-import TagSelector from "./tag-selector";
 import { useState } from "react";
 import ChipClouds, { ChipCloudProps, ChipProp } from "./chip-clouds";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
+    allTags: Tag[],
     tags: Tag[]
 }
 
-export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
+export default function PerfumeEditForm({perfume, tags, allTags}: PerfumeEditFormProps) {
     const [isNsfw, setIsChecked] = useState(false);
     const handleCheckboxChange = (e: any) => setIsChecked(e.target.checked);
     const [formState, action] = useFormState(
-        actions.UsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw) 
+        actions.UsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw, tags) 
         , { errors: {} });
-    console.log(perfume);
-    const topChipProps: ChipProp[] = [
-        { id: 1, label: 'red' },
-        { id: 2, label: 'green' }
-    ];
-    const bottomChipProps: ChipProp[] = []; 
+    var topChipProps: ChipProp[] = [];
+    var bottomChipProps: ChipProp[] = [];
+    allTags.map(x => {
+        bottomChipProps.push({
+            name: x.tag,
+            color: x.color
+        })
+    });
+    tags.map(x => {
+        topChipProps.push({
+            name: x.tag,
+            color: x.color
+        })
+    });
+    const selectChip = (chip: string) => {
+        console.log('selected' + chip)
+    };
+    const unSelectChip = (chip: string) => {
+        console.log('unselected' + chip)
+    };
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
         <form action={action} >
@@ -60,8 +74,7 @@ export default function PerfumeEditForm({perfume, tags}: PerfumeEditFormProps) {
                     {formState.errors._form?.join(',')}
                 </div> : null
             }
-            <TagSelector tags={tags}></TagSelector>
-            <ChipClouds bottomChipProps={bottomChipProps} topChipProps={topChipProps}></ChipClouds>
+            <ChipClouds bottomChipProps={bottomChipProps} topChipProps={topChipProps} selectChip={selectChip} unSelectChip={unSelectChip}></ChipClouds>
         </form>
     </div>
 }

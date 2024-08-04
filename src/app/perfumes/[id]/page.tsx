@@ -28,5 +28,5 @@ export default async function EditPerfumePage({params}: EditPerfumePageProps) {
     });
     if (!perfume) return notFound();
     const tags = await db.tag.findMany();
-    return <PerfumeEditForm perfume={perfume} tags={tags}></PerfumeEditForm>
+    return <PerfumeEditForm perfume={perfume} tags={perfume.tags} allTags={tags}></PerfumeEditForm>
 }

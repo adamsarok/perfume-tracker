@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from "@/db";
-import { Perfume, PerfumeWorn } from "@prisma/client";
+import { Perfume, PerfumeWorn, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -34,7 +34,7 @@ export async function GetTotalMls() : Promise<number> {
     return res._sum.ml ?? 0;
 }
 
-export async function UsertPerfume(id: number | null, isNsfw: boolean, formState: UpdatePerfumeFormState, formData: FormData)
+export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
     : Promise<UpdatePerfumeFormState> {
     try {
         const perf = perfumeSchema.safeParse({   
