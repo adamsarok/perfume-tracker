@@ -24,25 +24,25 @@ export default function ChipClouds({topChipProps, bottomChipProps, selectChip, u
     const handleTopChipClick = (chip: ChipProp) => {
         setTopChips(topChips.filter(x => x.name !== chip.name));
         setBottomChips([...bottomChips, chip]);
-        selectChip(chip.name);
+        unSelectChip(chip.name);
     }
     const handleBottomChipClick = (chip: ChipProp) => {
         setTopChips([...topChips, chip]);
         setBottomChips(bottomChips.filter(x => x.name !== chip.name));
-        unSelectChip(chip.name);
+        selectChip(chip.name);
     }
-    console.log(bottomChipProps);
-    // const 
-    //const test = styles.chip-container;
-    //todo there HAS to be a better way
     const getColor = (color: string) => {
         switch (color) {
             case "Red": return styles.chipRed;
             case "Blue": return styles.chipBlue;
             case "Black": return styles.chipBlack;
+            case "Orange": return styles.chipOrange;
+            case "Yellow": return styles.chipYellow;
+            case "Brown": return styles.chipBrown;
+            case "DarkBrown": return styles.chipDarkBrown;
+            case "Pink": return styles.chipPink;
         }
     }
-
     return (<div>
         Tags: 
         <div className={styles.chipContainer}>
@@ -53,8 +53,8 @@ export default function ChipClouds({topChipProps, bottomChipProps, selectChip, u
                     >New Tag</Chip>
             </div> */}
             {topChips.map(c => (
-                <div className={styles.chipItem}>
-                    <Chip key={c.name}
+                <div key={c.name} className={styles.chipItem}>
+                    <Chip //key={c.name}
                         className={getColor(c.color)}
                         onClick={() => handleTopChipClick(c)}>
                         {c.name}
@@ -65,8 +65,8 @@ export default function ChipClouds({topChipProps, bottomChipProps, selectChip, u
         Available tags:
         <div className={styles.chipContainer}>
         {bottomChips.map(c => (
-            <div className={styles.chipItem}>
-            <Chip key={c.name}
+            <div key={c.name} className={styles.chipItem}>
+            <Chip //key={c.name}
                 className={getColor(c.color)}
                 onClick={() => handleBottomChipClick(c)}>
                     {c.name}

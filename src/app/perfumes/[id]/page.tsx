@@ -6,6 +6,7 @@ import *  as actions from "@/app/actions";
 import PerfumeEditForm from "@/components/perfume-edit-form";
 import { db } from "@/db";
 import { notFound } from "next/navigation";
+import { Tag } from "@prisma/client";
 
 interface EditPerfumePageProps {
     params: {
@@ -26,7 +27,16 @@ export default async function EditPerfumePage({params}: EditPerfumePageProps) {
             }
         }
     });
+    console.log(perfume);
     if (!perfume) return notFound();
-    const tags = await db.tag.findMany();
-    return <PerfumeEditForm perfume={perfume} tags={perfume.tags} allTags={tags}></PerfumeEditForm>
+    var allTags = await db.tag.findMany();
+    var tags: Tag[] = [];
+    perfume.tags.map(x => {
+        tags.push({
+            tag: x.tag.tag,
+            color: x.tag.color
+        })
+    });
+    //allTags = allTags.filter(allTag => !tags.some(tag => tag.tag === allTag.tag));
+    return <PerfumeEditForm perfume={perfume} tags={tags} allTags={allTags}></PerfumeEditForm>
 }

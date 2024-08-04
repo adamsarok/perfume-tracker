@@ -21,11 +21,13 @@ export default function PerfumeEditForm({perfume, tags, allTags}: PerfumeEditFor
         , { errors: {} });
     var topChipProps: ChipProp[] = [];
     var bottomChipProps: ChipProp[] = [];
-    allTags.map(x => {
-        bottomChipProps.push({
-            name: x.tag,
-            color: x.color
-        })
+    allTags.map(allTag => {
+        if (!tags.some(tag => tag.tag === allTag.tag)) {
+            bottomChipProps.push({
+                name: allTag.tag,
+                color: allTag.color
+            })
+        }
     });
     tags.map(x => {
         topChipProps.push({
@@ -33,11 +35,13 @@ export default function PerfumeEditForm({perfume, tags, allTags}: PerfumeEditFor
             color: x.color
         })
     });
+    console.log(tags);
     const selectChip = (chip: string) => {
-        console.log('selected' + chip)
+        const tag = allTags.find(x => x.tag == chip);
+        if (tag) tags.push(tag);
     };
     const unSelectChip = (chip: string) => {
-        console.log('unselected' + chip)
+        tags = tags.filter(x => x.tag != chip);
     };
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>

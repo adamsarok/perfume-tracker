@@ -1,6 +1,7 @@
 'use server';
 
 import { db } from "@/db";
+import { select } from "@nextui-org/react";
 import { Perfume, PerfumeWorn, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -37,6 +38,7 @@ export async function GetTotalMls() : Promise<number> {
 export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
     : Promise<UpdatePerfumeFormState> {
     try {
+        const selectedTags = tags.map(x => x.tag);
         const perf = perfumeSchema.safeParse({   
             house: formData.get('house'),
             perfume: formData.get('perfume'),
@@ -57,6 +59,20 @@ export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag
             }
         }
         if (id) {
+            const currentTags = await db.perfumeTag.findMany({
+                where: {
+                    perfumeId: id
+                }
+            });
+            const currentTagNames = currentTags.map(x => x.tagName);
+            const tagIdsToRemove = currentTags
+                .filter(x => !selectedTags.includes(x.tagName))
+                .map(m => m.id);
+            const tagsToAdd = selectedTags.filter(x => !currentTagNames.includes(x));
+            console.log("selectedTags:" + selectedTags)
+            console.log("tagsToAdd:" + tagsToAdd);
+            console.log("tagIdsToRemove:" + tagIdsToRemove);
+            //TODO: tag remove does not work
             const result = await db.perfume.update({
                 where: {
                     id: id
@@ -68,6 +84,18 @@ export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag
                     notes: perf.data.notes,
                     nsfw: isNsfw,
                     ml: parseInt(perf.data.ml),
+                    tags: {
+                        createMany: {
+                            data: tagsToAdd.map(x => ({
+                                tagName: x
+                            }))
+                        },
+                        deleteMany: {
+                            id: {
+                                in: tagIdsToRemove
+                            }
+                        }
+                    }
                 }
             });
         } else {
@@ -79,10 +107,16 @@ export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag
                     notes: perf.data.notes,
                     nsfw: isNsfw,
                     ml: parseInt(perf.data.ml),
+                    tags: {
+                        createMany: {
+                            data: tags.map(t => ({
+                              tagName: t.tag
+                            }))
+                        }
+                    }
                 }
             });
         }
-
     } catch (err: unknown) {
         if (err instanceof Error) {
             return {
