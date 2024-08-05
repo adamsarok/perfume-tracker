@@ -1,8 +1,3 @@
-//'use client';
-
-import { Button, Input, Link } from "@nextui-org/react";
-import { useFormState } from "react-dom";
-import *  as actions from "@/app/actions";
 import PerfumeEditForm from "@/components/perfume-edit-form";
 import { db } from "@/db";
 import { notFound } from "next/navigation";
@@ -37,6 +32,5 @@ export default async function EditPerfumePage({params}: EditPerfumePageProps) {
             color: x.tag.color
         })
     });
-    //allTags = allTags.filter(allTag => !tags.some(tag => tag.tag === allTag.tag));
     return <PerfumeEditForm perfume={perfume} tags={tags} allTags={allTags}></PerfumeEditForm>
 }

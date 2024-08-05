@@ -1,16 +1,13 @@
 
 import React from "react";
 import PerfumeSelector from "../components/perfume-selector";
-import { db } from '@/db';
-import { Perfume, PerfumeWorn } from "@prisma/client";
 import PerfumeCard from "@/components/perfumecard";
-import { Button, Link } from "@nextui-org/react";
+import { Link } from "@nextui-org/react";
 import * as actions from '@/app/actions';
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const suggested = await actions.GetPerfumesForSuggestion();
   const perfumes = await actions.GetPerfumesForSelector();
   const worn = await actions.GetWorn();
   return (
@@ -18,7 +15,7 @@ export default async function Home() {
       <Link isBlock showAnchorIcon color="foreground" href="/perfumes/new-perfume">New Perfume</Link>
       <Link isBlock showAnchorIcon color="foreground" href="/worn-list">Worn List</Link>
       <Link isBlock showAnchorIcon color="foreground" href="/stats">Stats</Link>
-      <PerfumeSelector perfumes={perfumes} suggested={suggested}/>
+      <PerfumeSelector perfumes={perfumes}/>
         {worn.map((wornon) => (
           <PerfumeCard perfume={wornon.perfume} wornId={wornon.id} wornCount={undefined} wornOn={wornon.wornOn}></PerfumeCard>
         ))}

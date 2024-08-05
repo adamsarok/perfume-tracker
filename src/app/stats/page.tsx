@@ -1,6 +1,4 @@
 import *  as actions from "@/app/actions";
-import { PerfumeWornDTO } from "@/app/actions";
-import PerfumeWornTable from "@/components/perfume-worn-table";
 import { Card, CardBody, CardFooter, CardHeader, Divider } from "@nextui-org/react";
 
 export const dynamic = 'force-dynamic'

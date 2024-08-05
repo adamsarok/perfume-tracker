@@ -1,7 +1,6 @@
 'use server';
 
 import { db } from "@/db";
-import { select } from "@nextui-org/react";
 import { Perfume, PerfumeWorn, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -26,7 +25,7 @@ interface UpdatePerfumeFormState {
     }
 }
 
-export async function GetTotalMls() : Promise<number> {
+export async function GetTotalMls(): Promise<number> {
     const res = await db.perfume.aggregate({
         _sum: {
             ml: true
@@ -39,7 +38,7 @@ export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag
     : Promise<UpdatePerfumeFormState> {
     try {
         const selectedTags = tags.map(x => x.tag);
-        const perf = perfumeSchema.safeParse({   
+        const perf = perfumeSchema.safeParse({
             house: formData.get('house'),
             perfume: formData.get('perfume'),
             rating: formData.get('rating'),
@@ -55,7 +54,7 @@ export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag
         if (!parseFloat(perf.data.rating)) {
             console.log('Not a valid rating');
             return {
-                errors: { rating: [ 'Not a valid rating' ]}
+                errors: { rating: ['Not a valid rating'] }
             }
         }
         if (id) {
@@ -110,7 +109,7 @@ export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag
                     tags: {
                         createMany: {
                             data: tags.map(t => ({
-                              tagName: t.tag
+                                tagName: t.tag
                             }))
                         }
                     }
@@ -120,11 +119,11 @@ export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag
     } catch (err: unknown) {
         if (err instanceof Error) {
             return {
-                errors: { _form: [ err.message ] }
+                errors: { _form: [err.message] }
             };
         } else {
             return {
-                errors: { _form: [ 'Unknown error occured' ] }
+                errors: { _form: ['Unknown error occured'] }
             };
         }
     }
@@ -132,65 +131,54 @@ export async function UsertPerfume(id: number | null, isNsfw: boolean, tags: Tag
     redirect('/');
 }
 
-export async function GetPerfumesForSelector() : Promise<Perfume[]> {
+export async function GetPerfumesForSelector(): Promise<Perfume[]> {
     return await db.perfume.findMany({
-      orderBy: [
-        {
-          house: 'asc',
-        },
-        {
-          perfume: 'asc',
-        },
-      ]
+        orderBy: [
+            {
+                house: 'asc',
+            },
+            {
+                perfume: 'asc',
+            },
+        ]
     });
 }
 
-export async function GetPerfumesForSuggestion() : Promise<PerfumeWornDTO[]> {
+export async function GetPerfumesForSuggestion(): Promise<PerfumeWornDTO[]> {
     const worn = await GetAllPerfumesWithWearCount();
     const sugg = worn.filter(x => x.perfume.rating >= 8 && x.perfume.ml > 0)
         .sort((a, b) => (a.wornTimes ?? 0) - (b.wornTimes ?? 0))
         .slice(0, 3)
     return sugg;
-  }
+}
 
-//   function shuffleArray(array) {
-//     for (let i = array.length - 1; i > 0; i--) {
-//         const j = Math.floor(Math.random() * (i + 1));
-//         [array[i], array[j]] = [array[j], array[i]];
-//     }
-//    }
-  
-  export  async function GetWorn() {
+export async function GetWorn() {
     return await db.perfumeWorn.findMany({
-      include: {
-        perfume: true
-      },
-      orderBy: [
-        {
-          wornOn: 'desc',
+        include: {
+            perfume: true
         },
-      ]
+        orderBy: [
+            {
+                wornOn: 'desc',
+            },
+        ]
     });
-  }
+}
 
-
-  
-export async function compareDates( a: PerfumeWorn, b:PerfumeWorn ) {
-    if ( a.wornOn < b.wornOn ){
-      return -1;
+export async function compareDates(a: PerfumeWorn, b: PerfumeWorn) {
+    if (a.wornOn < b.wornOn) {
+        return -1;
     }
-    if ( a.wornOn > b.wornOn ){
-      return 1;
+    if (a.wornOn > b.wornOn) {
+        return 1;
     }
     return 0;
-  }
+}
 
 
-//warning todo utc
 export async function DeleteWear(id: number) {
-    console.log("Perfume add fire with ID: " + id); //replace with msg
     if (!id) return;
-    const idNum: number = parseInt(id.toString()); //I dont get why I have to parse a number to a number...
+    const idNum: number = parseInt(id.toString());
     await db.perfumeWorn.delete({
         where: {
             id
@@ -201,13 +189,12 @@ export async function DeleteWear(id: number) {
 
 //warning todo utc
 export async function WearPerfume(id: number) {
-    console.log("Perfume add fire with ID: " + id); //replace with msg
     if (!id) return;
-    const idNum: number = parseInt(id.toString()); //I dont get why I have to parse a number to a number...
+    const idNum: number = parseInt(id.toString());
     const today = new Date();
-    today.setHours(0,0,0);
+    today.setHours(0, 0, 0);
     const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1); //maybe????
+    tomorrow.setDate(today.getDate() + 1);
     const alreadyWornToday = await db.perfumeWorn.findFirst({
         where: {
             perfumeId: idNum,
@@ -217,19 +204,19 @@ export async function WearPerfume(id: number) {
             }
         }
     });
-    if (alreadyWornToday) { 
+    if (alreadyWornToday) {
         console.log("Already wearing this perfume today");
         return;
     }
     await db.perfumeWorn.create({
-      data: {
-        wornOn: new Date(),
-        perfume: {
-            connect: {
-                id: idNum
+        data: {
+            wornOn: new Date(),
+            perfume: {
+                connect: {
+                    id: idNum
+                }
             }
-        }
-      },
+        },
     });
     revalidatePath('/');
 }
@@ -242,41 +229,28 @@ export interface PerfumeWornDTO {
 
 export async function GetAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
     const worn = await db.perfumeWorn.groupBy({
-      by: ['perfumeId'],
-      _count: {
-        id: true
-      },
-      _max: {
-        wornOn: true
-      }
+        by: ['perfumeId'],
+        _count: {
+            id: true
+        },
+        _max: {
+            wornOn: true
+        }
     });
-    // let whereClause: any;
-    // if (filterGood) {
-    //     whereClause = { 
-    //         where: {
-    //             rating: {
-    //                 gte: 8
-    //             },
-    //             ml: {
-    //                 gt: 0
-    //             }
-    //         }
-    //     };
-    // } else whereClause = {};
     const perfumes = await db.perfume.findMany();
     var m = new Map();
-    perfumes.forEach(function(x) {
-        let dto: PerfumeWornDTO = { 
+    perfumes.forEach(function (x) {
+        let dto: PerfumeWornDTO = {
             perfume: x,
             wornTimes: undefined,
             lastWorn: undefined
         }
         m.set(x.id, dto);
     });
-    worn.forEach(function(x) {
+    worn.forEach(function (x) {
         let dto = m.get(x.perfumeId);
         dto.wornTimes = x._count.id;
         dto.lastWorn = x._max.wornOn;
     })
     return Array.from(m.values());
-  }
+}
