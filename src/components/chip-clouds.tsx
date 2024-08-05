@@ -1,23 +1,20 @@
 import { Chip } from "@nextui-org/chip";
-import { Divider, Input, select } from "@nextui-org/react";
 import { useState } from "react"
 import styles from './chip-clouds.module.css'
-import { color } from "framer-motion";
 
 export interface ChipCloudProps {
     topChipProps: ChipProp[],
     bottomChipProps: ChipProp[],
-    selectChip: any, //should be a func passed from parunt
+    selectChip: any,
     unSelectChip: any
 }
 
 export interface ChipProp {
-    //id: number,
     name: string,
     color: string
 }
 
-export default function ChipClouds({topChipProps, bottomChipProps, selectChip, unSelectChip}: ChipCloudProps) {
+export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, unSelectChip }: ChipCloudProps) {
     const [topChips, setTopChips] = useState(topChipProps);
     const [bottomChips, setBottomChips] = useState(bottomChipProps);
 
@@ -44,7 +41,7 @@ export default function ChipClouds({topChipProps, bottomChipProps, selectChip, u
         }
     }
     return (<div>
-        Tags: 
+        Tags:
         <div className={styles.chipContainer}>
             {/* <div className={styles.chipItem}>
                 <Chip key='newTag' 
@@ -54,7 +51,7 @@ export default function ChipClouds({topChipProps, bottomChipProps, selectChip, u
             </div> */}
             {topChips.map(c => (
                 <div key={c.name} className={styles.chipItem}>
-                    <Chip //key={c.name}
+                    <Chip
                         className={getColor(c.color)}
                         onClick={() => handleTopChipClick(c)}>
                         {c.name}
@@ -64,15 +61,15 @@ export default function ChipClouds({topChipProps, bottomChipProps, selectChip, u
         </div>
         Available tags:
         <div className={styles.chipContainer}>
-        {bottomChips.map(c => (
-            <div key={c.name} className={styles.chipItem}>
-            <Chip //key={c.name}
-                className={getColor(c.color)}
-                onClick={() => handleBottomChipClick(c)}>
-                    {c.name}
-            </Chip>
-            </div>
-        ))}
-        </div>        
+            {bottomChips.map(c => (
+                <div key={c.name} className={styles.chipItem}>
+                    <Chip
+                        className={getColor(c.color)}
+                        onClick={() => handleBottomChipClick(c)}>
+                        {c.name}
+                    </Chip>
+                </div>
+            ))}
+        </div>
     </div>);
 }
