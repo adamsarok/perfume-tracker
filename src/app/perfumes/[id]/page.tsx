@@ -32,5 +32,5 @@ export default async function EditPerfumePage({params}: EditPerfumePageProps) {
             color: x.tag.color
         })
     });
-    return <PerfumeEditForm perfume={perfume} tags={tags} allTags={allTags}></PerfumeEditForm>
+    return <PerfumeEditForm perfume={perfume} perfumesTags={tags} allTags={allTags}></PerfumeEditForm>
 }

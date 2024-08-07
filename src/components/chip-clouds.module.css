@@ -1,48 +1,3 @@
-.chipRed {
-    background-color: #ff6961;
-    color: white;
-  }
-  
-  .chipBlue {
-    background-color: #000ecf;
-    color: white;
-  }
-  
-  .chipGreen {
-    background-color: #77dd77;
-    color: white;
-  }
-  
-  .chipYellow {
-    background-color: #fdfd96;
-    color: black;
-  }
-
-  .chipBlack {
-    background-color: #000000;
-    color: white;
-  }
-
-  .chipBrown {
-    background-color: rgb(134, 102, 60);
-    color: white;
-  }
-
-  .chipOrange {
-    background-color: orange;
-    color: black;
-  }
-
-  .chipPink {
-    background-color: pink;
-    color: black;
-  }
-  
-  .chipDarkBrown {
-    background-color: rgb(70, 47, 18);
-    color: white;
-  }
-
   .chipContainer {
     display: flex;
     flex-wrap: wrap;
@@ -51,11 +6,10 @@
     min-height: 50px;
     background-color: #F4F4F5;
   }
-  
+
   .chipItem {
     margin-top: 4px;
     cursor: pointer;
     padding: 5px;
     font-size: large;
   }
-

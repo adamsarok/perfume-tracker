@@ -10,10 +10,11 @@ import ChipClouds, { ChipCloudProps, ChipProp } from "./chip-clouds";
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
     allTags: Tag[],
-    tags: Tag[]
+    perfumesTags: Tag[]
 }
 
-export default function PerfumeEditForm({perfume, tags, allTags}: PerfumeEditFormProps) {
+export default function PerfumeEditForm({perfume, perfumesTags, allTags}: PerfumeEditFormProps) {
+    const [tags, setTags] = useState(perfumesTags);
     const [isNsfw, setIsChecked] = useState(false);
     const handleCheckboxChange = (e: any) => setIsChecked(e.target.checked);
     const [formState, action] = useFormState(
@@ -21,6 +22,7 @@ export default function PerfumeEditForm({perfume, tags, allTags}: PerfumeEditFor
         , { errors: {} });
     var topChipProps: ChipProp[] = [];
     var bottomChipProps: ChipProp[] = [];
+    console.log(tags);
     allTags.map(allTag => {
         if (!tags.some(tag => tag.tag === allTag.tag)) {
             bottomChipProps.push({
@@ -41,7 +43,11 @@ export default function PerfumeEditForm({perfume, tags, allTags}: PerfumeEditFor
         if (tag) tags.push(tag);
     };
     const unSelectChip = (chip: string) => {
-        tags = tags.filter(x => x.tag != chip);
+        console.log("trying to unselect:" + chip);
+        console.log("before:" + tags);
+        setTags((tags: Tag[]) => tags.filter(x => x.tag != chip));
+        //setTags(tags.filter(x: Tag => x.tag != chip));
+        console.log("after:" + tags);
     };
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
