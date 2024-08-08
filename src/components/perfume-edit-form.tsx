@@ -3,7 +3,7 @@
 import { Button, Checkbox, Divider, Input, Link } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
-import * as actions from "@/app/actions";
+import * as perfumeRepo from "@/db/perfume-repo";
 import { useState } from "react";
 import ChipClouds, { ChipCloudProps, ChipProp } from "./chip-clouds";
 
@@ -18,10 +18,10 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
     const [isNsfw, setIsChecked] = useState(false);
     const handleCheckboxChange = (e: any) => setIsChecked(e.target.checked);
     const [formState, action] = useFormState(
-        actions.UsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw, tags) 
+        perfumeRepo.UpsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw, tags) 
         , { errors: {} });
-    var topChipProps: ChipProp[] = [];
-    var bottomChipProps: ChipProp[] = [];
+    let topChipProps: ChipProp[] = [];
+    let bottomChipProps: ChipProp[] = [];
     console.log(tags);
     allTags.map(allTag => {
         if (!tags.some(tag => tag.tag === allTag.tag)) {

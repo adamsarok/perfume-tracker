@@ -2,7 +2,7 @@
 
 import { Card, CardHeader, CardBody, Avatar, divider, Button, Link } from "@nextui-org/react";
 import { Perfume } from "@prisma/client";
-import * as actions from "@/app/actions";
+import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import React, { ReactNode } from "react";
 
 export interface PerfumeCardProps {
@@ -19,7 +19,7 @@ export default function PerfumeCard({ wornId, wornOn, wornCount, perfume }: Perf
     : perfume.perfume.slice(0, 2).toUpperCase();
 
   const handlePressStart = (id: number) => {
-    actions.DeleteWear(id);
+    perfumeWornRepo.DeleteWear(id);
   };
 
   return (

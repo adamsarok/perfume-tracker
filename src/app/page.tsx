@@ -3,13 +3,14 @@ import React from "react";
 import PerfumeSelector from "../components/perfume-selector";
 import PerfumeCard from "@/components/perfumecard";
 import { Link } from "@nextui-org/react";
-import * as actions from '@/app/actions';
+import * as perfumeWornRepo from "@/db/perfume-worn-repo";
+import * as perfumeRepo from "@/db/perfume-repo";
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const perfumes = await actions.GetPerfumesForSelector();
-  const worn = await actions.GetWorn();
+  const perfumes = await perfumeRepo.GetPerfumesForSelector();
+  const worn = await perfumeWornRepo.GetWorn();
   return (
     <div >
       <Link isBlock showAnchorIcon color="foreground" href="/perfumes/new-perfume">New Perfume</Link>

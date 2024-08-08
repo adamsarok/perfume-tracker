@@ -1,10 +1,11 @@
 'use client';
 
-import { PerfumeWornDTO } from "@/app/actions";
+import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import { Checkbox, Divider, Link, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, getKeyValue } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { useAsyncList } from "@react-stately/data";
 import React from "react";
+import { PerfumeWornDTO } from "@/db/perfume-worn-repo";
 
 export interface PerfumeWornTableProps {
     perfumes: PerfumeWornDTO[]

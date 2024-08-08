@@ -5,7 +5,8 @@ import { useEffect, useState } from "react"
 import styles from './chip-clouds.module.css'
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
 import { useFormState } from "react-dom";
-import * as actions from "@/app/actions";
+import * as tagRepo from "@/db/tag-repo";
+import { getContrastColor } from "@/app/colors";
 
 export interface ChipCloudProps {
     topChipProps: ChipProp[],
@@ -34,18 +35,9 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
         selectChip(chip.name);
     }
 
-    const getContrastColor = (bgColor: string) => {
-        const color = bgColor.charAt(0) === '#' ? bgColor.substring(1, 7) : bgColor;
-        const r = parseInt(color.substring(0, 2), 16);
-        const g = parseInt(color.substring(2, 4), 16);
-        const b = parseInt(color.substring(4, 6), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? '#000000' : '#ffffff';
-    };
-
     //todo: separate modal and cleanup
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
-    const [formState, addTag] = useFormState(actions.InsertTag, { errors: {}, result: null });
+    const [formState, addTag] = useFormState(tagRepo.InsertTag, { errors: {}, result: null });
     const [tag, setTag] = useState('');
     const [color, setColor] = useState('');
     const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {

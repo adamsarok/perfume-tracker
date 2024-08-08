@@ -2,7 +2,7 @@
 
 import { Autocomplete, AutocompleteItem, Button, Divider, Input, Popover, PopoverContent, PopoverTrigger, Slider } from "@nextui-org/react";
 import { Perfume, } from "@prisma/client";
-import * as actions from "@/app/actions";
+import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import React from "react";
 
 export interface PerfumeSelectorProps {
@@ -15,7 +15,7 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
         setSelectedKey(id);
     };
 
-    const wearPerfume = actions.WearPerfume.bind(null, selectedKey);
+    const wearPerfume = perfumeWornRepo.WearPerfume.bind(null, selectedKey);
 
     return (<div>
         <Autocomplete

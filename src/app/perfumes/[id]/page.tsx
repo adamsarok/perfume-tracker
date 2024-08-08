@@ -1,7 +1,8 @@
 import PerfumeEditForm from "@/components/perfume-edit-form";
-import { db } from "@/db";
 import { notFound } from "next/navigation";
 import { Tag } from "@prisma/client";
+import * as perfumeRepo from "@/db/perfume-repo";
+import db from "@/db";
 
 interface EditPerfumePageProps {
     params: {
@@ -10,22 +11,14 @@ interface EditPerfumePageProps {
 }
 
 export default async function EditPerfumePage({params}: EditPerfumePageProps) {
-    const perfume = await db.perfume.findFirst({
-        where: {
-            id: parseInt(params.id)
-        },
-        include: {
-            tags: {
-                include: {
-                    tag: true
-                }
-            }
-        }
-    });
+    const id = parseInt(params.id);
+    if (!id) return notFound();
+    const perfume = await perfumeRepo.GetPerfumeWithTags(id);
     console.log(perfume);
     if (!perfume) return notFound();
-    var allTags = await db.tag.findMany();
-    var tags: Tag[] = [];
+    //TODO: clean DB from pages
+    let allTags = await db.tag.findMany();
+    let tags: Tag[] = [];
     perfume.tags.map(x => {
         tags.push({
             tag: x.tag.tag,
