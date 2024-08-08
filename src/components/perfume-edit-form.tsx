@@ -43,11 +43,7 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
         if (tag) tags.push(tag);
     };
     const unSelectChip = (chip: string) => {
-        console.log("trying to unselect:" + chip);
-        console.log("before:" + tags);
         setTags((tags: Tag[]) => tags.filter(x => x.tag != chip));
-        //setTags(tags.filter(x: Tag => x.tag != chip));
-        console.log("after:" + tags);
     };
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>

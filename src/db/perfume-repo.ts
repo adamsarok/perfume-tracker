@@ -118,8 +118,12 @@ export async function UpsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
             };
         }
     }
-    revalidatePath('/');
-    redirect('/');
+    //TODO: success msg or reload?
+    return {
+        errors: {  }
+    };
+    //revalidatePath('/');
+    //redirect('/');
 }
 
 export async function GetPerfumesForSelector(): Promise<Perfume[]> {

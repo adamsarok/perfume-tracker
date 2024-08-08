@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useAsyncList } from "@react-stately/data";
 import React from "react";
 import { PerfumeWornDTO } from "@/db/perfume-worn-repo";
+import {RadioGroup, Radio} from "@nextui-org/radio";
+import { Perfume } from "@prisma/client";
 
 export interface PerfumeWornTableProps {
     perfumes: PerfumeWornDTO[]
@@ -18,11 +20,24 @@ function Reload({ perfumes }: PerfumeWornTableProps) {
 export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
     let list = useAsyncList({
         async load({ signal }) {
+            let items: PerfumeWornDTO[];
+            switch(selected) {
+                case 'good-stuff':
+                    items = perfumes.filter((x) => x.perfume.rating >= 8 && x.perfume.ml > 0);
+                    break;
+                case 'buy-list':
+                    items = perfumes.filter((x) => x.perfume.rating >= 8 && x.perfume.ml <= 0);
+                    break;
+                case 'untagged':
+                    console.log(perfumes);
+                    items = perfumes.filter((x) => x.tags.length == 0 && x.perfume.rating >= 8 && x.perfume.ml > 0);
+                    break;
+                default:
+                    items = perfumes;
+                    break;
+            }
             return {
-                items: (isGoodStuff ?
-                    perfumes.filter((x) => x.perfume.rating >= 8 && x.perfume.ml > 0) :
-                    isBuyStuff ? perfumes.filter((x) => x.perfume.rating >= 8 && x.perfume.ml <= 0) :
-                        perfumes)
+                items: items
             };
         },
         async sort({ items, sortDescriptor }: { items: Array<any>, sortDescriptor: any }) {
@@ -48,24 +63,28 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
         },
     });
 
-    const [isGoodStuff, setIsGoodStuff] = React.useState(true);
-    const [isBuyStuff, setBuyStuff] = React.useState(false);
+    const [selected, setSelected] = React.useState("good-stuff");
+
+    // const [isGoodStuff, setIsGoodStuff] = React.useState(true);
+    // const [isBuyStuff, setBuyStuff] = React.useState(false);
 
     useEffect(() => {
         list.reload();
-    }, [isGoodStuff]);
-    useEffect(() => {
-        list.reload();
-    }, [isBuyStuff]);
+    }, [selected]);
 
     //todo: change selector to combobox
     return <div>
-        <Checkbox className="ml-2 mr-6" isSelected={isGoodStuff} onValueChange={setIsGoodStuff}>
-            Show only good stuff
-        </Checkbox>
-        <Checkbox isSelected={isBuyStuff} onValueChange={setBuyStuff}>
-            Buy list
-        </Checkbox>
+        <RadioGroup
+            label="Filtering"
+            orientation="horizontal"
+            onValueChange={setSelected}
+        >
+            <Radio value="good-stuff">Show only good stuff</Radio>
+            <Radio value="buy-list">Buy list</Radio>
+            <Radio value="untagged">Untagged</Radio>
+            <Radio value="all">All</Radio>
+        </RadioGroup>
+    
         <Divider></Divider>
         <Table isStriped
             sortDescriptor={list.sortDescriptor}

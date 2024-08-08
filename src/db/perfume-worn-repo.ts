@@ -3,6 +3,7 @@
 import { Perfume, PerfumeWorn, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import db from ".";
+import * as perfumeRepo from "./perfume-repo"
 
 export async function GetWorn() {
     return await db.perfumeWorn.findMany({
@@ -66,6 +67,7 @@ export interface PerfumeWornDTO {
     perfume: Perfume,
     wornTimes: number | undefined,
     lastWorn: Date | undefined,
+    tags: Tag[]
 }
 
 export async function GetAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
@@ -78,13 +80,14 @@ export async function GetAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
             wornOn: true
         }
     });
-    const perfumes = await db.perfume.findMany();
+    const perfumes = await perfumeRepo.GetPerfumesWithTags();
     let m = new Map();
     perfumes.forEach(function (x) {
         let dto: PerfumeWornDTO = {
             perfume: x,
             wornTimes: undefined,
-            lastWorn: undefined
+            lastWorn: undefined,
+            tags: x.tags.map(x => x.tag)
         }
         m.set(x.id, dto);
     });
