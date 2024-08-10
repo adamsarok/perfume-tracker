@@ -19,7 +19,7 @@ export default function PerfumeCard({ wornId, wornOn, wornCount, perfume }: Perf
     : perfume.perfume.slice(0, 2).toUpperCase();
 
   const handlePressStart = (id: number) => {
-    perfumeWornRepo.DeleteWear(id);
+    perfumeWornRepo.deleteWear(id);
   };
 
   return (

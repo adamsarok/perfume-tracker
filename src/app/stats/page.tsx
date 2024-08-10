@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic'
 export default async function StatsPage() {
     let totalMl = 0;
     let totalWornCount = 0;
-    const perfumes = await perfumeRepo.GetPerfumesWithTags();
-    const perfumesWorn = await perfumeWornRepo.GetAllPerfumesWithWearCount();
+    const perfumes = await perfumeRepo.getPerfumesWithTags();
+    const perfumesWorn = await perfumeWornRepo.getAllPerfumesWithWearCount();
 
     interface TagStat {
         color: string;
@@ -29,16 +29,16 @@ export default async function StatsPage() {
         if (perfumeWorn?.wornTimes) totalWornCount += perfumeWorn.wornTimes;
 
         p.tags.map(t => {
-            if (!tagStats[t.tagName]) {
-                tagStats[t.tagName] = {
+            if (!tagStats[t.tag.tag]) {
+                tagStats[t.tag.tag] = {
                     color: t.tag.color,
                     mls: 0,
                     wornCount: 0
                 }
             }
-            tagStats[t.tagName].mls += p.ml;
+            tagStats[t.tag.tag].mls += p.ml;
             const perfumeWorn = perfumesWorn.find(x => x.perfume.id == p.id);
-            if (perfumeWorn?.wornTimes) tagStats[t.tagName].wornCount += perfumeWorn.wornTimes;
+            if (perfumeWorn?.wornTimes) tagStats[t.tag.tag].wornCount += perfumeWorn.wornTimes;
         }
     )});
 

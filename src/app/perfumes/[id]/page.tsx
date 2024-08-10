@@ -13,7 +13,7 @@ interface EditPerfumePageProps {
 export default async function EditPerfumePage({params}: EditPerfumePageProps) {
     const id = parseInt(params.id);
     if (!id) return notFound();
-    const perfume = await perfumeRepo.GetPerfumeWithTags(id);
+    const perfume = await perfumeRepo.getPerfumeWithTags(id);
     console.log(perfume);
     if (!perfume) return notFound();
     //TODO: clean DB from pages
@@ -21,6 +21,7 @@ export default async function EditPerfumePage({params}: EditPerfumePageProps) {
     let tags: Tag[] = [];
     perfume.tags.map(x => {
         tags.push({
+            id: x.tag.id,
             tag: x.tag.tag,
             color: x.tag.color
         })

@@ -18,8 +18,9 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
     const [isNsfw, setIsChecked] = useState(false);
     const handleCheckboxChange = (e: any) => setIsChecked(e.target.checked);
     const [formState, action] = useFormState(
-        perfumeRepo.UpsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw, tags) 
+        perfumeRepo.upsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw, tags) 
         , { errors: {} });
+    //todo toast
     let topChipProps: ChipProp[] = [];
     let bottomChipProps: ChipProp[] = [];
     console.log(tags);

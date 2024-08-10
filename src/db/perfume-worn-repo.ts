@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import db from ".";
 import * as perfumeRepo from "./perfume-repo"
 
-export async function GetWorn() {
+export async function getWorn() {
     return await db.perfumeWorn.findMany({
         include: {
             perfume: true
@@ -18,7 +18,7 @@ export async function GetWorn() {
     });
 }
 
-export async function DeleteWear(id: number) {
+export async function deleteWear(id: number) {
     if (!id) return;
     const idNum: number = parseInt(id.toString());
     await db.perfumeWorn.delete({
@@ -30,7 +30,7 @@ export async function DeleteWear(id: number) {
 }
 
 //warning todo utc
-export async function WearPerfume(id: number) {
+export async function wearPerfume(id: number) {
     if (!id) return;
     const idNum: number = parseInt(id.toString());
     const today = new Date();
@@ -70,7 +70,7 @@ export interface PerfumeWornDTO {
     tags: Tag[]
 }
 
-export async function GetAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
+export async function getAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
     const worn = await db.perfumeWorn.groupBy({
         by: ['perfumeId'],
         _count: {
@@ -80,7 +80,7 @@ export async function GetAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
             wornOn: true
         }
     });
-    const perfumes = await perfumeRepo.GetPerfumesWithTags();
+    const perfumes = await perfumeRepo.getPerfumesWithTags();
     let m = new Map();
     perfumes.forEach(function (x) {
         let dto: PerfumeWornDTO = {

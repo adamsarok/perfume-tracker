@@ -1,10 +1,12 @@
 'use server';
 
+import { Tag } from "@prisma/client";
 import db from ".";
 import { z } from "zod";
 
 interface InsertTagFormState {
     result: {
+        id: number,
         tag: string,
         color: string
     } | null
@@ -21,7 +23,7 @@ const tagSchema = z.object({
 })
 
 
-export async function InsertTag(formState: InsertTagFormState, formData: FormData) : Promise<InsertTagFormState> {
+export async function insertTag(formState: InsertTagFormState, formData: FormData) : Promise<InsertTagFormState> {
     try {
         console.log(formData);
         const perf = tagSchema.safeParse({
@@ -41,10 +43,12 @@ export async function InsertTag(formState: InsertTagFormState, formData: FormDat
                 color: perf.data.color,
             }
         });
+        console.log(result);
         return {
             result: {
-                tag: perf.data.tag,
-                color: perf.data.color
+                id: result.id,
+                tag: result.tag,
+                color: result.color
             },
             errors: { _form: [] }
         };
@@ -60,6 +64,45 @@ export async function InsertTag(formState: InsertTagFormState, formData: FormDat
                 errors: { _form: ['Unknown error occured'] }
             };
         }
+    }
+}
+
+export async function getTags() : Promise<Tag[]> {
+    return await db.tag.findMany();
+}
+
+interface TagResult {
+    success: boolean;
+    error: string;
+}
+
+export async function deleteTag(id: number) : Promise<TagResult> {
+    try {    
+        await db.tag.delete({
+                where: {
+                    id
+                }
+            });
+        return { success: true, error: "" }
+    } catch (error: any) {
+        return { success: false, error: error.message || 'Failed to delete tag' };
+    }
+}
+
+export async function updateTag(id: number, tag: string, color: string) : Promise<TagResult> {
+    try {    
+        await db.tag.update({
+                where: {
+                    id
+                },
+                data: {
+                    tag,
+                    color
+                }
+            });
+        return { success: true, error: "" }
+    } catch (error: any) {
+        return { success: false, error: error.message || 'Failed to delete tag' };
     }
 }
 

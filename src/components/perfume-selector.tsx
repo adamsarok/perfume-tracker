@@ -15,7 +15,7 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
         setSelectedKey(id);
     };
 
-    const wearPerfume = perfumeWornRepo.WearPerfume.bind(null, selectedKey);
+    const wearPerfume = perfumeWornRepo.wearPerfume.bind(null, selectedKey);
 
     return (<div>
         <Autocomplete

@@ -3,10 +3,10 @@
 import { Chip } from "@nextui-org/chip";
 import { useEffect, useState } from "react"
 import styles from './chip-clouds.module.css'
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
-import { useFormState } from "react-dom";
-import * as tagRepo from "@/db/tag-repo";
 import { getContrastColor } from "@/app/colors";
+import TagAddModal from "./tag-add-modal";
+import { Tag } from "@prisma/client";
+import { useDisclosure } from "@nextui-org/react";
 
 export interface ChipCloudProps {
     topChipProps: ChipProp[],
@@ -35,78 +35,24 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
         selectChip(chip.name);
     }
 
-    //todo: separate modal and cleanup
-    const { isOpen, onOpen, onOpenChange } = useDisclosure();
-    const [formState, addTag] = useFormState(tagRepo.InsertTag, { errors: {}, result: null });
-    const [tag, setTag] = useState('');
-    const [color, setColor] = useState('');
-    const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTag(e.target.value);
-    };
-    const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setColor(e.target.value);
-    };
-    const handleSave = async (onClose: () => void) => {
-        const formData = new FormData();
-        formData.append('tag', tag);
-        formData.append('color', color);
-        console.log(formData);
-        try {
-            await addTag(formData);
-            onClose();
-        } catch (error) {
-            console.error('Failed to add tag:', error);
-            //todo: show error
-        }
-    };
+    const handleModalClose = (tag: Tag) => {
+        setBottomChips([...bottomChips, { name: tag.tag, color: tag.color }]);
+    }
 
-    useEffect(() => {
-        if (formState.result) {
-            setBottomChips([...bottomChips, { name: formState.result.tag, color: formState.result.color }]);
-        }
-    }, [formState.result]);
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+    // useEffect(() => {
+    //     if (formState.result) {
+    //         setBottomChips([...bottomChips, { name: formState.result.tag, color: formState.result.color }]);
+    //     }
+    // }, [formState.result]);
 
     return (<div>
-        <Modal
+        <TagAddModal 
+            tagAdded={handleModalClose} 
             isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-        >
-            <ModalContent>
-                {(onClose) => (
-                    <>
-                        <ModalHeader className="flex flex-col gap-1">Log in</ModalHeader>
-                        <ModalBody>
-                            <Input
-                                autoFocus
-                                label="Tag"
-                                placeholder="Enter tag name"
-                                variant="bordered"
-                                value={tag}
-                                onChange={handleTagChange}
-                            />
-                            <Input
-                                label="Color"
-                                placeholder="Select tag color"
-                                type="color"
-                                value={color}
-                                variant="bordered"
-                                onChange={handleColorChange}
-                            />
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button color="danger" variant="flat" onPress={onClose}>
-                                Close
-                            </Button>
-                            <Button color="primary" onPress={() => handleSave(onClose)}>
-                                Save Tag
-                            </Button>
-                        </ModalFooter>
-                    </>
-                )}
-            </ModalContent>
-        </Modal>
-
+            onOpen={onOpen}
+            onOpenChange={onOpenChange}></TagAddModal>
         Tags:
         <div className={styles.chipContainer}>
             {topChips.map(c => (

@@ -1,6 +1,6 @@
 'use client';
 
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
+
 import { Checkbox, Divider, Link, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, getKeyValue } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { useAsyncList } from "@react-stately/data";

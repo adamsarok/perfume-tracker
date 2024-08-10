@@ -37,12 +37,13 @@ model PerfumeTag {
   id Int @id @default(autoincrement())
   perfume Perfume @relation(fields: [perfumeId], references: [id])
   perfumeId Int
-  tag Tag @relation(fields: [tagName], references: [tag])
-  tagName String
+  tag Tag @relation(fields: [tagId], references: [id])
+  tagId Int
 }
 
 model Tag {
-  tag String @id
+  id Int @id @default(autoincrement())
+  tag String @unique
   color String
   perfumetags PerfumeTag[]
 }

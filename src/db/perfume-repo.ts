@@ -25,10 +25,10 @@ interface UpdatePerfumeFormState {
     }
 }
 
-export async function UpsertPerfume(id: number | null, isNsfw: boolean, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
+export async function upsertPerfume(id: number | null, isNsfw: boolean, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
     : Promise<UpdatePerfumeFormState> {
     try {
-        const selectedTags = tags.map(x => x.tag);
+        const selectedTags = tags.map(x => x.id);
         const perf = perfumeSchema.safeParse({
             house: formData.get('house'),
             perfume: formData.get('perfume'),
@@ -50,15 +50,18 @@ export async function UpsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
         }
         if (id) {
             const currentTags = await db.perfumeTag.findMany({
+                // include: {
+                //     tag: true
+                // },
                 where: {
                     perfumeId: id
                 }
             });
-            const currentTagNames = currentTags.map(x => x.tagName);
+            const currentTagIds = currentTags.map(x => x.tagId);
             const tagIdsToRemove = currentTags
-                .filter(x => !selectedTags.includes(x.tagName))
+                .filter(x => !selectedTags.includes(x.tagId))
                 .map(m => m.id);
-            const tagsToAdd = selectedTags.filter(x => !currentTagNames.includes(x));
+            const tagsToAdd = selectedTags.filter(x => !currentTagIds.includes(x));
             console.log("selectedTags:" + selectedTags)
             console.log("tagsToAdd:" + tagsToAdd);
             console.log("tagIdsToRemove:" + tagIdsToRemove);
@@ -77,7 +80,7 @@ export async function UpsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
                     tags: {
                         createMany: {
                             data: tagsToAdd.map(x => ({
-                                tagName: x
+                                tagId: x
                             }))
                         },
                         deleteMany: {
@@ -100,7 +103,7 @@ export async function UpsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
                     tags: {
                         createMany: {
                             data: tags.map(t => ({
-                                tagName: t.tag
+                                tagId: t.id
                             }))
                         }
                     }
@@ -126,7 +129,7 @@ export async function UpsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
     //redirect('/');
 }
 
-export async function GetPerfumesForSelector(): Promise<Perfume[]> {
+export async function getPerfumesForSelector(): Promise<Perfume[]> {
     return await db.perfume.findMany({
         orderBy: [
             {
@@ -140,7 +143,7 @@ export async function GetPerfumesForSelector(): Promise<Perfume[]> {
 }
 
 
-export async function GetPerfumeWithTags(id: number) {
+export async function getPerfumeWithTags(id: number) {
     return await db.perfume.findFirst({
         where: {
             id: id
@@ -155,7 +158,7 @@ export async function GetPerfumeWithTags(id: number) {
     });
 }
 
-export async function GetPerfumesWithTags() {
+export async function getPerfumesWithTags() {
     return await db.perfume.findMany({
         include: {
             tags: {
