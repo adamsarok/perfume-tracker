@@ -81,7 +81,7 @@ export async function wearPerfume(id: number) {
         }
     });
     if (alreadyWornToday) {
-        console.log("Already wearing this perfume today");
+        console.log("Already wearing this perfume today"); //TODO
         return;
     }
     await db.perfumeWorn.create({

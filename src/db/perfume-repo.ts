@@ -25,7 +25,7 @@ interface UpdatePerfumeFormState {
     }
 }
 
-export async function upsertPerfume(id: number | null, isNsfw: boolean, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
+export async function upsertPerfume(id: number | null, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
     : Promise<UpdatePerfumeFormState> {
     try {
         const selectedTags = tags.map(x => x.id);
@@ -43,7 +43,6 @@ export async function upsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
             }
         }
         if (!parseFloat(perf.data.rating)) {
-            console.log('Not a valid rating');
             return {
                 errors: { rating: ['Not a valid rating'] }
             }
@@ -62,10 +61,6 @@ export async function upsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
                 .filter(x => !selectedTags.includes(x.tagId))
                 .map(m => m.id);
             const tagsToAdd = selectedTags.filter(x => !currentTagIds.includes(x));
-            console.log("selectedTags:" + selectedTags)
-            console.log("tagsToAdd:" + tagsToAdd);
-            console.log("tagIdsToRemove:" + tagIdsToRemove);
-            //TODO: tag remove does not work
             const result = await db.perfume.update({
                 where: {
                     id: id
@@ -75,7 +70,6 @@ export async function upsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
                     perfume: perf.data.perfume,
                     rating: parseFloat(perf.data.rating),
                     notes: perf.data.notes,
-                    nsfw: isNsfw,
                     ml: parseInt(perf.data.ml),
                     tags: {
                         createMany: {
@@ -98,7 +92,6 @@ export async function upsertPerfume(id: number | null, isNsfw: boolean, tags: Ta
                     perfume: perf.data.perfume,
                     rating: parseFloat(perf.data.rating),
                     notes: perf.data.notes,
-                    nsfw: isNsfw,
                     ml: parseInt(perf.data.ml),
                     tags: {
                         createMany: {

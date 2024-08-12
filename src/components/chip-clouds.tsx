@@ -52,7 +52,7 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
             onOpenChange={onOpenChange}></TagAddModal>
         Tags:
         <div className={styles.chipContainer}>
-            {topChips.map(c => (
+            {topChips.sort((a, b) => a.name.localeCompare(b.name)).map(c => (
                 <div key={c.name} className={styles.chipItem}>
                     <ColorChip className={c.className} color={c.color} name={c.name} onChipClick={() => handleTopChipClick(c)}></ColorChip>
                 </div>
@@ -67,7 +67,7 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
                     New
                 </Chip>
             </div>
-            {bottomChips.map(c => (
+            {bottomChips.sort((a, b) => a.name.localeCompare(b.name)).map(c => (
                 <div key={c.name} className={styles.chipItem}>
                     <ColorChip className={c.className} color={c.color} name={c.name} onChipClick={() => handleBottomChipClick(c)}></ColorChip>
                 </div>

@@ -16,15 +16,12 @@ interface PerfumeEditFormProps {
 
 export default function PerfumeEditForm({perfume, perfumesTags, allTags}: PerfumeEditFormProps) {
     const [tags, setTags] = useState(perfumesTags);
-    const [isNsfw, setIsChecked] = useState(false);
-    const handleCheckboxChange = (e: any) => setIsChecked(e.target.checked);
     const [formState, action] = useFormState(
-        perfumeRepo.upsertPerfume.bind(null, (perfume ? perfume.id : null), isNsfw, tags) 
+        perfumeRepo.upsertPerfume.bind(null, (perfume ? perfume.id : null), tags) 
         , { errors: {} });
     //todo toast
     let topChipProps: ChipProp[] = [];
     let bottomChipProps: ChipProp[] = [];
-    console.log(tags);
     allTags.map(allTag => {
         if (!tags.some(tag => tag.tag === allTag.tag)) {
             bottomChipProps.push({
@@ -43,7 +40,6 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
             onChipClick: null
         })
     });
-    console.log(tags);
     const selectChip = (chip: string) => {
         const tag = allTags.find(x => x.tag == chip);
         if (tag) tags.push(tag);
