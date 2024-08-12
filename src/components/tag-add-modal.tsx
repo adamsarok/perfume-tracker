@@ -41,8 +41,6 @@ export default function TagAddModal({ tagAdded, isOpen, onOpen, onOpenChange }: 
                 color: formState.result.color
             });
         }
-        console.log(formState.errors);
-        console.log(formState.result);
         //TODO first add shows failure even if add is successful
         if (formState.result) toast.success("Tag added!");
         else {

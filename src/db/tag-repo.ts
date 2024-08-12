@@ -25,13 +25,11 @@ const tagSchema = z.object({
 
 export async function insertTag(formState: InsertTagFormState, formData: FormData) : Promise<InsertTagFormState> {
     try {
-        console.log(formData);
         const perf = tagSchema.safeParse({
             tag: formData.get('tag'),
             color: formData.get('color')
         });
         if (!perf.success) {
-            console.log(perf.error.flatten().fieldErrors);
             return {
                 result: null,
                 errors: perf.error.flatten().fieldErrors,
@@ -43,7 +41,6 @@ export async function insertTag(formState: InsertTagFormState, formData: FormDat
                 color: perf.data.color,
             }
         });
-        console.log(result);
         return {
             result: {
                 id: result.id,

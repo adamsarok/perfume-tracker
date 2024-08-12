@@ -41,9 +41,6 @@ export default async function StatsPage() {
             if (perfumeWorn?.wornTimes) tagStats[t.tag.tag].wornCount += perfumeWorn.wornTimes;
         }
     )});
-
-    console.log(tagStats);
-
     const maxMlInTags = Math.max(...Object.values(tagStats).map(tag => tag.mls));
     const maxWornInTags = Math.max(...Object.values(tagStats).map(tag => tag.wornCount));
     const minChipWidth = 25;
@@ -87,7 +84,6 @@ export default async function StatsPage() {
                     .map(([tagName, tagInfo]: [string, TagStat]) => {
                         const relativeWidth = (tagInfo.wornCount / maxWornInTags) * 100;
                         const chipWidth = Math.max(relativeWidth, minChipWidth);
-                        console.log(relativeWidth);
                         return (<div key={tagName}>
                             <Chip
                                 style={{ backgroundColor: tagInfo.color, 

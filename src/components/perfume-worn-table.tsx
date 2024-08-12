@@ -29,7 +29,6 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
                     items = perfumes.filter((x) => x.perfume.rating >= 8 && x.perfume.ml <= 0);
                     break;
                 case 'untagged':
-                    console.log(perfumes);
                     items = perfumes.filter((x) => x.tags.length == 0 && x.perfume.rating >= 8 && x.perfume.ml > 0);
                     break;
                 default:
@@ -43,20 +42,15 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
         async sort({ items, sortDescriptor }: { items: Array<any>, sortDescriptor: any }) {
             return {
                 items: items.sort((a, b) => {
-                    console.log(sortDescriptor.column);
                     let first = a[sortDescriptor.column];
                     let second = b[sortDescriptor.column];
-                    console.log(first);
-                    console.log(second);
                     if (!first && !second) return 0;
                     if (!first) return 1;
                     if (!second) return -1;
                     let cmp = (parseInt(first) || first) < (parseInt(second) || second) ? -1 : 1;
-
                     if (sortDescriptor.direction === "descending") {
                         cmp *= -1;
                     }
-
                     return cmp;
                 }),
             };
@@ -65,14 +59,10 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
 
     const [selected, setSelected] = React.useState("good-stuff");
 
-    // const [isGoodStuff, setIsGoodStuff] = React.useState(true);
-    // const [isBuyStuff, setBuyStuff] = React.useState(false);
-
     useEffect(() => {
         list.reload();
     }, [selected]);
 
-    //todo: change selector to combobox
     return <div>
         <RadioGroup
             label="Filtering"
