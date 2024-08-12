@@ -5,7 +5,8 @@ import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
 import { useState } from "react";
-import ChipClouds, { ChipCloudProps, ChipProp } from "./chip-clouds";
+import ChipClouds from "./chip-clouds";
+import { ChipProp } from "./color-chip";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -28,14 +29,18 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
         if (!tags.some(tag => tag.tag === allTag.tag)) {
             bottomChipProps.push({
                 name: allTag.tag,
-                color: allTag.color
+                color: allTag.color,
+                className: "",
+                onChipClick: null
             })
         }
     });
     tags.map(x => {
         topChipProps.push({
             name: x.tag,
-            color: x.color
+            color: x.color,
+            className: "",
+            onChipClick: null
         })
     });
     console.log(tags);
@@ -69,11 +74,6 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
                 isInvalid={!!formState.errors.notes}
                 errorMessage={formState.errors.notes?.join(',')}
             ></Input>
-            <Checkbox name="nsfw" 
-                defaultSelected={perfume?.nsfw}
-                onChange={handleCheckboxChange}
-                className="mt-1"
-            >Not Safe for Work</Checkbox>
             <div></div>
             <Button className="mb-2 mt-2" type="submit">Update Perfume</Button>
             {formState.errors._form ? 

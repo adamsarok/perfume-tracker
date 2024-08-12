@@ -5,10 +5,27 @@ import { revalidatePath } from "next/cache";
 import db from ".";
 import * as perfumeRepo from "./perfume-repo"
 
-export async function getWorn() {
-    return await db.perfumeWorn.findMany({
+export interface WornWithPerfume {
+    id: number;
+    perfumeId: number;
+    wornOn: Date;
+    perfume: Perfume;
+    tags: Tag[];
+}
+
+
+export async function getWorn() : Promise<WornWithPerfume[]> {
+    const worns = await db.perfumeWorn.findMany({
         include: {
-            perfume: true
+            perfume: {
+                include: {
+                    tags: {
+                        include: {
+                            tag: true
+                        }
+                    }
+                }
+            }
         },
         orderBy: [
             {
@@ -16,6 +33,23 @@ export async function getWorn() {
             },
         ]
     });
+    let result: WornWithPerfume[] = [];
+    worns.map((w) => {
+        result.push({
+            id: w.id,
+            perfumeId: w.perfumeId,
+            wornOn: w.wornOn,
+            perfume: w.perfume,
+            tags: w.perfume.tags.map((t) : Tag => {
+                return {
+                  id: t.tag.id,
+                  color: t.tag.color,
+                  tag: t.tag.tag
+                }
+            })
+        })
+    })
+    return result;
 }
 
 export async function deleteWear(id: number) {
@@ -62,6 +96,7 @@ export async function wearPerfume(id: number) {
     });
     revalidatePath('/');
 }
+
 
 export interface PerfumeWornDTO {
     perfume: Perfume,

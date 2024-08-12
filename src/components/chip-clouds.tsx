@@ -7,6 +7,7 @@ import { getContrastColor } from "@/app/colors";
 import TagAddModal from "./tag-add-modal";
 import { Tag } from "@prisma/client";
 import { useDisclosure } from "@nextui-org/react";
+import ColorChip, { ChipProp } from "./color-chip";
 
 export interface ChipCloudProps {
     topChipProps: ChipProp[],
@@ -15,10 +16,6 @@ export interface ChipCloudProps {
     unSelectChip: any
 }
 
-export interface ChipProp {
-    name: string,
-    color: string
-}
 
 export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, unSelectChip }: ChipCloudProps) {
     const [topChips, setTopChips] = useState(topChipProps);
@@ -36,7 +33,7 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
     }
 
     const handleModalClose = (tag: Tag) => {
-        setBottomChips([...bottomChips, { name: tag.tag, color: tag.color }]);
+        setBottomChips([...bottomChips, { name: tag.tag, color: tag.color, onChipClick: null, className: "" }]);
     }
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -57,11 +54,7 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
         <div className={styles.chipContainer}>
             {topChips.map(c => (
                 <div key={c.name} className={styles.chipItem}>
-                    <Chip
-                        style={{ backgroundColor: c.color, color: getContrastColor(c.color) }}
-                        onClick={() => handleTopChipClick(c)}>
-                        {c.name}
-                    </Chip>
+                    <ColorChip className={c.className} color={c.color} name={c.name} onChipClick={() => handleTopChipClick(c)}></ColorChip>
                 </div>
             ))}
         </div>
@@ -76,11 +69,7 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
             </div>
             {bottomChips.map(c => (
                 <div key={c.name} className={styles.chipItem}>
-                    <Chip
-                        style={{ backgroundColor: c.color, color: getContrastColor(c.color) }}
-                        onClick={() => handleBottomChipClick(c)}>
-                        {c.name}
-                    </Chip>
+                    <ColorChip className={c.className} color={c.color} name={c.name} onChipClick={() => handleBottomChipClick(c)}></ColorChip>
                 </div>
             ))}
         </div>
