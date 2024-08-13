@@ -2,22 +2,23 @@
 
 
 import { Checkbox, Divider, Link, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, getKeyValue } from "@nextui-org/react";
-import { useEffect, useState } from "react";
+import { unstable_SuspenseList, useEffect, useState } from "react";
 import { useAsyncList } from "@react-stately/data";
 import React from "react";
 import { PerfumeWornDTO } from "@/db/perfume-worn-repo";
 import {RadioGroup, Radio} from "@nextui-org/radio";
-import { Perfume } from "@prisma/client";
+import { Perfume, Tag } from "@prisma/client";
+import ChipClouds from "./chip-clouds";
+import { ChipProp } from "./color-chip";
+import * as tagRepo from "../db/tag-repo"
 
 export interface PerfumeWornTableProps {
-    perfumes: PerfumeWornDTO[]
+    perfumes: PerfumeWornDTO[],
+    allTags: Tag[]
 }
 
-function Reload({ perfumes }: PerfumeWornTableProps) {
 
-}
-
-export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
+export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTableProps) {
     let list = useAsyncList({
         async load({ signal }) {
             let items: PerfumeWornDTO[];
@@ -29,7 +30,17 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
                     items = perfumes.filter((x) => x.perfume.rating >= 8 && x.perfume.ml <= 0);
                     break;
                 case 'untagged':
-                    items = perfumes.filter((x) => x.tags.length == 0 && x.perfume.rating >= 8 && x.perfume.ml > 0);
+                    items = perfumes.filter((x) => x.tags.length === 0 && x.perfume.rating >= 8 && x.perfume.ml > 0);
+                    break;
+                case 'tag-filter':
+                    console.log(tags)
+                    items = perfumes.filter((perfume) => {
+                        return (
+                            perfume.perfume.rating >= 8 &&
+                            perfume.perfume.ml > 0 &&
+                            tags.every((tag) => perfume.tags.some((perfumeTag) => perfumeTag.id === tag.id))
+                        );
+                    });
                     break;
                 default:
                     items = perfumes;
@@ -58,10 +69,34 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
     });
 
     const [selected, setSelected] = React.useState("good-stuff");
+    const [isChipCloudVisible, setIsChipCloudVisible] = useState(true);
+    const [tags, setTags] = useState<Tag[]>([]);
+    const selectChip = (chip: string) => {
+        const tag = allTags.find(x => x.tag === chip);
+        if (tag) setTags([...tags, tag]);
+    };
+    const unSelectChip = (chip: string) => {
+        setTags((tags: Tag[]) => tags.filter(x => x.tag != chip));
+    };
 
     useEffect(() => {
         list.reload();
+        setIsChipCloudVisible(selected === "tag-filter");
     }, [selected]);
+
+    useEffect(() => {
+        list.reload();
+    }, [tags]);
+
+    let bottomChipProps: ChipProp[] = [];
+    allTags.map(allTag => {
+        bottomChipProps.push({
+            name: allTag.tag,
+            color: allTag.color,
+            className: "",
+            onChipClick: null
+        })
+    });
 
     return <div>
         <RadioGroup
@@ -73,8 +108,9 @@ export default function PerfumeWornTable({ perfumes }: PerfumeWornTableProps) {
             <Radio value="buy-list">Buy list</Radio>
             <Radio value="untagged">Untagged</Radio>
             <Radio value="all">All</Radio>
+            <Radio value="tag-filter">Filter by tags</Radio>
         </RadioGroup>
-    
+        {isChipCloudVisible && <ChipClouds topChipProps={[]} bottomChipProps={bottomChipProps} selectChip={selectChip} unSelectChip={unSelectChip} />}
         <Divider></Divider>
         <Table isStriped
             sortDescriptor={list.sortDescriptor}

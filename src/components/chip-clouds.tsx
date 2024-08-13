@@ -38,11 +38,6 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-    // useEffect(() => {
-    //     if (formState.result) {
-    //         setBottomChips([...bottomChips, { name: formState.result.tag, color: formState.result.color }]);
-    //     }
-    // }, [formState.result]);
 
     return (<div>
         <TagAddModal 

@@ -25,7 +25,7 @@ export default async function StatsPage() {
 
     perfumes.map(p => {
         totalMl += p.ml;
-        const perfumeWorn = perfumesWorn.find(x => x.perfume.id == p.id);
+        const perfumeWorn = perfumesWorn.find(x => x.perfume.id === p.id);
         if (perfumeWorn?.wornTimes) totalWornCount += perfumeWorn.wornTimes;
 
         p.tags.map(t => {
@@ -37,7 +37,7 @@ export default async function StatsPage() {
                 }
             }
             tagStats[t.tag.tag].mls += p.ml;
-            const perfumeWorn = perfumesWorn.find(x => x.perfume.id == p.id);
+            const perfumeWorn = perfumesWorn.find(x => x.perfume.id === p.id);
             if (perfumeWorn?.wornTimes) tagStats[t.tag.tag].wornCount += perfumeWorn.wornTimes;
         }
     )});

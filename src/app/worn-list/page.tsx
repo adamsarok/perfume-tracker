@@ -1,4 +1,5 @@
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
+import * as tagRepo from "@/db/tag-repo";
 import PerfumeWornTable from "@/components/perfume-worn-table";
 import { Link, Spacer } from "@nextui-org/react";
 
@@ -12,9 +13,10 @@ export default async function StatsPage() {
         let dateB = b.lastWorn ? b.lastWorn : past;
         return dateB.getTime() - dateA.getTime();
       });
+    const tags = await tagRepo.getTags();
     return <div>
       <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
       <Spacer></Spacer>
-      <PerfumeWornTable perfumes={perfumes}></PerfumeWornTable>
+      <PerfumeWornTable perfumes={perfumes} allTags={tags}></PerfumeWornTable>
     </div>
 }

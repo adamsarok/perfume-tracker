@@ -41,8 +41,8 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
         })
     });
     const selectChip = (chip: string) => {
-        const tag = allTags.find(x => x.tag == chip);
-        if (tag) tags.push(tag);
+        const tag = allTags.find(x => x.tag === chip);
+        if (tag) setTags([...tags, tag]);
     };
     const unSelectChip = (chip: string) => {
         setTags((tags: Tag[]) => tags.filter(x => x.tag != chip));
