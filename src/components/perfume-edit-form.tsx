@@ -7,6 +7,9 @@ import * as perfumeRepo from "@/db/perfume-repo";
 import { useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
+import MessageBox from "./message-box";
+import { toast } from "react-toastify";
+import { useRouter } from 'next/navigation';
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -15,6 +18,7 @@ interface PerfumeEditFormProps {
 }
 
 export default function PerfumeEditForm({perfume, perfumesTags, allTags}: PerfumeEditFormProps) {
+    const router = useRouter();
     const [tags, setTags] = useState(perfumesTags);
     const [formState, action] = useFormState(
         perfumeRepo.upsertPerfume.bind(null, (perfume ? perfume.id : null), tags) 
@@ -47,6 +51,16 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
     const unSelectChip = (chip: string) => {
         setTags((tags: Tag[]) => tags.filter(x => x.tag != chip));
     };
+    const onDelete = async (id: number | undefined) => {
+        if (id) {
+            var result = await perfumeRepo.deletePerfume(id);
+            if (result.error) toast.error(result.error);
+            else { 
+                toast.success("Perfume deleted!");
+                router.push('/');
+            }
+        }
+    }
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
         <form action={action} >
@@ -71,7 +85,17 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
                 errorMessage={formState.errors.notes?.join(',')}
             ></Input>
             <div></div>
-            <Button className="mb-2 mt-2" type="submit">Update Perfume</Button>
+            <div className="flex">
+                <Button className="mr-8" type="submit">{perfume ? "Update" : "Insert"}</Button>
+                <MessageBox 
+                    modalButtonColor="danger"
+                    modalButtonText="Delete"
+                    message="Are you sure you want to delete this Perfume?"
+                    onButton1={() => { onDelete(perfume?.id) }}
+                    button1text="Delete"
+                    onButton2={null}
+                    button2text="Cancel"></MessageBox>
+            </div>
             {formState.errors._form ? 
                 <div className="p-2 bg-red-200 border border-red-400 rounded">
                     {formState.errors._form?.join(',')}

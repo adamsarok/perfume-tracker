@@ -162,3 +162,26 @@ export async function getPerfumesWithTags() {
         }
     });
 }
+
+export async function deletePerfume(id: number) : Promise<{ error: string | null }> {
+    try {
+        await db.perfume.delete({
+            where: {
+                id
+            }
+        });
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            return {
+                error: err.message
+            };
+        } else {
+            return {
+                error: 'Unknown error occured'
+            };
+        }
+    }
+    return {
+        error: null
+    };
+}

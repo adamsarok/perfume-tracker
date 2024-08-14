@@ -27,14 +27,14 @@ model Perfume {
 
 model PerfumeWorn {
   id Int @id @default(autoincrement())
-  perfume Perfume @relation(fields: [perfumeId], references: [id])
+  perfume Perfume @relation(fields: [perfumeId], references: [id], onDelete: Cascade)
   perfumeId Int
   wornOn DateTime
 }
 
 model PerfumeTag {
   id Int @id @default(autoincrement())
-  perfume Perfume @relation(fields: [perfumeId], references: [id])
+  perfume Perfume @relation(fields: [perfumeId], references: [id], onDelete: Cascade)
   perfumeId Int
   tag Tag @relation(fields: [tagId], references: [id])
   tagId Int
