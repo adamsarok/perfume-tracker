@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light light:bg-zinc-50 light:text-black bg-black text-white">
+    <html lang="en" className="light light:bg-zinc-50 light:text-black bg-black text-white gradient-background">
       <body className={inter.className}>
         <ToastContainer position="top-right"/>
         <Providers>

@@ -10,6 +10,8 @@ import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
 import { toast } from "react-toastify";
 import { useRouter } from 'next/navigation';
+import { TrashBin } from '../icons/trash-bin'
+import { FloppyDisk } from "@/icons/floppy-disk";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -85,9 +87,10 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
                 errorMessage={formState.errors.notes?.join(',')}
             ></Input>
             <div></div>
-            <div className="flex">
-                <Button className="mr-8" type="submit">{perfume ? "Update" : "Insert"}</Button>
+            <div className="flex mt-4 mb-2">
+                <Button startContent={<TrashBin/>} className="mr-8" type="submit">{perfume ? "Update" : "Insert"}</Button>
                 <MessageBox 
+                    startContent={<FloppyDisk />}
                     modalButtonColor="danger"
                     modalButtonText="Delete"
                     message="Are you sure you want to delete this Perfume?"
