@@ -4,6 +4,7 @@ import { Button, Checkbox, Divider, Input, Link } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
+import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import { useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
@@ -12,6 +13,7 @@ import { toast } from "react-toastify";
 import { useRouter } from 'next/navigation';
 import { TrashBin } from '../icons/trash-bin'
 import { FloppyDisk } from "@/icons/floppy-disk";
+import { MagicWand } from "@/icons/magic-wand";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -63,6 +65,13 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
             }
         }
     }
+    const onSprayOn = async (id: number | undefined) => {
+        if (id) {
+            var result = await perfumeWornRepo.wearPerfume(id);
+            if (result.ok) toast.success("Smell on!");
+            else toast.error(result.error);
+        }
+    }
     return <div>
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
         <form action={action} >
@@ -87,10 +96,19 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
                 errorMessage={formState.errors.notes?.join(',')}
             ></Input>
             <div></div>
-            <div className="flex mt-4 mb-2">
-                <Button startContent={<TrashBin/>} className="mr-8" type="submit">{perfume ? "Update" : "Insert"}</Button>
+            <div className="flex mt-4 mb-2">         
+                <Button color="secondary"
+                    startContent={<MagicWand/>}
+                    onPress={() => onSprayOn(perfume?.id)}
+                    className="ml-4 mr-8" 
+                >Spray On</Button>
+                <Button color="primary"
+                    startContent={<FloppyDisk/>} 
+                    className="mr-8" 
+                    type="submit">{perfume ? "Update" : "Insert"}
+                </Button>
                 <MessageBox 
-                    startContent={<FloppyDisk />}
+                    startContent={<TrashBin />}
                     modalButtonColor="danger"
                     modalButtonText="Delete"
                     message="Are you sure you want to delete this Perfume?"

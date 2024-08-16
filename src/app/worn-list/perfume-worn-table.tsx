@@ -8,9 +8,9 @@ import React from "react";
 import { PerfumeWornDTO } from "@/db/perfume-worn-repo";
 import {RadioGroup, Radio} from "@nextui-org/radio";
 import { Perfume, Tag } from "@prisma/client";
-import ChipClouds from "./chip-clouds";
-import { ChipProp } from "./color-chip";
-import * as tagRepo from "../db/tag-repo"
+import ChipClouds from "../../components/chip-clouds";
+import { ChipProp } from "../../components/color-chip";
+import * as tagRepo from "../../db/tag-repo"
 
 export interface PerfumeWornTableProps {
     perfumes: PerfumeWornDTO[],

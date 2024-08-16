@@ -4,6 +4,7 @@ import { Perfume, PerfumeWorn, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import db from ".";
 import * as perfumeRepo from "./perfume-repo"
+import { error } from "console";
 
 export interface WornWithPerfume {
     id: number;
@@ -64,8 +65,13 @@ export async function deleteWear(id: number) {
 }
 
 //warning todo utc
-export async function wearPerfume(id: number) {
-    if (!id) return;
+export async function wearPerfume(id: number) : Promise<ActionResult> {
+    if (!id) {
+        return {
+            error: 'Perfume ID empty',
+            ok: false
+        }
+    }
     const idNum: number = parseInt(id.toString());
     const today = new Date();
     today.setHours(0, 0, 0);
@@ -81,8 +87,10 @@ export async function wearPerfume(id: number) {
         }
     });
     if (alreadyWornToday) {
-        console.log("Already wearing this perfume today"); //TODO
-        return;
+        return {
+            error: 'Already wearing this perfume today!',
+            ok: false
+        }
     }
     await db.perfumeWorn.create({
         data: {
@@ -94,7 +102,10 @@ export async function wearPerfume(id: number) {
             }
         },
     });
-    revalidatePath('/');
+    //revalidatePath('/'); not here!
+    return {
+        ok: true
+    }
 }
 
 
@@ -119,12 +130,12 @@ export async function getAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
     let m = new Map();
     perfumes.forEach(function (x) {
         let dto: PerfumeWornDTO = {
-            perfume: x,
+            perfume: x.perfume,
             wornTimes: undefined,
             lastWorn: undefined,
-            tags: x.tags.map(x => x.tag)
+            tags: x.tags
         }
-        m.set(x.id, dto);
+        m.set(x.perfume.id, dto);
     });
     worn.forEach(function (x) {
         let dto = m.get(x.perfumeId);

@@ -1,7 +1,7 @@
 'use server';
 
 import db from ".";
-import { Perfume, PerfumeWorn, Tag } from "@prisma/client";
+import { Perfume, PerfumeTag, PerfumeWorn, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -151,8 +151,13 @@ export async function getPerfumeWithTags(id: number) {
     });
 }
 
-export async function getPerfumesWithTags() {
-    return await db.perfume.findMany({
+export interface PerfumeWithTagDTO {
+    perfume: Perfume,
+    tags: Tag[]
+}
+
+export async function getPerfumesWithTags() : Promise<PerfumeWithTagDTO[]> {
+    var perfumes = await db.perfume.findMany({
         include: {
             tags: {
                 include: {
@@ -161,6 +166,20 @@ export async function getPerfumesWithTags() {
             }
         }
     });
+    let result: PerfumeWithTagDTO[] = [];
+    perfumes.map((p) => {
+        result.push({
+            perfume: p,
+            tags: p.tags.map((t) => {
+                return {
+                    id: t.tag.id,
+                    color: t.tag.color,
+                    tag: t.tag.tag
+                }
+            })
+        });
+    });
+    return result;
 }
 
 export async function deletePerfume(id: number) : Promise<{ error: string | null }> {

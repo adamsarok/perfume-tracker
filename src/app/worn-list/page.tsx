@@ -1,7 +1,7 @@
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import * as tagRepo from "@/db/tag-repo";
-import PerfumeWornTable from "@/components/perfume-worn-table";
 import { Link, Spacer } from "@nextui-org/react";
+import PerfumeWornTable from "./perfume-worn-table";
 
 export const dynamic = 'force-dynamic'
 
