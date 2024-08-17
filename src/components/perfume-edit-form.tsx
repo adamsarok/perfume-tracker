@@ -5,7 +5,7 @@ import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
@@ -14,6 +14,8 @@ import { useRouter } from 'next/navigation';
 import { TrashBin } from '../icons/trash-bin'
 import { FloppyDisk } from "@/icons/floppy-disk";
 import { MagicWand } from "@/icons/magic-wand";
+import { error } from "console";
+import { Result } from "postcss";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -26,7 +28,20 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
     const [tags, setTags] = useState(perfumesTags);
     const [formState, action] = useFormState(
         perfumeRepo.upsertPerfume.bind(null, (perfume ? perfume.id : null), tags) 
-        , { errors: {} });
+        , { errors: {}, result: null, state: 'init' });
+
+    useEffect(() => {
+        if (formState.state === 'success') {
+            toast.success("Perfume saved!");
+            router.push(`/perfumes/${formState.result?.id}`);
+        } else if (formState.state === 'failed') {
+            toast.error("Perfume save failed! " 
+                + (formState.errors._form && formState.errors._form.length > 0 ? formState.errors._form?.join(',') :  ""));
+        }
+        formState.state = 'init';
+    }
+    ), [formState.result]
+
     //todo toast
     let topChipProps: ChipProp[] = [];
     let bottomChipProps: ChipProp[] = [];

@@ -1,9 +1,10 @@
-'use client'
+'use client';
 
 import { Autocomplete, AutocompleteItem, Button, Divider, Input, Popover, PopoverContent, PopoverTrigger, Slider } from "@nextui-org/react";
 import { Perfume, } from "@prisma/client";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import React from "react";
+import { useRouter } from 'next/navigation';
 
 export interface PerfumeSelectorProps {
     perfumes: Perfume[]
@@ -14,8 +15,14 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
     const onSelectionChange = (id: any) => {
         setSelectedKey(id);
     };
+    const router = useRouter();
 
-    const wearPerfume = perfumeWornRepo.wearPerfume.bind(null, selectedKey);
+    //const wearPerfume = perfumeWornRepo.wearPerfume.bind(null, selectedKey);
+
+    const handleSubmit = async () => {
+        await perfumeWornRepo.wearPerfume(selectedKey); // Assuming this is an async function
+        router.refresh();
+      };
 
     return (<div>
         <Autocomplete
@@ -35,10 +42,14 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
 
         </Autocomplete>
         <div className="flex mt-1 mb-1">
-            <form>
-                <Button type="submit" formAction={wearPerfume}
+            {/* <form> */}
+                <Button type="submit" onClick={() => {
+                    handleSubmit()
+                    // wearPerfume();
+                    // router.push('/');
+                }}
                 >Spray On</Button>
-            </form>
+            {/* </form> */}
         </div>
         <Divider className="mb-1"></Divider>
     </div>

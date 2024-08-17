@@ -22,7 +22,9 @@ interface UpdatePerfumeFormState {
         notes?: string[];
         ml?: string[];
         _form?: string[];
-    }
+    },
+    result: Perfume | null,
+    state: 'init' | 'failed' | 'success'
 }
 
 export async function upsertPerfume(id: number | null, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
@@ -40,11 +42,15 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
         if (!perf.success) {
             return {
                 errors: perf.error.flatten().fieldErrors,
+                result: null,
+                state: 'failed'
             }
         }
         if (!parseFloat(perf.data.rating)) {
             return {
-                errors: { rating: ['Not a valid rating'] }
+                errors: { rating: ['Not a valid rating'] },
+                result: null,
+                state: 'failed'
             }
         }
         if (id) {
@@ -102,24 +108,26 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
                     }
                 }
             });
+            if (result) return  {
+                errors: {},
+                result,
+                state: 'success'
+            }
         }
     } catch (err: unknown) {
         if (err instanceof Error) {
             return {
-                errors: { _form: [err.message] }
-            };
-        } else {
-            return {
-                errors: { _form: ['Unknown error occured'] }
+                errors: { _form: [err.message] },
+                result: null,
+                state: 'failed'
             };
         }
     }
-    //TODO: success msg or reload?
     return {
-        errors: {  }
+        errors: { _form: ['Unknown error occured'] },
+        result: null,
+        state: 'failed'
     };
-    //revalidatePath('/');
-    //redirect('/');
 }
 
 export async function getPerfumesForSelector(): Promise<Perfume[]> {
