@@ -16,6 +16,7 @@ import { FloppyDisk } from "@/icons/floppy-disk";
 import { MagicWand } from "@/icons/magic-wand";
 import { error } from "console";
 import { Result } from "postcss";
+import UploadComponent from "./upload-component";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -131,6 +132,7 @@ export default function PerfumeEditForm({perfume, perfumesTags, allTags}: Perfum
                     button1text="Delete"
                     onButton2={null}
                     button2text="Cancel"></MessageBox>
+                <UploadComponent className='ml-8'/>
             </div>
             {formState.errors._form ? 
                 <div className="p-2 bg-red-200 border border-red-400 rounded">

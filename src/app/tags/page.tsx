@@ -1,5 +1,4 @@
 import * as tagRepo from "@/db/tag-repo";
-import PerfumeWornTable from "@/components/perfume-worn-table";
 import { Link, Spacer } from "@nextui-org/react";
 import TagTable from "@/components/tag-table";
 
