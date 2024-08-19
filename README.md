@@ -12,4 +12,6 @@ services:
         image: fuzzydice555/perfume-tracker
         ports:
           - 3000:3000
+        environment:
+          - DATABASE_URL=postgresql://user:pass@dbserver:port/database
         restart: unless-stopped
