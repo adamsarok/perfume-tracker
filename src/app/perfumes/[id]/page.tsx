@@ -4,6 +4,8 @@ import { Tag } from "@prisma/client";
 import * as perfumeRepo from "@/db/perfume-repo";
 import db from "@/db";
 
+export const dynamic = 'force-dynamic'
+
 interface EditPerfumePageProps {
     params: {
         id: string
