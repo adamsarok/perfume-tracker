@@ -93,32 +93,40 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
         }
     }
     const [imageGuid, setImageGuid] = useState<string | null>(null);
-    const [imageUrl, setImageUrl] = useState<string | null>(perfume && perfume.imageUrl ? perfume.imageUrl : null);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
     const onUpload = (guid: string | undefined) => {
         console.log(guid)
         if (guid) {
             console.log(guid);
             setImageGuid(guid);
-            getDownloadUrl(guid);
+            setImageGuidInRepo(guid);
+            //getDownloadUrl(guid);
         }
     }
-    const getDownloadUrl = async (guid: string) => {
-        //console.log(`uploading: ${file.name}`);
-        const res = await fetch(`/api/generate-download-url?key=${encodeURIComponent(guid)}`, {
-          method: 'GET'
-        }); //what if not jpeg?
-        console.log(res);
-        if (res.ok) {
-          const json = await res.json();
-          setImageUrl(json.url);
-          updateImageUrl(imageUrl);
-        } else {
-          console.error('Failed to get download url');
+    useEffect(() => {
+        getDownloadUrl(imageGuid);
+    }), [imageGuid];
+    const getDownloadUrl = async (guid: string | null) => {
+        if (guid) {
+            //console.log(`uploading: ${file.name}`);
+            const res = await fetch(`/api/generate-download-url?key=${encodeURIComponent(guid)}`, {
+                method: 'GET'
+            }); //what if not jpeg?
+            console.log(res);
+            if (res.ok) {
+                const json = await res.json();
+                setImageUrl(json.url);
+            } else {
+                console.error('Failed to get download url');
+            }
         }
     };
-    const updateImageUrl = async (guid: string | null) => {
+    if (perfume && perfume.imageObjectKey) {
+        getDownloadUrl(perfume.imageObjectKey);
+    }
+    const setImageGuidInRepo = async (guid: string | null) => {
         console.log(`updating image url to: ${guid}`);
-        if (perfume && guid) await perfumeRepo.setImageURL(perfume.id, guid)
+        if (perfume && guid) await perfumeRepo.setImageObjectKey(perfume.id, guid)
     }
     return <div>
         {/* <Head>

@@ -27,14 +27,14 @@ interface UpdatePerfumeFormState {
     state: 'init' | 'failed' | 'success'
 }
 
-export async function setImageURL(id: number, imageUrl: string) : Promise<ActionResult> {
+export async function setImageObjectKey(id: number, objectKey: string) : Promise<ActionResult> {
     try {
         await db.perfume.update({
             where: {
                 id
             }, 
             data: {
-                imageUrl
+                imageObjectKey: objectKey
             }
         });
         return { ok: true };
