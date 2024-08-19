@@ -4,7 +4,6 @@ import { Button, Checkbox, Divider, Input, Link, Spinner, Table, TableBody, Tabl
 import { Tag } from "@prisma/client";
 import React from "react";
 import * as tagRepo from "@/db/tag-repo";
-import { useFormState } from "react-dom";
 import { toast } from "react-toastify";
 
 export interface TagTableProps {

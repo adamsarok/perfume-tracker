@@ -1,9 +1,8 @@
 'use client';
 
 import { Chip } from "@nextui-org/chip";
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import styles from './chip-clouds.module.css'
-import { getContrastColor } from "@/app/colors";
 import TagAddModal from "./tag-add-modal";
 import { Tag } from "@prisma/client";
 import { useDisclosure } from "@nextui-org/react";
