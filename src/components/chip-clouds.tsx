@@ -12,11 +12,12 @@ export interface ChipCloudProps {
     topChipProps: ChipProp[],
     bottomChipProps: ChipProp[],
     selectChip: any,
-    unSelectChip: any
+    unSelectChip: any,
+    className: string
 }
 
 
-export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, unSelectChip }: ChipCloudProps) {
+export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, unSelectChip, className }: ChipCloudProps) {
     const [topChips, setTopChips] = useState(topChipProps);
     const [bottomChips, setBottomChips] = useState(bottomChipProps);
 
@@ -38,7 +39,7 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
 
-    return (<div>
+    return (<div className={className}>
         <TagAddModal 
             tagAdded={handleModalClose} 
             isOpen={isOpen}

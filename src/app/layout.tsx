@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light light:bg-zinc-50 light:text-black bg-black text-white gradient-background">
+    <html lang="en">
       <body className={inter.className}>
         <ToastContainer position="top-right"/>
         <Providers>

@@ -21,6 +21,7 @@ model Perfume {
   rating Float
   notes String @default("")
   ml Int @default(2)
+  imageUrl String @default("")
   worn PerfumeWorn[]
   tags PerfumeTag[]
 }

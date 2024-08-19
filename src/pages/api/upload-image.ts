@@ -1,53 +1,87 @@
-// import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import path from 'path';
+import fs, { createWriteStream } from 'fs';
+import { readFile } from 'fs/promises';
 
-// // function generateGuid() {
-// //     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-// //         var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-// //         return v.toString(16);
-// //     });
-// // }
+type ResponseData = {
+    guid: string,
+    error: string
+}
 
-// type ResponseData = {
-//     guid: string,
-//     url: string,
-//     error: string
-// }
+export const config = {
+    api: {
+        bodyParser: false, // Disabling Next.js body parsing to handle the file upload manually
+    },
+};
 
-// export const config = {
-//     api: {
-//       bodyParser: false, // Disabling Next.js body parsing to handle the file upload manually
-//     },
-//   };
-  
+async function sendFile(filePath: string, fileName: string, res: NextApiResponse<ResponseData>) {
+    try {
+        // Read the file from disk
+        const fileBuffer = await readFile(filePath);
+        console.log('wtf2');
+        // Forward the file to another microservice
+        const microserviceUrl = `http://localhost:8080/upload-image?fileName=${encodeURIComponent(fileName)}`;
+        const response = await fetch(microserviceUrl, {
+            method: 'PUT',
+            body: fileBuffer,
+            headers: {
+                'Content-Type': 'image/jpeg',
+            },
+        });
+        const json = await response.json();
+        console.log(json);
+        if (!response.ok) {
+            throw new Error(`Failed to upload file to microservice: ${response.statusText}`);
+        }
+        res.status(200).json({
+            error: '',
+            guid: json.objectKey
+        });
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            res.status(500).json({ error: `Error: ${err.message}`, guid: '' });
+        } else {
+            res.status(500).json({ error: `Unknown error occured`, guid: '' });
+        }
+    }
+}
 
-// export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-//   //const guid = generateGuid();
-//   const formData = new FormData();
-//   formData.append('file', file);
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+    if (!req.query.filename) {
+        res.status(400); //.json({ message: 'Filename is required' });
+        return;
+    }
+    const filename = Array.isArray(req.query.filename) ? req.query.filename[0] : req.query.filename;
 
-//   const response = await fetch(`http://localhost:8080/upload-image`, {
-//     method: 'PUT',
-//     headers: {
-//        'Content-Disposition': 'attachment'
-//     },
-//     body: formData,
-//   });
+    // console.log(req.body);
+    // const filename = filenames[0];
 
-//   console.log(response);
+    const filePath = path.join(process.cwd(), 'uploads', filename);
 
-//   if (response.ok) {
-//     const data = await response.json();
-//     console.log(data);
-//     res.status(200).json({
-//       guid,
-//       url: data.uploadURL,
-//       error: ''
-//     });
-//   } else {
-//     res.status(response.status)
-//       .json({ 
-//         guid: '',
-//         url: '',
-//         error: 'Generate upload URL failed' });
-//   }
-// }
+    try {
+        // Create a write stream to save the file
+        console.log('wtf?');
+        const fileStream = createWriteStream(filePath);
+
+        // Pipe the incoming request to the file stream
+        await new Promise<void>((resolve, reject) => {
+            req.pipe(fileStream);
+
+            fileStream.on('finish', resolve);
+            fileStream.on('error', reject);
+        });
+
+        // Send the file to the microservice
+        await sendFile(filePath, filename, res);
+
+        // Respond with success
+        //res.status(200); //.json({ message: 'File uploaded and forwarded successfully' });
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            res.status(500).json({ error: `Error: ${err.message}`, guid: '' });
+        } else {
+            res.status(500).json({ error: `Unknown error occured`, guid: '' });
+        }
+    }
+    res.status(500).json({ error: `Unknown error occured`, guid: '' });
+}

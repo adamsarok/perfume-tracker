@@ -110,7 +110,7 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
             <Radio value="all">All</Radio>
             <Radio value="tag-filter">Filter by tags</Radio>
         </RadioGroup>
-        {isChipCloudVisible && <ChipClouds topChipProps={[]} bottomChipProps={bottomChipProps} selectChip={selectChip} unSelectChip={unSelectChip} />}
+        {isChipCloudVisible && <ChipClouds className="" topChipProps={[]} bottomChipProps={bottomChipProps} selectChip={selectChip} unSelectChip={unSelectChip} />}
         <Divider></Divider>
         <Table isStriped
             sortDescriptor={list.sortDescriptor}

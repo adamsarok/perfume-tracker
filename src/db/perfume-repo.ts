@@ -27,6 +27,29 @@ interface UpdatePerfumeFormState {
     state: 'init' | 'failed' | 'success'
 }
 
+export async function setImageURL(id: number, imageUrl: string) : Promise<ActionResult> {
+    try {
+        await db.perfume.update({
+            where: {
+                id
+            }, 
+            data: {
+                imageUrl
+            }
+        });
+        return { ok: true };
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            return {
+                ok: false,
+                error: err.message
+            };
+        } else {
+            return { ok: false };
+        }
+    }
+}
+
 export async function upsertPerfume(id: number | null, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
     : Promise<UpdatePerfumeFormState> {
     try {
