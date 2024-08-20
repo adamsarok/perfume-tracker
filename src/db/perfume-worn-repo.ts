@@ -14,8 +14,59 @@ export interface WornWithPerfume {
     tags: Tag[];
 }
 
+//offset pagination - skip + take - slower, but 10 years x 365 wears this should still be ok
 
-export async function getWorn() : Promise<WornWithPerfume[]> {
+//cursor based pagination - fast but have to order by ID 
+export async function getWornBeforeID(cursor: number | null, pageLength: number) : Promise<WornWithPerfume[]> {
+    const worns = await db.perfumeWorn.findMany({
+        where: cursor !== null ? {
+            id: {
+                lt: cursor
+            }
+        } : {},
+        include: {
+            perfume: {
+                include: {
+                    tags: {
+                        include: {
+                            tag: true
+                        }
+                    }
+                }
+            }
+        },
+        orderBy: [
+            {
+                wornOn: 'desc',
+            },
+        ],
+        take: pageLength
+    });
+    return toWornWithPerfume(worns);
+}
+
+//TODO: fix any
+function toWornWithPerfume(data: any[]) : WornWithPerfume[] {
+    let result: WornWithPerfume[] = [];
+    data.map((w) => {
+        result.push({
+            id: w.id,
+            perfumeId: w.perfumeId,
+            wornOn: w.wornOn,
+            perfume: w.perfume,
+            tags: w.perfume.tags.map((t: any) : Tag => {
+                return {
+                  id: t.tag.id,
+                  color: t.tag.color,
+                  tag: t.tag.tag
+                }
+            })
+        })
+    })
+    return result;
+}
+
+export async function getWornWithPerfume() : Promise<WornWithPerfume[]> {
     const worns = await db.perfumeWorn.findMany({
         include: {
             perfume: {
@@ -34,23 +85,7 @@ export async function getWorn() : Promise<WornWithPerfume[]> {
             },
         ]
     });
-    let result: WornWithPerfume[] = [];
-    worns.map((w) => {
-        result.push({
-            id: w.id,
-            perfumeId: w.perfumeId,
-            wornOn: w.wornOn,
-            perfume: w.perfume,
-            tags: w.perfume.tags.map((t) : Tag => {
-                return {
-                  id: t.tag.id,
-                  color: t.tag.color,
-                  tag: t.tag.tag
-                }
-            })
-        })
-    })
-    return result;
+    return toWornWithPerfume(worns);
 }
 
 export async function deleteWear(id: number) {
