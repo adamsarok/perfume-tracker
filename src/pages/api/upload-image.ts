@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import path from 'path';
 import fs, { createWriteStream } from 'fs';
 import { readFile } from 'fs/promises';
+import { R2_Api_Address } from '../api-conf';
 
 type ResponseData = {
     guid: string,
@@ -20,7 +21,7 @@ async function sendFile(filePath: string, fileName: string, res: NextApiResponse
         const fileBuffer = await readFile(filePath);
         console.log('wtf2');
         // Forward the file to another microservice
-        const microserviceUrl = `http://localhost:8080/upload-image?fileName=${encodeURIComponent(fileName)}`;
+        const microserviceUrl = `${R2_Api_Address}/upload-image?fileName=${encodeURIComponent(fileName)}`;
         const response = await fetch(microserviceUrl, {
             method: 'PUT',
             body: fileBuffer,
@@ -48,22 +49,16 @@ async function sendFile(filePath: string, fileName: string, res: NextApiResponse
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
     if (!req.query.filename) {
-        res.status(400); //.json({ message: 'Filename is required' });
+        res.status(400).json({ error: 'Filename is required', guid: '' });
         return;
     }
     const filename = Array.isArray(req.query.filename) ? req.query.filename[0] : req.query.filename;
 
-    // console.log(req.body);
-    // const filename = filenames[0];
-
     const filePath = path.join(process.cwd(), 'uploads', filename);
 
     try {
-        // Create a write stream to save the file
-        console.log('wtf?');
         const fileStream = createWriteStream(filePath);
 
-        // Pipe the incoming request to the file stream
         await new Promise<void>((resolve, reject) => {
             req.pipe(fileStream);
 
@@ -71,11 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             fileStream.on('error', reject);
         });
 
-        // Send the file to the microservice
         await sendFile(filePath, filename, res);
-
-        // Respond with success
-        //res.status(200); //.json({ message: 'File uploaded and forwarded successfully' });
     } catch (err: unknown) {
         if (err instanceof Error) {
             res.status(500).json({ error: `Error: ${err.message}`, guid: '' });

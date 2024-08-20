@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { R2_Api_Address } from '../api-conf';
 
 type ResponseData = {
     url: string,
@@ -13,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
         const key = Array.isArray(req.query.key) ? req.query.key[0] : req.query.key;
 
-        const microserviceUrl = `http://localhost:8080/generate-download-url?key=${encodeURIComponent(key)}`;
+        const microserviceUrl = `${R2_Api_Address}/generate-download-url?key=${encodeURIComponent(key)}`;
         const response = await fetch(microserviceUrl, {
             method: 'GET'
         });
