@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import path from 'path';
 import fs, { createWriteStream } from 'fs';
 import { readFile } from 'fs/promises';
-import { R2_Api_Address } from '../api-conf';
+import { R2_Api_Address } from '../../services/conf';
 
 type ResponseData = {
     guid: string,
