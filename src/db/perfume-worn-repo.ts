@@ -14,9 +14,7 @@ export interface WornWithPerfume {
     tags: Tag[];
 }
 
-//offset pagination - skip + take - slower, but 10 years x 365 wears this should still be ok
-
-//cursor based pagination - fast but have to order by ID 
+//cursor based pagination - fast as we don't rely on skip/take
 export async function getWornBeforeID(cursor: number | null, pageLength: number) : Promise<WornWithPerfume[]> {
     const worns = await db.perfumeWorn.findMany({
         where: cursor !== null ? {
@@ -37,7 +35,7 @@ export async function getWornBeforeID(cursor: number | null, pageLength: number)
         },
         orderBy: [
             {
-                wornOn: 'desc',
+                id: 'desc',
             },
         ],
         take: pageLength
