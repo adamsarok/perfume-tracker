@@ -48,6 +48,10 @@ async function sendFile(filePath: string, fileName: string, res: NextApiResponse
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+    if (!R2_Api_Address) {
+        res.status(400).json({ error: 'R2 API address is not configured', guid: '' });
+        return;
+    }
     if (!req.query.filename) {
         res.status(400).json({ error: 'Filename is required', guid: '' });
         return;

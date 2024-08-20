@@ -108,16 +108,15 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
     }), [imageGuid];
     const getDownloadUrl = async (guid: string | null) => {
         if (guid) {
-            //console.log(`uploading: ${file.name}`);
             const res = await fetch(`/api/generate-download-url?key=${encodeURIComponent(guid)}`, {
                 method: 'GET'
             }); //what if not jpeg?
             console.log(res);
+            const json = await res.json();
             if (res.ok) {
-                const json = await res.json();
                 setImageUrl(json.url);
             } else {
-                console.error('Failed to get download url');
+                console.error(`Failed to get download url: ${json.error}`);
             }
         }
     };
