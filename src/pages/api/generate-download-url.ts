@@ -7,6 +7,7 @@ type ResponseData = {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+    let microserviceUrl = '';
     try {
         if (!req.query.key) {
             res.status(400).json({ error: 'Filename is required', url: '' });
@@ -17,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             return;
         }
         const key = Array.isArray(req.query.key) ? req.query.key[0] : req.query.key;
-        const microserviceUrl = `${R2_Api_Address}/generate-download-url?key=${encodeURIComponent(key)}`;
+        microserviceUrl = `${R2_Api_Address}/generate-download-url?key=${encodeURIComponent(key)}`;
         const response = await fetch(microserviceUrl, {
             method: 'GET'
         });
@@ -30,9 +31,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         res.status(200).json({ url: json.downloadURL, error: '' });
     } catch (err: unknown) {
         if (err instanceof Error) {
-            res.status(500).json({ error: `Error: ${err.message}`, url: '' });
+            console.error(err.message);
+            res.status(500).json({ error: `MicroserviceURL:${microserviceUrl} Error: ${err.message}`, url: '' });
         } else {
-            res.status(500).json({ error: `Unknown error occured`, url: '' });
+            console.error('Unknown error occured');
+            res.status(500).json({ error: `MicroserviceURL:${microserviceUrl} Unknown error occured`, url: '' });
         }
     }
 }
