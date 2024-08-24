@@ -18,6 +18,7 @@ export default async function Home() {
       <Link isBlock showAnchorIcon color="foreground" href="/perfumes/new-perfume">New Perfume</Link>
       <Link isBlock showAnchorIcon color="foreground" href="/worn-list">Worn List</Link>
       <Link isBlock showAnchorIcon color="foreground" href="/stats">Stats</Link>
+      <Link isBlock showAnchorIcon color="foreground" href="/calendar">Calendar</Link>
       <Link isBlock showAnchorIcon color="foreground" href="/tags">Tags</Link>
       <PerfumeSelector perfumes={perfumes} />
       <WornList />

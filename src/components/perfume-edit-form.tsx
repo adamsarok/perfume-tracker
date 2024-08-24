@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Checkbox, Divider, Input, Link, Image } from "@nextui-org/react";
+import { Button, Input, Link, Image } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
@@ -14,13 +14,8 @@ import { useRouter } from 'next/navigation';
 import { TrashBin } from '../icons/trash-bin'
 import { FloppyDisk } from "@/icons/floppy-disk";
 import { MagicWand } from "@/icons/magic-wand";
-import { error } from "console";
-import { Result } from "postcss";
 import UploadComponent from "./upload-component";
-import Head from "next/head";
 import styles from "./perfume-edit-form.module.css";
-// import img from 'public/asdf.png';
-// import type { StaticImageData } from "next/image";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -110,7 +105,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
         if (guid) {
             const res = await fetch(`/api/generate-download-url?key=${encodeURIComponent(guid)}`, {
                 method: 'GET'
-            }); //what if not jpeg?
+            });
             console.log(res);
             const json = await res.json();
             if (res.ok) {
