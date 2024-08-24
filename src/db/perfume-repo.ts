@@ -78,9 +78,6 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
         }
         if (id) {
             const currentTags = await db.perfumeTag.findMany({
-                // include: {
-                //     tag: true
-                // },
                 where: {
                     perfumeId: id
                 }
@@ -114,6 +111,11 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
                     }
                 }
             });
+            if (result) return  {
+                errors: {},
+                result,
+                state: 'success'
+            }
         } else {
             const result = await db.perfume.create({
                 data: {
