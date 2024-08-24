@@ -15,6 +15,7 @@
     "@react-stately/data": "^3.11.3",
     "framer-motion": "^11.0.23",
     "next": "14.1.4",
+    "openai": "^4.56.0",
     "prisma": "^5.11.0",
     "react": "^18",
     "react-dom": "^18",

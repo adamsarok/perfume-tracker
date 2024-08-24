@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import path from 'path';
 import fs, { createWriteStream } from 'fs';
 import { readFile } from 'fs/promises';
-import { R2_Api_Address } from '../../services/conf';
+import { R2_API_ADDRESS } from '../../services/conf';
 
 type ResponseData = {
     guid: string,
@@ -21,7 +21,7 @@ async function sendFile(filePath: string, fileName: string, res: NextApiResponse
         const fileBuffer = await readFile(filePath);
         console.log('wtf2');
         // Forward the file to another microservice
-        const microserviceUrl = `${R2_Api_Address}/upload-image?fileName=${encodeURIComponent(fileName)}`;
+        const microserviceUrl = `${R2_API_ADDRESS}/upload-image?fileName=${encodeURIComponent(fileName)}`;
         const response = await fetch(microserviceUrl, {
             method: 'PUT',
             body: fileBuffer,
@@ -48,7 +48,7 @@ async function sendFile(filePath: string, fileName: string, res: NextApiResponse
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-    if (!R2_Api_Address) {
+    if (!R2_API_ADDRESS) {
         res.status(400).json({ error: 'R2 API address is not configured', guid: '' });
         return;
     }

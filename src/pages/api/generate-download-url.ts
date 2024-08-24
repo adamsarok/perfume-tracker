@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { R2_Api_Address } from '../../services/conf';
+import { R2_API_ADDRESS } from '../../services/conf';
 
 type ResponseData = {
     url: string,
@@ -13,12 +13,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             res.status(400).json({ error: 'Filename is required', url: '' });
             return;
         }
-        if (!R2_Api_Address) {
+        if (!R2_API_ADDRESS) {
             res.status(400).json({ error: 'R2 API address is not configured', url: '' });
             return;
         }
         const key = Array.isArray(req.query.key) ? req.query.key[0] : req.query.key;
-        microserviceUrl = `${R2_Api_Address}/generate-download-url?key=${encodeURIComponent(key)}`;
+        microserviceUrl = `${R2_API_ADDRESS}/generate-download-url?key=${encodeURIComponent(key)}`;
         const response = await fetch(microserviceUrl, {
             method: 'GET'
         });
