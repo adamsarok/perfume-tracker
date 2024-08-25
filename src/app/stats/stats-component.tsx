@@ -90,15 +90,6 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
     const minChipWidth = 25;
 
     return <div>
-        {/* <RadioGroup
-            label="View"
-            orientation="horizontal"
-            onValueChange={setView}
-            defaultValue="tags"
-        >
-            <Radio value="tags">Tags</Radio>
-            <Radio value="tag-combinations">Tag combinations</Radio>
-        </RadioGroup> */}
         <Card className="max-w-[412px]">
             <CardHeader className="flex gap-3">
                 <div className="flex flex-col">

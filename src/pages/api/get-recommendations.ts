@@ -1,4 +1,4 @@
-import { getOpenAIResponse } from '@/services/recommendations';
+import { getOpenAIResponse } from '@/services/openai-service';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as recommendationRepo from '@/db/recommendation-repo';
 
