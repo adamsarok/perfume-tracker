@@ -47,3 +47,10 @@ model Tag {
   color String
   perfumetags PerfumeTag[]
 }
+
+model Recommendation {
+  id Int @id @default(autoincrement())
+  query String
+  recommendations String
+  date DateTime @default(now())
+}
