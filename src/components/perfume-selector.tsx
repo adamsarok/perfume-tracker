@@ -24,7 +24,7 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
         router.refresh();
       };
 
-    return (<div>
+    return (<div data-testid="perfume-selector">
         <Autocomplete
             defaultItems={perfumes}
             label="What are you wearing today?"

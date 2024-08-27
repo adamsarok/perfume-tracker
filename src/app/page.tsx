@@ -1,11 +1,8 @@
 
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import PerfumeSelector from "../components/perfume-selector";
-import PerfumeCard from "@/components/perfumecard";
 import { Link } from "@nextui-org/react";
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import * as perfumeRepo from "@/db/perfume-repo";
-import { Perfume } from "@prisma/client";
 import WornList from "@/components/worn-list";
 
 export const dynamic = 'force-dynamic'
