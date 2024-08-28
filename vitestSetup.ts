@@ -1,11 +1,6 @@
-import { beforeAll, vi } from "vitest";
+import { beforeAll, beforeEach, vi } from "vitest";
 
 beforeAll(() => {
-    // vi.mock('intersection-observer', () => ({
-    //     observe: vi.fn(),
-    //     unobserve: vi.fn(),
-    //     disconnect: vi.fn(),
-    //   }));
     vi.mock('next/navigation', () => ({
         useRouter: () => ({
           push: vi.fn(),
@@ -19,16 +14,26 @@ beforeAll(() => {
 });
 
 class IntersectionObserver {
-    constructor(callback: any) {}
-    observe() {
-      return null;
-    }
-    unobserve() {
-      return null;
+    constructor(callback: any) {
+      this.root = null;
+      this.rootMargin = "";
+      this.thresholds = [];
     }
     disconnect() {
       return null;
     }
+    observe(target: Element): void {
+      
+    }
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+    unobserve(target: Element): void {
+      
+    }
+    readonly root: Element | Document | null;
+    readonly rootMargin: string;
+    readonly thresholds: ReadonlyArray<number>;
   }
   
   global.IntersectionObserver = IntersectionObserver;
