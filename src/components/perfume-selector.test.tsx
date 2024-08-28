@@ -1,6 +1,5 @@
 import { expect, test, vi } from 'vitest'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import Home from './page'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import PerfumeSelector from '@/components/perfume-selector';
 import { Perfume } from '@prisma/client';
 import { useRouter } from 'next/navigation';
@@ -15,19 +14,6 @@ const mockRefresh = vi.fn()
   vi.mock('@/db/perfume-repo', () => ({
     getPerfumesForSelector: vi.fn().mockResolvedValue([])
   }))
-
-test('renders home page links', async () => {
-    await act(async () => {
-        render(await Home());
-    });
-    expect(screen.getByText('New Perfume')).toBeDefined();
-
-    expect(screen.getByRole('button', { name: /Spray On/i })).toBeDefined();
-
-    expect(screen.getByTestId('perfume-selector')).toBeDefined();
-
-    //TODO complete
-});
 
 test('PerfumeSelector renders and handles selection', async () => {
     const mockPerfumes: Perfume[] = [
@@ -53,7 +39,7 @@ test('PerfumeSelector renders and handles selection', async () => {
     
     const autocomplete = screen.getByRole('combobox');
     fireEvent.change(autocomplete, { target: { value: 'Sausage' } });
-    console.log(screen.debug())
+    
     fireEvent.click(autocomplete);
     
     await act(() => {

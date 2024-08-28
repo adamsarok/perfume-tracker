@@ -33,7 +33,7 @@ export default function PerfumeCard({ worn }: PerfumeCardProps) {
               {perfume.house} - {perfume.perfume}
             </div>
             <Avatar className="semi-bold ml-4"
-              name={perfume.rating.toString()}
+              name={perfume.rating?.toString()}
               color="secondary" />
           </Link>
           <Button color="danger"
@@ -46,13 +46,13 @@ export default function PerfumeCard({ worn }: PerfumeCardProps) {
         <CardBody>
           <Tooltip content={
            <div>
-            {worn.tags.map(x => (
+            {worn.tags?.map(x => (
               <ColorChip key={x.id} className="mr-2" onChipClick={null} name={x.tag} color={x.color}></ColorChip>
             ))}
             </div>
           }>
             <p className="text-small tracking-tight text-default-400">
-              {`Worn on: ${worn.wornOn.toDateString()}`}
+              {`Worn a on: ${worn.wornOn.toDateString()}`}
             </p>
           </Tooltip>
         </CardBody>

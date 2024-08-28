@@ -1,0 +1,68 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PerfumeCard snapshot 1`] = `
+<DocumentFragment>
+  <form>
+    <div
+      class="flex flex-col relative overflow-hidden height-auto text-foreground box-border bg-content1 outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 shadow-medium rounded-large transition-transform-background motion-reduce:transition-none min-w-96"
+      tabindex="-1"
+    >
+      <div
+        class="flex p-3 z-10 w-full justify-start items-center shrink-0 overflow-inherit color-inherit subpixel-antialiased rounded-t-large"
+      >
+        <a
+          class="relative inline-flex items-center tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 text-medium text-primary no-underline hover:opacity-80 active:opacity-disabled transition-opacity"
+          href="/perfumes/1/"
+          role="link"
+          tabindex="0"
+        >
+          <span
+            class="flex relative justify-center items-center box-border overflow-hidden align-middle z-0 outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 w-10 h-10 text-tiny bg-default text-default-foreground rounded-full semi-bold"
+            tabindex="-1"
+          >
+            <span
+              aria-label="SA"
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-normal text-center text-inherit"
+              role="img"
+            >
+              SA
+            </span>
+          </span>
+          <div
+            class="text-small leading-none text-default-600 ml-4"
+          >
+            Dior - Sauvage
+          </div>
+          <span
+            class="flex relative justify-center items-center box-border overflow-hidden align-middle z-0 outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 w-10 h-10 text-tiny bg-secondary text-secondary-foreground rounded-full semi-bold ml-4"
+            tabindex="-1"
+          >
+            <span
+              aria-label="9"
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-normal text-center text-inherit"
+              role="img"
+            >
+              9
+            </span>
+          </span>
+        </a>
+        <button
+          class="z-0 group inline-flex items-center justify-center box-border appearance-none select-none whitespace-nowrap font-normal subpixel-antialiased overflow-hidden tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 px-unit-3 min-w-unit-16 h-unit-8 text-tiny gap-unit-2 rounded-small [&>svg]:max-w-[theme(spacing.unit-8)] data-[pressed=true]:scale-[0.97] transition-transform-colors-opacity motion-reduce:transition-none bg-danger text-danger-foreground data-[hover=true]:opacity-hover absolute right-5 max-w-4"
+          type="button"
+        >
+          X
+        </button>
+      </div>
+      <div
+        class="relative flex w-full p-3 flex-auto flex-col place-content-inherit align-items-inherit h-auto break-words text-left overflow-y-auto subpixel-antialiased"
+      >
+        <p
+          class="text-small tracking-tight text-default-400"
+        >
+          Worn on: Fri Mar 15 2024
+        </p>
+      </div>
+    </div>
+  </form>
+</DocumentFragment>
+`;
