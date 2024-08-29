@@ -5,7 +5,7 @@ import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
@@ -87,37 +87,41 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
             else toast.error(result.error);
         }
     }
-    const [imageGuid, setImageGuid] = useState<string | null>(null);
+    const [imageGuid, setImageGuid] = useState<string | null>(perfume?.imageObjectKey || null);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const fetchedRef = useRef<{[key: string]: boolean}>({});
     const onUpload = (guid: string | undefined) => {
-        console.log(guid)
         if (guid) {
-            console.log(guid);
             setImageGuid(guid);
             setImageGuidInRepo(guid);
-            //getDownloadUrl(guid);
         }
     }
-    useEffect(() => {
-        getDownloadUrl(imageGuid);
-    }), [imageGuid];
-    const getDownloadUrl = async (guid: string | null) => {
-        if (guid) {
-            const res = await fetch(`/api/generate-download-url?key=${encodeURIComponent(guid)}`, {
-                method: 'GET'
-            });
-            console.log(res);
-            const json = await res.json();
-            if (res.ok) {
-                setImageUrl(json.url);
-            } else {
-                console.error(`Failed to get download url: ${json.error}`);
+    
+    const getDownloadUrl = useCallback(async (guid: string | null) => {
+        if (guid && !fetchedRef.current[guid]) {
+            fetchedRef.current[guid] = true;
+            try {
+                const res = await fetch(`/api/generate-download-url?key=${encodeURIComponent(guid)}`, {
+                    method: 'GET'
+                });
+                const json = await res.json();
+                if (res.ok) {
+                    setImageUrl(json.url);
+                } else {
+                    console.error(`Failed to get download url: ${json.error}`);
+                }
+            } catch (error) {
+                console.error('Error fetching download URL:', error);
             }
         }
-    };
-    if (perfume && perfume.imageObjectKey) {
-        getDownloadUrl(perfume.imageObjectKey);
-    }
+    }, []);
+
+    useEffect(() => {
+        if (imageGuid) {
+            getDownloadUrl(imageGuid);
+        }
+    }, [imageGuid, getDownloadUrl]);
+
     const setImageGuidInRepo = async (guid: string | null) => {
         console.log(`updating image url to: ${guid}`);
         if (perfume && guid) await perfumeRepo.setImageObjectKey(perfume.id, guid)
