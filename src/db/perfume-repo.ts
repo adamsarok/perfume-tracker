@@ -12,6 +12,10 @@ const perfumeSchema = z.object({
     rating: z.string().min(1),
     notes: z.string().min(3),
     ml: z.string().min(1),
+    // winter: z.string().nullable(),
+    // summer: z.string().nullable(),
+    // autumn: z.string().nullable(),
+    // spring: z.string().nullable(),
 })
 
 interface UpdatePerfumeFormState {
@@ -21,6 +25,10 @@ interface UpdatePerfumeFormState {
         rating?: string[];
         notes?: string[];
         ml?: string[];
+        winter?: string[];
+        summer?: string[];
+        autumn?: string[];
+        spring?: string[];
         _form?: string[];
     },
     result: Perfume | null,
@@ -61,8 +69,9 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
             notes: formData.get('notes'),
             ml: formData.get('ml'),
         });
-
+        console.log(formData);
         if (!perf.success) {
+            console.log(perf);
             return {
                 errors: perf.error.flatten().fieldErrors,
                 result: null,
@@ -76,6 +85,10 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
                 state: 'failed'
             }
         }
+        const summmer = formData.get('summer') ? true : false;
+        const winter = formData.get('winter') ? true : false;
+        const spring = formData.get('spring') ? true : false;
+        const autumn = formData.get('autumn') ? true : false;
         if (id) {
             const currentTags = await db.perfumeTag.findMany({
                 where: {
@@ -97,6 +110,10 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
                     rating: parseFloat(perf.data.rating),
                     notes: perf.data.notes,
                     ml: parseInt(perf.data.ml),
+                    summer: summmer,
+                    winter: winter,
+                    spring: spring,
+                    autumn: autumn,
                     tags: {
                         createMany: {
                             data: tagsToAdd.map(x => ({
@@ -124,6 +141,10 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
                     rating: parseFloat(perf.data.rating),
                     notes: perf.data.notes,
                     ml: parseInt(perf.data.ml),
+                    summer: summmer,
+                    winter: winter,
+                    spring: spring,
+                    autumn: autumn,
                     tags: {
                         createMany: {
                             data: tags.map(t => ({
@@ -140,6 +161,7 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
             }
         }
     } catch (err: unknown) {
+        console.log(err);
         if (err instanceof Error) {
             return {
                 errors: { _form: [err.message] },

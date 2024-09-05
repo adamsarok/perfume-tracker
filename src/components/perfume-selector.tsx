@@ -4,7 +4,6 @@ import { Autocomplete, AutocompleteItem, Button, Divider, Input, Popover, Popove
 import { Perfume, } from "@prisma/client";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import React from "react";
-import { useRouter } from 'next/navigation';
 
 export interface PerfumeSelectorProps {
     perfumes: Perfume[]
@@ -15,13 +14,13 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
     const onSelectionChange = (id: any) => {
         setSelectedKey(id);
     };
-    const router = useRouter();
-
-    //const wearPerfume = perfumeWornRepo.wearPerfume.bind(null, selectedKey);
-
     const handleSubmit = async () => {
-        await perfumeWornRepo.wearPerfume(selectedKey); // Assuming this is an async function
-        router.refresh();
+        try {
+            await perfumeWornRepo.wearPerfume(selectedKey);
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+        }
       };
 
     return (<div data-testid="perfume-selector">

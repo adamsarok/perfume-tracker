@@ -22,6 +22,10 @@ model Perfume {
   notes String @default("")
   ml Int @default(2)
   imageObjectKey String @default("")
+  winter Boolean @default(true)
+  spring Boolean @default(true)
+  summer Boolean @default(true)
+  autumn Boolean @default(true)
   worn PerfumeWorn[]
   tags PerfumeTag[]
 }

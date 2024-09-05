@@ -20,6 +20,7 @@ export default function PerfumeCard({ worn }: PerfumeCardProps) {
 
   const handlePressStart = (id: number) => {
     perfumeWornRepo.deleteWear(id);
+    window.location.reload();
   };
 
   return (

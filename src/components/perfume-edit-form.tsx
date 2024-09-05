@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Input, Link, Image } from "@nextui-org/react";
+import { Button, Input, Link, Image, CheckboxGroup, Checkbox } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
@@ -87,6 +87,12 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
             else toast.error(result.error);
         }
     }
+
+    const [summer, setSummer] = useState<boolean>(perfume ? perfume.summer : true);
+    const [autumn, setAutumn] = useState<boolean>(perfume ? perfume.autumn : true);
+    const [winter, setWinter] = useState<boolean>(perfume ? perfume.winter : true);
+    const [spring, setSpring] = useState<boolean>(perfume ? perfume.spring : true);
+
     const [imageGuid, setImageGuid] = useState<string | null>(perfume?.imageObjectKey || null);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const fetchedRef = useRef<{[key: string]: boolean}>({});
@@ -161,6 +167,10 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
                         isInvalid={!!formState.errors.notes}
                         errorMessage={formState.errors.notes?.join(',')}
                     ></Input>
+                    <Checkbox name="winter" value="Winter" onValueChange={setWinter} isSelected={winter}>Winter</Checkbox>
+                    <Checkbox name="spring" value="Spring" onValueChange={setSpring} isSelected={spring}>Spring</Checkbox>
+                    <Checkbox name="summer" value="Summer" onValueChange={setSummer} isSelected={summer}>Summer</Checkbox>
+                    <Checkbox name="autumn" value="Autumn" onValueChange={setAutumn} isSelected={autumn}>Autumn</Checkbox>
                     <div></div>
                     <div className="flex mt-4 mb-2">
                         <Button color="secondary"
@@ -189,6 +199,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
                         </div> : null
                     }
                 </div>
+                
             </div>
         </form>
         <div className={styles.chipContainer}>

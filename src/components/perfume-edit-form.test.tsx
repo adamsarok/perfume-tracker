@@ -22,7 +22,13 @@ vi.mock('react-toastify', () => ({
 
 test('PerfumeEditForm handles errors', async () => {
 
-    const mockPerfume: Perfume = { id: 1, house: 'Dior', perfume: 'Sauvage', rating: 9, notes: 'Fresh', ml: 100, imageObjectKey: '' };
+    const mockPerfume: Perfume = {
+      id: 1, house: 'Dior', perfume: 'Sauvage', rating: 9, notes: 'Fresh', ml: 100, imageObjectKey: '',
+      winter: true,
+      spring: true,
+      summer: true,
+      autumn: true
+    };
     const mockTags: Tag[] = [];
     const mockAllTags: Tag[] = [];
     vi.mock('@/db/perfume-repo', () => ({
