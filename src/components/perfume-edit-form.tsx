@@ -16,7 +16,8 @@ import { FloppyDisk } from "@/icons/floppy-disk";
 import { MagicWand } from "@/icons/magic-wand";
 import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
-
+import { NEXT_PUBLIC_R2_API_ADDRESS } from "../services/conf";
+  
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
     allTags: Tag[],
@@ -93,50 +94,26 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
     const [winter, setWinter] = useState<boolean>(perfume ? perfume.winter : true);
     const [spring, setSpring] = useState<boolean>(perfume ? perfume.spring : true);
 
-    const [imageGuid, setImageGuid] = useState<string | null>(perfume?.imageObjectKey || null);
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const getImageUrl = (imageObjectKey: string | undefined) => {
+        if (!imageObjectKey) return "";
+        console.log(`${NEXT_PUBLIC_R2_API_ADDRESS}/cached-image?key=${encodeURIComponent(imageObjectKey)}`);
+        return `${NEXT_PUBLIC_R2_API_ADDRESS}/cached-image?key=${encodeURIComponent(imageObjectKey)}`;
+    }
+
+    const [imageUrl, setImageUrl] = useState<string | null>(getImageUrl(perfume?.imageObjectKey));
     const fetchedRef = useRef<{[key: string]: boolean}>({});
     const onUpload = (guid: string | undefined) => {
         if (guid) {
-            setImageGuid(guid);
+            setImageUrl(getImageUrl(guid));
             setImageGuidInRepo(guid);
         }
     }
-    
-    const getDownloadUrl = useCallback(async (guid: string | null) => {
-        if (guid && !fetchedRef.current[guid]) {
-            fetchedRef.current[guid] = true;
-            try {
-                const res = await fetch(`/api/generate-download-url?key=${encodeURIComponent(guid)}`, {
-                    method: 'GET'
-                });
-                const json = await res.json();
-                if (res.ok) {
-                    setImageUrl(json.url);
-                } else {
-                    console.error(`Failed to get download url: ${json.error}`);
-                }
-            } catch (error) {
-                console.error('Error fetching download URL:', error);
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        if (imageGuid) {
-            getDownloadUrl(imageGuid);
-        }
-    }, [imageGuid, getDownloadUrl]);
 
     const setImageGuidInRepo = async (guid: string | null) => {
         console.log(`updating image url to: ${guid}`);
         if (perfume && guid) await perfumeRepo.setImageObjectKey(perfume.id, guid)
     }
     return <div>
-        {/* <Head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        </Head> */}
-
         <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
         <form action={action} className={styles.container}>
             <div className={styles.container}>
