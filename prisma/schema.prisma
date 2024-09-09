@@ -6,8 +6,9 @@
 
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["linux-musl-openssl-3.0.x", "windows", "debian-openssl-1.1.x"] 
-}
+  binaryTargets = ["linux-musl-openssl-3.0.x", "windows", "debian-openssl-1.1.x"]
+  previewFeatures = ["relationJoins"] //TODO: setup "tracing"]
+} //TODO: relationJoins generates some pretty "interesting" queries even for simple joins. check if it is really faster than app level join
 
 datasource db {
   provider = "postgresql"
