@@ -7,10 +7,14 @@ type ResponseData = {
     error: string
 }
 
+function RemoveDiacritics(input: string){
+    return input.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
     try {
-        const { pastPerfumes } = req.body;
-        const query = `Based on these past choices: ${pastPerfumes}, suggest 3 perfumes.`;
+        var { query } = req.body;
+        query = RemoveDiacritics(query);
         const recommendations = await getOpenAIResponse(query);
         recommendationRepo.insertRecommendation(query, recommendations);
         if (recommendations) {

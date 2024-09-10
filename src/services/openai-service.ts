@@ -9,6 +9,5 @@ export async function getOpenAIResponse(query: string) {
       { role: "user", content: query }
     ],
   });
-
   return response.choices[0].message.content;
 }

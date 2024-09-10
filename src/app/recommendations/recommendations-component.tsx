@@ -1,13 +1,13 @@
 "use client";
 
 import ReactMarkdown from 'react-markdown';
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import { Button } from "@nextui-org/button";
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { Card, CardBody, CardHeader, Radio, RadioGroup } from '@nextui-org/react';
 import ColorChip from '@/components/color-chip';
-import { UserPreferences } from '@/services/recommendation-service';
+import { GetQuery, UserPreferences } from '@/services/recommendation-service';
+import { toast } from 'react-toastify';
 
 export const dynamic = 'force-dynamic'
 
@@ -19,15 +19,17 @@ export default function RecommendationsComponent({ userPreferences }: Recommenda
   const [recommendations, setRecommendations] = useState<string | null>(null);
   //const tags = await tagRepo.getTags();
   //TODO: recommend perfumes already in collection, or already in coll 
-  const getRecommendations = async (pastPerfumes: string) => {
-    if (pastPerfumes && pastPerfumes.length > 0) {
+  const getRecommendations = async () => {
+    const query = GetQuery(userPreferences, wearOrBuy, perfumesOrNotes);
+    console.log(query);
+    if (query) {
       const res = await fetch(`/api/get-recommendations`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          pastPerfumes
+          query
         }),
       });
       console.log(res);
@@ -35,13 +37,15 @@ export default function RecommendationsComponent({ userPreferences }: Recommenda
       if (res.ok) {
         setRecommendations(json.recommendations);
       } else {
-        console.error(`Failed to get download url: ${json.error}`);
+        toast.error(`Failed to get download url: ${json.error}`);
       }
+    } else {
+      toast.error("Query generation failed, query is empty");
     }
   };
 
-  const [wearOrBuy, setWearOrBuy] = useState<string | null>('wear');
-  const [perfumesOrNotes, setPerfumesOrNotes] = useState<string | null>('perfumes');
+  const [wearOrBuy, setWearOrBuy] = useState<"wear" | "buy" | null>('wear');
+  const [perfumesOrNotes, setPerfumesOrNotes] = useState<"perfumes" | "notes" | null>('perfumes');
   const [timeRange, setTimeRange] = useState<string | null>('last-3');
 
   useEffect(() => {
@@ -52,7 +56,7 @@ export default function RecommendationsComponent({ userPreferences }: Recommenda
     <RadioGroup 
       label="Wear or buy?"
       orientation="horizontal"
-      onValueChange={setWearOrBuy}
+      onValueChange={(value) => setWearOrBuy(value === "wear" ? "wear" : "buy")}
       defaultValue='wear'
       >
       <Radio value="wear">What to wear (owned perfumes)</Radio>
@@ -61,7 +65,7 @@ export default function RecommendationsComponent({ userPreferences }: Recommenda
     <RadioGroup 
       label="Recommend based on notes or perfumes?"
       orientation="horizontal"
-      onValueChange={setPerfumesOrNotes}
+      onValueChange={(value) => setPerfumesOrNotes(value === "perfumes" ? "perfumes" : "notes")}
       defaultValue='perfumes'
       >
       <Radio value="perfumes">Recommend based on perfumes</Radio>
@@ -96,7 +100,7 @@ export default function RecommendationsComponent({ userPreferences }: Recommenda
       defaultValue='last-3'
     >
       <Radio value="last-3">Last 3 worn perfumes</Radio>
-      <Radio value="all-time">All time (most worn perfumes or notes)</Radio>
+      <Radio value="all-time" disabled>All time (most worn perfumes or notes)</Radio>
     </RadioGroup>
     <Card>  
       <CardBody>
@@ -104,7 +108,7 @@ export default function RecommendationsComponent({ userPreferences }: Recommenda
       </CardBody>
     </Card>
     <Button onPress={async () => {
-      await getRecommendations(userPreferences.last3perfumes.perfumes?.map(p => `${p.perfume.house} - ${p.perfume.perfume}`).join(', ') ?? '');
+      await getRecommendations();
     }}>
       Show recommendations
     </Button>

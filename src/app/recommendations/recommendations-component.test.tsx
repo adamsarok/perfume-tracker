@@ -7,7 +7,13 @@ test('RecommendationsComponent fetches and displays recommendations', async () =
     const mockUserPreferences: UserPreferences = {
         last3perfumes: {
             perfumes: [{
-                perfume: { id: 1, house: 'Door', perfume: 'Sausage', rating: 10, notes: 'cool perfume', ml: 50, imageObjectKey: '' },
+                perfume: {
+                    id: 1, house: 'Door', perfume: 'Sausage', rating: 10, notes: 'cool perfume', ml: 50, imageObjectKey: '',
+                    winter: false,
+                    spring: false,
+                    summer: false,
+                    autumn: false
+                },
                 wornTimes: 5,
                 lastWorn: new Date(),
                 tags: []

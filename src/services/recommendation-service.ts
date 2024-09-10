@@ -6,13 +6,6 @@ export interface TagWithCount {
     color: string,
     wornCount: number
 }
-
-// export interface Perfume {
-//     house: string,
-//     perfume: string,
-//     wornCount: number
-// }
-
 export interface UserPreference {
     perfumes: perfumeWornRepo.PerfumeWornDTO[] | null, //not exactly correct as the worncount is total, not 3 days...
     tags: TagWithCount[] | null
@@ -21,6 +14,36 @@ export interface UserPreference {
 export interface UserPreferences {
   last3perfumes: UserPreference
   allTime: UserPreference
+}
+
+export function GetQuery(userPreferences: UserPreferences, buyOrWear: "buy" | "wear" | null, basedOnNotes: "notes" | "perfumes" | null) : string {
+    if (!userPreferences || !buyOrWear || !basedOnNotes) return '';
+    let query;
+    if (basedOnNotes === "perfumes") {
+        if (!userPreferences.last3perfumes) return '';
+        const last3perfumes = userPreferences.last3perfumes.perfumes?.map(p => `${p.perfume.house} - ${p.perfume.perfume}`).join(', ') ?? '';
+        query = `Based on these past choices: ${last3perfumes}, suggest 3 perfumes.`;
+    } else {
+        if (!userPreferences.last3perfumes.tags) return '';
+        const last3perfumesTags = userPreferences.last3perfumes.tags?.map(t => t.tag).join(', ') ?? '';
+        query = `Based on these perfume notes: ${last3perfumesTags}, suggest 3 perfumes.`;
+    }
+
+    //we use less tokens if we group perfumes by house eg
+    const ownedPerfumes = userPreferences.allTime.perfumes?.reduce((acc, p) => {
+        const house = p.perfume.house;
+        if (!acc[house]) {
+            acc[house] = [];
+        }
+        acc[house].push(p.perfume.perfume);
+        return acc;
+    }, {} as Record<string, string[]>);   
+    const formattedOwnedPerfumes = ownedPerfumes ? 
+        Object.entries(ownedPerfumes).map(([house, perfumes]) => `${house} { ${perfumes.join(', ')} }`).join(', ') 
+        : '';
+    if (buyOrWear === "buy") query += ` Suggest perfumes not in this list: ${formattedOwnedPerfumes}`;  
+    else query += ` Suggest perfumes only from this list: ${formattedOwnedPerfumes}`;
+    return query;
 }
 
 function aggregatePerfumesTags(perfumes: perfumeWornRepo.PerfumeWornDTO[]) : UserPreference {
@@ -54,7 +77,8 @@ function aggregatePerfumesTags(perfumes: perfumeWornRepo.PerfumeWornDTO[]) : Use
 
 export default async function GetUserPreferences() : Promise<UserPreferences> {
     
-    const perfumes = await perfumeWornRepo.getAllPerfumesWithWearCount();
+    const perfumes = (await perfumeWornRepo.getAllPerfumesWithWearCount())
+        .filter(x => x.perfume.ml > 0 && x.perfume.rating >= 8);
 
     const past = new Date(0); //todo refactor
     const lastThreePerfumes = perfumes.sort((a, b) => {
