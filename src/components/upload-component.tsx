@@ -17,26 +17,14 @@ Error Handling: Handle potential errors and edge cases, such as file upload fail
 export default function UploadComponent({ className, onUpload }: UploadComponentProps) {
   const [uploadURL, setUploadURL] = useState('');
 
-  // const uploadFile = async (file: any) => {
-  //   const res = await fetch('/api/upload-image', {
-  //     method: 'PUT',
-  //   });
-
-  //   const data = await res.json();
-  //   setUploadURL(data.uploadURL); // Assuming the URL is returned as `url`
-  //   console.log(uploadURL);
-  // };
-
   const handleUpload = async (file: File) => {
-    console.log(`uploading: ${file.name}`);
     const res = await fetch(`/api/upload-image?filename=${encodeURIComponent(file.name)}`, {
       method: 'PUT',
       body: file,
       headers: {
         'Content-Type': 'image/jpeg',
       },
-    }); //what if not jpeg?
-    //console.log(json);
+    }); //TODO: what if not jpeg?
     if (res.ok) {
       const json = await res.json();
       onUpload(json.guid);

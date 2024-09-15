@@ -27,7 +27,6 @@ async function sendFile(filePath: string, fileName: string, res: NextApiResponse
             },
         });
         const json = await response.json();
-        console.log(json);
         if (!response.ok) {
             throw new Error(`Failed to upload file to microservice: ${response.statusText}`);
         }

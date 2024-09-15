@@ -38,19 +38,6 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-    let chipFirstLetter = '';
-    const letterDivider = (tag: string): boolean => {
-        console.log(chipFirstLetter);
-        console.log(tag[0]);
-        if (chipFirstLetter !== '' && chipFirstLetter !== tag[0]) {
-            chipFirstLetter = tag[0];
-            return true;
-        }
-        chipFirstLetter = tag[0];
-        return false;
-    }
-
-
     const groupedChips: { [key: string]: ChipProp[] } = bottomChips.reduce((groups, chip) => {
         const firstLetter = chip.name[0].toUpperCase();
         if (!groups[firstLetter]) {
@@ -58,9 +45,7 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
         }
         groups[firstLetter].push(chip);
         return groups;
-    }, {} as { [key: string]: ChipProp[] }); // Providing an initial empty object with proper type
-
-
+    }, {} as { [key: string]: ChipProp[] })
 
     return (<div className={className}>
         <TagAddModal
@@ -92,11 +77,8 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
             </Card>
             {Object.keys(groupedChips).sort().map((letter) => (
                 <Card key={letter} className={styles.chipGroup}>
-                    {/* <CardHeader>{letter}</CardHeader> */}
-                    {/* <h2 className={styles.chipGroupHeading}>{letter}</h2> */}
                     <CardHeader>
                         {letter}
-                        {/* <div className={styles.chipContainer}> */}
                         {groupedChips[letter].map(c => (
                             <div key={c.name} className={styles.chipItem}>
                                 <ColorChip
@@ -107,7 +89,6 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
                                 />
                             </div>
                         ))}
-                        {/* </div> */}
                     </CardHeader>
                 </Card>
             ))}

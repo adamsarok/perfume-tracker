@@ -69,9 +69,7 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
             notes: formData.get('notes'),
             ml: formData.get('ml'),
         });
-        console.log(formData);
         if (!perf.success) {
-            console.log(perf);
             return {
                 errors: perf.error.flatten().fieldErrors,
                 result: null,
@@ -161,7 +159,6 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
             }
         }
     } catch (err: unknown) {
-        console.log(err);
         if (err instanceof Error) {
             return {
                 errors: { _form: [err.message] },

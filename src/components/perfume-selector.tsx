@@ -4,6 +4,7 @@ import { Autocomplete, AutocompleteItem, Button, Divider, Input, Popover, Popove
 import { Perfume, } from "@prisma/client";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import React from "react";
+import SprayOnComponent from "./spray-on";
 
 export interface PerfumeSelectorProps {
     perfumes: Perfume[]
@@ -14,14 +15,15 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
     const onSelectionChange = (id: any) => {
         setSelectedKey(id);
     };
-    const handleSubmit = async () => {
-        try {
-            await perfumeWornRepo.wearPerfume(selectedKey);
-            window.location.reload();
-        } catch (error) {
-            console.error(error);
-        }
-      };
+    // const handleSubmit = async () => {
+    //     try {
+    //         await perfumeWornRepo.wearPerfume(selectedKey);
+    //         window.location.reload();
+    //     } catch (error) {
+    //         console.error(error);
+    //     }
+    //   };
+    //TODO: reload after sprayon!
 
     return (<div data-testid="perfume-selector">
         <Autocomplete
@@ -41,14 +43,7 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
 
         </Autocomplete>
         <div className="flex mt-1 mb-1">
-            {/* <form> */}
-                <Button type="submit" onClick={() => {
-                    handleSubmit()
-                    // wearPerfume();
-                    // router.push('/');
-                }}
-                >Spray On</Button>
-            {/* </form> */}
+            <SprayOnComponent perfumeId={selectedKey}></SprayOnComponent> 
         </div>
         <Divider className="mb-1"></Divider>
     </div>

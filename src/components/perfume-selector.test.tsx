@@ -22,14 +22,22 @@ test('PerfumeSelector renders and handles selection', async () => {
             rating: 10,
             notes: 'cool perfume',
             ml: 50,
-            imageObjectKey: ''
+            imageObjectKey: '',
+            winter: false,
+            spring: false,
+            summer: false,
+            autumn: false
         },
         {
             id: 2, house: 'Channel', perfume: 'Blue Channel',
             rating: 7,
             notes: 'so blue',
             ml: 100,
-            imageObjectKey: ''
+            imageObjectKey: '',
+            winter: false,
+            spring: false,
+            summer: false,
+            autumn: false
         }
     ];
  

@@ -17,6 +17,7 @@ import { MagicWand } from "@/icons/magic-wand";
 import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
 import { NEXT_PUBLIC_R2_API_ADDRESS } from "../services/conf";
+import SprayOnComponent from "./spray-on";
   
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -81,13 +82,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
             }
         }
     }
-    const onSprayOn = async (id: number | undefined) => {
-        if (id) {
-            var result = await perfumeWornRepo.wearPerfume(id);
-            if (result.ok) toast.success("Smell on!");
-            else toast.error(result.error);
-        }
-    }
+
 
     const [summer, setSummer] = useState<boolean>(perfume ? perfume.summer : true);
     const [autumn, setAutumn] = useState<boolean>(perfume ? perfume.autumn : true);
@@ -96,7 +91,6 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
 
     const getImageUrl = (imageObjectKey: string | undefined) => {
         if (!imageObjectKey) return "";
-        console.log(`${NEXT_PUBLIC_R2_API_ADDRESS}/cached-image?key=${encodeURIComponent(imageObjectKey)}`);
         return `${NEXT_PUBLIC_R2_API_ADDRESS}/cached-image?key=${encodeURIComponent(imageObjectKey)}`;
     }
 
@@ -110,7 +104,6 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
     }
 
     const setImageGuidInRepo = async (guid: string | null) => {
-        console.log(`updating image url to: ${guid}`);
         if (perfume && guid) await perfumeRepo.setImageObjectKey(perfume.id, guid)
     }
     return <div>
@@ -150,11 +143,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
                     <Checkbox name="autumn" value="Autumn" onValueChange={setAutumn} isSelected={autumn}>Autumn</Checkbox>
                     <div></div>
                     <div className="flex mt-4 mb-2">
-                        <Button color="secondary"
-                            startContent={<MagicWand />}
-                            onPress={() => onSprayOn(perfume?.id)}
-                            className="ml-2 mr-4"
-                        >Spray On</Button>
+                        <SprayOnComponent perfumeId={perfume?.id}></SprayOnComponent>
                         <Button color="primary"
                             startContent={<FloppyDisk />}
                             className="mr-4"

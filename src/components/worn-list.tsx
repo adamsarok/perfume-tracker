@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from "react";
-import PerfumeSelector from "../components/perfume-selector";
 import PerfumeCard from "@/components/perfumecard";
-import { Link } from "@nextui-org/react";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import * as perfumeRepo from "@/db/perfume-repo";
 import { Perfume } from "@prisma/client";
@@ -22,7 +20,8 @@ export default function WornList() {
         setCursor(cursor);
         setLoading(true);
         const newWorns = await perfumeWornRepo.getWornBeforeID(cursor, cardsPerPage);
-        setWorns([...worns, ...newWorns]);
+        setWorns([...worns, ...newWorns.sort((a, b) => { return b.wornOn.getTime() - a.wornOn.getTime()})]);
+        //TODO: this sort is not 100% correct - we load by id, but worn date can be a different order
         setLoading(false);
     };
 

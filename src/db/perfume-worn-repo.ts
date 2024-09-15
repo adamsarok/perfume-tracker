@@ -98,7 +98,7 @@ export async function deleteWear(id: number) {
 }
 
 //warning todo utc
-export async function wearPerfume(id: number) : Promise<ActionResult> {
+export async function wearPerfume(id: number, date: Date) : Promise<ActionResult> {
     if (!id) {
         return {
             error: 'Perfume ID empty',
@@ -106,16 +106,17 @@ export async function wearPerfume(id: number) : Promise<ActionResult> {
         }
     }
     const idNum: number = parseInt(id.toString());
-    const today = new Date();
-    today.setHours(0, 0, 0);
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
+    const startDay = new Date(date);
+    startDay.setHours(0, 0, 0, 0);
+    const startDayPlus1 = new Date();
+    startDayPlus1.setDate(startDay.getDate() + 1);
+    startDayPlus1.setHours(0, 0, 0, 0);
     const alreadyWornToday = await db.perfumeWorn.findFirst({
         where: {
             perfumeId: idNum,
             wornOn: {
-                gte: today,
-                lt: tomorrow
+                gte: startDay,
+                lt: startDayPlus1
             }
         }
     });
@@ -127,7 +128,7 @@ export async function wearPerfume(id: number) : Promise<ActionResult> {
     }
     await db.perfumeWorn.create({
         data: {
-            wornOn: new Date(),
+            wornOn: date,
             perfume: {
                 connect: {
                     id: idNum

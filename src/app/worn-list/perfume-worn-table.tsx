@@ -33,7 +33,6 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
                     items = perfumes.filter((x) => x.tags.length === 0 && x.perfume.rating >= 8 && x.perfume.ml > 0);
                     break;
                 case 'tag-filter':
-                    console.log(tags)
                     items = perfumes.filter((perfume) => {
                         return (
                             perfume.perfume.rating >= 8 &&
