@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import path from 'path';
 import fs, { createWriteStream } from 'fs';
 import { readFile } from 'fs/promises';
-import { NEXT_PUBLIC_R2_API_ADDRESS } from '../../services/conf';
+import { R2_API_ADDRESS } from '@/services/conf';
 
 type ResponseData = {
     guid: string,
@@ -18,7 +18,7 @@ export const config = {
 async function sendFile(filePath: string, fileName: string, res: NextApiResponse<ResponseData>) {
     try {
         const fileBuffer = await readFile(filePath);
-        const microserviceUrl = `${NEXT_PUBLIC_R2_API_ADDRESS}/upload-image?fileName=${encodeURIComponent(fileName)}`;
+        const microserviceUrl = `${R2_API_ADDRESS}/upload-image?fileName=${encodeURIComponent(fileName)}`;
         const response = await fetch(microserviceUrl, {
             method: 'PUT',
             body: fileBuffer,
@@ -44,7 +44,7 @@ async function sendFile(filePath: string, fileName: string, res: NextApiResponse
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-    if (!NEXT_PUBLIC_R2_API_ADDRESS) {
+    if (!R2_API_ADDRESS) {
         res.status(400).json({ error: 'R2 API address is not configured', guid: '' });
         return;
     }
@@ -67,6 +67,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         await sendFile(filePath, filename, res);
+
+        fs.unlink(filePath, function(err) {
+            if(err) return console.log(err);
+        }); 
     } catch (err: unknown) {
         if (err instanceof Error) {
             res.status(500).json({ error: `Error: ${err.message}`, guid: '' });

@@ -16,16 +16,16 @@ import { FloppyDisk } from "@/icons/floppy-disk";
 import { MagicWand } from "@/icons/magic-wand";
 import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
-import { NEXT_PUBLIC_R2_API_ADDRESS } from "../services/conf";
 import SprayOnComponent from "./spray-on";
   
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
     allTags: Tag[],
-    perfumesTags: Tag[]
+    perfumesTags: Tag[],
+    r2_api_address: string | undefined
 }
 
-export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: PerfumeEditFormProps) {
+export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api_address }: PerfumeEditFormProps) {
     const router = useRouter();
     const [tags, setTags] = useState(perfumesTags);
     const [formState, action] = useFormState(
@@ -90,8 +90,8 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags }: Perf
     const [spring, setSpring] = useState<boolean>(perfume ? perfume.spring : true);
 
     const getImageUrl = (imageObjectKey: string | undefined) => {
-        if (!imageObjectKey) return "";
-        return `${NEXT_PUBLIC_R2_API_ADDRESS}/cached-image?key=${encodeURIComponent(imageObjectKey)}`;
+        if (!imageObjectKey || !r2_api_address) return "";
+        return `${r2_api_address}/cached-image?key=${encodeURIComponent(imageObjectKey)}`;
     }
 
     const [imageUrl, setImageUrl] = useState<string | null>(getImageUrl(perfume?.imageObjectKey));

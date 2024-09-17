@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Tag } from "@prisma/client";
 import * as perfumeRepo from "@/db/perfume-repo";
 import db from "@/db";
+import { R2_API_ADDRESS } from "@/services/conf";
 
 export const dynamic = 'force-dynamic'
 
@@ -27,5 +28,6 @@ export default async function EditPerfumePage({params}: EditPerfumePageProps) {
             color: x.tag.color
         })
     });
-    return <PerfumeEditForm perfume={perfume} perfumesTags={tags} allTags={allTags}></PerfumeEditForm>
+    console.log(R2_API_ADDRESS);
+    return <PerfumeEditForm perfume={perfume} perfumesTags={tags} allTags={allTags} r2_api_address={R2_API_ADDRESS}></PerfumeEditForm>
 }
