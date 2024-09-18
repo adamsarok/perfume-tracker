@@ -6,9 +6,10 @@ import { useState } from "react";
 
 export interface SprayOnProps {
     perfumeId: number | undefined
+    onSuccess: () => void
 }
 
-export default function SprayOnComponent({perfumeId} : SprayOnProps) {
+export default function SprayOnComponent({perfumeId, onSuccess} : SprayOnProps) {
     const yymmdd = new Date().toISOString().slice(0, 10);
     const [dateStr, setDateStr] = useState<string>(yymmdd);
 
@@ -22,8 +23,10 @@ export default function SprayOnComponent({perfumeId} : SprayOnProps) {
                 date = new Date();
             }
             var result = await perfumeWornRepo.wearPerfume(perfumeId, date);
-            if (result.ok) toast.success("Smell on!");
-            else toast.error(result.error);
+            if (result.ok) {
+                toast.success("Smell on!");
+                onSuccess();
+            } else toast.error(result.error);
         }
     }
 

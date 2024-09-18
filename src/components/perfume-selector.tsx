@@ -15,16 +15,9 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
     const onSelectionChange = (id: any) => {
         setSelectedKey(id);
     };
-    // const handleSubmit = async () => {
-    //     try {
-    //         await perfumeWornRepo.wearPerfume(selectedKey);
-    //         window.location.reload();
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    //   };
-    //TODO: reload after sprayon!
-
+    const onSprayOn = async () => {
+        window.location.reload();
+    };
     return (<div data-testid="perfume-selector">
         <Autocomplete
             defaultItems={perfumes}
@@ -43,7 +36,7 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
 
         </Autocomplete>
         <div className="flex mt-1 mb-1">
-            <SprayOnComponent perfumeId={selectedKey}></SprayOnComponent> 
+            <SprayOnComponent perfumeId={selectedKey} onSuccess={onSprayOn}></SprayOnComponent> 
         </div>
         <Divider className="mb-1"></Divider>
     </div>

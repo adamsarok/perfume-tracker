@@ -6,12 +6,14 @@ import React, { ReactNode } from "react";
 import { WornWithPerfume } from "@/db/perfume-worn-repo";
 import ColorChip from "./color-chip";
 import {Tooltip} from "@nextui-org/tooltip";
+import { getImageUrl } from "./r2-image";
 
 export interface PerfumeCardProps {
-  worn: WornWithPerfume
+  worn: WornWithPerfume,
+  r2_api_address: string | undefined
 }
 
-export default function PerfumeCard({ worn }: PerfumeCardProps) {
+export default function PerfumeCard({ worn, r2_api_address }: PerfumeCardProps) {
   if (!worn || !worn.perfume) return (<div></div>);
   const perfume = worn.perfume;
   const avatar = perfume.perfume.split(" ").length > 1
@@ -28,14 +30,11 @@ export default function PerfumeCard({ worn }: PerfumeCardProps) {
       <Card key={worn.id} className="min-w-96">
         <CardHeader>
           <Link href={`/perfumes/${perfume.id}/`}>
-            <Avatar className="semi-bold"
+            <Avatar className="semi-bold" src={getImageUrl(perfume?.imageObjectKey, r2_api_address)}
               name={avatar} />
             <div className="text-small leading-none text-default-600 ml-4">
               {perfume.house} - {perfume.perfume}
             </div>
-            <Avatar className="semi-bold ml-4"
-              name={perfume.rating?.toString()}
-              color="secondary" />
           </Link>
           <Button color="danger"
             size="sm" className="absolute right-5  max-w-4"

@@ -17,6 +17,7 @@ import { MagicWand } from "@/icons/magic-wand";
 import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
 import SprayOnComponent from "./spray-on";
+import { getImageUrl } from "./r2-image";
   
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -88,17 +89,11 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
     const [autumn, setAutumn] = useState<boolean>(perfume ? perfume.autumn : true);
     const [winter, setWinter] = useState<boolean>(perfume ? perfume.winter : true);
     const [spring, setSpring] = useState<boolean>(perfume ? perfume.spring : true);
-
-    const getImageUrl = (imageObjectKey: string | undefined) => {
-        if (!imageObjectKey || !r2_api_address) return "";
-        return `${r2_api_address}/cached-image?key=${encodeURIComponent(imageObjectKey)}`;
-    }
-
-    const [imageUrl, setImageUrl] = useState<string | null>(getImageUrl(perfume?.imageObjectKey));
+    const [imageUrl, setImageUrl] = useState<string | null>(getImageUrl(perfume?.imageObjectKey, r2_api_address));
     const fetchedRef = useRef<{[key: string]: boolean}>({});
     const onUpload = (guid: string | undefined) => {
         if (guid) {
-            setImageUrl(getImageUrl(guid));
+            setImageUrl(getImageUrl(guid, r2_api_address));
             setImageGuidInRepo(guid);
         }
     }
@@ -143,7 +138,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
                     <Checkbox name="autumn" value="Autumn" onValueChange={setAutumn} isSelected={autumn}>Autumn</Checkbox>
                     <div></div>
                     <div className="flex mt-4 mb-2">
-                        <SprayOnComponent perfumeId={perfume?.id}></SprayOnComponent>
+                        <SprayOnComponent perfumeId={perfume?.id} onSuccess={()=>{}}></SprayOnComponent>
                         <Button color="primary"
                             startContent={<FloppyDisk />}
                             className="mr-4"

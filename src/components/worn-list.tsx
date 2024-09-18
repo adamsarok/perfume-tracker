@@ -7,7 +7,11 @@ import * as perfumeRepo from "@/db/perfume-repo";
 import { Perfume } from "@prisma/client";
 import { useInView } from 'react-intersection-observer'
 
-export default function WornList() {
+export interface WornListProps{
+    r2_api_address: string | undefined
+}
+
+export default function WornList({r2_api_address}: WornListProps) {
     const [worns, setWorns] = useState<perfumeWornRepo.WornWithPerfume[]>([]);
     const [perfumes, setPerfumes] = useState<Perfume[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
@@ -44,7 +48,7 @@ export default function WornList() {
     return (
         <div>
             {worns.map((worn) => (
-                <PerfumeCard key={worn.id} worn={worn}></PerfumeCard>
+                <PerfumeCard key={worn.id} worn={worn} r2_api_address={r2_api_address}></PerfumeCard>
             ))}
             {(!cursor || cursor > 1) && <div ref={ref}>
                 Loading...
