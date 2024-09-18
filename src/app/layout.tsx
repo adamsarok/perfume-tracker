@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { Link } from "@nextui-org/react";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -25,6 +26,13 @@ export default function RootLayout({
         <ToastContainer position="top-right" />
         <Providers>
           <div className="max-w-lg mx-auto px-4 py-8">
+            <Link isBlock color="foreground" href="/">Home</Link>
+            <Link isBlock color="foreground" href="/perfumes/new-perfume">New Perfume</Link>
+            <Link isBlock color="foreground" href="/worn-list">Worn List</Link>
+            <Link isBlock color="foreground" href="/stats">Stats</Link>
+            <Link isBlock color="foreground" href="/calendar">Calendar</Link>
+            <Link isBlock color="foreground" href="/tags">Tags</Link>
+            <Link isBlock color="foreground" href="/recommendations">Recommendations</Link>
             {children}
           </div>
         </Providers>

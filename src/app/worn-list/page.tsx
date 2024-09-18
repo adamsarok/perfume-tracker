@@ -15,7 +15,6 @@ export default async function StatsPage() {
       });
     const tags = await tagRepo.getTags();
     return <div>
-      <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
       <Spacer></Spacer>
       <PerfumeWornTable perfumes={perfumes} allTags={tags}></PerfumeWornTable>
     </div>

@@ -102,7 +102,6 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
         if (perfume && guid) await perfumeRepo.setImageObjectKey(perfume.id, guid)
     }
     return <div>
-        <Link isBlock showAnchorIcon href='/' color="foreground">Back</Link>
         <form action={action} className={styles.container}>
             <div className={styles.container}>
                 <div className={styles.imageContainer}>
