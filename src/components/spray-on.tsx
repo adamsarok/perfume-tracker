@@ -7,9 +7,10 @@ import { useState } from "react";
 export interface SprayOnProps {
     perfumeId: number | undefined
     onSuccess: () => void
+    className: string
 }
 
-export default function SprayOnComponent({perfumeId, onSuccess} : SprayOnProps) {
+export default function SprayOnComponent({perfumeId, onSuccess, className} : SprayOnProps) {
     const yymmdd = new Date().toISOString().slice(0, 10);
     const [dateStr, setDateStr] = useState<string>(yymmdd);
 
@@ -31,13 +32,13 @@ export default function SprayOnComponent({perfumeId, onSuccess} : SprayOnProps) 
     }
 
     return (
-        <div>
+        <div className={"flex items-center space-x-4 " + className}>
         <Button color="secondary"
             startContent={<MagicWand />}
             onPress={() => onSprayOn()}
-            className="ml-2 mr-4"
+            className="flex-2"
                 >Spray On</Button>
-        <Input type="date" 
+        <Input type="date" className="flex-1" 
             defaultValue={yymmdd}
             onValueChange={setDateStr}
         >

@@ -35,9 +35,7 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
             ))}
 
         </Autocomplete>
-        <div className="flex mt-1 mb-1">
-            <SprayOnComponent perfumeId={selectedKey} onSuccess={onSprayOn}></SprayOnComponent> 
-        </div>
+        <SprayOnComponent perfumeId={selectedKey} onSuccess={onSprayOn} className="mb-2 mt-2"></SprayOnComponent> 
         <Divider className="mb-1"></Divider>
     </div>
 

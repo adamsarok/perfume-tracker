@@ -30,10 +30,21 @@ export default function PerfumeCard({ worn, r2_api_address }: PerfumeCardProps) 
       <Card key={worn.id} className="min-w-96">
         <CardHeader>
           <Link href={`/perfumes/${perfume.id}/`}>
-            <Avatar className="semi-bold" src={getImageUrl(perfume?.imageObjectKey, r2_api_address)}
+            <Avatar className="w-20 h-20 semi-bold" size="sm" src={getImageUrl(perfume?.imageObjectKey, r2_api_address)}
               name={avatar} />
             <div className="text-small leading-none text-default-600 ml-4">
               {perfume.house} - {perfume.perfume}
+              <Tooltip content={
+                <div>
+                  {worn.tags?.map(x => (
+                    <ColorChip key={x.id} className="mr-2" onChipClick={null} name={x.tag} color={x.color}></ColorChip>
+                  ))}
+                </div>
+              }>
+              <p className="mt-2 text-small tracking-tight text-default-400">
+                {`Worn on: ${worn.wornOn.toDateString()}`}
+              </p>
+            </Tooltip>
             </div>
           </Link>
           <Button color="danger"
@@ -43,19 +54,6 @@ export default function PerfumeCard({ worn, r2_api_address }: PerfumeCardProps) 
             }}
           >X</Button>
         </CardHeader>
-        <CardBody>
-          <Tooltip content={
-           <div>
-            {worn.tags?.map(x => (
-              <ColorChip key={x.id} className="mr-2" onChipClick={null} name={x.tag} color={x.color}></ColorChip>
-            ))}
-            </div>
-          }>
-            <p className="text-small tracking-tight text-default-400">
-              {`Worn a on: ${worn.wornOn.toDateString()}`}
-            </p>
-          </Tooltip>
-        </CardBody>
       </Card>
     </form>
   );

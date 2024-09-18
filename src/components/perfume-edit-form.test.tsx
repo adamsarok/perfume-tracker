@@ -35,7 +35,7 @@ test('PerfumeEditForm handles errors', async () => {
         upsertPerfume: vi.fn().mockResolvedValue({ errors: { _form: ['Server error'] }, result: null, state: 'failed' })
     }));
 
-    render(<PerfumeEditForm perfume={mockPerfume} perfumesTags={mockTags} allTags={mockAllTags} />);
+    render(<PerfumeEditForm perfume={mockPerfume} perfumesTags={mockTags} allTags={mockAllTags} r2_api_address=''/>);
 
     const submitButton = screen.getByText('Update');
     fireEvent.click(submitButton);

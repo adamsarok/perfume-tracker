@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Input, Link, Image, CheckboxGroup, Checkbox } from "@nextui-org/react";
+import { Button, Input, Link, Image, CheckboxGroup, Checkbox, Divider } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
@@ -132,19 +132,23 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
                         isInvalid={!!formState.errors.notes}
                         errorMessage={formState.errors.notes?.join(',')}
                     ></Input>
-                    <Checkbox name="winter" value="Winter" onValueChange={setWinter} isSelected={winter}>Winter</Checkbox>
-                    <Checkbox name="spring" value="Spring" onValueChange={setSpring} isSelected={spring}>Spring</Checkbox>
-                    <Checkbox name="summer" value="Summer" onValueChange={setSummer} isSelected={summer}>Summer</Checkbox>
-                    <Checkbox name="autumn" value="Autumn" onValueChange={setAutumn} isSelected={autumn}>Autumn</Checkbox>
+                    <div className="flex items-center space-x-4 mt-2 mb-2">
+                        <Checkbox name="winter" className="flex-1" value="Winter" onValueChange={setWinter} isSelected={winter}>Winter</Checkbox>
+                        <Checkbox name="spring" className="flex-1" value="Spring" onValueChange={setSpring} isSelected={spring}>Spring</Checkbox>
+                    </div>
+                    <div className="flex items-center space-x-4 mt-2 mb-2">
+                        <Checkbox name="summer" value="Summer" onValueChange={setSummer} isSelected={summer}>Summer</Checkbox>
+                        <Checkbox name="autumn" value="Autumn" onValueChange={setAutumn} isSelected={autumn}>Autumn</Checkbox>
+                    </div>
                     <div></div>
                     <div className="flex mt-4 mb-2">
-                        <SprayOnComponent perfumeId={perfume?.id} onSuccess={()=>{}}></SprayOnComponent>
+                        
                         <Button color="primary"
                             startContent={<FloppyDisk />}
-                            className="mr-4"
+                            className="mr-4 flex-1"
                             type="submit">{perfume ? "Update" : "Insert"}
                         </Button>
-                        <MessageBox
+                        <MessageBox className="flex-1"
                             startContent={<TrashBin />}
                             modalButtonColor="danger"
                             modalButtonText="Delete"
@@ -154,6 +158,8 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
                             onButton2={null}
                             button2text="Cancel"></MessageBox>
                     </div>
+                    <Divider className="mb-2"></Divider>
+                    <SprayOnComponent perfumeId={perfume?.id} onSuccess={()=>{}} className=""></SprayOnComponent>
                     {formState.errors._form ?
                         <div className="p-2 bg-red-200 border border-red-400 rounded">
                             {formState.errors._form?.join(',')}
