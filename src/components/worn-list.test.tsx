@@ -13,7 +13,7 @@ test('WornList loads and displays perfume cards', async () => {
         getPerfumesForSelector: vi.fn().mockResolvedValue([])
     }));
 
-    render(<WornList />);
+    render(<WornList r2_api_address='' />);
 
     await waitFor(() => {
         expect(screen.getByText('SA')).toBeDefined();

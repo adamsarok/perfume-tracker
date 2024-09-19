@@ -64,8 +64,13 @@ function toWornWithPerfume(data: any[]) : WornWithPerfume[] {
     return result;
 }
 
-export async function getWornWithPerfume() : Promise<WornWithPerfume[]> {
+export async function getWornWithPerfume(wornFrom: Date | null) : Promise<WornWithPerfume[]> {
     const worns = await db.perfumeWorn.findMany({
+        where: wornFrom !== null ? {
+            wornOn: {
+                gte: wornFrom
+            }
+        } : {},
         include: {
             perfume: {
                 include: {
