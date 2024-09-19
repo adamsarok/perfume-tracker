@@ -30,6 +30,7 @@ module.exports = {
         "@typescript-eslint",
         "react"
     ],
+    "ignorePatterns": ["**/src/icons/*.tsx", "**/.next/*.js"],
     "rules": {
     }
 }

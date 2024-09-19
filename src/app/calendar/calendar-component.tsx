@@ -51,16 +51,12 @@ export default function CalendarComponent({ perfumes, perfumesWorn, allTags }: C
         wornCount: number;
     }
 
-    interface TagStats {
-        [key: string]: TagStat
-    }
+    type TagStats = Record<string, TagStat>;
 
-    interface DayStats {
-        [key: string]: TagStats
-    }
+    type DayStats = Record<string, TagStats>;
 
 
-    var datasets: {label: string, data: any, backgroundColor: string}[] = [];
+    const datasets: {label: string, data: any, backgroundColor: string}[] = [];
 
     const [dailyStats, setMonthlyStats] = useState<DayStats>({});
 
@@ -101,8 +97,8 @@ export default function CalendarComponent({ perfumes, perfumesWorn, allTags }: C
         backgroundColor: x.color
     }));
 
-    var labels: Set<string> = new Set<string>();
-    var day = 0;
+    const labels: Set<string> = new Set<string>();
+    let day = 0;
     Object.values(dailyStats).map(x => {
         Object.values(x).map(tags => {
             datasets.filter(f => f.label === tags.name).map(dataSet => dataSet.data[day] += tags.wornCount)

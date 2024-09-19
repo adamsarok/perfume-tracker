@@ -2,7 +2,7 @@ import { getOpenAIResponse } from '@/services/openai-service';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as recommendationRepo from '@/db/recommendation-repo';
 
-type ResponseData = {
+interface ResponseData {
     recommendations: string,
     error: string
 }
@@ -13,7 +13,7 @@ function RemoveDiacritics(input: string){
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
     try {
-        var { query } = req.body;
+        let { query } = req.body;
         query = RemoveDiacritics(query);
         const recommendations = await getOpenAIResponse(query);
         recommendationRepo.insertRecommendation(query, recommendations);

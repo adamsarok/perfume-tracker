@@ -47,14 +47,14 @@ export function GetQuery(userPreferences: UserPreferences, buyOrWear: "buy" | "w
 }
 
 function aggregatePerfumesTags(perfumes: perfumeWornRepo.PerfumeWornDTO[]) : UserPreference {
-    let result: UserPreference = {
+    const result: UserPreference = {
         perfumes: [],
         tags: []
     }
 
     //TODO: fix logical issue - worncount is calculated in repo and thus not filtered for 3 days
 
-    let acc = perfumes.reduce((acc, perfume) => {
+    const acc = perfumes.reduce((acc, perfume) => {
         perfume.tags.forEach(t => {
             if (!acc[t.id]) {
                 acc[t.id] = {
@@ -82,8 +82,8 @@ export default async function GetUserPreferences() : Promise<UserPreferences> {
 
     const past = new Date(0); //todo refactor
     const lastThreePerfumes = perfumes.sort((a, b) => {
-        let dateA = a.lastWorn ? a.lastWorn : past;
-        let dateB = b.lastWorn ? b.lastWorn : past;
+        const dateA = a.lastWorn ? a.lastWorn : past;
+        const dateB = b.lastWorn ? b.lastWorn : past;
         return dateB.getTime() - dateA.getTime();
     }).slice(0, 3);
 

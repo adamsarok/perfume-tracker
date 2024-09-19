@@ -46,8 +46,8 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
     ), [formState.result]
 
     //todo toast
-    let topChipProps: ChipProp[] = [];
-    let bottomChipProps: ChipProp[] = [];
+    const topChipProps: ChipProp[] = [];
+    const bottomChipProps: ChipProp[] = [];
     allTags.map(allTag => {
         if (!tags.some(tag => tag.tag === allTag.tag)) {
             bottomChipProps.push({
@@ -75,7 +75,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
     };
     const onDelete = async (id: number | undefined) => {
         if (id) {
-            var result = await perfumeRepo.deletePerfume(id);
+            const result = await perfumeRepo.deletePerfume(id);
             if (result.error) toast.error(result.error);
             else {
                 toast.success("Perfume deleted!");
@@ -90,7 +90,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
     const [winter, setWinter] = useState<boolean>(perfume ? perfume.winter : true);
     const [spring, setSpring] = useState<boolean>(perfume ? perfume.spring : true);
     const [imageUrl, setImageUrl] = useState<string | null>(getImageUrl(perfume?.imageObjectKey, r2_api_address));
-    const fetchedRef = useRef<{[key: string]: boolean}>({});
+    const fetchedRef = useRef<Record<string, boolean>>({});
     const onUpload = (guid: string | undefined) => {
         if (guid) {
             setImageUrl(getImageUrl(guid, r2_api_address));

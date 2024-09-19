@@ -1,9 +1,8 @@
 'use client';
 
-import { Autocomplete, AutocompleteItem, Button, Divider, Input, Popover, PopoverContent, PopoverTrigger, Slider } from "@nextui-org/react";
+import { Autocomplete, AutocompleteItem, Divider } from "@nextui-org/react";
 import { Perfume, } from "@prisma/client";
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
-import React from "react";
+import React, { Key } from "react";
 import SprayOnComponent from "./spray-on";
 
 export interface PerfumeSelectorProps {
@@ -11,9 +10,9 @@ export interface PerfumeSelectorProps {
 }
 
 export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
-    const [selectedKey, setSelectedKey] = React.useState(0);
-    const onSelectionChange = (id: any) => {
-        setSelectedKey(id);
+    const [selectedKey, setSelectedKey] = React.useState<number>(0);
+    const onSelectionChange = (id: Key) => {
+        setSelectedKey(id.valueOf() as number);
     };
     const onSprayOn = async () => {
         window.location.reload();

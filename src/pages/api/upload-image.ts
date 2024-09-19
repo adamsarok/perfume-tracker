@@ -4,7 +4,7 @@ import fs, { createWriteStream } from 'fs';
 import { readFile } from 'fs/promises';
 import { R2_API_ADDRESS } from '@/services/conf';
 
-type ResponseData = {
+interface ResponseData {
     guid: string,
     error: string
 }

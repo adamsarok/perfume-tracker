@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function CalendarPage() {
 
-    var d = new Date();
+    const d = new Date();
     d.setDate(d.getDate() - 7);
     const perfumes = await perfumeRepo.getPerfumesWithTags();
     const perfumesWorn = await perfumeWornRepo.getWornWithPerfume(d);

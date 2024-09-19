@@ -19,8 +19,8 @@ export default async function EditPerfumePage({params}: EditPerfumePageProps) {
     const perfume = await perfumeRepo.getPerfumeWithTags(id);
     if (!perfume) return notFound();
     //TODO: clean DB from pages
-    let allTags = await db.tag.findMany();
-    let tags: Tag[] = [];
+    const allTags = await db.tag.findMany();
+    const tags: Tag[] = [];
     perfume.tags.map(x => {
         tags.push({
             id: x.tag.id,

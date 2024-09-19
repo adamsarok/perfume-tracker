@@ -33,7 +33,7 @@ class IntersectionObserver {
     }
     readonly root: Element | Document | null;
     readonly rootMargin: string;
-    readonly thresholds: ReadonlyArray<number>;
+    readonly thresholds: readonly number[];
   }
   
   global.IntersectionObserver = IntersectionObserver;

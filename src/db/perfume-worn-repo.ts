@@ -45,7 +45,7 @@ export async function getWornBeforeID(cursor: number | null, pageLength: number)
 
 //TODO: fix any
 function toWornWithPerfume(data: any[]) : WornWithPerfume[] {
-    let result: WornWithPerfume[] = [];
+    const result: WornWithPerfume[] = [];
     data.map((w) => {
         result.push({
             id: w.id,
@@ -166,9 +166,9 @@ export async function getAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
         }
     });
     const perfumes = await perfumeRepo.getPerfumesWithTags();
-    let m = new Map();
+    const m = new Map();
     perfumes.forEach(function (x) {
-        let dto: PerfumeWornDTO = {
+        const dto: PerfumeWornDTO = {
             perfume: x.perfume,
             wornTimes: undefined,
             lastWorn: undefined,
@@ -177,7 +177,7 @@ export async function getAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
         m.set(x.perfume.id, dto);
     });
     worn.forEach(function (x) {
-        let dto = m.get(x.perfumeId);
+        const dto = m.get(x.perfumeId);
         dto.wornTimes = x._count.id;
         dto.lastWorn = x._max.wornOn;
     })

@@ -19,7 +19,7 @@ export interface PerfumeWornTableProps {
 
 
 export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTableProps) {
-    let list = useAsyncList({
+    const list = useAsyncList({
         async load({ signal }) {
             let items: PerfumeWornDTO[];
             switch(selected) {
@@ -49,11 +49,11 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
                 items: items
             };
         },
-        async sort({ items, sortDescriptor }: { items: Array<any>, sortDescriptor: any }) {
+        async sort({ items, sortDescriptor }: { items: any[], sortDescriptor: any }) {
             return {
                 items: items.sort((a, b) => {
-                    let first = a[sortDescriptor.column];
-                    let second = b[sortDescriptor.column];
+                    const first = a[sortDescriptor.column];
+                    const second = b[sortDescriptor.column];
                     if (!first && !second) return 0;
                     if (!first) return 1;
                     if (!second) return -1;
@@ -87,7 +87,7 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
         list.reload();
     }, [tags]);
 
-    let bottomChipProps: ChipProp[] = [];
+    const bottomChipProps: ChipProp[] = [];
     allTags.map(allTag => {
         bottomChipProps.push({
             name: allTag.tag,

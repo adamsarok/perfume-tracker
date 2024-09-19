@@ -209,7 +209,7 @@ export interface PerfumeWithTagDTO {
 }
 
 export async function getPerfumesWithTags() : Promise<PerfumeWithTagDTO[]> {
-    var perfumes = await db.perfume.findMany({
+    const perfumes = await db.perfume.findMany({
         include: {
             tags: {
                 include: {
@@ -218,7 +218,7 @@ export async function getPerfumesWithTags() : Promise<PerfumeWithTagDTO[]> {
             }
         }
     });
-    let result: PerfumeWithTagDTO[] = [];
+    const result: PerfumeWithTagDTO[] = [];
     perfumes.map((p) => {
         result.push({
             perfume: p,

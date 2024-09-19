@@ -16,14 +16,14 @@ export default function SprayOnComponent({perfumeId, onSuccess, className} : Spr
 
     const onSprayOn = async () => {
         if (perfumeId) {
-            var date: Date;
+            let date: Date;
             if (dateStr < yymmdd) {
                 date = new Date(dateStr);
                 date.setHours(12, 0, 0);
             } else {
                 date = new Date();
             }
-            var result = await perfumeWornRepo.wearPerfume(perfumeId, date);
+            const result = await perfumeWornRepo.wearPerfume(perfumeId, date);
             if (result.ok) {
                 toast.success("Smell on!");
                 onSuccess();

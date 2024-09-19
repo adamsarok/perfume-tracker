@@ -9,8 +9,8 @@ export default async function StatsPage() {
     const perfumes = await perfumeWornRepo.getAllPerfumesWithWearCount();
     const past = new Date(0);
     perfumes.sort((a, b) => {
-        let dateA = a.lastWorn ? a.lastWorn : past;
-        let dateB = b.lastWorn ? b.lastWorn : past;
+        const dateA = a.lastWorn ? a.lastWorn : past;
+        const dateB = b.lastWorn ? b.lastWorn : past;
         return dateB.getTime() - dateA.getTime();
       });
     const tags = await tagRepo.getTags();

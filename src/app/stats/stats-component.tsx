@@ -20,9 +20,7 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
         wornCount: number;
     }
 
-    interface TagStats {
-        [key: string]: TagStat
-    }
+    type TagStats = Record<string, TagStat>;
 
     const [view, setView] = React.useState('tags');
     const [tagStats, setTagStats] = useState<TagStats>({});
@@ -33,7 +31,7 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
     const [maxWornInTags, setMaxWornInTags] = useState(0);
 
     useEffect(() => {
-        let stats: TagStats = {};
+        const stats: TagStats = {};
         let ml = 0;
         let worncount = 0;
         let tries = 0;

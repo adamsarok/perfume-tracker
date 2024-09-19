@@ -38,14 +38,14 @@ export default function ChipClouds({ topChipProps, bottomChipProps, selectChip, 
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-    const groupedChips: { [key: string]: ChipProp[] } = bottomChips.reduce((groups, chip) => {
+    const groupedChips: Record<string, ChipProp[]> = bottomChips.reduce((groups, chip) => {
         const firstLetter = chip.name[0].toUpperCase();
         if (!groups[firstLetter]) {
             groups[firstLetter] = [];
         }
         groups[firstLetter].push(chip);
         return groups;
-    }, {} as { [key: string]: ChipProp[] })
+    }, {} as Record<string, ChipProp[]>)
 
     return (<div className={className}>
         <TagAddModal
