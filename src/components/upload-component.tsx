@@ -1,4 +1,3 @@
-import { Button } from '@nextui-org/button';
 import { useState } from 'react';
 import FileSelector from './file-selector';
 
@@ -15,8 +14,6 @@ Error Handling: Handle potential errors and edge cases, such as file upload fail
 */
 
 export default function UploadComponent({ className, onUpload }: UploadComponentProps) {
-  const [uploadURL, setUploadURL] = useState('');
-
   const handleUpload = async (file: File) => {
     const res = await fetch(`/api/upload-image?filename=${encodeURIComponent(file.name)}`, {
       method: 'PUT',

@@ -1,9 +1,7 @@
 'use server';
 
 import db from ".";
-import { Perfume, PerfumeTag, PerfumeWorn, Tag } from "@prisma/client";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { Perfume, Tag } from "@prisma/client";
 import { z } from "zod";
 
 const perfumeSchema = z.object({

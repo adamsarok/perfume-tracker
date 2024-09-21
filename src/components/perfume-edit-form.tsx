@@ -104,7 +104,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
         <form action={action} className={styles.container}>
             <div className={styles.container}>
                 <div className={styles.imageContainer}>
-                    <Image className={styles.imageContainer} src={imageUrl ? imageUrl : '/perfume-icon.svg'}></Image>
+                    <Image alt={imageUrl ? "Image of a perfume" : "Placeholder icon for a perfume"} className={styles.imageContainer} src={imageUrl ? imageUrl : '/perfume-icon.svg'}></Image>
                     <UploadComponent className={styles.imageContainer} onUpload={onUpload} />
                 </div>
                 <div className={styles.content}>

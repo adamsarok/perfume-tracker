@@ -6,7 +6,7 @@ import { useState } from "react";
 
 export interface SprayOnProps {
     perfumeId: number | undefined
-    onSuccess: () => void
+    onSuccess: (() => void) | null
     className: string
 }
 
@@ -26,7 +26,7 @@ export default function SprayOnComponent({perfumeId, onSuccess, className} : Spr
             const result = await perfumeWornRepo.wearPerfume(perfumeId, date);
             if (result.ok) {
                 toast.success("Smell on!");
-                onSuccess();
+                if (onSuccess) onSuccess();
             } else toast.error(result.error);
         }
     }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@nextui-org/react";
 import { useFormState } from "react-dom";
 import * as tagRepo from "@/db/tag-repo";
 import { Tag } from "@prisma/client";

@@ -1,22 +1,20 @@
 'use client';
 
 
-import { Checkbox, Divider, Link, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, getKeyValue } from "@nextui-org/react";
-import { unstable_SuspenseList, useEffect, useState } from "react";
+import { Divider, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import { useEffect, useState } from "react";
 import { useAsyncList } from "@react-stately/data";
 import React from "react";
 import { PerfumeWornDTO } from "@/db/perfume-worn-repo";
 import {RadioGroup, Radio} from "@nextui-org/radio";
-import { Perfume, Tag } from "@prisma/client";
+import { Tag } from "@prisma/client";
 import ChipClouds from "../../components/chip-clouds";
 import { ChipProp } from "../../components/color-chip";
-import * as tagRepo from "../../db/tag-repo"
 
 export interface PerfumeWornTableProps {
     perfumes: PerfumeWornDTO[],
     allTags: Tag[]
 }
-
 
 export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTableProps) {
     const list = useAsyncList({

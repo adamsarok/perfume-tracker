@@ -81,9 +81,13 @@ export async function deleteTag(id: number) : Promise<TagResult> {
                 }
             });
         return { success: true, error: "" }
-    } catch (error: any) {
-        return { success: false, error: error.message || 'Failed to delete tag' };
-    }
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            return { success: false, error: err.message || 'Failed to delete tag' };
+         } else {
+            return { success: false, error: 'Failed to delete tag: Unknown error occured' };
+        }
+    } 
 }
 
 export async function updateTag(id: number, tag: string, color: string) : Promise<TagResult> {
@@ -98,8 +102,12 @@ export async function updateTag(id: number, tag: string, color: string) : Promis
                 }
             });
         return { success: true, error: "" }
-    } catch (error: any) {
-        return { success: false, error: error.message || 'Failed to delete tag' };
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            return { success: false, error: err.message || 'Failed to update tag' };
+         } else {
+            return { success: false, error: 'Failed to update tag: Unknown error occured' };
+        }
     }
 }
 

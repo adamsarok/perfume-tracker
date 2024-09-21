@@ -1,10 +1,9 @@
 'use server';
 
-import { Perfume, PerfumeWorn, Tag } from "@prisma/client";
+import { Perfume, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import db from ".";
 import * as perfumeRepo from "./perfume-repo"
-import { error } from "console";
 
 export interface WornWithPerfume {
     id: number;
@@ -43,8 +42,23 @@ export async function getWornBeforeID(cursor: number | null, pageLength: number)
     return toWornWithPerfume(worns);
 }
 
+interface PerfumeTagDTO {
+    id: number,
+    perfumeId: number,
+    tagId: number,
+    tag: Tag
+}
+
+interface WornDTO {
+    perfume: Perfume & { tags: PerfumeTagDTO[] };
+    id: number,
+    perfumeId: number,
+    wornOn: Date
+}
+
+
 //TODO: fix any
-function toWornWithPerfume(data: any[]) : WornWithPerfume[] {
+function toWornWithPerfume(data: WornDTO[]) : WornWithPerfume[] {
     const result: WornWithPerfume[] = [];
     data.map((w) => {
         result.push({
@@ -52,9 +66,9 @@ function toWornWithPerfume(data: any[]) : WornWithPerfume[] {
             perfumeId: w.perfumeId,
             wornOn: w.wornOn,
             perfume: w.perfume,
-            tags: w.perfume.tags.map((t: any) : Tag => {
+            tags: w.perfume.tags.map((t: PerfumeTagDTO) : Tag => {
                 return {
-                  id: t.tag.id,
+                  id: t.id,
                   color: t.tag.color,
                   tag: t.tag.tag
                 }
@@ -93,7 +107,6 @@ export async function getWornWithPerfume(wornFrom: Date | null) : Promise<WornWi
 
 export async function deleteWear(id: number) {
     if (!id) return;
-    const idNum: number = parseInt(id.toString());
     await db.perfumeWorn.delete({
         where: {
             id
