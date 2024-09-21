@@ -2,12 +2,7 @@
 
 import * as perfumeRepo from "@/db/perfume-repo";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
-import { Chip } from "@nextui-org/react";
-import React, { useEffect, useState, Component } from "react";
-import { getContrastColor } from "@/app/colors";
-//import Chart from "react-apexcharts";
-import { stat } from "fs";
-//import { ApexOptions } from "apexcharts";
+import React, { useEffect, useState } from "react";
 import { Bar } from 'react-chartjs-2';
 
 import {
@@ -19,7 +14,6 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { M } from "vitest/dist/chunks/reporters.C_zwCd4j.js";
 import { Tag } from "@prisma/client";
 
 ChartJS.register(
@@ -56,7 +50,7 @@ export default function CalendarComponent({ perfumes, perfumesWorn, allTags }: C
     type DayStats = Record<string, TagStats>;
 
 
-    const datasets: {label: string, data: any, backgroundColor: string}[] = [];
+    const datasets: {label: string, data: number[], backgroundColor: string}[] = [];
 
     const [dailyStats, setMonthlyStats] = useState<DayStats>({});
 

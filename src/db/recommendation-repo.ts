@@ -6,7 +6,7 @@ import db from ".";
 export async function insertRecommendation(query: string, recommendations: string | null) : Promise<ActionResult> {
     try {
         if (!query) return { ok: false, error: "Query empty" };
-        const result = await db.recommendation.create({
+        await db.recommendation.create({
             data: {
                 query,
                 recommendations: recommendations ?? ''

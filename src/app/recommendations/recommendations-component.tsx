@@ -2,9 +2,9 @@
 
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@nextui-org/button";
-import React, { useEffect } from "react";
+import React from "react";
 import { useState } from "react";
-import { Card, CardBody, CardHeader, Radio, RadioGroup } from '@nextui-org/react';
+import { Card, CardBody, Radio, RadioGroup } from '@nextui-org/react';
 import ColorChip from '@/components/color-chip';
 import { GetQuery, UserPreferences } from '@/services/recommendation-service';
 import { toast } from 'react-toastify';
@@ -47,10 +47,8 @@ export default function RecommendationsComponent({ userPreferences }: Recommenda
   const [wearOrBuy, setWearOrBuy] = useState<"wear" | "buy" | null>('wear');
   const [perfumesOrNotes, setPerfumesOrNotes] = useState<"perfumes" | "notes" | null>('perfumes');
   const [timeRange, setTimeRange] = useState<string | null>('last-3');
-
-  useEffect(() => {
-    
-  }, [perfumesOrNotes]);
+  //TODO: timerange filtering
+  console.log(timeRange);
 
   return <div className="space-y-6">
     <RadioGroup 
@@ -104,7 +102,7 @@ export default function RecommendationsComponent({ userPreferences }: Recommenda
     </RadioGroup>
     <Card>  
       <CardBody>
-        <div >Recommendations generated with OpenAI's GPT-4</div>
+        <div >Recommendations generated with OpenAI&apos;s GPT-4</div>
       </CardBody>
     </Card>
     <Button onPress={async () => {

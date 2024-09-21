@@ -1,11 +1,10 @@
 'use client';
 
-import { Button, Input, Link, Image, CheckboxGroup, Checkbox, Divider } from "@nextui-org/react";
+import { Button, Input, Image, Checkbox, Divider } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
@@ -13,12 +12,11 @@ import { toast } from "react-toastify";
 import { useRouter } from 'next/navigation';
 import { TrashBin } from '../icons/trash-bin'
 import { FloppyDisk } from "@/icons/floppy-disk";
-import { MagicWand } from "@/icons/magic-wand";
 import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
 import SprayOnComponent from "./spray-on";
 import { getImageUrl } from "./r2-image";
-  
+
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
     allTags: Tag[],
@@ -41,9 +39,11 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
             toast.error("Perfume save failed! "
                 + (formState.errors._form && formState.errors._form.length > 0 ? formState.errors._form?.join(',') : ""));
         }
-        formState.state = 'init';
-    }
-    ), [formState.result]
+        const resetFormState = () => {
+            formState.state = 'init';
+        };
+        resetFormState();
+    }, [formState.result]);
 
     //todo toast
     const topChipProps: ChipProp[] = [];
@@ -90,7 +90,6 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
     const [winter, setWinter] = useState<boolean>(perfume ? perfume.winter : true);
     const [spring, setSpring] = useState<boolean>(perfume ? perfume.spring : true);
     const [imageUrl, setImageUrl] = useState<string | null>(getImageUrl(perfume?.imageObjectKey, r2_api_address));
-    const fetchedRef = useRef<Record<string, boolean>>({});
     const onUpload = (guid: string | undefined) => {
         if (guid) {
             setImageUrl(getImageUrl(guid, r2_api_address));
@@ -141,7 +140,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
                     </div>
                     <div></div>
                     <div className="flex mt-4 mb-2">
-                        
+
                         <Button color="primary"
                             startContent={<FloppyDisk />}
                             className="mr-4 flex-1"
@@ -158,14 +157,14 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
                             button2text="Cancel"></MessageBox>
                     </div>
                     <Divider className="mb-2"></Divider>
-                    <SprayOnComponent perfumeId={perfume?.id} onSuccess={()=>{}} className=""></SprayOnComponent>
+                    <SprayOnComponent perfumeId={perfume?.id} onSuccess={null} className=""></SprayOnComponent>
                     {formState.errors._form ?
                         <div className="p-2 bg-red-200 border border-red-400 rounded">
                             {formState.errors._form?.join(',')}
                         </div> : null
                     }
                 </div>
-                
+
             </div>
         </form>
         <div className={styles.chipContainer}>
