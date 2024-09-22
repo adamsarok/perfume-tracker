@@ -15,24 +15,21 @@ export default function WornList({r2_api_address}: WornListProps) {
     const { ref, inView } = useInView();
     const cardsPerPage = 10;
 
-    const loadMoreCards = async (isInit: boolean) => {
-        if (isInit || (!cursor || cursor > 1)) {
-            const cursor = worns && worns.length > 0 ? Math.min(...worns.map(x => x.id)) : null;
-            setCursor(cursor);
-            const newWorns = await perfumeWornRepo.getWornBeforeID(cursor, cardsPerPage);
-            setWorns([...worns, ...newWorns.sort((a, b) => { return b.wornOn.getTime() - a.wornOn.getTime()})]);
-        }
+    const loadMoreCards = async () => {
+        const cursor = worns && worns.length > 0 ? Math.min(...worns.map(x => x.id)) : null;
+        setCursor(cursor);
+        const newWorns = await perfumeWornRepo.getWornBeforeID(cursor, cardsPerPage);
+        setWorns([...worns, ...newWorns.sort((a, b) => { return b.wornOn.getTime() - a.wornOn.getTime()})]);
         //TODO: this sort is not 100% correct - we load by id, but worn date can be a different order
     };
-
     
     useEffect(() => {
-        if (inView) loadMoreCards(false);
-    }, [inView]);
+        if (inView) loadMoreCards();
+    }, [inView]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        loadMoreCards(true);
-    }, []);
+        loadMoreCards();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div>

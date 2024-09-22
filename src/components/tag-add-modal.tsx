@@ -45,6 +45,7 @@ export default function TagAddModal({ tagAdded, isOpen, onOpenChange }: TagAddMo
                 toast.error(errorMessages);
             } else toast.error("Tag add failed")
         }
+        onClose();
     };
     return (
         <div>

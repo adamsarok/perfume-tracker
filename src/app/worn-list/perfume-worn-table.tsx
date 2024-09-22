@@ -81,11 +81,11 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
     useEffect(() => {
         list.reload();
         setIsChipCloudVisible(selected === "tag-filter");
-    }, [selected]);
+    }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         list.reload();
-    }, [tags]);
+    }, [tags]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const bottomChipProps: ChipProp[] = [];
     allTags.map(allTag => {

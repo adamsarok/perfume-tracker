@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import FileSelector from './file-selector';
 
 interface UploadComponentProps {
-  className: string,
   onUpload: (guid: string | undefined) => void
 }
 
@@ -13,7 +11,7 @@ Size Limits: Implement checks to ensure files are within acceptable size limits 
 Error Handling: Handle potential errors and edge cases, such as file upload failures or issues with the microservice communication.
 */
 
-export default function UploadComponent({ className, onUpload }: UploadComponentProps) {
+export default function UploadComponent({ onUpload }: UploadComponentProps) {
   const handleUpload = async (file: File) => {
     const res = await fetch(`/api/upload-image?filename=${encodeURIComponent(file.name)}`, {
       method: 'PUT',

@@ -22,7 +22,6 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
 
     type TagStats = Record<string, TagStat>;
 
-    const [view, setView] = React.useState('tags');
     const [tagStats, setTagStats] = useState<TagStats>({});
     const [totalMl, setTotalMl] = useState(0);
     const [tryCount, setTryCount] = useState(0);
@@ -35,10 +34,6 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
         let ml = 0;
         let worncount = 0;
         let tries = 0;
-
-        const generateGradient = (colors: string[]): string => {
-            return `linear-gradient(90deg, ${colors.join(", ")})`;
-        };
 
         perfumes.forEach(p => {
             tries++;
@@ -83,7 +78,7 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
         setMaxMlInTags(Math.max(...Object.values(stats).map(tag => tag.mls)));
         setMaxWornInTags(Math.max(...Object.values(stats).map(tag => tag.wornCount)));
 
-    }, [perfumes, perfumesWorn, view]);
+    }, [perfumes, perfumesWorn]);
 
     const minChipWidth = 25;
 

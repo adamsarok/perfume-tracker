@@ -4,7 +4,7 @@ import { Button, Input, Image, Checkbox, Divider } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
@@ -16,6 +16,7 @@ import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
 import SprayOnComponent from "./spray-on";
 import { getImageUrl } from "./r2-image";
+import { ActionResult } from "@/db/action-result";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -31,10 +32,14 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
         perfumeRepo.upsertPerfume.bind(null, (perfume ? perfume.id : null), tags)
         , { errors: {}, result: null, state: 'init' });
 
+    const reload = useCallback((id: number | undefined) => {
+        if (id) router.push(`/perfumes/${id}`);
+    },[router]);
+
     useEffect(() => {
         if (formState.state === 'success') {
             toast.success("Perfume saved!");
-            router.push(`/perfumes/${formState.result?.id}`);
+            reload(formState.result?.id);
         } else if (formState.state === 'failed') {
             toast.error("Perfume save failed! "
                 + (formState.errors._form && formState.errors._form.length > 0 ? formState.errors._form?.join(',') : ""));
@@ -43,7 +48,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
             formState.state = 'init';
         };
         resetFormState();
-    }, [formState.result]);
+    }, [formState, reload]);
 
     //todo toast
     const topChipProps: ChipProp[] = [];
@@ -90,22 +95,28 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
     const [winter, setWinter] = useState<boolean>(perfume ? perfume.winter : true);
     const [spring, setSpring] = useState<boolean>(perfume ? perfume.spring : true);
     const [imageUrl, setImageUrl] = useState<string | null>(getImageUrl(perfume?.imageObjectKey, r2_api_address));
-    const onUpload = (guid: string | undefined) => {
+    const onUpload = async (guid: string | undefined) => {
         if (guid) {
             setImageUrl(getImageUrl(guid, r2_api_address));
-            setImageGuidInRepo(guid);
+            const result = await setImageGuidInRepo(guid);
+            if (result.ok) toast.success('Image upload successful');
+            else toast.error('Image upload failed: ' + result.error ?? ' unknown error');
         }
     }
-
-    const setImageGuidInRepo = async (guid: string | null) => {
-        if (perfume && guid) await perfumeRepo.setImageObjectKey(perfume.id, guid)
+    const setImageGuidInRepo = async (guid: string | null) : Promise<ActionResult> => {
+        if (perfume && guid) { 
+            return perfumeRepo.setImageObjectKey(perfume.id, guid);
+        }
+        return {
+            ok: true
+        }
     }
     return <div>
         <form action={action} className={styles.container}>
             <div className={styles.container}>
                 <div className={styles.imageContainer}>
                     <Image alt={imageUrl ? "Image of a perfume" : "Placeholder icon for a perfume"} className={styles.imageContainer} src={imageUrl ? imageUrl : '/perfume-icon.svg'}></Image>
-                    <UploadComponent className={styles.imageContainer} onUpload={onUpload} />
+                    <UploadComponent onUpload={onUpload} />
                 </div>
                 <div className={styles.content}>
                     <Input label="House" className="content"

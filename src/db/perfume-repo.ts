@@ -3,6 +3,7 @@
 import db from ".";
 import { Perfume, Tag } from "@prisma/client";
 import { z } from "zod";
+import { ActionResult } from "./action-result";
 
 const perfumeSchema = z.object({
     house: z.string().min(1),

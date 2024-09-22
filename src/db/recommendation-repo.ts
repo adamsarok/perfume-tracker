@@ -2,6 +2,7 @@
 
 import { Recommendation } from "@prisma/client";
 import db from ".";
+import { ActionResult } from "./action-result";
 
 export async function insertRecommendation(query: string, recommendations: string | null) : Promise<ActionResult> {
     try {

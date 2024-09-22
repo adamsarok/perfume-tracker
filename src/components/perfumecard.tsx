@@ -1,8 +1,8 @@
 'use client'
 
-import { Card, CardHeader, CardBody, Avatar, divider, Button, Link } from "@nextui-org/react";
+import { Card, CardHeader, Avatar, Button, Link } from "@nextui-org/react";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
-import React, { ReactNode } from "react";
+import React from "react";
 import { WornWithPerfume } from "@/db/perfume-worn-repo";
 import ColorChip from "./color-chip";
 import {Tooltip} from "@nextui-org/tooltip";

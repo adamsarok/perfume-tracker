@@ -11,8 +11,8 @@ import ColorChip, { ChipProp } from "./color-chip";
 export interface ChipCloudProps {
     topChipProps: ChipProp[],
     bottomChipProps: ChipProp[],
-    selectChip: any,
-    unSelectChip: any,
+    selectChip: (chip: string) => void,
+    unSelectChip: (chip: string) => void,
     className: string
 }
 

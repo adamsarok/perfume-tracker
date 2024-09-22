@@ -10,10 +10,6 @@ export interface TagTableProps {
     tags: Tag[]
 }
 
-// function Reload({ perfumes }: PerfumeWornTableProps) {
-
-// }
-
 export default function TagTable({ tags }: TagTableProps) {
 
     const onDelete = async (id: number, tag: string) => {
@@ -26,14 +22,13 @@ export default function TagTable({ tags }: TagTableProps) {
         }
     }
     const onUpdate = async (id: number, tag: string, color: string) => {
-        toast.error("TODO implement")
-        // const result = await tagRepo.updateTag(id, tag, color);
-        // if (result.success) {
-        //     //refresh
-        //     toast.success(`Tag ${tag} deleted`);
-        // } else {
-        //     toast.error(result.error);
-        // }
+        const result = await tagRepo.updateTag(id, tag, color);
+        if (result.success) {
+            //TODO: refresh
+            toast.success(`Tag ${tag} deleted`);
+        } else {
+            toast.error(result.error);
+        }
     }
     return <div>
         <Table isStriped

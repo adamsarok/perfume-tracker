@@ -1,5 +1,5 @@
 import * as tagRepo from "@/db/tag-repo";
-import { Link, Spacer } from "@nextui-org/react";
+import { Spacer } from "@nextui-org/react";
 import TagTable from "@/components/tag-table";
 
 export const dynamic = 'force-dynamic'

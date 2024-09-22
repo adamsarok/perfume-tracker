@@ -1,4 +1,3 @@
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import RecommendationsComponent from "./recommendations-component";
 import GetUserPreferences from "@/services/recommendation-service";
 
