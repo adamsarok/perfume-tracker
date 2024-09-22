@@ -15,11 +15,7 @@ interface TagAddModalProps {
     onOpenChange: () => void;
 }
 
-export default function TagAddModal({ tagAdded, isOpen, onOpen, onOpenChange }: TagAddModalProps) {
-    //todo: separate modal and cleanup
-    //const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
-
+export default function TagAddModal({ tagAdded, isOpen, onOpenChange }: TagAddModalProps) {
     const [formState, addTag] = useFormState(tagRepo.insertTag, { errors: {}, result: null });
     const [tag, setTag] = useState('');
     const [color, setColor] = useState('');

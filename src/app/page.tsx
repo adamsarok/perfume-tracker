@@ -1,10 +1,8 @@
 
 import React from "react";
 import PerfumeSelector from "../components/perfume-selector";
-import { Link } from "@nextui-org/react";
 import * as perfumeRepo from "@/db/perfume-repo";
 import WornList from "@/components/worn-list";
-import router from "next/navigation";
 import { R2_API_ADDRESS } from "@/services/conf";
 
 export const dynamic = 'force-dynamic'

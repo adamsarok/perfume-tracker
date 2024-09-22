@@ -1,5 +1,5 @@
-import { expect, test, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
 import RecommendationsComponent from './recommendations-component'
 import { UserPreferences } from '@/services/recommendation-service';
 

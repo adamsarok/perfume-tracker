@@ -1,9 +1,6 @@
 import * as perfumeRepo from "@/db/perfume-repo";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
-import { Card, CardBody, CardFooter, CardHeader, chip, Chip, Divider, Radio, RadioGroup, select } from "@nextui-org/react";
-import { getContrastColor } from "../colors";
 import React from "react";
-import { Perfume, Tag } from "@prisma/client";
 import StatsComponent from "./stats-component";
 
 export const dynamic = 'force-dynamic'

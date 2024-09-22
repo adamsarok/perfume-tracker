@@ -18,7 +18,7 @@ export interface PerfumeWornTableProps {
 
 export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTableProps) {
     const list = useAsyncList({
-        async load({ signal }) {
+        async load() {
             let items: PerfumeWornDTO[];
             switch(selected) {
                 case 'good-stuff':
@@ -47,7 +47,8 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
                 items: items
             };
         },
-        async sort({ items, sortDescriptor }: { items: any[], sortDescriptor: any }) {
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        async sort({ items, sortDescriptor }: { items: any[], sortDescriptor: any }) { //TODO figure this out later
             return {
                 items: items.sort((a, b) => {
                     const first = a[sortDescriptor.column];
@@ -63,6 +64,7 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
                 }),
             };
         },
+        /* eslint-enable @typescript-eslint/no-explicit-any */
     });
 
     const [selected, setSelected] = React.useState("good-stuff");

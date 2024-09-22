@@ -55,7 +55,7 @@ test('PerfumeSelector renders and handles selection', async () => {
         fireEvent.click(sprayButton);
     });
 
-    const mockRouter = vi.mocked(useRouter())
+    vi.mocked(useRouter())
     expect(mockRefresh).toHaveBeenCalled()
 
 }); 
