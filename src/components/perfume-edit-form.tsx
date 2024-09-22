@@ -100,7 +100,7 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
             setImageUrl(getImageUrl(guid, r2_api_address));
             const result = await setImageGuidInRepo(guid);
             if (result.ok) toast.success('Image upload successful');
-            else toast.error('Image upload failed: ' + result.error ?? ' unknown error');
+            else toast.error(`Image upload failed: ${result.error ?? 'unknown error'}`);
         }
     }
     const setImageGuidInRepo = async (guid: string | null) : Promise<ActionResult> => {

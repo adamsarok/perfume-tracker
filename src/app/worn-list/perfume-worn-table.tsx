@@ -1,7 +1,7 @@
 'use client';
 
 
-import { Divider, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import { Divider, SortDescriptor, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { useAsyncList } from "@react-stately/data";
 import React from "react";
@@ -47,24 +47,39 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
                 items: items
             };
         },
-        /* eslint-disable @typescript-eslint/no-explicit-any */
-        async sort({ items, sortDescriptor }: { items: any[], sortDescriptor: any }) { //TODO figure this out later
+        async sort({ items, sortDescriptor }: { items: PerfumeWornDTO[], sortDescriptor: SortDescriptor }) { //TODO figure this out later
             return {
                 items: items.sort((a, b) => {
-                    const first = a[sortDescriptor.column];
-                    const second = b[sortDescriptor.column];
-                    if (!first && !second) return 0;
-                    if (!first) return 1;
-                    if (!second) return -1;
-                    let cmp = (parseInt(first) || first) < (parseInt(second) || second) ? -1 : 1;
-                    if (sortDescriptor.direction === "descending") {
-                        cmp *= -1;
+                    console.log(a);
+                    console.log(b);
+                    console.log(sortDescriptor);
+                    const compare = (first: string, second: string) => {
+                        if (!first && !second) return 0;
+                        if (!first) return 1;
+                        if (!second) return -1;
+                        let cmp = (parseInt(first) || first) < (parseInt(second) || second) ? -1 : 1;
+                        if (sortDescriptor.direction === "descending") {
+                            cmp *= -1;
+                        }
+                        return cmp;
                     }
-                    return cmp;
+                    
+                    switch (sortDescriptor.column) {
+                        case "house":
+                            return compare(a.perfume.house, b.perfume.house);
+                        case "perfume":
+                            return compare(a.perfume.perfume, b.perfume.perfume);
+                        case "rating":
+                            return compare(a.perfume.rating.toString(), b.perfume.rating.toString());
+                        case "wornTimes":
+                            return compare((a.wornTimes ?? 0).toString(), (b.wornTimes ?? 0).toString());
+                        case "lastWorn":
+                            return compare(a.lastWorn?.toDateString() ?? '', b.lastWorn?.toDateString() ?? '');
+                    }
+                    return 0;
                 }),
             };
         },
-        /* eslint-enable @typescript-eslint/no-explicit-any */
     });
 
     const [selected, setSelected] = React.useState("good-stuff");

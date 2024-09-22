@@ -4,6 +4,7 @@ import { Perfume, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import db from ".";
 import * as perfumeRepo from "./perfume-repo"
+import { ActionResult } from "./action-result";
 
 export interface WornWithPerfume {
     id: number;
