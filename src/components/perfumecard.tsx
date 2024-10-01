@@ -27,7 +27,7 @@ export default function PerfumeCard({ worn, r2_api_address }: PerfumeCardProps) 
 
   return (
     <form>
-      <Card key={worn.id} className="min-w-96">
+      <Card key={worn.id} className="min-w-96 perfume-card">
         <CardHeader>
           <Link href={`/perfumes/${perfume.id}/`}>
             <Avatar className="w-20 h-20 semi-bold" size="sm" src={getImageUrl(perfume?.imageObjectKey, r2_api_address)}
