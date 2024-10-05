@@ -21,7 +21,10 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
         async load() {
             let items: PerfumeWornDTO[];
             switch(selected) {
-                case 'good-stuff':
+                case 'all':
+                    items = perfumes;
+                    break;
+                case 'favorites':
                     items = perfumes.filter((x) => x.perfume.rating >= 8 && x.perfume.ml > 0);
                     break;
                 case 'buy-list':
@@ -50,9 +53,6 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
         async sort({ items, sortDescriptor }: { items: PerfumeWornDTO[], sortDescriptor: SortDescriptor }) { //TODO figure this out later
             return {
                 items: items.sort((a, b) => {
-                    console.log(a);
-                    console.log(b);
-                    console.log(sortDescriptor);
                     const compare = (first: string, second: string) => {
                         if (!first && !second) return 0;
                         if (!first) return 1;
@@ -82,7 +82,7 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
         },
     });
 
-    const [selected, setSelected] = React.useState("good-stuff");
+    const [selected, setSelected] = React.useState("favorites");
     const [isChipCloudVisible, setIsChipCloudVisible] = useState(true);
     const [tags, setTags] = useState<Tag[]>([]);
     const selectChip = (chip: string) => {
@@ -117,8 +117,9 @@ export default function PerfumeWornTable({ perfumes, allTags }: PerfumeWornTable
             label="Filtering"
             orientation="horizontal"
             onValueChange={setSelected}
+            defaultValue="favorites"
         >
-            <Radio value="good-stuff">Show only good stuff</Radio>
+            <Radio value="favorites">Favorites</Radio>
             <Radio value="buy-list">Buy list</Radio>
             <Radio value="untagged">Untagged</Radio>
             <Radio value="all">All</Radio>

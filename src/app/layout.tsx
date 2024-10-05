@@ -28,7 +28,7 @@ export default function RootLayout({
           <div className="max-w-lg mx-auto px-4 py-8">
             <Link isBlock color="foreground" href="/">Home</Link>
             <Link isBlock color="foreground" href="/perfumes/new-perfume">New Perfume</Link>
-            <Link isBlock color="foreground" href="/worn-list">Worn List</Link>
+            <Link isBlock color="foreground" href="/perfumes">Perfumes</Link>
             <Link isBlock color="foreground" href="/stats">Stats</Link>
             <Link isBlock color="foreground" href="/calendar">Calendar</Link>
             <Link isBlock color="foreground" href="/tags">Tags</Link>

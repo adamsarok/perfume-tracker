@@ -175,6 +175,11 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
 
 export async function getPerfumesForSelector(): Promise<Perfume[]> {
     return await db.perfume.findMany({
+        where: {
+            ml: {
+                gt: 0
+            }
+        },
         orderBy: [
             {
                 house: 'asc',
