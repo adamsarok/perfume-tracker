@@ -15,8 +15,7 @@ export const config = {
     },
 };
 
-async function sendFile(filePath: string, fileName: string, res: NextApiResponse<ResponseData>) {
-    try {
+async function sendFile(filePath: string, fileName: string) : Promise<string> {
         const fileBuffer = await readFile(filePath);
         const microserviceUrl = `${R2_API_ADDRESS}/upload-image?fileName=${encodeURIComponent(fileName)}`;
         const response = await fetch(microserviceUrl, {
@@ -27,20 +26,11 @@ async function sendFile(filePath: string, fileName: string, res: NextApiResponse
             },
         });
         const json = await response.json();
+        console.log(json);
         if (!response.ok) {
             throw new Error(`Failed to upload file to microservice: ${response.statusText}`);
         }
-        res.status(200).json({
-            error: '',
-            guid: json.objectKey
-        });
-    } catch (err: unknown) {
-        if (err instanceof Error) {
-            res.status(500).json({ error: `Error: ${err.message}`, guid: '' });
-        } else {
-            res.status(500).json({ error: `Unknown error occured`, guid: '' });
-        }
-    }
+        return json.guid;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -66,11 +56,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             fileStream.on('error', reject);
         });
 
-        await sendFile(filePath, filename, res);
+        const guid = await sendFile(filePath, filename);
 
         fs.unlink(filePath, function(err) {
             if(err) return console.log(err);
-        }); 
+        });  
+        
+        console.log(guid); //clean this up
+        if (guid) {
+            res.status(200).json({
+                error: '',
+                guid: guid
+            });
+            return;
+        }
     } catch (err: unknown) {
         if (err instanceof Error) {
             res.status(500).json({ error: `Error: ${err.message}`, guid: '' });
