@@ -1,12 +1,22 @@
 'use client'
 
-import { Card, CardHeader, Avatar, Button, Link } from "@nextui-org/react";
+import { Avatar, Link } from "@nextui-org/react";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import React from "react";
 import { WornWithPerfume } from "@/db/perfume-worn-repo";
 import ColorChip from "./color-chip";
 import {Tooltip} from "@nextui-org/tooltip";
 import { getImageUrl } from "./r2-image";
+
+import {
+  Card,
+  // CardContent,
+  // CardDescription,
+  // CardFooter,
+  CardHeader,
+  //CardTitle,
+} from "@/components/ui/card"
+import { Button } from "./ui/button";
 
 export interface PerfumeCardProps {
   worn: WornWithPerfume,
@@ -29,6 +39,7 @@ export default function PerfumeCard({ worn, r2_api_address }: PerfumeCardProps) 
     <form>
       <Card key={worn.id} className="min-w-96 perfume-card">
         <CardHeader>
+          <div className="flex items-center justify-between space-x-4 rounded-md border p-4">
           <Link href={`/perfumes/${perfume.id}/`}>
             <Avatar className="w-20 h-20 semi-bold" size="sm" src={getImageUrl(perfume?.imageObjectKey, r2_api_address)}
               name={avatar} />
@@ -48,11 +59,13 @@ export default function PerfumeCard({ worn, r2_api_address }: PerfumeCardProps) 
             </div>
           </Link>
           <Button color="danger"
-            size="sm" className="absolute right-5  max-w-4"
-            onPress={() => {
+            className="w-10"
+            size="sm"
+            onClick={() => {
               handlePressStart(worn.id);
             }}
           >X</Button>
+          </div>
         </CardHeader>
       </Card>
     </form>

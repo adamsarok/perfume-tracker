@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Input, Image, Checkbox, Divider } from "@nextui-org/react";
+import { Image, Checkbox, Divider, Input } from "@nextui-org/react";
 import { Perfume, Tag } from "@prisma/client";
 import { useFormState } from "react-dom";
 import * as perfumeRepo from "@/db/perfume-repo";
@@ -17,6 +17,8 @@ import styles from "./perfume-edit-form.module.css";
 import SprayOnComponent from "./spray-on";
 import { getImageUrl } from "./r2-image";
 import { ActionResult } from "@/db/action-result";
+import { Button } from "./ui/button";
+//import { Input } from "./ui/input";
 
 interface PerfumeEditFormProps {
     perfume: Perfume | null,
@@ -119,7 +121,8 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
                     <UploadComponent onUpload={onUpload} />
                 </div>
                 <div className={styles.content}>
-                    <Input label="House" className="content"
+                    <Input label="House" 
+                        className="content"
                         name="house"
                         defaultValue={perfume?.house}
                         isInvalid={!!formState.errors.house}
@@ -151,13 +154,13 @@ export default function PerfumeEditForm({ perfume, perfumesTags, allTags, r2_api
                     </div>
                     <div></div>
                     <div className="flex mt-4 mb-2">
-
                         <Button color="primary"
-                            startContent={<FloppyDisk />}
                             className="mr-4 flex-1"
-                            type="submit">{perfume ? "Update" : "Insert"}
+                            type="submit">
+                                <FloppyDisk /> {perfume ? "Update" : "Insert"}
                         </Button>
-                        <MessageBox className="flex-1"
+                        <MessageBox 
+                            className="flex-1"
                             startContent={<TrashBin />}
                             modalButtonColor="danger"
                             modalButtonText="Delete"
