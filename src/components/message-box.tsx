@@ -1,14 +1,15 @@
 "use client";
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  useDisclosure,
-} from "@nextui-org/react";
 import React from "react";
 import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface MessageBoxProps {
   className: string;
@@ -40,51 +41,49 @@ export default function MessageBox({
   onButton1,
   onButton2,
 }: MessageBoxProps) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   return (
     <div>
-      <Button
-        type="button"
-        className={className}
-        onClick={onOpen}
-        color={modalButtonColor}
-      >
-        {startContent} {modalButtonText}
-      </Button>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="top-center">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                {message}
-              </ModalHeader>
-              <ModalBody></ModalBody>
-              <ModalFooter>
+      <Dialog>
+        <DialogTrigger>
+          <Button
+            type="button"
+            className={className}
+            color={modalButtonColor}
+          >
+            {startContent} {modalButtonText}
+          </Button>
+        </DialogTrigger>
+
+          <DialogContent>
+            <DialogHeader className="flex flsex-col gap-1">
+              <DialogTitle>{message}</DialogTitle>
+              <DialogDescription>
+                <DialogClose asChild>
                 <Button
-                  color="primary"
-                  type="button"
-                  onClick={() => {
-                    if (onButton1) onButton1();
-                    onClose();
-                  }}
-                >
-                  {button1text}
-                </Button>
-                <Button
-                  color="danger"
-                  type="button"
-                  onClick={() => {
-                    if (onButton2) onButton2();
-                    onClose();
-                  }}
-                >
-                  {button2text}
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+                    color="primary"
+                    type="button"
+                    onClick={() => {
+                      if (onButton1) onButton1();
+                    }}
+                  >
+                    {button1text}
+                  </Button>
+                </DialogClose>
+                <DialogClose>
+                  <Button
+                    color="danger"
+                    type="button"
+                    onClick={() => {
+                      if (onButton2) onButton2();
+                    }}
+                  >
+                    {button2text}
+                  </Button>
+                  </DialogClose>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+      </Dialog>
     </div>
   );
 }
