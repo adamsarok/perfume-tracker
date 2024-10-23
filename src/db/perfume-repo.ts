@@ -57,39 +57,14 @@ export async function setImageObjectKey(id: number, objectKey: string) : Promise
     }
 }
 
-export async function upsertPerfume(id: number | null, tags: Tag[], formState: UpdatePerfumeFormState, formData: FormData)
-    : Promise<UpdatePerfumeFormState> {
+export async function upsertPerfume(perfume: Perfume, tags: Tag[])
+    : Promise<ActionResult> {
     try {
         const selectedTags = tags.map(x => x.id);
-        const perf = perfumeSchema.safeParse({
-            house: formData.get('house'),
-            perfume: formData.get('perfume'),
-            rating: formData.get('rating'),
-            notes: formData.get('notes'),
-            ml: formData.get('ml'),
-        });
-        if (!perf.success) {
-            return {
-                errors: perf.error.flatten().fieldErrors,
-                result: null,
-                state: 'failed'
-            }
-        }
-        if (!parseFloat(perf.data.rating)) {
-            return {
-                errors: { rating: ['Not a valid rating'] },
-                result: null,
-                state: 'failed'
-            }
-        }
-        const summmer = formData.get('summer') ? true : false;
-        const winter = formData.get('winter') ? true : false;
-        const spring = formData.get('spring') ? true : false;
-        const autumn = formData.get('autumn') ? true : false;
-        if (id) {
+        if (perfume.id) {
             const currentTags = await db.perfumeTag.findMany({
                 where: {
-                    perfumeId: id
+                    perfumeId: perfume.id
                 }
             });
             const currentTagIds = currentTags.map(x => x.tagId);
@@ -99,18 +74,18 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
             const tagsToAdd = selectedTags.filter(x => !currentTagIds.includes(x));
             const result = await db.perfume.update({
                 where: {
-                    id: id
+                    id: perfume.id
                 },
                 data: {
-                    house: perf.data.house,
-                    perfume: perf.data.perfume,
-                    rating: parseFloat(perf.data.rating),
-                    notes: perf.data.notes,
-                    ml: parseInt(perf.data.ml),
-                    summer: summmer,
-                    winter: winter,
-                    spring: spring,
-                    autumn: autumn,
+                    house: perfume.house,
+                    perfume: perfume.perfume,
+                    rating: perfume.rating,
+                    notes: perfume.notes,
+                    ml: perfume.ml,
+                    summer: perfume.summer,
+                    winter: perfume.winter,
+                    spring: perfume.spring,
+                    autumn: perfume.autumn,
                     tags: {
                         createMany: {
                             data: tagsToAdd.map(x => ({
@@ -125,23 +100,23 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
                     }
                 }
             });
-            if (result) return  {
-                errors: {},
-                result,
-                state: 'success'
+            if (result) return {
+                ok: true,
+                error: "",
+                id: result.id
             }
         } else {
             const result = await db.perfume.create({
                 data: {
-                    house: perf.data.house,
-                    perfume: perf.data.perfume,
-                    rating: parseFloat(perf.data.rating),
-                    notes: perf.data.notes,
-                    ml: parseInt(perf.data.ml),
-                    summer: summmer,
-                    winter: winter,
-                    spring: spring,
-                    autumn: autumn,
+                    house: perfume.house,
+                    perfume: perfume.perfume,
+                    rating: perfume.rating,
+                    notes: perfume.notes,
+                    ml: perfume.ml,
+                    summer: perfume.summer,
+                    winter: perfume.winter,
+                    spring: perfume.spring,
+                    autumn: perfume.autumn,
                     tags: {
                         createMany: {
                             data: tags.map(t => ({
@@ -151,25 +126,24 @@ export async function upsertPerfume(id: number | null, tags: Tag[], formState: U
                     }
                 }
             });
-            if (result) return  {
-                errors: {},
-                result,
-                state: 'success'
+            if (result) return {
+                ok: true,
+                error: "",
+                id: result.id
             }
         }
     } catch (err: unknown) {
         if (err instanceof Error) {
+            
             return {
-                errors: { _form: [err.message] },
-                result: null,
-                state: 'failed'
+                error: err.message,
+                ok: false
             };
         }
     }
     return {
-        errors: { _form: ['Unknown error occured'] },
-        result: null,
-        state: 'failed'
+        error:'Unknown error occured',
+        ok: false
     };
 }
 

@@ -2,63 +2,30 @@
 
 import { Tag } from "@prisma/client";
 import db from ".";
-import { z } from "zod";
+import { ActionResult } from "./action-result";
 
-interface InsertTagFormState {
-    result: {
-        id: number,
-        tag: string,
-        color: string
-    } | null
-    errors: {
-        name?: string[];
-        color?: string[];
-        _form?: string[];
-    }
-}
-
-const tagSchema = z.object({
-    tag: z.string().min(1),
-    color: z.string().min(1) //TODO color validate
-})
-
-
-export async function insertTag(formState: InsertTagFormState, formData: FormData) : Promise<InsertTagFormState> {
+export async function insertTag(tag: Tag) : Promise<ActionResult> {
     try {
-        const perf = tagSchema.safeParse({
-            tag: formData.get('tag'),
-            color: formData.get('color')
-        });
-        if (!perf.success) {
-            return {
-                result: null,
-                errors: perf.error.flatten().fieldErrors,
-            }
-        }
         const result = await db.tag.create({
             data: {
-                tag: perf.data.tag,
-                color: perf.data.color,
+                tag: tag.tag,
+                color: tag.color,
             }
         });
         return {
-            result: {
-                id: result.id,
-                tag: result.tag,
-                color: result.color
-            },
-            errors: { _form: [] }
+            ok: true,
+            id: result.id
         };
     } catch (err: unknown) {
         if (err instanceof Error) {
             return {
-                result: null,
-                errors: { _form: [err.message] }
+                ok: false,
+                error: err.message
             };
         } else {
             return {
-                result: null,
-                errors: { _form: ['Unknown error occured'] }
+                ok: false,
+                error: 'Unknown error occured'
             };
         }
     }
