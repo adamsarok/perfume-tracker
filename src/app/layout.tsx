@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
 import { ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
-import { Link } from "@nextui-org/react";
-
+import "react-toastify/dist/ReactToastify.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,18 +21,32 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ToastContainer position="top-right" />
-        <Providers>
-          <div className="max-w-lg mx-auto px-4 py-8">
-            <Link isBlock color="foreground" href="/">Home</Link>
-            <Link isBlock color="foreground" href="/perfumes/new-perfume">New Perfume</Link>
-            <Link isBlock color="foreground" href="/perfumes">Perfumes</Link>
-            <Link isBlock color="foreground" href="/stats">Stats</Link>
-            <Link isBlock color="foreground" href="/calendar">Calendar</Link>
-            <Link isBlock color="foreground" href="/tags">Tags</Link>
-            <Link isBlock color="foreground" href="/recommendations">Recommendations</Link>
-            {children}
+        <div className="max-w-lg mx-auto px-4 py-8">
+          <div className="flex items-center space-x-2">
+            <a className="mr-4" color="foreground" href="/">
+              Home
+            </a>
+            <a className="mr-4" color="foreground" href="/perfumes/new-perfume">
+              New Perfume
+            </a>
+            <a className="mr-4" color="foreground" href="/perfumes">
+              Perfumes
+            </a>
+            <a className="mr-4" color="foreground" href="/stats">
+              Stats
+            </a>
+            <a className="mr-4" color="foreground" href="/calendar">
+              Calendar
+            </a>
+            <a className="mr-4" color="foreground" href="/tags">
+              Tags
+            </a>
+            <a className="mr-4" color="foreground" href="/recommendations">
+              Recommendations
+            </a>
           </div>
-        </Providers>
+          {children}
+        </div>
       </body>
     </html>
   );

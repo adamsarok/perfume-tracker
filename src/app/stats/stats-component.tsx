@@ -2,9 +2,11 @@
 
 import * as perfumeRepo from "@/db/perfume-repo";
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
-import { Card, CardBody, CardFooter, CardHeader, Chip, Divider } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { getContrastColor } from "@/app/colors";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 export const dynamic = 'force-dynamic'
 
@@ -92,8 +94,8 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
                     <p className="text-small text-default-500">{tryCount} perfumes tried</p>
                 </div>
             </CardHeader>
-            <Divider />
-            <CardBody>
+            <Separator />
+            <CardContent>
                 Mls:
                 <div>
                     {Object.entries(tagStats)
@@ -103,7 +105,7 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
                             const chipWidth = Math.max(relativeWidth, minChipWidth);
                             console.log(tagInfo.color);
                             return (<div key={tagName}>
-                                <Chip
+                                <Badge
                                     style={{
                                         background: `${tagInfo.color}`,
                                         color: getContrastColor(tagInfo.color),
@@ -112,11 +114,11 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
                                         width: `${chipWidth}%`
                                     }}>
                                     {tagName} - {tagInfo.mls} ml
-                                </Chip>
+                                </Badge>
                             </div>)
                         })}
                 </div>
-                <Divider className="mt-4 mb-4" />
+                <Separator className="mt-4 mb-4" />
                 <div>Worn X times:</div>
                 <div>
                     {Object.entries(tagStats)
@@ -125,7 +127,7 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
                             const relativeWidth = (tagInfo.wornCount / maxWornInTags) * 100;
                             const chipWidth = Math.max(relativeWidth, minChipWidth);
                             return (<div key={tagName}>
-                                <Chip
+                                <Badge
                                     style={{
                                         backgroundColor: tagInfo.color,
                                         color: getContrastColor(tagInfo.color),
@@ -133,12 +135,12 @@ export default function StatsComponent({ perfumes, perfumesWorn }: StatsPageProp
                                         width: `${chipWidth}%`
                                     }}>
                                     {tagName} - {tagInfo.wornCount} times
-                                </Chip>
+                                </Badge>
                             </div>);
                         })}
                 </div>
-            </CardBody>
-            <Divider />
+            </CardContent>
+            <Separator />
             <CardFooter>
 
             </CardFooter>

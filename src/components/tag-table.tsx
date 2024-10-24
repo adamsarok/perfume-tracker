@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -42,7 +41,7 @@ export default function TagTable({ tags }: TagTableProps) {
   return (
     <div>
       <Table>
-        <TableCaption>ayooo</TableCaption>
+        {/* <TableCaption>ayooo</TableCaption> */}
         <TableHeader>
           <TableRow>
             <TableHead key="tag">Tag</TableHead>

@@ -1,7 +1,7 @@
 import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import * as tagRepo from "@/db/tag-repo";
-import { Spacer } from "@nextui-org/react";
 import PerfumeWornTable from "./perfume-worn-table";
+import { Separator } from "@/components/ui/separator";
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +15,7 @@ export default async function StatsPage() {
       });
     const tags = await tagRepo.getTags();
     return <div>
-      <Spacer></Spacer>
+      <Separator></Separator>
       <PerfumeWornTable perfumes={perfumes} allTags={tags}></PerfumeWornTable>
     </div>
 }
