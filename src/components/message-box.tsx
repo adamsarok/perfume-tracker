@@ -44,7 +44,7 @@ export default function MessageBox({
   return (
     <div>
       <Dialog>
-        <DialogTrigger>
+        <DialogTrigger asChild>
           <Button
             type="button"
             className={className}

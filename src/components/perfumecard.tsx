@@ -47,7 +47,7 @@ export default function PerfumeCard({
         <CardHeader>
           <a
             href={`/perfumes/${perfume.id}/`}
-            className="flex items-center justify-between space-x-4 rounded-md border p-4"
+            className="flex items-center justify-between space-x-4"
           >
             <Avatar className="w-20 h-20 semi-bold">
               <AvatarImage
@@ -60,7 +60,7 @@ export default function PerfumeCard({
               {perfume.house} - {perfume.perfume}
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
+                  <TooltipTrigger asChild>
                     <p className="mt-2 text-small tracking-tight text-default-400">
                       {`Worn on: ${worn.wornOn.toDateString()}`}
                     </p>
