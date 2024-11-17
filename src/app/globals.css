@@ -8,6 +8,15 @@
     width: 100%;
 }
 
+.menuButton {
+  margin-right: 4px;
+  border-style: dotted;
+  border-width: 2px;
+  border-radius: 1px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 @layer base {
   :root {
         --background: 0 0% 100%;

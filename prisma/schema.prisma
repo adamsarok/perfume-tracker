@@ -28,6 +28,7 @@ model Perfume {
   summer Boolean @default(true)
   autumn Boolean @default(true)
   worn PerfumeWorn[]
+  suggested PerfumeSuggested[]
   tags PerfumeTag[]
 }
 
@@ -36,6 +37,13 @@ model PerfumeWorn {
   perfume Perfume @relation(fields: [perfumeId], references: [id], onDelete: Cascade)
   perfumeId Int
   wornOn DateTime
+}
+
+model PerfumeSuggested {
+  id Int @id @default(autoincrement())
+  perfume Perfume @relation(fields: [perfumeId], references: [id], onDelete: Cascade)
+  perfumeId Int
+  suggestedOn DateTime
 }
 
 model PerfumeTag {

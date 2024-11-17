@@ -169,6 +169,20 @@ export interface PerfumeWornDTO {
     tags: Tag[]
 }
 
+export async function getWornPerfumeIds(dayFilter: Date) {
+    return await db.perfumeWorn.findMany({
+        where: {
+            wornOn: {
+                gte: dayFilter,
+            },
+        },
+        select: {
+            perfumeId: true,
+        },
+        distinct: ["perfumeId"],
+    });
+}
+
 export async function getAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
     const worn = await db.perfumeWorn.groupBy({
         by: ['perfumeId'],
