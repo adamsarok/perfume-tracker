@@ -18,18 +18,33 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export interface PerfumeWornTableProps {
-  perfumes: PerfumeWornDTO[];
+  apiAddress: string | undefined;
   allTags: Tag[];
 }
 
 export default function PerfumeWornTable({
-  perfumes,
+  apiAddress,
   allTags,
 }: PerfumeWornTableProps) {
+  const [fulltext, setFulltext] = useState("");
   const list = useAsyncList({
     async load() {
+      if (!apiAddress) throw new Error("PerfumeAPI address not set");
+      const qry = `${apiAddress}/perfumes/${
+        fulltext ? `fulltext/${fulltext}` : ""
+      }`;
+      const response = await fetch(qry);
+      if (!response.ok) {
+        throw new Error("Failed to fetch perfumes");
+      }
+      const perfumes = await response.json();
+
+      //TODO: move filtering to server side
+
       let items: PerfumeWornDTO[];
       switch (selected) {
         case "all":
@@ -121,6 +136,10 @@ export default function PerfumeWornTable({
     },
   });
 
+  const handleReload = () => {
+    list.reload(); // Call the reload method to refresh the list
+  };
+
   const [selected, setSelected] = React.useState("favorites");
   const [isChipCloudVisible, setIsChipCloudVisible] = useState(true);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -141,6 +160,12 @@ export default function PerfumeWornTable({
     list.reload();
   }, [tags]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleReload(); // Call reload on Enter key press
+    }
+  };
+
   const bottomChipProps: ChipProp[] = [];
   allTags.map((allTag) => {
     bottomChipProps.push({
@@ -154,11 +179,20 @@ export default function PerfumeWornTable({
   return (
     <div>
       <Label htmlFor="filtering">Filtering</Label>
+      <div className="flex items-center space-x-2 mb-4">
+        <Input
+          value={fulltext} // Bind the input value to state
+          onChange={(e) => setFulltext(e.target.value)} // Update state on change
+          onKeyDown={handleKeyDown}
+        />
+        <Button onClick={handleReload}>Reload</Button>
+      </div>
       <RadioGroup
         id="filtering"
         orientation="horizontal"
         onValueChange={setSelected}
         defaultValue="favorites"
+        className="mb-4"
       >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="favorites" id="favorites" />
@@ -199,6 +233,7 @@ export default function PerfumeWornTable({
           <TableRow>
             <TableHead key="house">House</TableHead>
             <TableHead key="perfume">Perfume</TableHead>
+            <TableHead key="notes">Notes</TableHead>
             <TableHead key="rating">Rating</TableHead>
             <TableHead key="wornTimes">Worn X times</TableHead>
             <TableHead key="lastWorn">Last worn</TableHead>
@@ -206,13 +241,40 @@ export default function PerfumeWornTable({
         </TableHeader>
         <TableBody>
           {list.items.map((perfume) => (
-              <TableRow key={perfume.perfume.id}>
-                <TableCell><a href={`/perfumes/${perfume.perfume.id}/`}>{perfume.perfume.house}</a></TableCell>
-                <TableCell><a href={`/perfumes/${perfume.perfume.id}/`}>{perfume.perfume.perfume}</a></TableCell>
-                <TableCell><a href={`/perfumes/${perfume.perfume.id}/`}>{perfume.perfume.rating}</a></TableCell>
-                <TableCell><a href={`/perfumes/${perfume.perfume.id}/`}>{perfume.wornTimes}</a></TableCell>
-                <TableCell><a href={`/perfumes/${perfume.perfume.id}/`}>{perfume.lastWorn?.toDateString()}</a></TableCell>
-              </TableRow>
+            <TableRow key={perfume.perfume.id}>
+              <TableCell>
+                <a href={`/perfumes/${perfume.perfume.id}/`}>
+                  {perfume.perfume.house}
+                </a>
+              </TableCell>
+              <TableCell>
+                <a href={`/perfumes/${perfume.perfume.id}/`}>
+                  {perfume.perfume.perfume}
+                </a>
+              </TableCell>
+              <TableCell>
+                <a href={`/perfumes/${perfume.perfume.id}/`}>
+                  {perfume.perfume.notes}
+                </a>
+              </TableCell>
+              <TableCell>
+                <a href={`/perfumes/${perfume.perfume.id}/`}>
+                  {perfume.perfume.rating}
+                </a>
+              </TableCell>
+              <TableCell>
+                <a href={`/perfumes/${perfume.perfume.id}/`}>
+                  {perfume.wornTimes}
+                </a>
+              </TableCell>
+              <TableCell>
+                <a href={`/perfumes/${perfume.perfume.id}/`}>
+                  {perfume.lastWorn
+                    ? new Date(perfume.lastWorn).toDateString()
+                    : ""}
+                </a>
+              </TableCell>
+            </TableRow>
           ))}
         </TableBody>
       </Table>

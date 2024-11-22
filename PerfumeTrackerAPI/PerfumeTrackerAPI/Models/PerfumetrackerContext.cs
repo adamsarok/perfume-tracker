@@ -64,6 +64,12 @@ public partial class PerfumetrackerContext : DbContext
             entity.Property(e => e.Winter)
                 .HasDefaultValue(true)
                 .HasColumnName("winter");
+            entity.HasGeneratedTsVectorColumn(
+                p => p.FullText,
+                "english", 
+                p => new { p.Perfume1, p.House, p.Notes, p.Rating })
+            .HasIndex(p => p.FullText)
+            .HasMethod("GIN");
         });
 
         modelBuilder.Entity<PerfumeSuggested>(entity =>
@@ -173,6 +179,8 @@ public partial class PerfumetrackerContext : DbContext
             entity.Property(e => e.Color).HasColumnName("color");
             entity.Property(e => e.Tag1).HasColumnName("tag");
         });
+
+
 
         OnModelCreatingPartial(modelBuilder);
     }

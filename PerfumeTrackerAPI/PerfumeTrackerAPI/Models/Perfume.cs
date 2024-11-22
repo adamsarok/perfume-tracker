@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NpgsqlTypes;
+using System;
 using System.Collections.Generic;
 
 namespace PerfumeTrackerAPI.Models;
@@ -26,6 +27,8 @@ public partial class Perfume
     public bool Summer { get; set; }
 
     public bool Winter { get; set; }
+
+    public NpgsqlTsVector? FullText { get; set; } = null;
 
     public virtual ICollection<PerfumeSuggested> PerfumeSuggesteds { get; set; } = new List<PerfumeSuggested>();
 
