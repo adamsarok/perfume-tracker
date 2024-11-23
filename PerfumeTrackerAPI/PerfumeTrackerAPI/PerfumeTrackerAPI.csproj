@@ -23,4 +23,8 @@
     <Folder Include="Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\Dockerfile" Link="Dockerfile" />
+  </ItemGroup>
+
 </Project>

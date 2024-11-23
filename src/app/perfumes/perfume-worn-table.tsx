@@ -41,7 +41,7 @@ export default function PerfumeWornTable({
       if (!response.ok) {
         throw new Error("Failed to fetch perfumes");
       }
-      const perfumes = await response.json();
+      const perfumes: PerfumeWornDTO[] =  await response.json();
 
       //TODO: move filtering to server side
 
@@ -90,7 +90,7 @@ export default function PerfumeWornTable({
       sortDescriptor,
     }: {
       items: PerfumeWornDTO[];
-      sortDescriptor: any;
+      sortDescriptor: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     }) {
       //TODO: figure this out with Shadcn: SortDescriptor
       return {
