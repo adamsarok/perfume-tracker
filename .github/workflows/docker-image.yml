@@ -47,3 +47,14 @@ jobs:
         file: Dockerfile
         push: true
         tags: fuzzydice555/perfume-tracker:latest
+        
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0
+
+    - name: Build API
+      working-directory: ./PerfumeTrackerAPI
+      env:
+        DATABASE_URL: "postgresql://localhost:9999/placeholder"
+      run: dotnet build
