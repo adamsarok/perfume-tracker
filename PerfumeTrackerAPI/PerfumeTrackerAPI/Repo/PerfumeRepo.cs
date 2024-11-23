@@ -15,7 +15,10 @@ namespace PerfumeTrackerAPI.Repo {
         public async Task<List<PerfumeWornDTO>> GetPerfumesWithWorn(string fulltext) {
             var raw = await _context
                 .Perfumes
-                .Where(p => string.IsNullOrWhiteSpace(fulltext) || p.FullText.Matches(EF.Functions.ToTsQuery($"{fulltext}:*")))
+                .Where(p => string.IsNullOrWhiteSpace(fulltext) 
+                    || p.FullText.Matches(EF.Functions.ToTsQuery($"{fulltext}:*"))
+                    || p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.Tag1, fulltext))
+                    )
                 .Include(t => t.PerfumeTags)
                 .ThenInclude(pt => pt.Tag)
                 .Include(w => w.PerfumeWorns)
@@ -36,7 +39,6 @@ namespace PerfumeTrackerAPI.Repo {
                     });
                 }
                 result.Add(dto);
-                //TODO setup automapper
             }
             return result;
         }
