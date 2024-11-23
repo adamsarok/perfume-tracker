@@ -33,12 +33,12 @@ jobs:
     - name: Generate Prisma Client
       run: npx prisma generate
 
-    - name: Build the project
+    - name: Build nextJS app
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       run: npm run build
     
-    - name: Build and push Docker image
+    - name: Build and push nextJS app Docker image
       uses: docker/build-push-action@v6
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
@@ -58,3 +58,13 @@ jobs:
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       run: dotnet build
+
+    - name: Build and push API Docker image
+      uses: docker/build-push-action@v6
+      env:
+        DATABASE_URL: "postgresql://localhost:9999/placeholder"
+      with:
+        context: ./PerfumeTrackerAPI
+        file: Dockerfile
+        push: true
+        tags: fuzzydice555/perfume-tracker-api:latest
