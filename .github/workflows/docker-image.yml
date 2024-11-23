@@ -65,6 +65,6 @@ jobs:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       with:
         context: ./PerfumeTrackerAPI
-        file: Dockerfile
+        file: ./PerfumeTrackerAPI/Dockerfile
         push: true
         tags: fuzzydice555/perfume-tracker-api:latest
