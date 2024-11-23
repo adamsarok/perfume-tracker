@@ -63,7 +63,6 @@ jobs:
       uses: docker/build-push-action@v6
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
-        DEBUG: true
       with:
         context: ./PerfumeTrackerAPI
         file: ./PerfumeTrackerAPI/Dockerfile
