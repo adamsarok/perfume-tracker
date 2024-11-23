@@ -13,6 +13,7 @@ namespace PerfumeTrackerAPI.Repo {
             _mapper = mapper;
         }
         public async Task<List<PerfumeWornDTO>> GetPerfumesWithWorn(string fulltext) {
+#warning TODO split query https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
             var raw = await _context
                 .Perfumes
                 .Where(p => string.IsNullOrWhiteSpace(fulltext) 
