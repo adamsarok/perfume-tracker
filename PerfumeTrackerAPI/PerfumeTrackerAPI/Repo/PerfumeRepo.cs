@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿using Mapster;
 using Microsoft.EntityFrameworkCore;
 using PerfumeTrackerAPI.DTO;
 using PerfumeTrackerAPI.Models;
@@ -6,11 +6,9 @@ using PerfumeTrackerAPI.Models;
 namespace PerfumeTrackerAPI.Repo {
     public class PerfumeRepo {
         private readonly PerfumetrackerContext _context;
-        private readonly IMapper _mapper;
 
-        public PerfumeRepo(PerfumetrackerContext context, IMapper mapper) {
+        public PerfumeRepo(PerfumetrackerContext context) {
             _context = context;
-            _mapper = mapper;
         }
         public async Task<List<PerfumeWornDTO>> GetPerfumesWithWorn(string fulltext) {
 #warning TODO split query https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
@@ -27,7 +25,7 @@ namespace PerfumeTrackerAPI.Repo {
             var result = new List<PerfumeWornDTO>();
             foreach (var r in raw) {
                 var dto = new PerfumeWornDTO {
-                    Perfume = _mapper.Map<PerfumeDTO>(r),
+                    Perfume = r.Adapt<PerfumeDTO>(),
                     LastWorn = r.PerfumeWorns.Any() ? r.PerfumeWorns.Max(x => x.WornOn) : null,
                     Tags = new List<TagDTO>(),
                     WornTimes = r.PerfumeWorns.Any() ? r.PerfumeWorns.Count() : 0

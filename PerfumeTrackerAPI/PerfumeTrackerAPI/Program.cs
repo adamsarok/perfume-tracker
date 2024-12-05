@@ -1,7 +1,9 @@
+using Carter;
 using Microsoft.EntityFrameworkCore;
 using PerfumeTrackerAPI.Migrations;
 using PerfumeTrackerAPI.Models;
 using PerfumeTrackerAPI.Repo;
+using PerfumeTrackerAPI.Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +19,9 @@ if (string.IsNullOrWhiteSpace(conn)) throw new Exception("Connection string is e
 // Add services to the container.
 builder.Services.AddDbContext<PerfumetrackerContext>(opt => opt.UseNpgsql(conn));
 builder.Services.AddTransient<PerfumeRepo>();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddCarter();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowSpecificOrigin",
@@ -29,7 +33,12 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
-app.UseCors("AllowSpecificOrigin");
+app.MapCarter();
+//app.UseCors("AllowSpecificOrigin");
+app.UseCors(x => x.AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()
+    .WithOrigins("http://localhost", "http://192.168.1.79:3000", "https://192.168.1.79:3000", "https://localhost:3000", "http://localhost:3000"));
 
 // Configure the HTTP request pipeline.
 
