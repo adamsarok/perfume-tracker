@@ -5,7 +5,8 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
+  workflow_dispatch:
+  
 jobs:
 
   build:
@@ -46,7 +47,7 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: fuzzydice555/perfume-tracker:latest
+        tags: adamsarok/perfume-tracker:latest
         
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v3
@@ -67,4 +68,4 @@ jobs:
         context: ./PerfumeTrackerAPI
         file: ./PerfumeTrackerAPI/Dockerfile
         push: true
-        tags: fuzzydice555/perfume-tracker-api:latest
+        tags: adamsarok/perfume-tracker-api:latest
