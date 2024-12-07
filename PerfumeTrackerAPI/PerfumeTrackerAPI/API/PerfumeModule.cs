@@ -5,23 +5,34 @@ using PerfumeTrackerAPI.Repo;
 using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace FountainPensNg.Server.API {
-    public class FountainPenModule : ICarterModule {
+    public class PerfumeModule : ICarterModule {
         public void AddRoutes(IEndpointRouteBuilder app) {
             //TODO placeholder
 
-            app.MapGet("/api/Perfumes", async (PerfumeRepo repo) =>
+
+            app.MapGet("/api/perfumes/fulltext/{fulltext}", async (string fulltext, PerfumeRepo repo) =>
+                await repo.GetPerfumesWithWorn(fulltext))
+                .WithTags("Perfumes")
+                .WithName("GetPerfumesFulltext");
+
+            app.MapGet("/api/perfumes/stats", async (PerfumeRepo repo) =>
+               await repo.GetPerfumeStats())
+               .WithTags("Perfumes")
+               .WithName("GetPerfumeStats");
+
+            app.MapGet("/api/perfumes", async (PerfumeRepo repo) =>
                 await repo.GetPerfumesWithWorn())
                 .WithTags("Perfumes")
                 .WithName("GetPerfumes");
 
-            app.MapGet("/api/Perfumes/{id}", async (int id, PerfumeRepo repo) => {
+            app.MapGet("/api/perfumes/{id}", async (int id, PerfumeRepo repo) => {
                 var perfume = await repo.GetPerfumeWithWorn(id);
                 if (perfume == null) return Results.NotFound();
                 return Results.Ok(perfume);
             }).WithTags("Perfumes")
                 .WithName("GetPerfume");
 
-            app.MapPut("/api/Perfumes/{id}", async (int id, PerfumeDTO dto, PerfumeRepo repo) => {
+            app.MapPut("/api/perfumes/{id}", async (int id, PerfumeDTO dto, PerfumeRepo repo) => {
                 var result = await repo.UpdatePerfume(id, dto);
                 return result.ResultType switch {
                     ResultTypes.Ok => Results.Ok(result.Perfume),
@@ -32,7 +43,7 @@ namespace FountainPensNg.Server.API {
             }).WithTags("Perfumes")
                 .WithName("PutPerfume");
 
-            app.MapPost("/api/Perfumes", async (PerfumeDTO dto, PerfumeRepo repo) => {
+            app.MapPost("/api/perfumes", async (PerfumeDTO dto, PerfumeRepo repo) => {
                 var result = await repo.AddPerfume(dto);
                 return result.ResultType switch {
                     ResultTypes.Ok => Results.CreatedAtRoute("GetPerfume", new { id = result?.Perfume?.Id }, result?.Perfume),
@@ -43,7 +54,7 @@ namespace FountainPensNg.Server.API {
             }).WithTags("Perfumes")
                 .WithName("PostPerfume");
 
-            app.MapDelete("/api/Perfumes/{id}", async (int id, PerfumeRepo repo) => {
+            app.MapDelete("/api/perfumes/{id}", async (int id, PerfumeRepo repo) => {
                 var result = await repo.DeletePerfume(id);
                 return result.ResultType switch {
                     ResultTypes.Ok => Results.NoContent(),

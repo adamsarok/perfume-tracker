@@ -19,6 +19,7 @@ if (string.IsNullOrWhiteSpace(conn)) throw new Exception("Connection string is e
 // Add services to the container.
 builder.Services.AddDbContext<PerfumetrackerContext>(opt => opt.UseNpgsql(conn));
 builder.Services.AddTransient<PerfumeRepo>();
+builder.Services.AddTransient<TagRepo>();
 builder.Services.AddCarter();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -44,10 +45,5 @@ app.UseCors(x => x.AllowAnyHeader()
 
 //app.UseHttpsRedirection();
 
-app.MapGet("/perfumes", async (PerfumeRepo repo) =>
-    await repo.GetPerfumesWithWorn(""));
-
-app.MapGet("/perfumes/fulltext/{fulltext}", async (string fulltext, PerfumeRepo repo) =>  
-    await repo.GetPerfumesWithWorn(fulltext));
 
 app.Run();

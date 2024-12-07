@@ -30,6 +30,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Checkbox } from "./ui/checkbox";
 import { Separator } from "./ui/separator";
+import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
+import { addPerfume, deletePerfume, updatePerfume } from "@/services/perfume-service";
 
 interface PerfumeEditFormProps {
   perfume: Perfume | null;
@@ -81,10 +83,10 @@ export default function PerfumeEditForm({
   const [tags, setTags] = useState(perfumesTags);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const perf: Perfume = {
+    const perf: PerfumeUploadDTO = {
       id: id,
       house: values.house,
-      perfume: values.perfume,
+      perfumeName: values.perfume,
       rating: values.rating,
       notes: values.notes,
       ml: values.amount,
@@ -93,8 +95,12 @@ export default function PerfumeEditForm({
       winter: values.winter,
       autumn: values.autumn,
       spring: values.spring,
+      tags: tags.map(tag =>  ({ id: tag.id, tagName: tag.tag, color: tag.color }))
     };
-    const result = await perfumeRepo.upsertPerfume(perf, tags);
+    let result: ActionResult;
+    if (!id) result = await addPerfume(perf);
+    else result = await updatePerfume(perf);
+    console.log(result);
     if (result.ok && result.id) {
         id = result.id;
         toast.success("Update successful");
@@ -139,7 +145,7 @@ export default function PerfumeEditForm({
   };
   const onDelete = async (id: number | undefined) => {
     if (id) {
-      const result = await perfumeRepo.deletePerfume(id);
+      const result = await deletePerfume(id);
       if (result.error) toast.error(result.error);
       else {
         toast.success("Perfume deleted!");

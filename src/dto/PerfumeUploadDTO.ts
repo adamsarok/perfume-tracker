@@ -1,8 +1,16 @@
-import { Perfume, Tag } from "@prisma/client";
+import { TagUploadDTO } from "./TagUploadDTO";
 
 export interface PerfumeUploadDTO {
-    perfume: Perfume,
-    wornTimes: number | undefined,
-    lastWorn: Date | undefined,
-    tags: Tag[]
+    id: number;
+    house: string;
+    perfumeName: string;
+    rating: number;
+    notes: string;
+    ml: number;
+    imageObjectKey: string;
+    autumn: boolean;
+    spring: boolean;
+    summer: boolean;
+    winter: boolean;
+    tags: TagUploadDTO[]
 }

@@ -1,5 +1,6 @@
 ﻿namespace PerfumeTrackerAPI.DTO {
     public class PerfumeDTO {
+        //TODO: why are these still classes not records?
         public int Id { get; set; }
 
         public string House { get; set; } = null!;
