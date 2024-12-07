@@ -42,7 +42,7 @@ app.UseCors(x => x.AllowAnyHeader()
 
 // Configure the HTTP request pipeline.
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.MapGet("/perfumes", async (PerfumeRepo repo) =>
     await repo.GetPerfumesWithWorn(""));

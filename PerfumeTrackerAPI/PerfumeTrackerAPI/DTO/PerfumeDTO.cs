@@ -21,5 +21,6 @@
         public bool Summer { get; set; }
 
         public bool Winter { get; set; }
+        public List<TagDTO> Tags { get; set; } = new();
     }
 }

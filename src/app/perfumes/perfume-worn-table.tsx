@@ -20,31 +20,20 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getPerfumes } from "@/services/perfume-service";
 
 export interface PerfumeWornTableProps {
-  apiAddress: string | undefined;
   allTags: Tag[];
 }
 
 export default function PerfumeWornTable({
-  apiAddress,
   allTags,
 }: PerfumeWornTableProps) {
   const [fulltext, setFulltext] = useState("");
   const list = useAsyncList({
     async load() {
-      if (!apiAddress) throw new Error("PerfumeAPI address not set");
-      const qry = `${apiAddress}/perfumes/${
-        fulltext ? `fulltext/${fulltext}` : ""
-      }`;
-      const response = await fetch(qry);
-      if (!response.ok) {
-        throw new Error("Failed to fetch perfumes");
-      }
-      const perfumes: PerfumeWornDTO[] =  await response.json();
-
+      const perfumes: PerfumeWornDTO[] = await getPerfumes(fulltext)
       //TODO: move filtering to server side
-
       let items: PerfumeWornDTO[];
       switch (selected) {
         case "all":

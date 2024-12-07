@@ -66,6 +66,14 @@ namespace PerfumeTrackerAPI.Repo {
                 perfume.Created_At = DateTime.UtcNow;
                 _context.Perfumes.Add(perfume);
                 await _context.SaveChangesAsync();
+                foreach (var tag in dto.Tags) {
+                    _context.PerfumeTags.Add(new PerfumeTag() {
+                        Created_At = DateTime.UtcNow,
+                        PerfumeId = perfume.Id,
+                        TagId = tag.Id,
+                    });
+                }
+                await _context.SaveChangesAsync();
                 return new PerfumeResult(ResultTypes.Ok, perfume);
             } catch (Exception ex) {
                 return new PerfumeResult(ResultTypes.BadRequest, null, ex.Message);
