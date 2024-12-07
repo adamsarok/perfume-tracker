@@ -53,7 +53,7 @@ public partial class PerfumetrackerContext : DbContext
             entity.Property(e => e.Notes)
                 .HasDefaultValueSql("''::text")
                 .HasColumnName("notes");
-            entity.Property(e => e.Perfume1).HasColumnName("perfume");
+            entity.Property(e => e.PerfumeName).HasColumnName("perfume");
             entity.Property(e => e.Rating).HasColumnName("rating");
             entity.Property(e => e.Spring)
                 .HasDefaultValue(true)
@@ -67,9 +67,11 @@ public partial class PerfumetrackerContext : DbContext
             entity.HasGeneratedTsVectorColumn(
                 p => p.FullText,
                 "english", 
-                p => new { p.Perfume1, p.House, p.Notes, p.Rating })
-            .HasIndex(p => p.FullText)
-            .HasMethod("GIN");
+                p => new { p.PerfumeName, p.House, p.Notes, p.Rating })
+                .HasIndex(p => p.FullText)
+                .HasMethod("GIN");
+            entity
+                .HasIndex(p => new { p.House, p.PerfumeName }).IsUnique();
         });
 
         modelBuilder.Entity<PerfumeSuggested>(entity =>
@@ -173,11 +175,11 @@ public partial class PerfumetrackerContext : DbContext
 
             entity.ToTable("Tag");
 
-            entity.HasIndex(e => e.Tag1, "Tag_tag_key").IsUnique();
+            entity.HasIndex(e => e.TagName, "Tag_tag_key").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Color).HasColumnName("color");
-            entity.Property(e => e.Tag1).HasColumnName("tag");
+            entity.Property(e => e.TagName).HasColumnName("tag");
         });
 
 

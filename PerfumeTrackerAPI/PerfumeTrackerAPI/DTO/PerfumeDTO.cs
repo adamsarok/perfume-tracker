@@ -4,7 +4,7 @@
 
         public string House { get; set; } = null!;
 
-        public string Perfume { get; set; } = null!;
+        public string PerfumeName { get; set; } = null!;
 
         public double Rating { get; set; }
 

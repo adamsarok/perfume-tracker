@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTrackerAPI.Models;
 namespace PerfumeTrackerAPI.Migrations
 {
     [DbContext(typeof(PerfumetrackerContext))]
-    partial class PerfumetrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20241207084836_perfume-unique")]
+    partial class perfumeunique
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,9 +41,6 @@ namespace PerfumeTrackerAPI.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("autumn");
-
-                    b.Property<DateTime>("Created_At")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<NpgsqlTsVector>("FullText")
                         .ValueGeneratedOnAddOrUpdate()
@@ -94,9 +94,6 @@ namespace PerfumeTrackerAPI.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("summer");
 
-                    b.Property<DateTime?>("Updated_At")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<bool>("Winter")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -149,9 +146,6 @@ namespace PerfumeTrackerAPI.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Created_At")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("PerfumeId")
                         .HasColumnType("integer")
@@ -290,16 +284,10 @@ namespace PerfumeTrackerAPI.Migrations
                         .HasColumnType("text")
                         .HasColumnName("color");
 
-                    b.Property<DateTime>("Created_At")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Tag1")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("tag");
-
-                    b.Property<DateTime?>("Updated_At")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id")
                         .HasName("Tag_pkey");

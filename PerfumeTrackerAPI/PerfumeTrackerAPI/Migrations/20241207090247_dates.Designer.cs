@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTrackerAPI.Models;
 namespace PerfumeTrackerAPI.Migrations
 {
     [DbContext(typeof(PerfumetrackerContext))]
-    partial class PerfumetrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20241207090247_dates")]
+    partial class dates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,9 +42,6 @@ namespace PerfumeTrackerAPI.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("autumn");
 
-                    b.Property<DateTime>("Created_At")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<NpgsqlTsVector>("FullText")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("tsvector")
@@ -59,6 +59,9 @@ namespace PerfumeTrackerAPI.Migrations
                         .HasColumnType("text")
                         .HasColumnName("imageObjectKey")
                         .HasDefaultValueSql("''::text");
+
+                    b.Property<DateTime>("Insert_At")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Ml")
                         .ValueGeneratedOnAdd()
@@ -94,7 +97,7 @@ namespace PerfumeTrackerAPI.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("summer");
 
-                    b.Property<DateTime?>("Updated_At")
+                    b.Property<DateTime?>("Update_At")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("Winter")
@@ -150,7 +153,7 @@ namespace PerfumeTrackerAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("Created_At")
+                    b.Property<DateTime>("Insert_At")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("PerfumeId")
@@ -160,6 +163,9 @@ namespace PerfumeTrackerAPI.Migrations
                     b.Property<int>("TagId")
                         .HasColumnType("integer")
                         .HasColumnName("tagId");
+
+                    b.Property<DateTime?>("Update_At")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id")
                         .HasName("PerfumeTag_pkey");

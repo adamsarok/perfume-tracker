@@ -14,4 +14,5 @@ public partial class PerfumeTag
     public virtual Perfume Perfume { get; set; } = null!;
 
     public virtual Tag Tag { get; set; } = null!;
+    public DateTime Created_At { get; set; }
 }
