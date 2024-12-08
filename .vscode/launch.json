@@ -1,0 +1,39 @@
+{
+    "version": "0.2.0",
+    "debug.startView": "default",
+    "debug.defaultLaunchConfiguration": "Launch Client and Server",
+    "compounds": [
+      {
+        "name": "Launch Client and Server",
+        "configurations": ["Launch NextJS Client", "Launch ASP.NET Core Server"]
+      }
+    ],
+    "configurations": [
+      {
+        "name": "Launch NextJS Client",
+        "type": "node-terminal",
+        "request": "launch",
+        "cwd": "${workspaceFolder}/perfumetracker.client",
+        "command": "npm run dev"
+      },
+      {
+        "name": "Launch ASP.NET Core Server",
+        "type": "coreclr",
+        "request": "launch",
+        "program": "${workspaceFolder}/PerfumeTracker.Server/bin/Debug/net9.0/PerfumeTracker.Server.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}/PerfumeTracker.Server",
+        "stopAtEntry": false,
+        "serverReadyAction": {
+          "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+          "uriFormat": "%s",
+          "action": "openExternally"
+        },
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        },
+        //"preLaunchTask": "build"
+      }
+    ]
+  }
+  

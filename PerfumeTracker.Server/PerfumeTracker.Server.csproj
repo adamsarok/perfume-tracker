@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>21e7b733-25a6-4131-aba6-6ebcd395aed8</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <SpaRoot>..\perfumetracker.client</SpaRoot>
+    <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
+    <SpaProxyServerUrl>https://localhost:3000</SpaProxyServerUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,5 +33,9 @@
   <ItemGroup>
     <None Include="..\Dockerfile" Link="Dockerfile" />
   </ItemGroup>
-
+   <ItemGroup>
+    <ProjectReference Include="..\perfumetracker.client\perfumetracker.client.esproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup> 
 </Project>
