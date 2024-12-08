@@ -11,7 +11,7 @@ namespace PerfumeTrackerAPI.Repo {
         public PerfumeRepo(PerfumetrackerContext context) {
             _context = context;
         }
-        public async Task<List<PerfumeWornDTO>> GetPerfumesWithWorn(string fulltext = null) {
+        public async Task<List<PerfumeWithWornStatsDTO>> GetPerfumesWithWorn(string fulltext = null) {
 #warning TODO split query https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
             var raw = await _context
                 .Perfumes
@@ -23,14 +23,14 @@ namespace PerfumeTrackerAPI.Repo {
                 .ThenInclude(pt => pt.Tag)
                 .Include(w => w.PerfumeWorns)
                 .ToListAsync();
-            var result = new List<PerfumeWornDTO>();
+            var result = new List<PerfumeWithWornStatsDTO>();
             foreach (var r in raw) {
                 var dto = GetPerfumeWornDTO(r);
                 if (dto != null) result.Add(dto);
             }
             return result;
         }
-        public async Task<PerfumeWornDTO?> GetPerfumeWithWorn(int id) {
+        public async Task<PerfumeWithWornStatsDTO?> GetPerfumeWithWorn(int id) {
 #warning TODO split query https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
             var raw = await _context
                 .Perfumes
@@ -53,9 +53,9 @@ namespace PerfumeTrackerAPI.Repo {
             if (raw != null && raw.Count > 0) return raw[0];
             return new PerfumeStatDTO(0, 0, 0);
         }
-        private PerfumeWornDTO? GetPerfumeWornDTO(Perfume? r) {
+        private PerfumeWithWornStatsDTO? GetPerfumeWornDTO(Perfume? r) {
             if (r == null) return null;
-            var dto = new PerfumeWornDTO {
+            var dto = new PerfumeWithWornStatsDTO {
                 Perfume = r.Adapt<PerfumeDTO>(),
                 LastWorn = r.PerfumeWorns.Any() ? r.PerfumeWorns.Max(x => x.WornOn) : null,
                 Tags = new List<TagDTO>(),

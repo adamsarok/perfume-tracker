@@ -1,4 +1,5 @@
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
+import { getPerfumes } from "./perfume-service";
+import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 
 export interface TagWithCount {
     id: number,
@@ -7,7 +8,7 @@ export interface TagWithCount {
     wornCount: number
 }
 export interface UserPreference {
-    perfumes: perfumeWornRepo.PerfumeWornDTO[] | null, //not exactly correct as the worncount is total, not 3 days...
+    perfumes: PerfumeWithWornStatsDTO[] | null, //not exactly correct as the worncount is total, not 3 days...
     tags: TagWithCount[] | null
 }
 
@@ -46,7 +47,7 @@ export function GetQuery(userPreferences: UserPreferences, buyOrWear: "buy" | "w
     return query;
 }
 
-function aggregatePerfumesTags(perfumes: perfumeWornRepo.PerfumeWornDTO[]) : UserPreference {
+function aggregatePerfumesTags(perfumes: PerfumeWithWornStatsDTO[]) : UserPreference {
     const result: UserPreference = {
         perfumes: [],
         tags: []
@@ -77,7 +78,8 @@ function aggregatePerfumesTags(perfumes: perfumeWornRepo.PerfumeWornDTO[]) : Use
 
 export default async function GetUserPreferences() : Promise<UserPreferences> {
     
-    const perfumes = (await perfumeWornRepo.getAllPerfumesWithWearCount())
+    //TODO: filter on server side!
+    const perfumes = (await getPerfumes())
         .filter(x => x.perfume.ml > 0 && x.perfume.rating >= 8);
 
     const past = new Date(0); //todo refactor

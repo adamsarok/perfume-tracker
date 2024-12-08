@@ -2,15 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import PerfumeCard from "@/components/perfumecard";
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import { useInView } from 'react-intersection-observer'
+import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
+import { getWornBeforeID } from "@/services/perfume-worn-service";
 
 export interface WornListProps{
     r2_api_address: string | undefined
 }
 
 export default function WornList({r2_api_address}: WornListProps) {
-    const [worns, setWorns] = useState<perfumeWornRepo.WornWithPerfume[]>([]);
+    const [worns, setWorns] = useState<PerfumeWornDTO[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
     const { ref, inView } = useInView();
     const cardsPerPage = 10;
@@ -18,8 +19,12 @@ export default function WornList({r2_api_address}: WornListProps) {
     const loadMoreCards = async () => {
         const cursor = worns && worns.length > 0 ? Math.min(...worns.map(x => x.id)) : null;
         setCursor(cursor);
-        const newWorns = await perfumeWornRepo.getWornBeforeID(cursor, cardsPerPage);
-        setWorns([...worns, ...newWorns.sort((a, b) => { return b.wornOn.getTime() - a.wornOn.getTime()})]);
+        const newWorns = await getWornBeforeID(cursor, cardsPerPage);
+        const parsedWorns = newWorns.map(worn => ({
+            ...worn,
+            wornOn: new Date(worn.wornOn)
+        }));
+        setWorns([...worns, ...parsedWorns.sort((a, b) => { return b.wornOn.getTime() - a.wornOn.getTime()})]);
         //TODO: this sort is not 100% correct - we load by id, but worn date can be a different order
     };
     

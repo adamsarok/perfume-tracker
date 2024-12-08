@@ -3,7 +3,6 @@
 import { Perfume, Tag } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import db from ".";
-import * as perfumeRepo from "./perfume-repo"
 import { ActionResult } from "./action-result";
 
 export interface WornWithPerfume {
@@ -15,33 +14,33 @@ export interface WornWithPerfume {
 }
 
 //cursor based pagination - fast as we don't rely on skip/take
-export async function getWornBeforeID(cursor: number | null, pageLength: number) : Promise<WornWithPerfume[]> {
-    const worns = await db.perfumeWorn.findMany({
-        where: cursor !== null ? {
-            id: {
-                lt: cursor
-            }
-        } : {},
-        include: {
-            perfume: {
-                include: {
-                    tags: {
-                        include: {
-                            tag: true
-                        }
-                    }
-                }
-            }
-        },
-        orderBy: [
-            {
-                id: 'desc',
-            },
-        ],
-        take: pageLength
-    });
-    return toWornWithPerfume(worns);
-}
+// export async function getWornBeforeID(cursor: number | null, pageLength: number) : Promise<WornWithPerfume[]> {
+//     const worns = await db.perfumeWorn.findMany({
+//         where: cursor !== null ? {
+//             id: {
+//                 lt: cursor
+//             }
+//         } : {},
+//         include: {
+//             perfume: {
+//                 include: {
+//                     tags: {
+//                         include: {
+//                             tag: true
+//                         }
+//                     }
+//                 }
+//             }
+//         },
+//         orderBy: [
+//             {
+//                 id: 'desc',
+//             },
+//         ],
+//         take: pageLength
+//     });
+//     return toWornWithPerfume(worns);
+// }
 
 interface PerfumeTagDTO {
     id: number,
@@ -159,55 +158,4 @@ export async function wearPerfume(id: number, date: Date) : Promise<ActionResult
     return {
         ok: true
     }
-}
-
-
-export interface PerfumeWornDTO {
-    perfume: Perfume,
-    wornTimes: number | undefined,
-    lastWorn: Date | undefined,
-    tags: Tag[]
-}
-
-export async function getWornPerfumeIds(dayFilter: Date) {
-    return await db.perfumeWorn.findMany({
-        where: {
-            wornOn: {
-                gte: dayFilter,
-            },
-        },
-        select: {
-            perfumeId: true,
-        },
-        distinct: ["perfumeId"],
-    });
-}
-
-export async function getAllPerfumesWithWearCount(): Promise<PerfumeWornDTO[]> {
-    const worn = await db.perfumeWorn.groupBy({
-        by: ['perfumeId'],
-        _count: {
-            id: true
-        },
-        _max: {
-            wornOn: true
-        }
-    });
-    const perfumes = await perfumeRepo.getPerfumesWithTags();
-    const m = new Map();
-    perfumes.forEach(function (x) {
-        const dto: PerfumeWornDTO = {
-            perfume: x.perfume,
-            wornTimes: undefined,
-            lastWorn: undefined,
-            tags: x.tags
-        }
-        m.set(x.perfume.id, dto);
-    });
-    worn.forEach(function (x) {
-        const dto = m.get(x.perfumeId);
-        dto.wornTimes = x._count.id;
-        dto.lastWorn = x._max.wornOn;
-    })
-    return Array.from(m.values());
 }

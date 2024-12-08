@@ -32,7 +32,7 @@
         "env": {
           "ASPNETCORE_ENVIRONMENT": "Development"
         },
-        //"preLaunchTask": "build"
+        "preLaunchTask": "dotnet: build",
       }
     ]
   }

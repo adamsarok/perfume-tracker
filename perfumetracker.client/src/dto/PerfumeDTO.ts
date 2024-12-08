@@ -1,6 +1,6 @@
 import { TagDTO } from "./TagDTO";
 
-export interface PerfumeUploadDTO {
+export interface PerfumeDTO {
     id: number;
     house: string;
     perfumeName: string;
@@ -12,5 +12,5 @@ export interface PerfumeUploadDTO {
     spring: boolean;
     summer: boolean;
     winter: boolean;
-    tags: TagDTO[]
+    tags: TagDTO[];
 }

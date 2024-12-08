@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useAsyncList } from "@react-stately/data";
 import React from "react";
-import { PerfumeWornDTO } from "@/db/perfume-worn-repo";
 import { Tag } from "@prisma/client";
 import ChipClouds from "../../components/chip-clouds";
 import { ChipProp } from "../../components/color-chip";
@@ -20,7 +19,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getPerfumes } from "@/services/perfume-service";
+import { getPerfumesFulltext } from "@/services/perfume-service";
+import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 
 export interface PerfumeWornTableProps {
   allTags: Tag[];
@@ -32,9 +32,9 @@ export default function PerfumeWornTable({
   const [fulltext, setFulltext] = useState("");
   const list = useAsyncList({
     async load() {
-      const perfumes: PerfumeWornDTO[] = await getPerfumes(fulltext)
+      const perfumes: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext)
       //TODO: move filtering to server side
-      let items: PerfumeWornDTO[];
+      let items: PerfumeWithWornStatsDTO[];
       switch (selected) {
         case "all":
           items = perfumes;
@@ -78,7 +78,7 @@ export default function PerfumeWornTable({
       items,
       sortDescriptor,
     }: {
-      items: PerfumeWornDTO[];
+      items: PerfumeWithWornStatsDTO[];
       sortDescriptor: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     }) {
       //TODO: figure this out with Shadcn: SortDescriptor

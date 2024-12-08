@@ -3,8 +3,8 @@
 import db from ".";
 import { Perfume, Tag } from "@prisma/client";
 import { ActionResult } from "./action-result";
-import { getWornPerfumeIds } from "./perfume-worn-repo";
-import { addSuggested, getAlreadySuggestedPerfumeIds } from "./perfume-suggested-repo";
+import { addSuggested, getAlreadySuggestedPerfumeIds } from "@/services/perfume-suggested-service";
+import { getWornPerfumeIDs } from "@/services/perfume-worn-service";
 
 export async function setImageObjectKey(
   id: number,
@@ -144,6 +144,7 @@ export async function getPerfumesForSelector(): Promise<Perfume[]> {
 }
 
 export async function getSurpriseId(pastDaysSkipped: number) {
+  console.log("wtf");
   const ids = await db.perfume.findMany({
     where: {
       ml: {
@@ -157,16 +158,13 @@ export async function getSurpriseId(pastDaysSkipped: number) {
       id: true,
     },
   });
-  const dayFilter = new Date(
-    Date.now() - pastDaysSkipped * 24 * 60 * 60 * 1000
-  );
-  const worn = await getWornPerfumeIds(dayFilter);
-  const suggested = await getAlreadySuggestedPerfumeIds(dayFilter);
+  const worn = await getWornPerfumeIDs(pastDaysSkipped);
+  const suggested = await getAlreadySuggestedPerfumeIds(pastDaysSkipped);
   const filtered = ids.filter(
-    (x) => !worn.flatMap((m) => m.perfumeId).includes(x.id) && !suggested.flatMap((m) => m.perfumeId).includes(x.id)
+    (x) => !worn.flatMap((m) => m).includes(x.id) && !suggested.includes(x.id)
   );
-  console.log(filtered);
   const id = filtered[Math.floor(Math.random() * filtered.length)];
+  console.log("wtf");
   await addSuggested(id.id);
   return id.id;
 }

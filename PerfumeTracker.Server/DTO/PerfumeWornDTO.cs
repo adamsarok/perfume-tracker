@@ -1,10 +1,11 @@
-﻿using PerfumeTrackerAPI.Models;
+using System;
+using PerfumeTrackerAPI.DTO;
 
-namespace PerfumeTrackerAPI.DTO {
-    public class PerfumeWornDTO {
-        public PerfumeDTO Perfume { get; set; }
-        public int WornTimes { get; set; }
-        public DateTime? LastWorn {  get; set; }
-        public List<TagDTO> Tags { get; set; }
-    }
-}
+namespace PerfumeTracker.Server.DTO;
+
+public record PerfumeWornDTO(
+    int id, 
+    DateTime wornOn, 
+    PerfumeDTO perfume, 
+    List<TagDTO> tags
+);

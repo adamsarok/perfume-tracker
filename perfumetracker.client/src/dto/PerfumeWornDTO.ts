@@ -1,8 +1,9 @@
-import { Perfume, Tag } from "@prisma/client";
+import { PerfumeDTO } from "./PerfumeDTO";
+import { TagDTO } from "./TagDTO";
 
 export interface PerfumeWornDTO {
-    perfume: Perfume,
-    wornTimes: number | undefined,
-    lastWorn: Date | undefined,
-    tags: Tag[]
+    id: number,
+    perfume: PerfumeDTO,
+    wornOn: Date,
+    tags: TagDTO[]
 }

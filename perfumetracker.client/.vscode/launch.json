@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "debug.startView": "default",
+    "debug.defaultLaunchConfiguration": "Launch NextJS Client",
+    "configurations": [
+      {
+        "name": "Launch NextJS Client",
+        "type": "node-terminal",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "command": "npm run dev"
+      }
+    ]
+  }
+  

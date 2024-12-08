@@ -15,9 +15,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 
 export interface PerfumeCardProps {
-  worn: WornWithPerfume;
+  worn: PerfumeWornDTO;
   r2_api_address: string | undefined;
 }
 
@@ -28,13 +29,13 @@ export default function PerfumeCard({
   if (!worn || !worn.perfume) return <div></div>;
   const perfume = worn.perfume;
   const avatar =
-    perfume.perfume.split(" ").length > 1
-      ? perfume.perfume
+    perfume.perfumeName.split(" ").length > 1
+      ? perfume.perfumeName
           .split(" ")
           .map((x) => x[0])
           .slice(0, 2)
           .join("")
-      : perfume.perfume.slice(0, 2).toUpperCase();
+      : perfume.perfumeName.slice(0, 2).toUpperCase();
 
   const handlePressStart = (id: number) => {
     perfumeWornRepo.deleteWear(id);
@@ -57,7 +58,7 @@ export default function PerfumeCard({
               <AvatarFallback>{avatar}</AvatarFallback>
             </Avatar>
             <div className="text-small leading-none text-default-600 ml-4">
-              {perfume.house} - {perfume.perfume}
+              {perfume.house} - {perfume.perfumeName}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -72,7 +73,7 @@ export default function PerfumeCard({
                           key={x.id}
                           className="mr-2"
                           onChipClick={null}
-                          name={x.tag}
+                          name={x.tagName}
                           color={x.color}
                         ></ColorChip>
                       ))}

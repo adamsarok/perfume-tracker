@@ -1,5 +1,6 @@
 using Carter;
 using Microsoft.EntityFrameworkCore;
+using PerfumeTracker.Server.Repo;
 using PerfumeTrackerAPI.Migrations;
 using PerfumeTrackerAPI.Models;
 using PerfumeTrackerAPI.Repo;
@@ -16,10 +17,11 @@ else {
 
 if (string.IsNullOrWhiteSpace(conn)) throw new Exception("Connection string is empty");
 
-// Add services to the container.
 builder.Services.AddDbContext<PerfumetrackerContext>(opt => opt.UseNpgsql(conn));
-builder.Services.AddTransient<PerfumeRepo>();
-builder.Services.AddTransient<TagRepo>();
+builder.Services.AddScoped<PerfumeRepo>();
+builder.Services.AddScoped<TagRepo>();
+builder.Services.AddScoped<PerfumeWornRepo>();
+builder.Services.AddScoped<PerfumeSuggestedRepo>();
 builder.Services.AddCarter();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
