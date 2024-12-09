@@ -40,9 +40,6 @@ export default function RootLayout({
             <a className="menuButton" color="foreground" href="/stats">
               Stats
             </a>
-            <a className="menuButton" color="foreground" href="/calendar">
-              Calendar
-            </a>
             <a className="menuButton" color="foreground" href="/tags">
               Tags
             </a>
