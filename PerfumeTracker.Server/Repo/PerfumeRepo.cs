@@ -41,6 +41,35 @@ namespace PerfumeTrackerAPI.Repo {
                 .FirstOrDefaultAsync();
             return GetPerfumeWornDTO(raw);
         }
+        public async Task<PerfumeDTO?> GetPerfume(int id) {
+            var r = await _context
+                .Perfumes
+                .Where(p => p.Id == id)
+                .Include(t => t.PerfumeTags)
+                .ThenInclude(pt => pt.Tag)
+                .Select(x => new PerfumeDTO() {
+                    Id = x.Id,
+                    PerfumeName = x.PerfumeName,
+                    Ml = x.Ml,
+                    Rating = x.Rating,
+                    House = x.House,
+                    ImageObjectKey = x.ImageObjectKey,
+                    Notes = x.Notes,
+                    Autumn = x.Autumn,
+                    Spring = x.Spring,
+                    Summer = x.Summer,
+                    Winter = x.Winter,
+                    // Created_At = x.Created_At,
+                    // Updated_At = x.Updated_At,
+                    Tags = x.PerfumeTags.Select(t => new TagDTO() {
+                        Id = t.Tag.Id,
+                        TagName = t.Tag.TagName,
+                        Color = t.Tag.Color
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+            return r;
+        }
         public async Task<PerfumeStatDTO> GetPerfumeStats() {
             var raw = await _context
                 .Perfumes

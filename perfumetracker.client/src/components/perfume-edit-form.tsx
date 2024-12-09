@@ -1,6 +1,5 @@
 "use client";
 
-import { Perfume, Tag } from "@prisma/client";
 import * as perfumeRepo from "@/db/perfume-repo";
 import { useCallback, useState } from "react";
 import ChipClouds from "./chip-clouds";
@@ -32,11 +31,13 @@ import { Checkbox } from "./ui/checkbox";
 import { Separator } from "./ui/separator";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { addPerfume, deletePerfume, updatePerfume } from "@/services/perfume-service";
+import { PerfumeDTO } from "@/dto/PerfumeDTO";
+import { TagDTO } from "@/dto/TagDTO";
 
 interface PerfumeEditFormProps {
-  perfume: Perfume | null;
-  allTags: Tag[];
-  perfumesTags: Tag[];
+  perfume: PerfumeDTO | null;
+  allTags: TagDTO[];
+  perfumesTags: TagDTO[];
   r2_api_address: string | undefined;
 }
 
@@ -64,11 +65,13 @@ export default function PerfumeEditForm({
   allTags,
   r2_api_address,
 }: PerfumeEditFormProps) {
+  console.log(perfume);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       house: perfume ? perfume.house : "",
-      perfume: perfume ? perfume.perfume : "",
+      perfume: perfume ? perfume.perfumeName : "",
       rating: perfume ? perfume.rating : 0,
       amount: perfume ? perfume.ml : 0,
       notes: perfume ? perfume.notes : "",
@@ -95,7 +98,7 @@ export default function PerfumeEditForm({
       winter: values.winter,
       autumn: values.autumn,
       spring: values.spring,
-      tags: tags.map(tag =>  ({ id: tag.id, tagName: tag.tag, color: tag.color }))
+      tags: tags.map(tag =>  ({ id: tag.id, tagName: tag.tagName, color: tag.color }))
     };
     let result: ActionResult;
     if (!id) result = await addPerfume(perf);
@@ -119,9 +122,9 @@ export default function PerfumeEditForm({
   const topChipProps: ChipProp[] = [];
   const bottomChipProps: ChipProp[] = [];
   allTags.map((allTag) => {
-    if (!tags.some((tag) => tag.tag === allTag.tag)) {
+    if (!tags.some((tag) => tag.tagName === allTag.tagName)) {
       bottomChipProps.push({
-        name: allTag.tag,
+        name: allTag.tagName,
         color: allTag.color,
         className: "",
         onChipClick: null,
@@ -130,18 +133,18 @@ export default function PerfumeEditForm({
   });
   tags.map((x) => {
     topChipProps.push({
-      name: x.tag,
+      name: x.tagName,
       color: x.color,
       className: "",
       onChipClick: null,
     });
   });
   const selectChip = (chip: string) => {
-    const tag = allTags.find((x) => x.tag === chip);
+    const tag = allTags.find((x) => x.tagName === chip);
     if (tag) setTags([...tags, tag]);
   };
   const unSelectChip = (chip: string) => {
-    setTags((tags: Tag[]) => tags.filter((x) => x.tag != chip));
+    setTags((tags: TagDTO[]) => tags.filter((x) => x.tagName != chip));
   };
   const onDelete = async (id: number | undefined) => {
     if (id) {

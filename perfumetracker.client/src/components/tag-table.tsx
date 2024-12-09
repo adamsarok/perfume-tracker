@@ -1,6 +1,5 @@
 "use client";
 
-import { Tag } from "@prisma/client";
 import React from "react";
 import * as tagRepo from "@/db/tag-repo";
 import { toast } from "react-toastify";
@@ -14,9 +13,10 @@ import {
 } from "./ui/table";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { TagDTO } from "@/dto/TagDTO";
 
 export interface TagTableProps {
-  tags: Tag[];
+  tags: TagDTO[];
 }
 
 export default function TagTable({ tags }: TagTableProps) {
@@ -55,20 +55,20 @@ export default function TagTable({ tags }: TagTableProps) {
         <TableBody>
           {tags.map((tag) => (
             <TableRow key={tag.id}>
-              <TableCell className="font-medium">{tag.tag}</TableCell>
+              <TableCell className="font-medium">{tag.tagName}</TableCell>
               <TableCell typeof="color">
                 <Input defaultValue={tag.color} type="color"></Input>
               </TableCell>
               <TableCell>
                 <Button
                   color="primary"
-                  onClick={() => onUpdate(tag.id, tag.tag, tag.color)}
+                  onClick={() => onUpdate(tag.id, tag.tagName, tag.color)}
                 >
                   Update
                 </Button>
               </TableCell>
               <TableCell>
-                <Button onClick={() => onDelete(tag.id, tag.tag)}>
+                <Button onClick={() => onDelete(tag.id, tag.tagName)}>
                   Delete
                 </Button>
               </TableCell>

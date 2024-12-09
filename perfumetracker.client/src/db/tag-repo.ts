@@ -31,10 +31,6 @@ export async function insertTag(tag: Tag) : Promise<ActionResult> {
     }
 }
 
-export async function getTags() : Promise<Tag[]> {
-    return await db.tag.findMany();
-}
-
 interface TagResult {
     success: boolean;
     error: string;

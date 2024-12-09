@@ -7,9 +7,11 @@ namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeSuggestedRepo {
     private readonly PerfumetrackerContext _context;
+	private readonly PerfumeWornRepo _perfumeWornRepo;
 
-    public PerfumeSuggestedRepo(PerfumetrackerContext context) {
+	public PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo perfumeWornRepo) {
         _context = context;
+        _perfumeWornRepo = perfumeWornRepo;
     }
     public record PerfumeSuggestedResult(ResultTypes ResultType, string ErrorMsg = null);
     public async Task<PerfumeSuggestedResult> AddSuggestedPerfume(int perfumeId) {
@@ -37,5 +39,17 @@ public class PerfumeSuggestedRepo {
             .Distinct()
             .ToListAsync();
         return r;
+    }
+    public async Task<int> GetPerfumeSuggestion(int daysFilter) {
+        var alreadySug = await GetAlreadySuggestedPerfumeIds(daysFilter);
+        var worn = await _perfumeWornRepo.GetWornPerfumeIDs(daysFilter);
+        var result = await _context
+            .Perfumes
+            .Where(x => !alreadySug.Contains(x.Id) && !worn.Contains(x.Id))
+            .Where(x => x.Ml > 0 && x.Rating >= 8)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync();
+        await AddSuggestedPerfume(result);
+        return result;
     }
 }

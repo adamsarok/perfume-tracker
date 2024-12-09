@@ -26,7 +26,7 @@ namespace FountainPensNg.Server.API {
                 .WithName("GetPerfumes");
 
             app.MapGet("/api/perfumes/{id}", async (int id, PerfumeRepo repo) => {
-                var perfume = await repo.GetPerfumeWithWorn(id);
+                var perfume = await repo.GetPerfume(id);
                 if (perfume == null) return Results.NotFound();
                 return Results.Ok(perfume);
             }).WithTags("Perfumes")

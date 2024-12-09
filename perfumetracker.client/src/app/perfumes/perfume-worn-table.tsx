@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useAsyncList } from "@react-stately/data";
 import React from "react";
-import { Tag } from "@prisma/client";
 import ChipClouds from "../../components/chip-clouds";
 import { ChipProp } from "../../components/color-chip";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -21,9 +20,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getPerfumesFulltext } from "@/services/perfume-service";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
+import { TagDTO } from "@/dto/TagDTO";
 
 export interface PerfumeWornTableProps {
-  allTags: Tag[];
+  allTags: TagDTO[];
 }
 
 export default function PerfumeWornTable({
@@ -131,13 +131,13 @@ export default function PerfumeWornTable({
 
   const [selected, setSelected] = React.useState("favorites");
   const [isChipCloudVisible, setIsChipCloudVisible] = useState(true);
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [tags, setTags] = useState<TagDTO[]>([]);
   const selectChip = (chip: string) => {
-    const tag = allTags.find((x) => x.tag === chip);
+    const tag = allTags.find((x) => x.tagName === chip);
     if (tag) setTags([...tags, tag]);
   };
   const unSelectChip = (chip: string) => {
-    setTags((tags: Tag[]) => tags.filter((x) => x.tag != chip));
+    setTags((tags: TagDTO[]) => tags.filter((x) => x.tagName != chip));
   };
 
   useEffect(() => {
@@ -158,7 +158,7 @@ export default function PerfumeWornTable({
   const bottomChipProps: ChipProp[] = [];
   allTags.map((allTag) => {
     bottomChipProps.push({
-      name: allTag.tag,
+      name: allTag.tagName,
       color: allTag.color,
       className: "",
       onChipClick: null,

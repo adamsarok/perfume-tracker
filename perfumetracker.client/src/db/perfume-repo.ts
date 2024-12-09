@@ -3,8 +3,8 @@
 import db from ".";
 import { Perfume, Tag } from "@prisma/client";
 import { ActionResult } from "./action-result";
-import { addSuggested, getAlreadySuggestedPerfumeIds } from "@/services/perfume-suggested-service";
-import { getWornPerfumeIDs } from "@/services/perfume-worn-service";
+import { getPerfumes } from "@/services/perfume-service";
+import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 
 export async function setImageObjectKey(
   id: number,
@@ -125,47 +125,36 @@ export async function upsertPerfume(
   };
 }
 
-export async function getPerfumesForSelector(): Promise<Perfume[]> {
-  return await db.perfume.findMany({
-    where: {
-      ml: {
-        gt: 0,
-      },
-    },
-    orderBy: [
-      {
-        house: "asc",
-      },
-      {
-        perfume: "asc",
-      },
-    ],
-  });
+export async function getPerfumesForSelector(): Promise<PerfumeWithWornStatsDTO[]> {
+  const perf = await getPerfumes();
+  return perf.filter((x) => x.perfume.ml > 0); //todo filter on server side
 }
 
-export async function getSurpriseId(pastDaysSkipped: number) {
-  const ids = await db.perfume.findMany({
-    where: {
-      ml: {
-        gt: 0,
-      },
-      rating: {
-        gte: 8,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-  const worn = await getWornPerfumeIDs(pastDaysSkipped);
-  const suggested = await getAlreadySuggestedPerfumeIds(pastDaysSkipped);
-  const filtered = ids.filter(
-    (x) => !worn.flatMap((m) => m).includes(x.id) && !suggested.includes(x.id)
-  );
-  const id = filtered[Math.floor(Math.random() * filtered.length)];
-  await addSuggested(id.id);
-  return id.id;
-}
+// export async function getSurpriseId(pastDaysSkipped: number) {
+//   //TODO filter in API
+//   const p = await getPerfumes();
+//   const ids = p.filter ({
+//     where: {
+//       ml: {
+//         gt: 0,
+//       },
+//       rating: {
+//         gte: 8,
+//       },
+//     },
+//     select: {
+//       id: true,
+//     },
+//   });
+//   const worn = await getWornPerfumeIDs(pastDaysSkipped);
+//   const suggested = await getAlreadySuggestedPerfumeIds(pastDaysSkipped);
+//   const filtered = ids.filter(
+//     (x) => !worn.flatMap((m) => m).includes(x.id) && !suggested.includes(x.id)
+//   );
+//   const id = filtered[Math.floor(Math.random() * filtered.length)];
+//   await addSuggested(id.id);
+//   return id.id;
+// }
 
 
 export async function getPerfumeWithTags(id: number) {

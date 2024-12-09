@@ -1,5 +1,6 @@
 "use server";
 
+import { TagDTO } from "@/dto/TagDTO";
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { TagStatDTO } from "@/dto/TagStatDTO";
 
@@ -11,6 +12,17 @@ export async function getTagStats(): Promise<TagStatDTO[]> {
     throw new Error("Failed to fetch tag stats");
   }
   const tagStats: TagStatDTO[] = await response.json();
+  return tagStats;
+}
+
+export async function getTags(): Promise<TagDTO[]> {
+  if (!apiAddress) throw new Error("PerfumeAPI address not set");
+  const response = await fetch(`${apiAddress}/tags`);
+  if (!response.ok) {
+    //TODO: fix unhandled errors
+    throw new Error("Failed to fetch tag stats");
+  }
+  const tagStats: TagDTO[] = await response.json();
   return tagStats;
 }
 

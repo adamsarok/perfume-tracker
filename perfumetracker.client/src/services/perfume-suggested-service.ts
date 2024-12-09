@@ -2,15 +2,15 @@
 
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 
-export async function getAlreadySuggestedPerfumeIds(dayFilter: number) : Promise<number[]> {
+export async function getPerfumeSuggestion(dayFilter: number) : Promise<number> {
     if (!apiAddress) throw new Error("PerfumeAPI address not set");
     const qry = `${apiAddress}/perfumesuggesteds/${encodeURIComponent(dayFilter)}`;
     const response = await fetch(qry);
     if (!response.ok) {
-      throw new Error("Failed to fetch already suggested perfumes");
+      throw new Error("Failed to fetch perfume suggestion");
     }
-    const suggesteds: number[] = await response.json();
-    return suggesteds;
+    const suggested: number = await response.json();
+    return suggested;
 }
 
 

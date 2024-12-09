@@ -1,6 +1,5 @@
 "use client";
 
-import { Perfume } from "@prisma/client";
 import React from "react";
 import SprayOnComponent from "./spray-on";
 import {
@@ -18,9 +17,10 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
+import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 
 export interface PerfumeSelectorProps {
-  perfumes: Perfume[];
+  perfumes: PerfumeWithWornStatsDTO[];
 }
 
 export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
@@ -29,8 +29,8 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
   };
 
   const perfumeMap = perfumes.map((x) => ({
-    id: x.id,
-    label: x.house + " - " + x.perfume,
+    id: x.perfume.id,
+    label: x.perfume.house + " - " + x.perfume.perfumeName,
   }));
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");

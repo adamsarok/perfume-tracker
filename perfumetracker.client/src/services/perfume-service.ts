@@ -5,6 +5,7 @@ import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { ActionResult } from "@/db/action-result";
 import { PerfumeStatsDTO } from "@/dto/PerfumeStatsDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
+import { PerfumeDTO } from "@/dto/PerfumeDTO";
 
 export async function getPerfumesFulltext(
   fulltext: string
@@ -19,6 +20,17 @@ export async function getPerfumesFulltext(
   }
   const perfumes: PerfumeWithWornStatsDTO[] = await response.json();
   return perfumes;
+}
+
+export async function getPerfume(id: number): Promise<PerfumeDTO> {
+  if (!apiAddress) throw new Error("PerfumeAPI address not set");
+  const qry = `${apiAddress}/perfumes/${encodeURIComponent(id)}`;
+  const response = await fetch(qry);
+  if (!response.ok) {
+    throw new Error("Failed to fetch perfume");
+  }
+  const perfume: PerfumeDTO = await response.json();
+  return perfume;
 }
 
 export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {

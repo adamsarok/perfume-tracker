@@ -46,7 +46,7 @@ export async function wearPerfume(id: number, date: Date) : Promise<ActionResult
     perfumeId: id,
     wornOn: date
   };
-  const response = await fetch(`${apiAddress}/perfumeworns?perfumeId=${encodeURIComponent(id)}&wornOn=${encodeURIComponent(date.toDateString())}`, {
+  const response = await fetch(`${apiAddress}/perfumeworns`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

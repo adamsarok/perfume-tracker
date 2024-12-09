@@ -1,25 +1,26 @@
 import PerfumeEditForm from "@/components/perfume-edit-form";
 import { notFound } from "next/navigation";
-import { Tag } from "@prisma/client";
-import * as perfumeRepo from "@/db/perfume-repo";
-import db from "@/db";
 import { R2_API_ADDRESS } from "@/services/conf";
+import { getPerfumeSuggestion } from "@/services/perfume-suggested-service";
+import { getPerfume } from "@/services/perfume-service";
+import { TagDTO } from "@/dto/TagDTO";
+import { getTags } from "@/services/tag-service";
 
 export const dynamic = "force-dynamic";
 
 export default async function SuprisePerfumePage() {
-  console.log('wtfffffffffff');
-  const id = await perfumeRepo.getSurpriseId(20);
+  const id = await getPerfumeSuggestion(20);
   if (!id) return notFound();
-  const perfume = await perfumeRepo.getPerfumeWithTags(id);
+  console.log("id", id);
+  const perfume = await getPerfume(id);
   if (!perfume) return notFound();
-  const allTags = await db.tag.findMany();
-  const tags: Tag[] = [];
+  const allTags = await getTags();
+  const tags: TagDTO[] = [];
   perfume?.tags.map((x) => {
     tags.push({
-      id: x.tag.id,
-      tag: x.tag.tag,
-      color: x.tag.color,
+      id: x.id,
+      tagName: x.tagName,
+      color: x.color,
     });
   });
   return (
