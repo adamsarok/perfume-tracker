@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["PerfumeTrackerAPI/PerfumeTrackerAPI.csproj", "PerfumeTrackerAPI/"]
-RUN dotnet restore "./PerfumeTrackerAPI/PerfumeTrackerAPI.csproj"
+COPY ["PerfumeTracker.Server/PerfumeTracker.Server.csproj", "PerfumeTracker.Server/"]
+RUN dotnet restore "./PerfumeTracker.Server/PerfumeTracker.Server.csproj"
 COPY . .
-WORKDIR "/src/PerfumeTrackerAPI"
-RUN dotnet build "./PerfumeTrackerAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/PerfumeTracker.Server"
+RUN dotnet build "./PerfumeTracker.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./PerfumeTrackerAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./PerfumeTracker.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "PerfumeTrackerAPI.dll"]
+ENTRYPOINT ["dotnet", "PerfumeTracker.Server.dll"]
