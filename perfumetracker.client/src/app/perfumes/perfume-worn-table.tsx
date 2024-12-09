@@ -102,7 +102,7 @@ export default function PerfumeWornTable({
             case "house":
               return compare(a.perfume.house, b.perfume.house);
             case "perfume":
-              return compare(a.perfume.perfume, b.perfume.perfume);
+              return compare(a.perfume.perfumeName, b.perfume.perfumeName);
             case "rating":
               return compare(
                 a.perfume.rating.toString(),
@@ -238,7 +238,7 @@ export default function PerfumeWornTable({
               </TableCell>
               <TableCell>
                 <a href={`/perfumes/${perfume.perfume.id}/`}>
-                  {perfume.perfume.perfume}
+                  {perfume.perfume.perfumeName}
                 </a>
               </TableCell>
               <TableCell>

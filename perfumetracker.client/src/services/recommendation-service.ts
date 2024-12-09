@@ -22,7 +22,7 @@ export function GetQuery(userPreferences: UserPreferences, buyOrWear: "buy" | "w
     let query;
     if (basedOnNotes === "perfumes") {
         if (!userPreferences.last3perfumes) return '';
-        const last3perfumes = userPreferences.last3perfumes.perfumes?.map(p => `${p.perfume.house} - ${p.perfume.perfume}`).join(', ') ?? '';
+        const last3perfumes = userPreferences.last3perfumes.perfumes?.map(p => `${p.perfume.house} - ${p.perfume.perfumeName}`).join(', ') ?? '';
         query = `Based on these past choices: ${last3perfumes}, suggest 3 perfumes.`;
     } else {
         if (!userPreferences.last3perfumes.tags) return '';
@@ -36,7 +36,7 @@ export function GetQuery(userPreferences: UserPreferences, buyOrWear: "buy" | "w
         if (!acc[house]) {
             acc[house] = [];
         }
-        acc[house].push(p.perfume.perfume);
+        acc[house].push(p.perfume.perfumeName);
         return acc;
     }, {} as Record<string, string[]>);   
     const formattedOwnedPerfumes = ownedPerfumes ? 
@@ -60,7 +60,7 @@ function aggregatePerfumesTags(perfumes: PerfumeWithWornStatsDTO[]) : UserPrefer
             if (!acc[t.id]) {
                 acc[t.id] = {
                     id: t.id,
-                    tag: t.tag,
+                    tag: t.tagName,
                     color: t.color,
                     wornCount: 0
                 };

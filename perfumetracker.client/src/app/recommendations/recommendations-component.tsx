@@ -101,7 +101,7 @@ export default function RecommendationsComponent({
             ? userPreferences.last3perfumes.perfumes &&
               userPreferences.last3perfumes.perfumes.map((p) => (
                 <div key={p.perfume.id}>
-                  {p.perfume.house} - {p.perfume.perfume}
+                  {p.perfume.house} - {p.perfume.perfumeName}
                 </div>
               ))
             : userPreferences.last3perfumes.tags &&
