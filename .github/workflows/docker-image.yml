@@ -48,7 +48,7 @@ jobs:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       with:
         context: ./perfumetracker.client
-        file: Dockerfile
+        file: ./perfumetracker.client/Dockerfile
         push: true
         tags: adamsarok/perfume-tracker:latest
         
