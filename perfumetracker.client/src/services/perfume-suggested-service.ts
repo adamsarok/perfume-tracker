@@ -20,9 +20,6 @@ export async function addSuggested(perfumeId: number) {
     const qry = `${apiAddress}/perfumesuggesteds/${encodeURIComponent(perfumeId)}`;
     const response = await fetch(qry, {
         method: "POST",
-        headers: {
-          "Content-Type": "none",
-        },
       });
     if (!response.ok) {
       throw new Error("Failed to add current perfume suggestion");

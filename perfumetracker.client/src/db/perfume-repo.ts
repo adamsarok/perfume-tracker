@@ -144,7 +144,6 @@ export async function getPerfumesForSelector(): Promise<Perfume[]> {
 }
 
 export async function getSurpriseId(pastDaysSkipped: number) {
-  console.log("wtf");
   const ids = await db.perfume.findMany({
     where: {
       ml: {
@@ -164,7 +163,6 @@ export async function getSurpriseId(pastDaysSkipped: number) {
     (x) => !worn.flatMap((m) => m).includes(x.id) && !suggested.includes(x.id)
   );
   const id = filtered[Math.floor(Math.random() * filtered.length)];
-  console.log("wtf");
   await addSuggested(id.id);
   return id.id;
 }

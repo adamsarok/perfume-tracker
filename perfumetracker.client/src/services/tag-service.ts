@@ -51,10 +51,6 @@ export async function getTagStats(): Promise<TagStatDTO[]> {
 //     if (!apiAddress) throw new Error("PerfumeAPI address not set");
 //     const response = await fetch(`${apiAddress}/perfumes/${id}`, {
 //         method: "DELETE",
-//         headers: {
-//           "Content-Type": "none",
-//         },
-//         body: ""
 //       });
   
 //       if (!response.ok) return { ok: false, error: `Error deleting perfume: ${response.status}` };

@@ -57,7 +57,7 @@ namespace PerfumeTrackerAPI.Repo {
             if (r == null) return null;
             var dto = new PerfumeWithWornStatsDTO {
                 Perfume = r.Adapt<PerfumeDTO>(),
-                LastWorn = r.PerfumeWorns.Any() ? r.PerfumeWorns.Max(x => x.WornOn) : null,
+                LastWorn = r.PerfumeWorns.Any() ? r.PerfumeWorns.Max(x => x.Created_At) : null,
                 Tags = new List<TagDTO>(),
                 WornTimes = r.PerfumeWorns.Any() ? r.PerfumeWorns.Count() : 0
             };

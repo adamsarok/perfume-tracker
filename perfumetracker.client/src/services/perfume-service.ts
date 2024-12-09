@@ -84,11 +84,7 @@ export async function updatePerfume(
 export async function deletePerfume(id: number): Promise<ActionResult> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const response = await fetch(`${apiAddress}/perfumes/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "none",
-    },
-    body: "",
+    method: "DELETE"
   });
 
   if (!response.ok)

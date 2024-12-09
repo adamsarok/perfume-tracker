@@ -18,7 +18,7 @@ public class PerfumeSuggestedRepo {
             if (p == null) return new PerfumeSuggestedResult(ResultTypes.BadRequest, "Perfume not found");
             var s = new PerfumeSuggested() {
                 PerfumeId = perfumeId,
-                SuggestedOn = DateTime.Now,
+                Created_At = DateTime.UtcNow,
             }; 
             //TODO: there is a mix of utc and local. prisma created timestamp(3) and ef migrations created timestamptz
             _context.PerfumeSuggesteds.Add(s);
@@ -32,7 +32,7 @@ public class PerfumeSuggestedRepo {
     public async Task<List<int>> GetAlreadySuggestedPerfumeIds(int daysFilter) {
         var r = await _context
             .PerfumeSuggesteds
-            .Where(x => x.SuggestedOn >= DateTime.Now.AddDays(-daysFilter))
+            .Where(x => x.Created_At >= DateTime.UtcNow.AddDays(-daysFilter))
             .Select(x => x.PerfumeId)
             .Distinct()
             .ToListAsync();

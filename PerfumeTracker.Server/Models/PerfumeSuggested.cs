@@ -9,7 +9,7 @@ public partial class PerfumeSuggested
 
     public int PerfumeId { get; set; }
 
-    public DateTime SuggestedOn { get; set; }
+    public DateTime Created_At { get; set; }
 
     public virtual Perfume Perfume { get; set; } = null!;
 }

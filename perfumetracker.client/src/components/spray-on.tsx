@@ -1,10 +1,10 @@
 import { MagicWand } from "@/icons/magic-wand";
-import * as perfumeWornRepo from "../db/perfume-worn-repo";
 import { toast } from "react-toastify";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { wearPerfume } from "@/services/perfume-worn-service";
 
 export interface SprayOnProps {
   perfumeId: number | undefined;
@@ -33,7 +33,7 @@ export default function SprayOnComponent({
       } else {
         date = new Date();
       }
-      const result = await perfumeWornRepo.wearPerfume(perfumeId, date);
+      const result = await wearPerfume(perfumeId, date);
       if (result.ok) {
         toast.success("Smell on!");
         if (onSuccess) onSuccess();

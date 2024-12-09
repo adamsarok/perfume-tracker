@@ -1,8 +1,6 @@
 "use client";
 
-import * as perfumeWornRepo from "@/db/perfume-worn-repo";
 import React from "react";
-import { WornWithPerfume } from "@/db/perfume-worn-repo";
 import ColorChip from "./color-chip";
 import { getImageUrl } from "./r2-image";
 
@@ -16,6 +14,8 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
+import { deleteWear } from "@/services/perfume-worn-service";
+import { toast } from "react-toastify";
 
 export interface PerfumeCardProps {
   worn: PerfumeWornDTO;
@@ -37,9 +37,11 @@ export default function PerfumeCard({
           .join("")
       : perfume.perfumeName.slice(0, 2).toUpperCase();
 
-  const handlePressStart = (id: number) => {
-    perfumeWornRepo.deleteWear(id);
-    window.location.reload();
+  const handlePressStart = async (id: number) => {
+    const result = await deleteWear(id);
+    if (result.ok) toast.success("Worn deleted");
+    else toast.error(`Worn delete failed: ${result.error ?? "unknown error"}`);
+    //TODO: revalidatepath
   };
 
   return (

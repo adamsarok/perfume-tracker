@@ -23,8 +23,6 @@ public partial class PerfumetrackerContext : DbContext
 
     public virtual DbSet<PerfumeWorn> PerfumeWorns { get; set; }
 
-    public virtual DbSet<PrismaMigration> PrismaMigrations { get; set; }
-
     public virtual DbSet<Recommendation> Recommendations { get; set; }
 
     public virtual DbSet<Tag> Tags { get; set; }
@@ -39,31 +37,31 @@ public partial class PerfumetrackerContext : DbContext
 
             entity.ToTable("Perfume");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            //entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Autumn)
-                .HasDefaultValue(true)
-                .HasColumnName("autumn");
-            entity.Property(e => e.House).HasColumnName("house");
+                .HasDefaultValue(true);
+                //.HasColumnName("autumn");
+            //entity.Property(e => e.House).HasColumnName("house");
             entity.Property(e => e.ImageObjectKey)
-                .HasDefaultValueSql("''::text")
-                .HasColumnName("imageObjectKey");
+                .HasDefaultValueSql("''::text");
+                //.HasColumnName("imageObjectKey");
             entity.Property(e => e.Ml)
-                .HasDefaultValue(2)
-                .HasColumnName("ml");
+                .HasDefaultValue(2);
+                //.HasColumnName("ml");
             entity.Property(e => e.Notes)
-                .HasDefaultValueSql("''::text")
-                .HasColumnName("notes");
-            entity.Property(e => e.PerfumeName).HasColumnName("perfume");
-            entity.Property(e => e.Rating).HasColumnName("rating");
+                .HasDefaultValueSql("''::text");
+                //.HasColumnName("notes");
+            // entity.Property(e => e.PerfumeName).HasColumnName("perfume");
+            // entity.Property(e => e.Rating).HasColumnName("rating");
             entity.Property(e => e.Spring)
-                .HasDefaultValue(true)
-                .HasColumnName("spring");
+                .HasDefaultValue(true);
+                //.HasColumnName("spring");
             entity.Property(e => e.Summer)
-                .HasDefaultValue(true)
-                .HasColumnName("summer");
+                .HasDefaultValue(true);
+                //.HasColumnName("summer");
             entity.Property(e => e.Winter)
-                .HasDefaultValue(true)
-                .HasColumnName("winter");
+                .HasDefaultValue(true);
+                //.HasColumnName("winter");
             entity.HasGeneratedTsVectorColumn(
                 p => p.FullText,
                 "english", 
@@ -80,11 +78,9 @@ public partial class PerfumetrackerContext : DbContext
 
             entity.ToTable("PerfumeSuggested");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.PerfumeId).HasColumnName("perfumeId");
-            entity.Property(e => e.SuggestedOn)
-                .HasColumnType("timestamp(3) without time zone")
-                .HasColumnName("suggestedOn");
+            // entity.Property(e => e.Id).HasColumnName("id");
+            // entity.Property(e => e.PerfumeId).HasColumnName("perfumeId");
+            // entity.Property(e => e.Created_At);
 
             entity.HasOne(d => d.Perfume).WithMany(p => p.PerfumeSuggesteds)
                 .HasForeignKey(d => d.PerfumeId)
@@ -97,9 +93,9 @@ public partial class PerfumetrackerContext : DbContext
 
             entity.ToTable("PerfumeTag");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.PerfumeId).HasColumnName("perfumeId");
-            entity.Property(e => e.TagId).HasColumnName("tagId");
+            // entity.Property(e => e.Id).HasColumnName("id");
+            // entity.Property(e => e.PerfumeId).HasColumnName("perfumeId");
+            // entity.Property(e => e.TagId).HasColumnName("tagId");
 
             entity.HasOne(d => d.Perfume).WithMany(p => p.PerfumeTags)
                 .HasForeignKey(d => d.PerfumeId)
@@ -117,41 +113,15 @@ public partial class PerfumetrackerContext : DbContext
 
             entity.ToTable("PerfumeWorn");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.PerfumeId).HasColumnName("perfumeId");
-            entity.Property(e => e.WornOn)
-                .HasColumnType("timestamp(3) without time zone")
-                .HasColumnName("wornOn");
+            // entity.Property(e => e.Id).HasColumnName("id");
+            // entity.Property(e => e.PerfumeId).HasColumnName("perfumeId");
+            // entity.Property(e => e.WornOn)
+            //     .HasColumnType("timestamp(3) without time zone")
+            //     .HasColumnName("wornOn");
 
             entity.HasOne(d => d.Perfume).WithMany(p => p.PerfumeWorns)
                 .HasForeignKey(d => d.PerfumeId)
                 .HasConstraintName("PerfumeWorn_perfumeId_fkey");
-        });
-
-        modelBuilder.Entity<PrismaMigration>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("_prisma_migrations_pkey");
-
-            entity.ToTable("_prisma_migrations");
-
-            entity.Property(e => e.Id)
-                .HasMaxLength(36)
-                .HasColumnName("id");
-            entity.Property(e => e.AppliedStepsCount)
-                .HasDefaultValue(0)
-                .HasColumnName("applied_steps_count");
-            entity.Property(e => e.Checksum)
-                .HasMaxLength(64)
-                .HasColumnName("checksum");
-            entity.Property(e => e.FinishedAt).HasColumnName("finished_at");
-            entity.Property(e => e.Logs).HasColumnName("logs");
-            entity.Property(e => e.MigrationName)
-                .HasMaxLength(255)
-                .HasColumnName("migration_name");
-            entity.Property(e => e.RolledBackAt).HasColumnName("rolled_back_at");
-            entity.Property(e => e.StartedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnName("started_at");
         });
 
         modelBuilder.Entity<Recommendation>(entity =>
@@ -160,13 +130,11 @@ public partial class PerfumetrackerContext : DbContext
 
             entity.ToTable("Recommendation");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp(3) without time zone")
-                .HasColumnName("date");
-            entity.Property(e => e.Query).HasColumnName("query");
-            entity.Property(e => e.Recommendations).HasColumnName("recommendations");
+            //entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Created_At)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            // entity.Property(e => e.Query).HasColumnName("query");
+            // entity.Property(e => e.Recommendations).HasColumnName("recommendations");
         });
 
         modelBuilder.Entity<Tag>(entity =>
@@ -177,9 +145,9 @@ public partial class PerfumetrackerContext : DbContext
 
             entity.HasIndex(e => e.TagName, "Tag_tag_key").IsUnique();
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Color).HasColumnName("color");
-            entity.Property(e => e.TagName).HasColumnName("tag");
+            // entity.Property(e => e.Id).HasColumnName("id");
+            // entity.Property(e => e.Color).HasColumnName("color");
+            // entity.Property(e => e.TagName).HasColumnName("tag");
         });
 
 

@@ -29,12 +29,15 @@ jobs:
         node-version: '18'
 
     - name: Install dependencies
+      working-directory: ./perfumetracker.client
       run: npm ci
       
     - name: Generate Prisma Client
+      working-directory: ./perfumetracker.client
       run: npx prisma generate
 
     - name: Build nextJS app
+      working-directory: ./perfumetracker.client
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       run: npm run build
@@ -44,7 +47,7 @@ jobs:
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       with:
-        context: .
+        context: ./perfumetracker.client
         file: Dockerfile
         push: true
         tags: adamsarok/perfume-tracker:latest
@@ -55,7 +58,7 @@ jobs:
         dotnet-version: 9.0
 
     - name: Build API
-      working-directory: ./PerfumeTrackerAPI
+      working-directory: ./PerfumeTracker.Server
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       run: dotnet build
@@ -65,7 +68,7 @@ jobs:
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       with:
-        context: ./PerfumeTrackerAPI
-        file: ./PerfumeTrackerAPI/Dockerfile
+        context: ./PerfumeTracker.Server
+        file: ./PerfumeTracker.Server/Dockerfile
         push: true
         tags: adamsarok/perfume-tracker-api:latest

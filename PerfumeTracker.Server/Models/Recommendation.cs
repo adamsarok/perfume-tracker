@@ -11,5 +11,5 @@ public partial class Recommendation
 
     public string Recommendations { get; set; } = null!;
 
-    public DateTime Date { get; set; }
+    public DateTime Created_At { get; set; }
 }

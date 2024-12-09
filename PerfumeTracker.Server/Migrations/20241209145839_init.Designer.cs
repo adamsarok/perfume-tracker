@@ -10,11 +10,11 @@ using PerfumeTrackerAPI.Models;
 
 #nullable disable
 
-namespace PerfumeTrackerAPI.Migrations
+namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumetrackerContext))]
-    [Migration("20241207084836_perfume-unique")]
-    partial class perfumeunique
+    [Migration("20241209145839_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,74 +31,69 @@ namespace PerfumeTrackerAPI.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Autumn")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("autumn");
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<NpgsqlTsVector>("FullText")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("tsvector")
                         .HasAnnotation("Npgsql:TsVectorConfig", "english")
-                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "Perfume1", "House", "Notes", "Rating" });
+                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "PerfumeName", "House", "Notes", "Rating" });
 
                     b.Property<string>("House")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("house");
+                        .HasColumnType("text");
 
                     b.Property<string>("ImageObjectKey")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text")
-                        .HasColumnName("imageObjectKey")
                         .HasDefaultValueSql("''::text");
 
                     b.Property<int>("Ml")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(2)
-                        .HasColumnName("ml");
+                        .HasDefaultValue(2);
 
                     b.Property<string>("Notes")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text")
-                        .HasColumnName("notes")
                         .HasDefaultValueSql("''::text");
 
-                    b.Property<string>("Perfume1")
+                    b.Property<string>("PerfumeName")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("perfume");
+                        .HasColumnType("text");
 
                     b.Property<double>("Rating")
-                        .HasColumnType("double precision")
-                        .HasColumnName("rating");
+                        .HasColumnType("double precision");
 
                     b.Property<bool>("Spring")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("spring");
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("Summer")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("summer");
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("Updated_At")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("Winter")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("winter");
+                        .HasDefaultValue(true);
 
                     b.HasKey("Id")
                         .HasName("Perfume_pkey");
@@ -107,7 +102,7 @@ namespace PerfumeTrackerAPI.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("FullText"), "GIN");
 
-                    b.HasIndex("House", "Perfume1")
+                    b.HasIndex("House", "PerfumeName")
                         .IsUnique();
 
                     b.ToTable("Perfume", (string)null);
@@ -117,18 +112,15 @@ namespace PerfumeTrackerAPI.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("PerfumeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("perfumeId");
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("SuggestedOn")
-                        .HasColumnType("timestamp(3) without time zone")
-                        .HasColumnName("suggestedOn");
+                    b.Property<int>("PerfumeId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id")
                         .HasName("PerfumeSuggested_pkey");
@@ -142,18 +134,18 @@ namespace PerfumeTrackerAPI.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("PerfumeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("perfumeId");
+                        .HasColumnType("integer");
 
                     b.Property<int>("TagId")
-                        .HasColumnType("integer")
-                        .HasColumnName("tagId");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id")
                         .HasName("PerfumeTag_pkey");
@@ -169,18 +161,15 @@ namespace PerfumeTrackerAPI.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("PerfumeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("perfumeId");
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("WornOn")
-                        .HasColumnType("timestamp(3) without time zone")
-                        .HasColumnName("wornOn");
+                    b.Property<int>("PerfumeId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id")
                         .HasName("PerfumeWorn_pkey");
@@ -190,79 +179,26 @@ namespace PerfumeTrackerAPI.Migrations
                     b.ToTable("PerfumeWorn", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.PrismaMigration", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
-                        .HasColumnName("id");
-
-                    b.Property<int>("AppliedStepsCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("applied_steps_count");
-
-                    b.Property<string>("Checksum")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("checksum");
-
-                    b.Property<DateTime?>("FinishedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("finished_at");
-
-                    b.Property<string>("Logs")
-                        .HasColumnType("text")
-                        .HasColumnName("logs");
-
-                    b.Property<string>("MigrationName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("migration_name");
-
-                    b.Property<DateTime?>("RolledBackAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("rolled_back_at");
-
-                    b.Property<DateTime>("StartedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("Id")
-                        .HasName("_prisma_migrations_pkey");
-
-                    b.ToTable("_prisma_migrations", (string)null);
-                });
-
             modelBuilder.Entity("PerfumeTrackerAPI.Models.Recommendation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("Created_At")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp(3) without time zone")
-                        .HasColumnName("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Query")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("query");
+                        .HasColumnType("text");
 
                     b.Property<string>("Recommendations")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("recommendations");
+                        .HasColumnType("text");
 
                     b.HasKey("Id")
                         .HasName("Recommendation_pkey");
@@ -274,25 +210,28 @@ namespace PerfumeTrackerAPI.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Color")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("color");
+                        .HasColumnType("text");
 
-                    b.Property<string>("Tag1")
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TagName")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("tag");
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("Updated_At")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id")
                         .HasName("Tag_pkey");
 
-                    b.HasIndex(new[] { "Tag1" }, "Tag_tag_key")
+                    b.HasIndex(new[] { "TagName" }, "Tag_tag_key")
                         .IsUnique();
 
                     b.ToTable("Tag", (string)null);
