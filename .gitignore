@@ -306,5 +306,3 @@ next-env.d.ts
 .env
 
 *.xls
-
-/uploads/*
