@@ -8,16 +8,18 @@ import { getTags } from "@/services/tag-service";
 export const dynamic = 'force-dynamic'
 
 interface EditPerfumePageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
-export default async function EditPerfumePage({params}: EditPerfumePageProps) {
+export default async function EditPerfumePage(props: EditPerfumePageProps) {
+    const params = await props.params;
     const id = parseInt(params.id);
     if (!id) return notFound();
     const perfume = await getPerfume(id);
     if (!perfume) return notFound();
+    console.log('reload!');
     //TODO: clean DB from pages
     const allTags = await getTags();
     const tags: TagDTO[] = [];
