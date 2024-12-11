@@ -30,7 +30,7 @@ jobs:
 
     - name: Install dependencies
       working-directory: ./perfumetracker.client
-      run: npm ci
+      run: npm ci --legacy-peer-deps
       
     - name: Generate Prisma Client
       working-directory: ./perfumetracker.client
