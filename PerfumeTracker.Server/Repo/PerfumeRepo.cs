@@ -1,5 +1,6 @@
 ﻿using Mapster;
 using Microsoft.EntityFrameworkCore;
+using PerfumeTracker.Server.DTO;
 using PerfumeTrackerAPI.DTO;
 using PerfumeTrackerAPI.Models;
 using static PerfumeTrackerAPI.Repo.ResultType;
@@ -145,6 +146,15 @@ namespace PerfumeTrackerAPI.Repo {
 
             await UpdateTags(dto, find);
 
+            return new PerfumeResult(ResultTypes.Ok, find.Adapt<PerfumeDTO>());
+        }
+
+        public async Task<PerfumeResult> UpdatePerfumeImageGuid(ImageGuidDTO dto) {
+            var find = await _context.Perfumes.FindAsync(dto.parentObjectId);
+            if (find == null) return new PerfumeResult(ResultTypes.NotFound);
+            find.ImageObjectKey = dto.imageObjectKey;
+            find.Updated_At = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
             return new PerfumeResult(ResultTypes.Ok, find.Adapt<PerfumeDTO>());
         }
 

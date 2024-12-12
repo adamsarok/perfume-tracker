@@ -1,6 +1,5 @@
 "use client";
 
-import * as perfumeRepo from "@/db/perfume-repo";
 import { useCallback, useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
@@ -30,7 +29,7 @@ import { z } from "zod";
 import { Checkbox } from "./ui/checkbox";
 import { Separator } from "./ui/separator";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
-import { addPerfume, deletePerfume, updatePerfume } from "@/services/perfume-service";
+import { addPerfume, deletePerfume, updateImageGuid, updatePerfume } from "@/services/perfume-service";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";
 import { TagDTO } from "@/dto/TagDTO";
 
@@ -164,25 +163,25 @@ export default function PerfumeEditForm({
     getImageUrl(perfume?.imageObjectKey, r2_api_address)
   );
   const onUpload = async (guid: string | undefined) => {
-    if (guid) {
+    if (perfume && perfume.id && guid) {
       setImageObjectKey(guid);
       setImageUrl(getImageUrl(guid, r2_api_address));
-      const result = await setImageGuidInRepo(guid);
+      const result = await updateImageGuid(perfume.id, guid);
       if (result.ok) toast.success("Image upload successful");
       else
         toast.error(`Image upload failed: ${result.error ?? "unknown error"}`);
     }
   };
-  const setImageGuidInRepo = async (
-    guid: string | null
-  ): Promise<ActionResult> => {
-    if (perfume && guid) {
-      return perfumeRepo.setImageObjectKey(perfume.id, guid);
-    }
-    return {
-      ok: true,
-    };
-  };
+  // const setImageGuidInRepo = async (
+  //   guid: string | null
+  // ): Promise<ActionResult> => {
+  //   if (perfume && guid) {
+  //     return perfumeRepo.setImageObjectKey(perfume.id, guid);
+  //   }
+  //   return {
+  //     ok: true,
+  //   };
+  // };
   return (
     <div>
       <Form {...form}>

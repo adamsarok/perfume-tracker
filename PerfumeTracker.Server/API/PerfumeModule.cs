@@ -1,5 +1,6 @@
 
 using Carter;
+using PerfumeTracker.Server.DTO;
 using PerfumeTrackerAPI.DTO;
 using PerfumeTrackerAPI.Repo;
 using static PerfumeTrackerAPI.Repo.ResultType;
@@ -41,7 +42,18 @@ namespace FountainPensNg.Server.API {
                     _ => Results.InternalServerError()
                 };
             }).WithTags("Perfumes")
-                .WithName("PutPerfume");
+                .WithName("UpdatePerfume");
+
+            app.MapPut("/api/perfumes/imageguid", async (ImageGuidDTO dto, PerfumeRepo repo) => {
+                var result = await repo.UpdatePerfumeImageGuid(dto);
+                return result.ResultType switch {
+                    ResultTypes.Ok => Results.Ok(result.Perfume),
+                    ResultTypes.NotFound => Results.NotFound(),
+                    ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
+                    _ => Results.InternalServerError()
+                };
+            }).WithTags("Perfumes")
+                .WithName("UpdatePerfumeImageGuid");
 
             app.MapPost("/api/perfumes", async (PerfumeDTO dto, PerfumeRepo repo) => {
                 var result = await repo.AddPerfume(dto);

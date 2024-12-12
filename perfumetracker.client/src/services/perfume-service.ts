@@ -6,6 +6,7 @@ import { ActionResult } from "@/db/action-result";
 import { PerfumeStatsDTO } from "@/dto/PerfumeStatsDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";
+import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
 
 export async function getPerfumesFulltext(
   fulltext: string
@@ -91,6 +92,27 @@ export async function updatePerfume(
   const result = await response.json();
   console.log(result);
   return { ok: true, id: perfume.id };
+}
+
+export async function updateImageGuid(
+  perfumeId: number, imageGuid: string
+): Promise<ActionResult> {
+  if (!apiAddress) throw new Error("PerfumeAPI address not set");
+  const dto: ImageGuidDTO = { parentObjectId: perfumeId, imageObjectKey: imageGuid };
+  const response = await fetch(`${apiAddress}/perfumes/imageguid`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(dto),
+  });
+
+  if (!response.ok)
+    return { ok: false, error: `Error updating perfume: ${response.status}` };
+
+  const result = await response.json();
+  console.log(result);
+  return { ok: true, id: perfumeId };
 }
 
 export async function deletePerfume(id: number): Promise<ActionResult> {

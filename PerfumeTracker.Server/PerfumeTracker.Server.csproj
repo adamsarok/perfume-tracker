@@ -34,9 +34,4 @@
   <ItemGroup>
     <None Include="..\Dockerfile" Link="Dockerfile" />
   </ItemGroup>
-   <ItemGroup>
-    <ProjectReference Include="..\perfumetracker.client\perfumetracker.client.esproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup> 
 </Project>
