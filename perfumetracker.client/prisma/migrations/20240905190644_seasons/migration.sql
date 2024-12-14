@@ -1,5 +1,0 @@
--- AlterTable
-ALTER TABLE "Perfume" ADD COLUMN     "autumn" BOOLEAN NOT NULL DEFAULT true,
-ADD COLUMN     "spring" BOOLEAN NOT NULL DEFAULT true,
-ADD COLUMN     "summer" BOOLEAN NOT NULL DEFAULT true,
-ADD COLUMN     "winter" BOOLEAN NOT NULL DEFAULT true;

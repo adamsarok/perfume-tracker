@@ -2,7 +2,7 @@
 
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
-import { ActionResult } from "@/db/action-result";
+import { ActionResult } from "@/services/action-result";
 import { PerfumeStatsDTO } from "@/dto/PerfumeStatsDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";

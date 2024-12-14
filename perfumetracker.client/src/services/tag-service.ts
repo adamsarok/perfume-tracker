@@ -3,7 +3,7 @@
 import { TagDTO } from "@/dto/TagDTO";
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { TagStatDTO } from "@/dto/TagStatDTO";
-import { ActionResult } from "@/db/action-result";
+import { ActionResult } from "@/services/action-result";
 
 export async function getTagStats(): Promise<TagStatDTO[]> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");

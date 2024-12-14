@@ -2,7 +2,7 @@
 
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
-import { ActionResult } from "@/db/action-result";
+import { ActionResult } from "@/services/action-result";
 import { PerfumeWornUploadDTO } from "@/dto/PerfumeWornUploadDTO";
 
 export async function getWornBeforeID(cursor: number | null, pageSize: number) : Promise<PerfumeWornDTO[]> {

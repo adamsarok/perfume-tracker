@@ -12,7 +12,7 @@ import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
 import SprayOnComponent from "./spray-on";
 import { getImageUrl } from "./r2-image";
-import { ActionResult } from "@/db/action-result";
+import { ActionResult } from "@/services/action-result";
 import { Button } from "./ui/button";
 import {
   Form,
