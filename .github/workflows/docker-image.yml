@@ -32,10 +32,6 @@ jobs:
       working-directory: ./perfumetracker.client
       run: npm ci --legacy-peer-deps
       
-    - name: Generate Prisma Client
-      working-directory: ./perfumetracker.client
-      run: npx prisma generate
-
     - name: Build nextJS app
       working-directory: ./perfumetracker.client
       env:

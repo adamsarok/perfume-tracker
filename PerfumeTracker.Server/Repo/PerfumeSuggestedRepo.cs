@@ -22,7 +22,6 @@ public class PerfumeSuggestedRepo {
                 PerfumeId = perfumeId,
                 Created_At = DateTime.UtcNow,
             }; 
-            //TODO: there is a mix of utc and local. prisma created timestamp(3) and ef migrations created timestamptz
             _context.PerfumeSuggesteds.Add(s);
             await _context.SaveChangesAsync();
             return new PerfumeSuggestedResult(ResultTypes.Ok);
