@@ -3,7 +3,7 @@
 import { TagDTO } from "@/dto/TagDTO";
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { TagStatDTO } from "@/dto/TagStatDTO";
-import { ActionResult } from "@/services/action-result";
+import { ActionResultID } from "@/dto/ActionResultID";
 
 export async function getTagStats(): Promise<TagStatDTO[]> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
@@ -27,7 +27,7 @@ export async function getTags(): Promise<TagDTO[]> {
   return tagStats;
 }
 
-export async function addTag(tag: TagDTO) : Promise<ActionResult> {
+export async function addTag(tag: TagDTO) : Promise<ActionResultID> {
     if (!apiAddress) throw new Error("PerfumeAPI address not set");
     const response = await fetch(`${apiAddress}/tags`, {
         method: "POST",
@@ -43,7 +43,7 @@ export async function addTag(tag: TagDTO) : Promise<ActionResult> {
       return { ok: true, id: result.id };
   }
   
-  export async function updateTag(tag: TagDTO) : Promise<ActionResult> {
+  export async function updateTag(tag: TagDTO) : Promise<ActionResultID> {
     if (!apiAddress) throw new Error("PerfumeAPI address not set");
     const response = await fetch(`${apiAddress}/tags/${tag.id}`, {
         method: "PUT",
@@ -60,7 +60,7 @@ export async function addTag(tag: TagDTO) : Promise<ActionResult> {
       return { ok: true, id: tag.id };
   }
   
-  export async function deleteTag(id: number) : Promise<ActionResult> {
+  export async function deleteTag(id: number) : Promise<ActionResultID> {
     if (!apiAddress) throw new Error("PerfumeAPI address not set");
     const response = await fetch(`${apiAddress}/tags/${id}`, {
         method: "DELETE",

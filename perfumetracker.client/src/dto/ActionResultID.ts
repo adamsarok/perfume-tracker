@@ -1,4 +1,4 @@
-export interface ActionResult {
+export interface ActionResultID {
     error?: string;
     id?: number;
     ok: boolean;

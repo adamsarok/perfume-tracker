@@ -12,7 +12,6 @@ import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
 import SprayOnComponent from "./spray-on";
 import { getImageUrl } from "./r2-image";
-import { ActionResult } from "@/services/action-result";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -32,6 +31,7 @@ import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { addPerfume, deletePerfume, updateImageGuid, updatePerfume } from "@/services/perfume-service";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";
 import { TagDTO } from "@/dto/TagDTO";
+import { ActionResultID } from "@/dto/ActionResultID";
 
 interface PerfumeEditFormProps {
   perfume: PerfumeDTO | null;
@@ -99,7 +99,7 @@ export default function PerfumeEditForm({
       spring: values.spring,
       tags: tags.map(tag =>  ({ id: tag.id, tagName: tag.tagName, color: tag.color }))
     };
-    let result: ActionResult;
+    let result: ActionResultID;
     if (!id) result = await addPerfume(perf);
     else result = await updatePerfume(perf);
     console.log(result);

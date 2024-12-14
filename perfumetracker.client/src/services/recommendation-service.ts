@@ -5,6 +5,7 @@ import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { getPerfumes } from "./perfume-service";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { RecommendationUploadDTO } from "@/dto/RecommendationUploadDTO copy";
+import { getOpenAIResponse } from "./openai-service";
 
 export interface TagWithCount {
   id: number;
@@ -134,7 +135,7 @@ export async function getAlreadyRecommended(): Promise<
 
 export async function addRecommendation(
   recommendation: RecommendationUploadDTO
-) {
+) : Promise<RecommendationDownloadDTO> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const qry = `${apiAddress}/recommendations/`;
   const response = await fetch(qry, {
@@ -147,6 +148,37 @@ export async function addRecommendation(
   if (!response.ok) {
     throw new Error("Failed to add recommendation");
   }
-  const suggesteds: number[] = await response.json();
-  return suggesteds;
+  const r: RecommendationDownloadDTO = await response.json();
+  return r;
 }
+
+
+
+function RemoveDiacritics(input: string) {
+  return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+export default async function getRecommendations(query: string) : Promise<RecommendationDownloadDTO> {
+  try {
+    query = RemoveDiacritics(query);
+    const recommendations = await getOpenAIResponse(query);
+    if (recommendations) {
+      const dto: RecommendationUploadDTO = {
+        query,
+        recommendations,
+      };
+      return await addRecommendation(dto);
+    } else {
+      return Promise.reject(new Error('Open AI response is empty'));
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error(err.message);
+      return Promise.reject(err);
+    } else {
+      console.error("Unknown error occured");
+      return Promise.reject("Unknown error occured");
+    }
+  }
+}
+
