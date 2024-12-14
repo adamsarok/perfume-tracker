@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import React from "react";
 import { useState } from "react";
 import ColorChip from "@/components/color-chip";
-import { GetQuery, UserPreferences } from "@/services/recommendation-service";
+import { getQuery, UserPreferences } from "@/services/recommendation-service";
 import { toast } from "react-toastify";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,7 +24,7 @@ export default function RecommendationsComponent({
   //const tags = await tagRepo.getTags();
   //TODO: recommend perfumes already in collection, or already in coll
   const getRecommendations = async () => {
-    const query = GetQuery(userPreferences, wearOrBuy, perfumesOrNotes);
+    const query = await getQuery(userPreferences, wearOrBuy, perfumesOrNotes);
     console.log(query);
     if (query) {
       const res = await fetch(`/api/get-recommendations`, {

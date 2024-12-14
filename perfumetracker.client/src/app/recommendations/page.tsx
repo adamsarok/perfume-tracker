@@ -1,10 +1,10 @@
+import { getUserPreferences } from "@/services/recommendation-service";
 import RecommendationsComponent from "./recommendations-component";
-import GetUserPreferences from "@/services/recommendation-service";
 
 export const dynamic = 'force-dynamic'
 
 export default async function RecommendationsPage() {
-    const userPreferences = await GetUserPreferences();
+    const userPreferences = await getUserPreferences();
     return <div>
       <RecommendationsComponent userPreferences={userPreferences}></RecommendationsComponent>
     </div>

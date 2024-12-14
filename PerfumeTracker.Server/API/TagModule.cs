@@ -18,45 +18,45 @@ namespace FountainPensNg.Server.API {
                 .WithName("GetTags");
 
             //TODO
-            //app.MapGet("/api/perfumes/{id}", async (int id, PerfumeRepo repo) => {
-            //    var perfume = await repo.GetPerfumeWithWorn(id);
-            //    if (perfume == null) return Results.NotFound();
-            //    return Results.Ok(perfume);
-            //}).WithTags("Perfumes")
-            //    .WithName("GetPerfume");
+            app.MapGet("/api/tags/{id}", async (int id, TagRepo repo) => {
+               var perfume = await repo.GetTag(id);
+               if (perfume == null) return Results.NotFound();
+               return Results.Ok(perfume);
+            }).WithTags("Tags")
+               .WithName("GetTag");
 
-            //app.MapPut("/api/perfumes/{id}", async (int id, PerfumeDTO dto, PerfumeRepo repo) => {
-            //    var result = await repo.UpdatePerfume(id, dto);
-            //    return result.ResultType switch {
-            //        ResultTypes.Ok => Results.Ok(result.Perfume),
-            //        ResultTypes.NotFound => Results.NotFound(),
-            //        ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
-            //        _ => Results.InternalServerError()
-            //    };
-            //}).WithTags("Perfumes")
-            //    .WithName("PutPerfume");
+            app.MapPut("/api/tags/{id}", async (int id, TagDTO dto, TagRepo repo) => {
+               var result = await repo.UpdateTag(id, dto);
+               return result.ResultType switch {
+                   ResultTypes.Ok => Results.Ok(result.Tag),
+                   ResultTypes.NotFound => Results.NotFound(),
+                   ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
+                   _ => Results.InternalServerError()
+               };
+            }).WithTags("Tags")
+               .WithName("UpdateTag");
 
-            //app.MapPost("/api/perfumes", async (PerfumeDTO dto, PerfumeRepo repo) => {
-            //    var result = await repo.AddPerfume(dto);
-            //    return result.ResultType switch {
-            //        ResultTypes.Ok => Results.CreatedAtRoute("GetPerfume", new { id = result?.Perfume?.Id }, result?.Perfume),
-            //        ResultTypes.NotFound => Results.NotFound(),
-            //        ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
-            //        _ => Results.InternalServerError()
-            //    };
-            //}).WithTags("Perfumes")
-            //    .WithName("PostPerfume");
+            app.MapPost("/api/tags", async (TagDTO dto, TagRepo repo) => {
+               var result = await repo.AddTag(dto);
+               return result.ResultType switch {
+                   ResultTypes.Ok => Results.CreatedAtRoute("GetTag", new { id = result?.Tag?.Id }, result?.Tag),
+                   ResultTypes.NotFound => Results.NotFound(),
+                   ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
+                   _ => Results.InternalServerError()
+               };
+            }).WithTags("Tags")
+               .WithName("AddTag");
 
-            //app.MapDelete("/api/perfumes/{id}", async (int id, PerfumeRepo repo) => {
-            //    var result = await repo.DeletePerfume(id);
-            //    return result.ResultType switch {
-            //        ResultTypes.Ok => Results.NoContent(),
-            //        ResultTypes.NotFound => Results.NotFound(),
-            //        ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
-            //        _ => Results.InternalServerError()
-            //    };
-            //}).WithTags("Perfumes")
-            //    .WithName("DeletePerfume");
+            app.MapDelete("/api/tags/{id}", async (int id, TagRepo repo) => {
+               var result = await repo.DeleteTag(id);
+               return result.ResultType switch {
+                   ResultTypes.Ok => Results.NoContent(),
+                   ResultTypes.NotFound => Results.NotFound(),
+                   ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
+                   _ => Results.InternalServerError()
+               };
+            }).WithTags("Tags")
+               .WithName("DeleteTag");
         }
     }
 }

@@ -1,7 +1,5 @@
 "use client";
 
-import * as tagRepo from "@/db/tag-repo";
-import { Tag } from "@prisma/client";
 import React from "react";
 import { toast } from "react-toastify";
 import {
@@ -26,9 +24,11 @@ import {
   FormLabel,
   FormMessage,
 } from "./ui/form";
+import { TagDTO } from "@/dto/TagDTO";
+import { addTag } from "@/services/tag-service";
 
 interface TagAddModalProps {
-  tagAdded: (tag: Tag) => void;
+  tagAdded: (tag: TagDTO) => void;
 }
 
 const formSchema = z.object({
@@ -52,12 +52,12 @@ export default function TagAddModal({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const tag: Tag = {
+    const tag: TagDTO = {
       id: 0,
-      tag: values.tag,
+      tagName: values.tag,
       color: values.color,
     };
-    const result = await tagRepo.insertTag(tag);
+    const result = await addTag(tag);
     if (result.ok && result.id) {
       tag.id = result.id;
       toast.success("Tag add successful");

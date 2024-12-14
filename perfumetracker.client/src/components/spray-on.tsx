@@ -52,7 +52,7 @@ export default function SprayOnComponent({
         className="flex-1"
         id="date"
         value={dateStr}
-        defaultValue={yymmdd}
+        //defaultValue={yymmdd}
         onChange={handleDateChange}
       />
     </div>

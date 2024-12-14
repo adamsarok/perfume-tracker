@@ -3,9 +3,9 @@
 import { useState } from "react";
 import styles from "./chip-clouds.module.css";
 import TagAddModal from "./tag-add-modal";
-import { Tag } from "@prisma/client";
 import ColorChip, { ChipProp } from "./color-chip";
 import { Card, CardHeader } from "./ui/card";
+import { TagDTO } from "@/dto/TagDTO";
 
 export interface ChipCloudProps {
   topChipProps: ChipProp[];
@@ -36,10 +36,10 @@ export default function ChipClouds({
     selectChip(chip.name);
   };
 
-  const handleModalClose = (tag: Tag) => {
+  const handleModalClose = (tag: TagDTO) => {
     setBottomChips([
       ...bottomChips,
-      { name: tag.tag, color: tag.color, onChipClick: null, className: "" },
+      { name: tag.tagName, color: tag.color, onChipClick: null, className: "" },
     ]);
   };
 

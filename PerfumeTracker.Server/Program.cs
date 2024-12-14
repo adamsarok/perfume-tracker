@@ -22,6 +22,7 @@ builder.Services.AddScoped<PerfumeRepo>();
 builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeWornRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();
+builder.Services.AddScoped<RecommendationsRepo>();
 builder.Services.AddCarter();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
