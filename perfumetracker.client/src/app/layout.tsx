@@ -46,6 +46,9 @@ export default function RootLayout({
             <a className="menuButton" color="foreground" href="/recommendations">
               Recommendations
             </a>
+            <a className="menuButton" color="foreground" href="/dashboard">
+              Dashboard
+            </a>
           </div>
           {children}
         </div>
