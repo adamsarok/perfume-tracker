@@ -36,6 +36,7 @@ jobs:
       working-directory: ./perfumetracker.client
       env:
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
+        OPENAI_API_KEY: "placeholder"
       run: npm run build
     
     - name: Build and push nextJS app Docker image
