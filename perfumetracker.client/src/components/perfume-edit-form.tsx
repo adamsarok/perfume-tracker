@@ -200,7 +200,7 @@ export default function PerfumeEditForm({
                 className={styles.imageContainer}
                 src={imageUrl ? imageUrl : "/perfume-icon.svg"}
               ></img>
-              <UploadComponent onUpload={onUpload} />
+              <UploadComponent onUpload={onUpload} r2_api_address={r2_api_address} />
             </div>
             <div className={styles.content}>
               <FormField

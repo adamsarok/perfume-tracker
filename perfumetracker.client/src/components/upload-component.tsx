@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 
 interface UploadComponentProps {
   onUpload: (guid: string | undefined) => void;
+  r2_api_address: string | undefined;
 }
 
 /*
@@ -14,15 +15,11 @@ Size Limits: Implement checks to ensure files are within acceptable size limits 
 Error Handling: Handle potential errors and edge cases, such as file upload failures or issues with the microservice communication.
 */
 
-const R2_API_ADDRESS = process.env.NEXT_PUBLIC_R2_API_ADDRESS;
 
-
-export default function UploadComponent({ onUpload }: UploadComponentProps) {
+export default function UploadComponent({ onUpload, r2_api_address }: UploadComponentProps) {
   const handleUpload = async (file: File) => {
-    console.log("handleUpload");
-    console.log(R2_API_ADDRESS);
     try {
-      if (!R2_API_ADDRESS) {
+      if (!r2_api_address) {
         toast.error("Error uploading file: R2 API address is not configured");
         return;
       }
@@ -44,7 +41,7 @@ export default function UploadComponent({ onUpload }: UploadComponentProps) {
         reader.readAsArrayBuffer(file);
       });
 
-      const microserviceUrl = `${R2_API_ADDRESS}/upload-image?fileName=${encodeURIComponent(
+      const microserviceUrl = `${r2_api_address}/upload-image?fileName=${encodeURIComponent(
         file.name
       )}`;
       const response = await fetch(microserviceUrl, {
