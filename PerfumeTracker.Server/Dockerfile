@@ -12,10 +12,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["PerfumeTracker.Server/PerfumeTracker.Server.csproj", "PerfumeTracker.Server/"]
-RUN dotnet restore "./PerfumeTracker.Server/PerfumeTracker.Server.csproj"
+COPY ["./PerfumeTracker.Server.csproj", "./"]
+RUN dotnet restore "./PerfumeTracker.Server.csproj"
 COPY . .
-WORKDIR "/src/PerfumeTracker.Server"
+WORKDIR "/src"
 RUN dotnet build "./PerfumeTracker.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
