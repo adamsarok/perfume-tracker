@@ -1,0 +1,43 @@
+services:
+  perfume-tracker:
+    image: adamsarok/perfume-tracker
+    ports:
+      - 3000:3000
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXT_PUBLIC_R2_API_ADDRESS=${NEXT_PUBLIC_R2_API_ADDRESS}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PERFUMETRACKER_API_ADDRESS=${PERFUMETRACKER_API_ADDRESS}
+    restart: unless-stopped
+    # build:
+    #   context: .
+    #   dockerfile: perfumetracker.client/Dockerfile
+  perfume-tracker-api:
+    image: adamsarok/perfume-tracker-api
+    ports:
+      - 7080:8080
+      - 7081:8081
+    environment:
+      - CONNECTION_STRING=${CONNECTION_STRING}
+      - METABASE_URL=${METABASE_URL}
+      - METABASE_SECRET_KEY=${METABASE_SECRET_KEY}
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: PerfumeTracker.Server/Dockerfile
+  r2-api-go:
+    image: adamsarok/r2-api-go
+    ports:
+      - 9088:8080
+    environment:
+      - R2_ENDPOINT=${R2_ENDPOINT}
+      - R2_BUCKET=${R2_BUCKET}
+      - R2_REGION=auto
+      - R2_ACCESS_KEY=${R2_ACCESS_KEY}
+      - R2_SECRET_KEY=${R2_SECRET_KEY}
+      - R2_UPLOAD_EXPIRY_MINUTES=30
+      - R2_DOWNLOAD_EXPIRY_MINUTES=30
+      - CACHE_DIR=/config
+    volumes:
+      - ${APPDATA}/r2-api-go/cache:/config
+    restart: unless-stopped
