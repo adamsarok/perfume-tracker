@@ -8,14 +8,10 @@ using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeWornRepo {
-    private readonly PerfumetrackerContext _context;
+public class PerfumeWornRepo(PerfumetrackerContext context) {
 
-    public PerfumeWornRepo(PerfumetrackerContext context) {
-        _context = context;
-    }
     public async Task<List<PerfumeWornDownloadDTO>> GetPerfumesWithWorn(int cursor, int pageSize) {
-        var raw = await _context
+        var raw = await context
             .PerfumeWorns
             .Where(x => cursor < 1 || x.Id < cursor)
             .OrderByDescending(x => x.Id)
@@ -30,7 +26,7 @@ public class PerfumeWornRepo {
         return raw;
     }
     public async Task<List<int>> GetWornPerfumeIDs(int daysFilter) {
-        var r = await _context
+        var r = await context
             .PerfumeWorns
             .Where(x => x.Created_At >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
             .Select(x => x.PerfumeId)
@@ -40,16 +36,16 @@ public class PerfumeWornRepo {
     }
     public record PerfumeWornResult(ResultTypes ResultType, PerfumeWornDownloadDTO? worn = null, string? ErrorMsg = null);
     public async Task<PerfumeWornResult> DeletePerfumeWorn(int id) {
-        var w = await _context.PerfumeWorns.FindAsync(id);
+        var w = await context.PerfumeWorns.FindAsync(id);
         if (w == null) return new PerfumeWornResult(ResultTypes.NotFound);
-        _context.PerfumeWorns.Remove(w);
-        await _context.SaveChangesAsync();
+        context.PerfumeWorns.Remove(w);
+        await context.SaveChangesAsync();
         return new PerfumeWornResult(ResultTypes.Ok);
     }
 
     public async Task<PerfumeWornResult> AddPerfumeWorn(PerfumeWornUploadDTO dto) {
         try {
-            if (_context.PerfumeWorns.Any(x =>
+            if (context.PerfumeWorns.Any(x =>
                 x.PerfumeId == dto.perfumeId &&
                 x.Created_At.Date == dto.wornOn.Date
             )) {
@@ -59,8 +55,8 @@ public class PerfumeWornRepo {
                 PerfumeId = dto.perfumeId,
                 Created_At = dto.wornOn
             };
-            _context.PerfumeWorns.Add(w);
-            await _context.SaveChangesAsync();
+            context.PerfumeWorns.Add(w);
+            await context.SaveChangesAsync();
             return new PerfumeWornResult(ResultTypes.Ok, w.Adapt<PerfumeWornDownloadDTO>());
         }
         catch (Exception ex) {

@@ -7,15 +7,9 @@ using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace PerfumeTracker.Server.Repo;
 
-public class RecommendationsRepo {
-    private readonly PerfumetrackerContext _context;
-
-    public RecommendationsRepo(PerfumetrackerContext context) {
-        _context = context;
-    }
-
+public class RecommendationsRepo(PerfumetrackerContext context) {
     public async Task<List<Recommendation>> GetRecommendations() {
-        return await _context
+        return await context
             .Recommendations
             .ToListAsync();
     }
@@ -26,8 +20,8 @@ public class RecommendationsRepo {
             var r = dto.Adapt<Recommendation>();
             if (r == null) return new RecommendationsResult(ResultTypes.BadRequest);
             r.Created_At = DateTime.UtcNow;
-            _context.Recommendations.Add(r);
-            await _context.SaveChangesAsync();
+            context.Recommendations.Add(r);
+            await context.SaveChangesAsync();
             return new RecommendationsResult(ResultTypes.Ok, r);
         }
         catch (Exception ex) {
