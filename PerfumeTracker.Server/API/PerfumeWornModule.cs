@@ -51,7 +51,7 @@ public class PerfumeWornModule : ICarterModule {
         app.MapPost("/api/perfumeworns", async (PerfumeWornUploadDTO dto, PerfumeWornRepo repo) => {
             var result = await repo.AddPerfumeWorn(dto);
             return result.ResultType switch {
-                ResultTypes.Ok => Results.CreatedAtRoute("GetPerfumeWorns", new { id = result?.worn?.id }, result?.worn),
+                ResultTypes.Ok => Results.CreatedAtRoute("GetPerfumeWorns", new { id = result?.worn?.Id }, result?.worn),
                 ResultTypes.NotFound => Results.NotFound(),
                 ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
                 _ => Results.InternalServerError()

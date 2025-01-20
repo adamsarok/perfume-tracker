@@ -46,14 +46,14 @@ public class PerfumeWornRepo(PerfumetrackerContext context) {
     public async Task<PerfumeWornResult> AddPerfumeWorn(PerfumeWornUploadDTO dto) {
         try {
             if (context.PerfumeWorns.Any(x =>
-                x.PerfumeId == dto.perfumeId &&
-                x.Created_At.Date == dto.wornOn.Date
+                x.PerfumeId == dto.PerfumeId &&
+                x.Created_At.Date == dto.WornOn.Date
             )) {
                 return new PerfumeWornResult(ResultTypes.BadRequest, null, "You have already worn this perfume on this day");
             }
             var w = new PerfumeWorn() {
-                PerfumeId = dto.perfumeId,
-                Created_At = dto.wornOn
+                PerfumeId = dto.PerfumeId,
+                Created_At = dto.WornOn
             };
             context.PerfumeWorns.Add(w);
             await context.SaveChangesAsync();

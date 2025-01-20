@@ -1,3 +1,3 @@
 ﻿namespace PerfumeTrackerAPI.DTO {
-    public record PerfumeStatDTO(int totalMls, int totalWears, int perfumesTested);
+	public record PerfumeStatDTO(int TotalMls, int TotalWears, int PerfumesTested);
 }

@@ -4,8 +4,8 @@ using PerfumeTrackerAPI.DTO;
 namespace PerfumeTracker.Server.DTO;
 
 public record PerfumeWornDownloadDTO(
-    int id, 
-    DateTime wornOn, 
-    PerfumeDTO perfume, 
-    List<TagDTO> tags
+	int Id,
+	DateTime WornOn,
+	PerfumeDTO Perfume,
+	List<TagDTO> Tags
 );
