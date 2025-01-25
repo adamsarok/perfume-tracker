@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PerfumeTrackerAPI.Models;
+namespace PerfumeTracker.Server.Models;
 
 public partial class Perfume
 {

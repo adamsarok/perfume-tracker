@@ -1,7 +1,7 @@
 "use server";
 
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
-import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
+import { PerfumeUploadDTO, UpdatePerfumeRequest } from "@/dto/PerfumeUploadDTO";
 import { PerfumeStatsDTO } from "@/dto/PerfumeStatsDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";
@@ -39,7 +39,7 @@ export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {
   const qry = `${apiAddress}/perfumes/`;
   const response = await fetch(qry);
   if (!response.ok) {
-    throw new Error("Failed to fetch perfumes");
+    throw new Error(`Failed to fetch perfumes: ${response.status} ${response.statusText} from ${apiAddress}`);
   }
   const perfumes: PerfumeWithWornStatsDTO[] = await response.json();
   return perfumes;
@@ -78,12 +78,13 @@ export async function updatePerfume(
   perfume: PerfumeUploadDTO
 ): Promise<ActionResultID> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${apiAddress}/perfumes/${perfume.id}`, {
+  const req: UpdatePerfumeRequest = { perfume };
+  const response = await fetch(`${apiAddress}/perfumes/`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(perfume),
+    body: JSON.stringify(req),
   });
 
   if (!response.ok)

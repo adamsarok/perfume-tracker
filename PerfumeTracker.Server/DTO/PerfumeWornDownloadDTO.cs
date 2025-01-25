@@ -1,5 +1,5 @@
 using System;
-using PerfumeTrackerAPI.DTO;
+using PerfumeTracker.Server.DTO;
 
 namespace PerfumeTracker.Server.DTO;
 

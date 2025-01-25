@@ -1,10 +1,10 @@
 ﻿using Mapster;
 using Microsoft.EntityFrameworkCore;
-using PerfumeTrackerAPI.DTO;
-using PerfumeTrackerAPI.Models;
-using static PerfumeTrackerAPI.Repo.ResultType;
+using PerfumeTracker.Server.DTO;
+using PerfumeTracker.Server.Models;
+using static PerfumeTracker.Server.Repo.ResultType;
 
-namespace PerfumeTrackerAPI.Repo {
+namespace PerfumeTracker.Server.Repo {
     public class TagRepo(PerfumetrackerContext context) {
         public record TagResult(ResultTypes ResultType, TagDTO? Tag = null, string ErrorMsg = null);
         public async Task<List<TagStatDTO>> GetTagStats() {

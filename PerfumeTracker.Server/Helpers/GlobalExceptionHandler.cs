@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace PerfumeTrackerAPI.Server.Helpers {
+namespace PerfumeTracker.Server.Server.Helpers {
     public sealed class GlobalExceptionHandler : IExceptionHandler {
         private readonly ILogger<GlobalExceptionHandler> _logger;
 

@@ -14,3 +14,7 @@ export interface PerfumeUploadDTO {
     winter: boolean;
     tags: TagDTO[]
 }
+
+export interface UpdatePerfumeRequest {
+    perfume: PerfumeUploadDTO
+}
