@@ -1,8 +1,8 @@
 ﻿using Mapster;
-using PerfumeTracker.Server.DTO;
-using PerfumeTracker.Server.Models;
+using PerfumeTrackerAPI.DTO;
+using PerfumeTrackerAPI.Models;
 
-namespace PerfumeTracker.Server.Helpers {
+namespace PerfumeTrackerAPI.Helpers {
     public static class MapsterConfig {
         public static void RegisterMapsterConfiguration(this IServiceCollection services) {
 

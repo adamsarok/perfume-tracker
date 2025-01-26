@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace PerfumeTracker.Server.Models;
+namespace PerfumeTrackerAPI.Models;
 
 public partial class PerfumetrackerContext : DbContext
 {
@@ -29,7 +29,7 @@ public partial class PerfumetrackerContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        //modelBuilder.HasPostgresExtension("pgagent", "pgagent");
+        modelBuilder.HasPostgresExtension("pgagent", "pgagent");
 
         modelBuilder.Entity<Perfume>(entity =>
         {

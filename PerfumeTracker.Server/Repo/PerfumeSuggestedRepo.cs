@@ -1,7 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.Models;
-using static PerfumeTracker.Server.Repo.ResultType;
+using PerfumeTrackerAPI.Models;
+using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace PerfumeTracker.Server.Repo;
 

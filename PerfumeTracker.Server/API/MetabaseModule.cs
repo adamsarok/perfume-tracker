@@ -1,7 +1,7 @@
 ﻿using Carter;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
-using PerfumeTracker.Server.Repo;
+using PerfumeTrackerAPI.Repo;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;

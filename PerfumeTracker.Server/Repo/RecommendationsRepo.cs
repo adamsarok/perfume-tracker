@@ -2,8 +2,8 @@ using System;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using PerfumeTracker.Server.DTO;
-using PerfumeTracker.Server.Models;
-using static PerfumeTracker.Server.Repo.ResultType;
+using PerfumeTrackerAPI.Models;
+using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace PerfumeTracker.Server.Repo;
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PerfumeTracker.Server.Models;
+namespace PerfumeTrackerAPI.Models;
 
 public partial class PerfumeWorn
 {

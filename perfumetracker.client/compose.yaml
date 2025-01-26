@@ -27,6 +27,7 @@ services:
       ports:
         - 3000:3000
       environment:
+        - DATABASE_URL=postgresql://postgres:password@db:5432/perfumetracker
         - R2_API_ADDRESS=http://r2-api-go:8080
       restart: unless-stopped
       depends_on:

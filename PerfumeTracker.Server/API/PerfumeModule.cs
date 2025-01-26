@@ -1,9 +1,9 @@
 
 using Carter;
 using PerfumeTracker.Server.DTO;
-using PerfumeTracker.Server.DTO;
-using PerfumeTracker.Server.Repo;
-using static PerfumeTracker.Server.Repo.ResultType;
+using PerfumeTrackerAPI.DTO;
+using PerfumeTrackerAPI.Repo;
+using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace FountainPensNg.Server.API {
     public class PerfumeModule : ICarterModule {
@@ -33,16 +33,16 @@ namespace FountainPensNg.Server.API {
             }).WithTags("Perfumes")
                 .WithName("GetPerfume");
 
-            //app.MapPut("/api/perfumes/{id}", async (int id, PerfumeDTO dto, PerfumeRepo repo) => {
-            //    var result = await repo.UpdatePerfume(id, dto);
-            //    return result.ResultType switch {
-            //        ResultTypes.Ok => Results.Ok(result.Perfume),
-            //        ResultTypes.NotFound => Results.NotFound(),
-            //        ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
-            //        _ => Results.InternalServerError()
-            //    };
-            //}).WithTags("Perfumes")
-            //    .WithName("UpdatePerfume");
+            app.MapPut("/api/perfumes/{id}", async (int id, PerfumeDTO dto, PerfumeRepo repo) => {
+                var result = await repo.UpdatePerfume(id, dto);
+                return result.ResultType switch {
+                    ResultTypes.Ok => Results.Ok(result.Perfume),
+                    ResultTypes.NotFound => Results.NotFound(),
+                    ResultTypes.BadRequest => Results.BadRequest(result.ErrorMsg),
+                    _ => Results.InternalServerError()
+                };
+            }).WithTags("Perfumes")
+                .WithName("UpdatePerfume");
 
             app.MapPut("/api/perfumes/imageguid", async (ImageGuidDTO dto, PerfumeRepo repo) => {
                 var result = await repo.UpdatePerfumeImageGuid(dto);

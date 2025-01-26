@@ -1,10 +1,10 @@
 using Carter;
 using Microsoft.EntityFrameworkCore;
 using PerfumeTracker.Server.Repo;
-//using PerfumeTracker.Server.Migrations;
-using PerfumeTracker.Server.Models;
-using PerfumeTracker.Server.Server.Helpers;
-using PerfumeTracker.Server.Behaviors;
+//using PerfumeTrackerAPI.Migrations;
+using PerfumeTrackerAPI.Models;
+using PerfumeTrackerAPI.Repo;
+using PerfumeTrackerAPI.Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,12 +24,6 @@ builder.Services.AddScoped<PerfumeWornRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
 builder.Services.AddCarter();
-var assembly = typeof(Program).Assembly;
-builder.Services.AddMediatR(config => {
-	config.RegisterServicesFromAssembly(assembly);
-	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-	config.AddOpenBehavior(typeof(LoggingBehavior<,>));
-});
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 

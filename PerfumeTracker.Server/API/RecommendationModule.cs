@@ -2,7 +2,7 @@ using System;
 using Carter;
 using PerfumeTracker.Server.DTO;
 using PerfumeTracker.Server.Repo;
-using static PerfumeTracker.Server.Repo.ResultType;
+using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace PerfumeTracker.Server.API;
 

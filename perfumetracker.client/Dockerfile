@@ -1,5 +1,7 @@
 FROM node:18-alpine AS base
 
+ARG DATABASE_URL
+
 # Install dependencies only when needed
 FROM base AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
@@ -23,6 +25,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ENV DATABASE_URL=$DATABASE_URL
 ENV OPENAI_API_KEY="placeholder"
 
 # Next.js collects completely anonymous telemetry data about general usage.

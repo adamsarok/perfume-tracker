@@ -1,5 +1,5 @@
-﻿using PerfumeTracker.Server.Models;
+﻿using PerfumeTrackerAPI.Models;
 
-namespace PerfumeTracker.Server.DTO {
+namespace PerfumeTrackerAPI.DTO {
 	public record PerfumeWithWornStatsDTO(PerfumeDTO Perfume, int WornTimes, DateTime? LastWorn, List<TagDTO> Tags);
 }

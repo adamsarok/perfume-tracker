@@ -1,8 +1,8 @@
 
 using Carter;
-using PerfumeTracker.Server.DTO;
-using PerfumeTracker.Server.Repo;
-using static PerfumeTracker.Server.Repo.ResultType;
+using PerfumeTrackerAPI.DTO;
+using PerfumeTrackerAPI.Repo;
+using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace FountainPensNg.Server.API {
     public class TagModule : ICarterModule {

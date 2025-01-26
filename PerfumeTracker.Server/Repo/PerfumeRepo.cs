@@ -1,10 +1,11 @@
 ﻿using Mapster;
 using Microsoft.EntityFrameworkCore;
 using PerfumeTracker.Server.DTO;
-using PerfumeTracker.Server.Models;
-using static PerfumeTracker.Server.Repo.ResultType;
+using PerfumeTrackerAPI.DTO;
+using PerfumeTrackerAPI.Models;
+using static PerfumeTrackerAPI.Repo.ResultType;
 
-namespace PerfumeTracker.Server.Repo {
+namespace PerfumeTrackerAPI.Repo {
 	public class PerfumeRepo(PerfumetrackerContext context) {
 		public async Task<List<PerfumeWithWornStatsDTO>> GetPerfumesWithWorn(string fulltext = null) {
 #warning TODO split query https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
