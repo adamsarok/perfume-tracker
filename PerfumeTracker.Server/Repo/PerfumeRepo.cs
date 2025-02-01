@@ -8,7 +8,6 @@ using static PerfumeTrackerAPI.Repo.ResultType;
 namespace PerfumeTrackerAPI.Repo {
 	public class PerfumeRepo(PerfumetrackerContext context) {
 		public async Task<List<PerfumeWithWornStatsDTO>> GetPerfumesWithWorn(string fulltext = null) {
-#warning TODO split query https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
 			var raw = await context
 				.Perfumes
 				.Where(p => string.IsNullOrWhiteSpace(fulltext)
@@ -18,6 +17,8 @@ namespace PerfumeTrackerAPI.Repo {
 				.Include(t => t.PerfumeTags)
 				.ThenInclude(pt => pt.Tag)
 				.Include(w => w.PerfumeWorns)
+				.AsSplitQuery()
+				.AsNoTracking()
 				.ToListAsync();
 			var result = new List<PerfumeWithWornStatsDTO>();
 			foreach (var r in raw) {
@@ -27,13 +28,14 @@ namespace PerfumeTrackerAPI.Repo {
 			return result;
 		}
 		public async Task<PerfumeWithWornStatsDTO?> GetPerfumeWithWorn(int id) {
-#warning TODO split query https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
 			var raw = await context
 				.Perfumes
 				.Where(p => p.Id == id)
 				.Include(t => t.PerfumeTags)
 				.ThenInclude(pt => pt.Tag)
 				.Include(w => w.PerfumeWorns)
+				.AsSplitQuery()
+				.AsNoTracking()
 				.FirstOrDefaultAsync();
 			return GetPerfumeWornDTO(raw);
 		}
