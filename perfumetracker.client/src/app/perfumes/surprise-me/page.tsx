@@ -25,7 +25,7 @@ export default async function SuprisePerfumePage() {
   });
   return (
     <PerfumeEditForm
-      perfume={perfume}
+      perfumeWithWornStats={perfume}
       perfumesTags={tags}
       allTags={allTags}
       r2_api_address={R2_API_ADDRESS}
