@@ -4,7 +4,6 @@ import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { PerfumeStatsDTO } from "@/dto/PerfumeStatsDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
-import { PerfumeDTO } from "@/dto/PerfumeDTO";
 import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
 import { ActionResultID } from "@/dto/ActionResultID";
 
@@ -23,14 +22,14 @@ export async function getPerfumesFulltext(
   return perfumes;
 }
 
-export async function getPerfume(id: number): Promise<PerfumeDTO> {
+export async function getPerfume(id: number): Promise<PerfumeWithWornStatsDTO> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const qry = `${apiAddress}/perfumes/${encodeURIComponent(id)}`;
   const response = await fetch(qry);
   if (!response.ok) {
     throw new Error("Failed to fetch perfume");
   }
-  const perfume: PerfumeDTO = await response.json();
+  const perfume: PerfumeWithWornStatsDTO = await response.json();
   return perfume;
 }
 

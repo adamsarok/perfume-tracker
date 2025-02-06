@@ -72,35 +72,37 @@ export default function ChipClouds({
             </div>
           ))}
       </div>
-      Available tags:
-      <div className={styles.chipContainer}>
-        <Card>
-          <CardHeader>
-            <div key="New" className={styles.chipItem}>
-              <TagAddModal tagAdded={handleModalClose}></TagAddModal>
-            </div>
-          </CardHeader>
-        </Card>
-        {Object.keys(groupedChips)
-          .sort()
-          .map((letter) => (
-            <Card key={letter} className={styles.chipGroup}>
-              <CardHeader>
-                {letter}
-                {groupedChips[letter].map((c) => (
-                  <div key={c.name} className={styles.chipItem}>
-                    <ColorChip
-                      className={c.className}
-                      color={c.color}
-                      name={c.name}
-                      onChipClick={() => handleBottomChipClick(c)}
-                    />
-                  </div>
-                ))}
-              </CardHeader>
-            </Card>
-          ))}
-      </div>
+      <details>
+        <summary>Available tags:</summary>
+        <div className={styles.chipContainer}>
+          <Card>
+            <CardHeader>
+              <div key="New" className={styles.chipItem}>
+                <TagAddModal tagAdded={handleModalClose}></TagAddModal>
+              </div>
+            </CardHeader>
+          </Card>
+          {Object.keys(groupedChips)
+            .sort()
+            .map((letter) => (
+              <Card key={letter} className={styles.chipGroup}>
+                <CardHeader>
+                  {letter}
+                  {groupedChips[letter].map((c) => (
+                    <div key={c.name} className={styles.chipItem}>
+                      <ColorChip
+                        className={c.className}
+                        color={c.color}
+                        name={c.name}
+                        onChipClick={() => handleBottomChipClick(c)}
+                      />
+                    </div>
+                  ))}
+                </CardHeader>
+              </Card>
+            ))}
+        </div>
+      </details>
     </div>
   );
 }

@@ -22,34 +22,68 @@ export default function RootLayout({
       <body className={inter.className}>
         <ToastContainer position="top-right" />
         <div className="max-w-lg mx-auto px-4 py-8">
-          <div className="flex items-center space-x-2 mb-2">
-            <a className="menuButton" color="foreground" href="/">
-              Home
-            </a>
-            <a className="menuButton" color="foreground" href="/perfumes/surprise-me">
-              Surprise me!
-            </a>
-            <a className="menuButton" color="foreground" href="/perfumes/new-perfume">
-              New Perfume
-            </a>
-            <a className="menuButton" color="foreground" href="/perfumes">
-              Perfumes
-            </a>
-          </div>
-          <div className="flex items-center space-x-2">
-            <a className="menuButton" color="foreground" href="/stats">
-              Stats
-            </a>
-            <a className="menuButton" color="foreground" href="/tags">
-              Tags
-            </a>
-            <a className="menuButton" color="foreground" href="/recommendations">
-              Recommendations
-            </a>
-            <a className="menuButton" color="foreground" href="/dashboard">
-              Dashboard
-            </a>
-          </div>
+          <details>
+            <summary>Menu</summary>
+            <div className="flex items-center space-x-2 mb-2">
+              <a className="menuButton" color="foreground" href="/">
+                Home
+              </a>
+              <a
+                className="menuButton flex-auto"
+                color="foreground"
+                href="/perfumes/surprise-me"
+              >
+                Surprise me!
+              </a>
+              <a
+                className="menuButton flex-auto"
+                color="foreground"
+                href="/perfumes/new-perfume"
+              >
+                New Perfume
+              </a>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+              <a
+                className="menuButton flex-auto"
+                color="foreground"
+                href="/perfumes"
+              >
+                Perfumes
+              </a>
+
+              <a
+                className="menuButton flex-auto"
+                color="foreground"
+                href="/stats"
+              >
+                Stats
+              </a>
+              <a
+                className="menuButton flex-auto"
+                color="foreground"
+                href="/tags"
+              >
+                Tags
+              </a>
+              </div>
+              <div className="flex items-center space-x-2">
+              <a
+                className="menuButton flex-auto"
+                color="foreground"
+                href="/recommendations"
+              >
+                Ai
+              </a>
+              <a
+                className="menuButton flex-auto"
+                color="foreground"
+                href="/dashboard"
+              >
+                Dashboard
+              </a>
+            </div>
+          </details>
           {children}
         </div>
       </body>

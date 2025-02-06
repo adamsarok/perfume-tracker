@@ -15,6 +15,20 @@
   border-radius: 1px;
   padding-left: 10px;
   padding-right: 10px;
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+details {
+  margin-right: 4px;
+  border-style: dotted;
+  border-width: 2px;
+  border-radius: 1px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 4px;
 }
 
 @layer base {

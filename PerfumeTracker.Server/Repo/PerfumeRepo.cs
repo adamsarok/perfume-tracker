@@ -27,7 +27,7 @@ namespace PerfumeTrackerAPI.Repo {
 			}
 			return result;
 		}
-		public async Task<PerfumeWithWornStatsDTO?> GetPerfumeWithWorn(int id) {
+		public async Task<PerfumeWithWornStatsDTO?> GetPerfume(int id) {
 			var raw = await context
 				.Perfumes
 				.Where(p => p.Id == id)
@@ -38,20 +38,6 @@ namespace PerfumeTrackerAPI.Repo {
 				.AsNoTracking()
 				.FirstOrDefaultAsync();
 			return GetPerfumeWornDTO(raw);
-		}
-		public async Task<PerfumeDTO?> GetPerfume(int id) {
-			var r = await context
-				.Perfumes
-				.Where(p => p.Id == id)
-				.Include(t => t.PerfumeTags)
-				.ThenInclude(pt => pt.Tag)
-				.Select(x => new PerfumeDTO(
-					x.Id, x.House, x.PerfumeName, x.Rating, x.Notes, x.Ml, x.ImageObjectKey, x.Autumn, x.Spring, x.Summer, x.Winter,
-						x.PerfumeTags.Select(t => new TagDTO(t.Tag.TagName, t.Tag.Color, t.Tag.Id)).ToList()
-					)
-				)
-				.FirstOrDefaultAsync();
-			return r;
 		}
 		public async Task<PerfumeStatDTO> GetPerfumeStats() {
 			var raw = await context
