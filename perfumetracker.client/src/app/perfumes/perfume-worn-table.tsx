@@ -7,20 +7,14 @@ import ChipClouds from "../../components/chip-clouds";
 import { ChipProp } from "../../components/color-chip";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getPerfumesFulltext } from "@/services/perfume-service";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { TagDTO } from "@/dto/TagDTO";
+import { columns, PerfumeListDTO } from "./perfume-worn-columns";
+import { DataTable } from "@/components/ui/data-table";
 
 export interface PerfumeWornTableProps {
   allTags: TagDTO[];
@@ -32,37 +26,47 @@ export default function PerfumeWornTable({
   const [fulltext, setFulltext] = useState("");
   const list = useAsyncList({
     async load() {
-      const perfumes: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext)
+      const r: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext)
+      const perfumes: PerfumeListDTO[] = r.map(x => ({ 
+        id: x.perfume.id,
+        house: x.perfume.house,
+        perfume: x.perfume.perfumeName,
+        ml: x.perfume.ml,
+        rating: x.perfume.rating,
+        wornTimes: x.wornTimes,
+        lastWorn: x.lastWorn,
+        tags: x.perfume.tags, 
+      }));
       console.log(perfumes);
       //TODO: move filtering to server side
-      let items: PerfumeWithWornStatsDTO[];
+      let items: PerfumeListDTO[];
       switch (selected) {
         case "all":
           items = perfumes;
           break;
         case "favorites":
           items = perfumes.filter(
-            (x) => x.perfume.rating >= 8 && x.perfume.ml > 0
+            (x) => x.rating >= 8 && x.ml > 0
           );
           break;
         case "buy-list":
           items = perfumes.filter(
-            (x) => x.perfume.rating >= 8 && x.perfume.ml <= 0
+            (x) => x.rating >= 8 && x.ml <= 0
           );
           break;
         case "untagged":
           items = perfumes.filter(
             (x) =>
-              x.perfume.tags.length === 0 && x.perfume.rating >= 8 && x.perfume.ml > 0
+              x.tags.length === 0 && x.rating >= 8 && x.ml > 0
           );
           break;
         case "tag-filter":
           items = perfumes.filter((perfume) => {
             return (
-              perfume.perfume.rating >= 8 &&
-              perfume.perfume.ml > 0 &&
+              perfume.rating >= 8 &&
+              perfume.ml > 0 &&
               tags.every((tag) =>
-                perfume.perfume.tags.some((perfumeTag) => perfumeTag.id === tag.id)
+                perfume.tags.some((perfumeTag) => perfumeTag.id === tag.id)
               )
             );
           });
@@ -73,60 +77,6 @@ export default function PerfumeWornTable({
       }
       return {
         items: items,
-      };
-    },
-    async sort({
-      items,
-      sortDescriptor,
-    }: {
-      items: PerfumeWithWornStatsDTO[];
-      sortDescriptor: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-    }) {
-      //TODO: figure this out with Shadcn: SortDescriptor
-      return {
-        items: items.sort((a, b) => {
-          const compare = (first: string, second: string) => {
-            if (!first && !second) return 0;
-            if (!first) return 1;
-            if (!second) return -1;
-            let cmp =
-              (parseInt(first) || first) < (parseInt(second) || second)
-                ? -1
-                : 1;
-            if (sortDescriptor.direction === "descending") {
-              cmp *= -1;
-            }
-            return cmp;
-          };
-
-          switch (sortDescriptor.column) {
-            case "house":
-              return compare(a.perfume.house, b.perfume.house);
-            case "perfume":
-              return compare(a.perfume.perfumeName, b.perfume.perfumeName);
-            case "ml":
-                return compare(
-                  a.perfume.ml.toString(),
-                  b.perfume.ml.toString()
-              );  
-            case "rating":
-              return compare(
-                a.perfume.rating.toString(),
-                b.perfume.rating.toString()
-              );
-            case "wornTimes":
-              return compare(
-                (a.wornTimes ?? 0).toString(),
-                (b.wornTimes ?? 0).toString()
-              );
-            case "lastWorn":
-              return compare(
-                a.lastWorn?.toDateString() ?? "",
-                b.lastWorn?.toDateString() ?? ""
-              );
-          }
-          return 0;
-        }),
       };
     },
   });
@@ -220,59 +170,9 @@ export default function PerfumeWornTable({
         />
       )}
       <Separator></Separator>
-      <Table
-      // sortDescriptor={list.sortDescriptor}
-      // onSortChange={list.sort}
-      >
-        <TableHeader>
-          <TableRow>
-            <TableHead key="house">House</TableHead>
-            <TableHead key="perfume">Perfume</TableHead>
-            <TableHead key="ml">Ml</TableHead>
-            <TableHead key="rating">Rating</TableHead>
-            <TableHead key="wornTimes">Worn X times</TableHead>
-            <TableHead key="lastWorn">Last worn</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {list.items.map((perfume) => (
-            <TableRow key={perfume.perfume.id}>
-              <TableCell>
-                <a href={`/perfumes/${perfume.perfume.id}/`}>
-                  {perfume.perfume.house}
-                </a>
-              </TableCell>
-              <TableCell>
-                <a href={`/perfumes/${perfume.perfume.id}/`}>
-                  {perfume.perfume.perfumeName}
-                </a>
-              </TableCell>
-              <TableCell>
-                <a href={`/perfumes/${perfume.perfume.id}/`}>
-                  {perfume.perfume.ml}
-                </a>
-              </TableCell>
-              <TableCell>
-                <a href={`/perfumes/${perfume.perfume.id}/`}>
-                  {perfume.perfume.rating}
-                </a>
-              </TableCell>
-              <TableCell>
-                <a href={`/perfumes/${perfume.perfume.id}/`}>
-                  {perfume.wornTimes}
-                </a>
-              </TableCell>
-              <TableCell>
-                <a href={`/perfumes/${perfume.perfume.id}/`}>
-                  {perfume.lastWorn
-                    ? new Date(perfume.lastWorn).toDateString()
-                    : ""}
-                </a>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <div className="container mx-auto py-4">
+        <DataTable columns={columns} data={list.items} />
+      </div>
     </div>
   );
 }
