@@ -111,6 +111,7 @@ export default function PerfumeEditForm({
       })),
     };
     let result: ActionResultID;
+    console.log(id);
     if (!id) result = await addPerfume(perf);
     else result = await updatePerfume(perf);
     console.log(result);

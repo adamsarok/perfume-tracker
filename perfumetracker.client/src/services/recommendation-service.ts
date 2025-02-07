@@ -77,7 +77,7 @@ function aggregatePerfumesTags(
   //TODO: fix logical issue - worncount is calculated in repo and thus not filtered for 3 days
 
   const acc = perfumes.reduce((acc, perfume) => {
-    perfume.tags.forEach((t) => {
+    perfume.perfume.tags.forEach((t) => {
       if (!acc[t.id]) {
         acc[t.id] = {
           id: t.id,

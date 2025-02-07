@@ -12,9 +12,7 @@ import { PerfumeStatsDTO } from "@/dto/PerfumeStatsDTO";
 
 export const dynamic = 'force-dynamic'
 
-interface TagStats {
-    [key: string]: TagStatDTO;
-}
+type TagStats = Record<string, TagStatDTO>;
 
 export default function StatsComponent() {
     const [tagStats, setTagStats] = useState<TagStats>();

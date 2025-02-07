@@ -33,6 +33,7 @@ export default function PerfumeWornTable({
   const list = useAsyncList({
     async load() {
       const perfumes: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext)
+      console.log(perfumes);
       //TODO: move filtering to server side
       let items: PerfumeWithWornStatsDTO[];
       switch (selected) {
@@ -52,7 +53,7 @@ export default function PerfumeWornTable({
         case "untagged":
           items = perfumes.filter(
             (x) =>
-              x.tags.length === 0 && x.perfume.rating >= 8 && x.perfume.ml > 0
+              x.perfume.tags.length === 0 && x.perfume.rating >= 8 && x.perfume.ml > 0
           );
           break;
         case "tag-filter":
@@ -61,7 +62,7 @@ export default function PerfumeWornTable({
               perfume.perfume.rating >= 8 &&
               perfume.perfume.ml > 0 &&
               tags.every((tag) =>
-                perfume.tags.some((perfumeTag) => perfumeTag.id === tag.id)
+                perfume.perfume.tags.some((perfumeTag) => perfumeTag.id === tag.id)
               )
             );
           });
@@ -103,6 +104,11 @@ export default function PerfumeWornTable({
               return compare(a.perfume.house, b.perfume.house);
             case "perfume":
               return compare(a.perfume.perfumeName, b.perfume.perfumeName);
+            case "ml":
+                return compare(
+                  a.perfume.ml.toString(),
+                  b.perfume.ml.toString()
+              );  
             case "rating":
               return compare(
                 a.perfume.rating.toString(),
@@ -129,7 +135,7 @@ export default function PerfumeWornTable({
     list.reload(); // Call the reload method to refresh the list
   };
 
-  const [selected, setSelected] = React.useState("favorites");
+  const [selected, setSelected] = React.useState("all");
   const [isChipCloudVisible, setIsChipCloudVisible] = useState(true);
   const [tags, setTags] = useState<TagDTO[]>([]);
   const selectChip = (chip: string) => {
@@ -180,9 +186,13 @@ export default function PerfumeWornTable({
         id="filtering"
         orientation="horizontal"
         onValueChange={setSelected}
-        defaultValue="favorites"
+        defaultValue="all"
         className="mb-4"
       >
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="all" id="all" />
+          <Label htmlFor="all">All</Label>
+        </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="favorites" id="favorites" />
           <Label htmlFor="favorites">Favorites</Label>
@@ -194,10 +204,6 @@ export default function PerfumeWornTable({
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="untagged" id="untagged" />
           <Label htmlFor="untagged">Untagged</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="all" id="all" />
-          <Label htmlFor="all">All</Label>
         </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="tag-filter" id="tag-filter" />
@@ -222,7 +228,7 @@ export default function PerfumeWornTable({
           <TableRow>
             <TableHead key="house">House</TableHead>
             <TableHead key="perfume">Perfume</TableHead>
-            <TableHead key="notes">Notes</TableHead>
+            <TableHead key="ml">Ml</TableHead>
             <TableHead key="rating">Rating</TableHead>
             <TableHead key="wornTimes">Worn X times</TableHead>
             <TableHead key="lastWorn">Last worn</TableHead>
@@ -243,7 +249,7 @@ export default function PerfumeWornTable({
               </TableCell>
               <TableCell>
                 <a href={`/perfumes/${perfume.perfume.id}/`}>
-                  {perfume.perfume.notes}
+                  {perfume.perfume.ml}
                 </a>
               </TableCell>
               <TableCell>

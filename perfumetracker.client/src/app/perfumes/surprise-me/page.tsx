@@ -16,7 +16,7 @@ export default async function SuprisePerfumePage() {
   if (!perfume) return notFound();
   const allTags = await getTags();
   const tags: TagDTO[] = [];
-  perfume?.tags.map((x) => {
+  perfume?.perfume.tags.map((x) => {
     tags.push({
       id: x.id,
       tagName: x.tagName,

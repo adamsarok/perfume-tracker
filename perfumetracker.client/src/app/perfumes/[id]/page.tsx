@@ -23,7 +23,7 @@ export default async function EditPerfumePage(props: EditPerfumePageProps) {
     //TODO: clean DB from pages
     const allTags = await getTags();
     const tags: TagDTO[] = [];
-    perfume.tags.map(x => {
+    perfume.perfume.tags.map(x => {
         tags.push({
             id: x.id,
             tagName: x.tagName,

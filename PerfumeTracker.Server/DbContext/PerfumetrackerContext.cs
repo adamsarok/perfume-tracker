@@ -82,7 +82,8 @@ public partial class PerfumetrackerContext : DbContext
             // entity.Property(e => e.PerfumeId).HasColumnName("perfumeId");
             // entity.Property(e => e.Created_At);
 
-            entity.HasOne(d => d.Perfume).WithMany(p => p.PerfumeSuggesteds)
+            entity.HasOne(d => d.Perfume)
+                .WithMany(p => p.PerfumeSuggesteds)
                 .HasForeignKey(d => d.PerfumeId)
                 .HasConstraintName("PerfumeSuggested_perfumeId_fkey");
         });
@@ -119,7 +120,8 @@ public partial class PerfumetrackerContext : DbContext
             //     .HasColumnType("timestamp(3) without time zone")
             //     .HasColumnName("wornOn");
 
-            entity.HasOne(d => d.Perfume).WithMany(p => p.PerfumeWorns)
+            entity.HasOne(d => d.Perfume)
+                .WithMany(p => p.PerfumeWorns)
                 .HasForeignKey(d => d.PerfumeId)
                 .HasConstraintName("PerfumeWorn_perfumeId_fkey");
         });

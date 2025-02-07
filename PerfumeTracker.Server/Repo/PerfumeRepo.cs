@@ -14,30 +14,54 @@ namespace PerfumeTrackerAPI.Repo {
 					|| p.FullText.Matches(EF.Functions.ToTsQuery($"{fulltext}:*"))
 					|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, fulltext))
 					)
-				.Include(t => t.PerfumeTags)
-				.ThenInclude(pt => pt.Tag)
-				.Include(w => w.PerfumeWorns)
+				.Select(p => new PerfumeWithWornStatsDTO(
+					 new PerfumeDTO(
+						p.Id,
+						p.House,
+						p.PerfumeName,
+						p.Rating,
+						p.Notes,
+						p.Ml,
+						p.ImageObjectKey,
+						p.Autumn,
+						p.Spring,
+						p.Summer,
+						p.Winter,
+						p.PerfumeTags.Select(tag => new TagDTO(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
+					  ),
+					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count() : 0,
+					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null
+				))
 				.AsSplitQuery()
 				.AsNoTracking()
 				.ToListAsync();
-			var result = new List<PerfumeWithWornStatsDTO>();
-			foreach (var r in raw) {
-				var dto = GetPerfumeWornDTO(r);
-				if (dto != null) result.Add(dto);
-			}
-			return result;
+			return raw;
 		}
 		public async Task<PerfumeWithWornStatsDTO?> GetPerfume(int id) {
-			var raw = await context
+			return await context
 				.Perfumes
 				.Where(p => p.Id == id)
-				.Include(t => t.PerfumeTags)
-				.ThenInclude(pt => pt.Tag)
-				.Include(w => w.PerfumeWorns)
+				.Select(p => new PerfumeWithWornStatsDTO(
+					  new PerfumeDTO(
+						p.Id,
+						p.House,
+						p.PerfumeName,
+						p.Rating,
+						p.Notes,
+						p.Ml,
+						p.ImageObjectKey,
+						p.Autumn,
+						p.Spring,
+						p.Summer,
+						p.Winter,
+						p.PerfumeTags.Select(tag => new TagDTO(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
+					  ),
+					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count() : 0,
+					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null
+				))
 				.AsSplitQuery()
 				.AsNoTracking()
 				.FirstOrDefaultAsync();
-			return GetPerfumeWornDTO(raw);
 		}
 		public async Task<PerfumeStatDTO> GetPerfumeStats() {
 			var raw = await context
@@ -50,15 +74,6 @@ namespace PerfumeTrackerAPI.Repo {
 				.ToListAsync();
 			if (raw != null && raw.Count > 0) return raw[0];
 			return new PerfumeStatDTO(0, 0, 0);
-		}
-		private PerfumeWithWornStatsDTO? GetPerfumeWornDTO(Perfume? r) {
-			if (r == null) return null;
-			var dto = new PerfumeWithWornStatsDTO(r.Adapt<PerfumeDTO>(),
-				r.PerfumeWorns.Any() ? r.PerfumeWorns.Count() : 0, 
-				r.PerfumeWorns.Any() ? r.PerfumeWorns.Max(x => x.Created_At) : null,
-				r.PerfumeTags.Select(tag => new TagDTO(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
-			);
-			return dto;
 		}
 		public record PerfumeResult(ResultTypes ResultType, PerfumeDTO? Perfume = null, string ErrorMsg = null);
 		public async Task<PerfumeResult> AddPerfume(PerfumeDTO dto) {
@@ -77,7 +92,8 @@ namespace PerfumeTrackerAPI.Repo {
 				}
 				await context.SaveChangesAsync();
 				return new PerfumeResult(ResultTypes.Ok, perfume.Adapt<PerfumeDTO>());
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				return new PerfumeResult(ResultTypes.BadRequest, null, ex.Message);
 			}
 		}
