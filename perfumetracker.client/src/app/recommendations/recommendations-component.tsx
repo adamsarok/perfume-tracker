@@ -98,14 +98,12 @@ export default function RecommendationsComponent({
             ? "Based on the last 3 perfumes you wore:"
             : "Based on the notes of the last 3 perfumes you wore:"}
           {perfumesOrNotes === "perfumes"
-            ? userPreferences.last3perfumes.perfumes &&
-              userPreferences.last3perfumes.perfumes.map((p) => (
+            ? userPreferences.last3perfumes.perfumes?.map((p) => (
                 <div key={p.perfume.id}>
                   {p.perfume.house} - {p.perfume.perfumeName}
                 </div>
               ))
-            : userPreferences.last3perfumes.tags &&
-              userPreferences.last3perfumes.tags.map((t) => (
+            : userPreferences.last3perfumes.tags?.map((t) => (
                 <div key={t.id}>
                   <ColorChip
                     name={`${t.tag} - ${t.wornCount}`}

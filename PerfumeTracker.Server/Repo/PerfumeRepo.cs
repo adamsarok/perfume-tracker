@@ -29,7 +29,7 @@ namespace PerfumeTrackerAPI.Repo {
 						p.Winter,
 						p.PerfumeTags.Select(tag => new TagDTO(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
 					  ),
-					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count() : 0,
+					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count : 0,
 					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null
 				))
 				.AsSplitQuery()
@@ -56,7 +56,7 @@ namespace PerfumeTrackerAPI.Repo {
 						p.Winter,
 						p.PerfumeTags.Select(tag => new TagDTO(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
 					  ),
-					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count() : 0,
+					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count : 0,
 					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null
 				))
 				.AsSplitQuery()

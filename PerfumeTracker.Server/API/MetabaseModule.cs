@@ -32,7 +32,7 @@ namespace PerfumeTracker.Server.API {
                 .WithName("GetDashboardUrl");
         }
 
-        private string getToken(int dashboardId, string apiKey) {
+        private static string getToken(int dashboardId, string apiKey) {
             var securityKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKey));
             var credentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
             var header = new JwtHeader(credentials);

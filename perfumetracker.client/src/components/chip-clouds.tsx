@@ -8,11 +8,11 @@ import { Card, CardHeader } from "./ui/card";
 import { TagDTO } from "@/dto/TagDTO";
 
 export interface ChipCloudProps {
-  topChipProps: ChipProp[];
-  bottomChipProps: ChipProp[];
-  selectChip: (chip: string) => void;
-  unSelectChip: (chip: string) => void;
-  className: string;
+  readonly topChipProps: ChipProp[];
+  readonly bottomChipProps: ChipProp[];
+  readonly selectChip: (chip: string) => void;
+  readonly unSelectChip: (chip: string) => void;
+  readonly className: string;
 }
 
 export default function ChipClouds({
