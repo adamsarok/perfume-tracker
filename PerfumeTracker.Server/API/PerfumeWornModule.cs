@@ -1,6 +1,6 @@
 using System;
 using Carter;
-using PerfumeTracker.Server.DTO;
+using PerfumeTracker.Server.Dto;
 using PerfumeTracker.Server.Repo;
 using static PerfumeTrackerAPI.Repo.ResultType;
 
@@ -18,7 +18,7 @@ public class PerfumeWornModule : ICarterModule {
             .WithTags("PerfumeWorns")
             .WithName("GetPerfumesBefore");
 
-        app.MapPost("/api/perfumeworns", async (PerfumeWornUploadDTO dto, PerfumeWornRepo repo) => {
+        app.MapPost("/api/perfumeworns", async (PerfumeWornUploadDto dto, PerfumeWornRepo repo) => {
             var result = await repo.AddPerfumeWorn(dto);
             return result.ResultType switch {
                 ResultTypes.Ok => Results.CreatedAtRoute("GetPerfumeWorns", new { id = result.worn?.Id }, result.worn),

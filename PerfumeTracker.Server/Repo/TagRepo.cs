@@ -1,16 +1,16 @@
 ﻿using Mapster;
 using Microsoft.EntityFrameworkCore;
-using PerfumeTrackerAPI.DTO;
+using PerfumeTrackerAPI.Dto;
 using PerfumeTrackerAPI.Models;
 using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace PerfumeTrackerAPI.Repo {
     public class TagRepo(PerfumetrackerContext context) {
-        public record TagResult(ResultTypes ResultType, TagDTO? Tag = null, string ErrorMsg = null);
-        public async Task<List<TagStatDTO>> GetTagStats() {
+        public record TagResult(ResultTypes ResultType, TagDto? Tag = null, string ErrorMsg = null);
+        public async Task<List<TagStatDto>> GetTagStats() {
             return await context
                 .Tags
-                .Select(x => new TagStatDTO(
+                .Select(x => new TagStatDto(
                     x.Id,
                     x.TagName,
                     x.Color,
@@ -18,28 +18,28 @@ namespace PerfumeTrackerAPI.Repo {
                     x.PerfumeTags.Sum(pt => pt.Perfume.PerfumeWorns.Count)
                  )).ToListAsync();
         }
-        public async Task<List<TagDTO>> GetTags() {
+        public async Task<List<TagDto>> GetTags() {
             return await context
                 .Tags
-                .ProjectToType<TagDTO>()
+                .ProjectToType<TagDto>()
                 .ToListAsync();
         }
 
-        public async Task<TagDTO> GetTag(int id) {
+        public async Task<TagDto> GetTag(int id) {
             var r = await context
                 .Tags
                 .FindAsync(id);
-            return r.Adapt<TagDTO>();
+            return r.Adapt<TagDto>();
         }
 
-        public async Task<TagResult> AddTag(TagDTO dto) {
+        public async Task<TagResult> AddTag(TagDto dto) {
             try {
                 var tag = dto.Adapt<Tag>();
                 if (tag == null) return new TagResult(ResultTypes.BadRequest);
                 tag.Created_At = DateTime.UtcNow;
                 context.Tags.Add(tag);
                 await context.SaveChangesAsync();
-                return new TagResult(ResultTypes.Ok, tag.Adapt<TagDTO>());
+                return new TagResult(ResultTypes.Ok, tag.Adapt<TagDto>());
             } catch (Exception ex) {
                 return new TagResult(ResultTypes.BadRequest, null, ex.Message);
             }
@@ -51,7 +51,7 @@ namespace PerfumeTrackerAPI.Repo {
             await context.SaveChangesAsync();
             return new TagResult(ResultTypes.Ok);
         }
-        public async Task<TagResult> UpdateTag(int id, TagDTO dto) {
+        public async Task<TagResult> UpdateTag(int id, TagDto dto) {
             var tag = dto.Adapt<Tag>();
             if (tag == null || id != tag.Id) {
                 return new TagResult(ResultTypes.BadRequest);
@@ -66,7 +66,7 @@ namespace PerfumeTrackerAPI.Repo {
 
             await context.SaveChangesAsync();
 
-            return new TagResult(ResultTypes.Ok, find.Adapt<TagDTO>());
+            return new TagResult(ResultTypes.Ok, find.Adapt<TagDto>());
         }
     }
 }

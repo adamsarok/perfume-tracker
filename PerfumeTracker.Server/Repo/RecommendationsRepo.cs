@@ -1,7 +1,7 @@
 using System;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.DTO;
+using PerfumeTracker.Server.Dto;
 using PerfumeTrackerAPI.Models;
 using static PerfumeTrackerAPI.Repo.ResultType;
 
@@ -15,7 +15,7 @@ public class RecommendationsRepo(PerfumetrackerContext context) {
     }
 
     public record RecommendationsResult(ResultTypes ResultType, Recommendation? Recommendation = null, string ErrorMsg = null);
-    public async Task<RecommendationsResult> AddRecommendation(RecommendationUploadDTO dto) {
+    public async Task<RecommendationsResult> AddRecommendation(RecommendationUploadDto dto) {
         try {
             var r = dto.Adapt<Recommendation>();
             if (r == null) return new RecommendationsResult(ResultTypes.BadRequest);

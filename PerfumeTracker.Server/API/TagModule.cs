@@ -1,6 +1,6 @@
 
 using Carter;
-using PerfumeTrackerAPI.DTO;
+using PerfumeTrackerAPI.Dto;
 using PerfumeTrackerAPI.Repo;
 using static PerfumeTrackerAPI.Repo.ResultType;
 
@@ -25,7 +25,7 @@ namespace FountainPensNg.Server.API {
             }).WithTags("Tags")
                .WithName("GetTag");
 
-            app.MapPut("/api/tags/{id}", async (int id, TagDTO dto, TagRepo repo) => {
+            app.MapPut("/api/tags/{id}", async (int id, TagDto dto, TagRepo repo) => {
                var result = await repo.UpdateTag(id, dto);
                return result.ResultType switch {
                    ResultTypes.Ok => Results.Ok(result.Tag),
@@ -36,7 +36,7 @@ namespace FountainPensNg.Server.API {
             }).WithTags("Tags")
                .WithName("UpdateTag");
 
-            app.MapPost("/api/tags", async (TagDTO dto, TagRepo repo) => {
+            app.MapPost("/api/tags", async (TagDto dto, TagRepo repo) => {
                var result = await repo.AddTag(dto);
                return result.ResultType switch {
                    ResultTypes.Ok => Results.CreatedAtRoute("GetTag", new { id = result?.Tag?.Id }, result?.Tag),

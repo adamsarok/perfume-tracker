@@ -1,6 +1,6 @@
 using System;
 using Carter;
-using PerfumeTracker.Server.DTO;
+using PerfumeTracker.Server.Dto;
 using PerfumeTracker.Server.Repo;
 using static PerfumeTrackerAPI.Repo.ResultType;
 
@@ -15,7 +15,7 @@ public class RecommendationModule : ICarterModule {
             .WithTags("Recommendations")
             .WithName("GetRecommendations");
 
-        app.MapPost("/api/recommendations", async (RecommendationUploadDTO dto, RecommendationsRepo repo) => {
+        app.MapPost("/api/recommendations", async (RecommendationUploadDto dto, RecommendationsRepo repo) => {
             var result = await repo.AddRecommendation(dto);
             return result.ResultType switch {
                 ResultTypes.Ok => Results.CreatedAtRoute("GetRecommendations", new { id = result?.Recommendation?.Id }, result?.Recommendation),
