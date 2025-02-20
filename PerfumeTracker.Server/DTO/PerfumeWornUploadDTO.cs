@@ -1,5 +1,5 @@
 using System;
 
-namespace PerfumeTracker.Server.DTO;
+namespace PerfumeTracker.Server.Dto;
 
-public record PerfumeWornUploadDTO(int PerfumeId, DateTime WornOn);
+public record PerfumeWornUploadDto(int PerfumeId, DateTime WornOn);

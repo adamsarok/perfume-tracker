@@ -1,5 +1,5 @@
 ﻿using PerfumeTrackerAPI.Models;
 
-namespace PerfumeTrackerAPI.DTO {
-	public record PerfumeWithWornStatsDTO(PerfumeDTO Perfume, int WornTimes, DateTime? LastWorn);
+namespace PerfumeTrackerAPI.Dto {
+	public record PerfumeWithWornStatsDto(PerfumeDto Perfume, int WornTimes, DateTime? LastWorn);
 }

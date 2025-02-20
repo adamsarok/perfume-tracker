@@ -1,5 +1,5 @@
 using System;
 
-namespace PerfumeTracker.Server.DTO;
+namespace PerfumeTracker.Server.Dto;
 
-public record ImageGuidDTO(int ParentObjectId, string ImageObjectKey);
+public record ImageGuidDto(int ParentObjectId, string ImageObjectKey);

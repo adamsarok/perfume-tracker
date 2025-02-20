@@ -60,7 +60,7 @@ export default function ChipClouds({
       Tags:
       <div className={styles.chipContainer}>
         {topChips
-          .sort((a, b) => a.name.localeCompare(b.name))
+          .toSorted((a, b) => a.name.localeCompare(b.name))
           .map((c) => (
             <div key={c.name} className={styles.chipItem}>
               <ColorChip
@@ -83,7 +83,7 @@ export default function ChipClouds({
             </CardHeader>
           </Card>
           {Object.keys(groupedChips)
-            .sort()
+            .toSorted((a, b) => a.localeCompare(b))
             .map((letter) => (
               <Card key={letter} className={styles.chipGroup}>
                 <CardHeader>

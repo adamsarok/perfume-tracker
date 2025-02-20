@@ -1,5 +1,5 @@
 using System;
 
-namespace PerfumeTracker.Server.DTO;
+namespace PerfumeTracker.Server.Dto;
 
-public record RecommendationUploadDTO(string Query, string Recommendations);
+public record RecommendationUploadDto(string Query, string Recommendations);

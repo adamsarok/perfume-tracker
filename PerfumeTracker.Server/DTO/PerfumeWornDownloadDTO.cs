@@ -1,11 +1,11 @@
 using System;
-using PerfumeTrackerAPI.DTO;
+using PerfumeTrackerAPI.Dto;
 
-namespace PerfumeTracker.Server.DTO;
+namespace PerfumeTracker.Server.Dto;
 
-public record PerfumeWornDownloadDTO(
+public record PerfumeWornDownloadDto(
 	int Id,
 	DateTime WornOn,
-	PerfumeDTO Perfume,
-	List<TagDTO> Tags
+	PerfumeDto Perfume,
+	List<TagDto> Tags
 );

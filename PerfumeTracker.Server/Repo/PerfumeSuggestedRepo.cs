@@ -6,7 +6,7 @@ using static PerfumeTrackerAPI.Repo.ResultType;
 namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo perfumeWornRepo) {
-    public record PerfumeSuggestedResult(ResultTypes ResultType, string ErrorMsg = null);
+    public record PerfumeSuggestedResult(ResultTypes ResultType, string? ErrorMsg = null);
     public async Task<PerfumeSuggestedResult> AddSuggestedPerfume(int perfumeId) {
         try {
             var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId);
@@ -21,7 +21,7 @@ public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo
         }
         catch (Exception ex) {
             return new PerfumeSuggestedResult(ResultTypes.BadRequest, ex.Message);
-        } //TODO: global error handling is better than this half measure, replace
+        }
     }
     public async Task<List<int>> GetAlreadySuggestedPerfumeIds(int daysFilter) {
         var r = await context
@@ -33,7 +33,7 @@ public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo
         return r;
     }
 	enum Seasons { Winter, Spring, Summer, Autumn };
-	private Seasons Season => DateTime.Now.Month switch {
+	private static Seasons Season => DateTime.Now.Month switch {
 		1 or 2 or 12 => Seasons.Winter,
 		3 or 4 or 5 => Seasons.Spring,
 		6 or 7 or 8 => Seasons.Summer,

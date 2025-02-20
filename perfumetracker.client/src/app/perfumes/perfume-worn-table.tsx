@@ -17,17 +17,15 @@ import { columns, PerfumeListDTO } from "./perfume-worn-columns";
 import { DataTable } from "@/components/ui/data-table";
 
 export interface PerfumeWornTableProps {
-  allTags: TagDTO[];
+  readonly allTags: TagDTO[];
 }
 
-export default function PerfumeWornTable({
-  allTags,
-}: PerfumeWornTableProps) {
+export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
   const [fulltext, setFulltext] = useState("");
   const list = useAsyncList({
     async load() {
-      const r: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext)
-      const perfumes: PerfumeListDTO[] = r.map(x => ({ 
+      const r: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext);
+      const perfumes: PerfumeListDTO[] = r.map((x) => ({
         id: x.perfume.id,
         house: x.perfume.house,
         perfume: x.perfume.perfumeName,
@@ -35,29 +33,27 @@ export default function PerfumeWornTable({
         rating: x.perfume.rating,
         wornTimes: x.wornTimes,
         lastWorn: x.lastWorn,
-        tags: x.perfume.tags, 
+        tags: x.perfume.tags,
       }));
       console.log(perfumes);
       //TODO: move filtering to server side
+      const hasTag = (perfume: PerfumeListDTO, tag: TagDTO) => {
+        return perfume.tags.some((perfumeTag) => perfumeTag.id === tag.id);
+      };
       let items: PerfumeListDTO[];
       switch (selected) {
         case "all":
           items = perfumes;
           break;
         case "favorites":
-          items = perfumes.filter(
-            (x) => x.rating >= 8 && x.ml > 0
-          );
+          items = perfumes.filter((x) => x.rating >= 8 && x.ml > 0);
           break;
         case "buy-list":
-          items = perfumes.filter(
-            (x) => x.rating >= 8 && x.ml <= 0
-          );
+          items = perfumes.filter((x) => x.rating >= 8 && x.ml <= 0);
           break;
         case "untagged":
           items = perfumes.filter(
-            (x) =>
-              x.tags.length === 0 && x.rating >= 8 && x.ml > 0
+            (x) => x.tags.length === 0 && x.rating >= 8 && x.ml > 0
           );
           break;
         case "tag-filter":
@@ -65,11 +61,10 @@ export default function PerfumeWornTable({
             return (
               perfume.rating >= 8 &&
               perfume.ml > 0 &&
-              tags.every((tag) =>
-                perfume.tags.some((perfumeTag) => perfumeTag.id === tag.id)
-              )
+              tags.every((tag) => hasTag(perfume, tag))
             );
           });
+
           break;
         default:
           items = perfumes;
@@ -106,13 +101,13 @@ export default function PerfumeWornTable({
   }, [tags]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleReload(); // Call reload on Enter key press
     }
   };
 
   const bottomChipProps: ChipProp[] = [];
-  allTags.map((allTag) => {
+  allTags.forEach((allTag) => {
     bottomChipProps.push({
       name: allTag.tagName,
       color: allTag.color,

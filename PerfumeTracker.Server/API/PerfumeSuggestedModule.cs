@@ -10,10 +10,5 @@ public class PerfumeSuggestedModule : ICarterModule {
             await repo.GetPerfumeSuggestion(dayFilter))
             .WithTags("PerfumeSuggesteds")
             .WithName("GetPerfumeSuggestion");
-        
-        // app.MapPost("/api/perfumesuggesteds/{perfumeId}", async (int perfumeId, PerfumeSuggestedRepo repo) =>
-        //     await repo.AddSuggestedPerfume(perfumeId))
-        //     .WithTags("PerfumeSuggesteds")
-        //     .WithName("AddSuggestedPerfume");
     }
 }

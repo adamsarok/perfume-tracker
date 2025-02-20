@@ -1,7 +1,7 @@
 using Carter;
 using Microsoft.EntityFrameworkCore;
+using PerfumeTracker.Server;
 using PerfumeTracker.Server.Repo;
-//using PerfumeTrackerAPI.Migrations;
 using PerfumeTrackerAPI.Models;
 using PerfumeTrackerAPI.Repo;
 using PerfumeTrackerAPI.Server.Helpers;
@@ -15,7 +15,8 @@ else {
     if (string.IsNullOrWhiteSpace(conn)) conn = builder.Configuration.GetConnectionString("DefaultConnection");
 }
 
-if (string.IsNullOrWhiteSpace(conn)) throw new Exception("Connection string is empty");
+
+if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 
 builder.Services.AddDbContext<PerfumetrackerContext>(opt => opt.UseNpgsql(conn));
 builder.Services.AddScoped<PerfumeRepo>();
@@ -38,15 +39,9 @@ builder.Services.AddCors(options => {
 var app = builder.Build();
 
 app.MapCarter();
-//app.UseCors("AllowSpecificOrigin");
 app.UseCors(x => x.AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
     .WithOrigins("http://localhost", "http://192.168.1.79:3000", "https://192.168.1.79:3000", "https://localhost:3000", "http://localhost:3000"));
-
-// Configure the HTTP request pipeline.
-
-//app.UseHttpsRedirection();
-
 
 app.Run();

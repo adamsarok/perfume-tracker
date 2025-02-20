@@ -1,3 +1,3 @@
-﻿namespace PerfumeTrackerAPI.DTO {
-	public record TagStatDTO(int Id, string TagName, string Color, int Ml, int WornTimes);
+﻿namespace PerfumeTrackerAPI.Dto {
+	public record TagStatDto(int Id, string TagName, string Color, int Ml, int WornTimes);
 }

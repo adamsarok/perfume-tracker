@@ -1,8 +1,8 @@
 using System;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.DTO;
-using PerfumeTrackerAPI.DTO;
+using PerfumeTracker.Server.Dto;
+using PerfumeTrackerAPI.Dto;
 using PerfumeTrackerAPI.Models;
 using static PerfumeTrackerAPI.Repo.ResultType;
 
@@ -10,17 +10,17 @@ namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeWornRepo(PerfumetrackerContext context) {
 
-    public async Task<List<PerfumeWornDownloadDTO>> GetPerfumesWithWorn(int cursor, int pageSize) {
+    public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
         var raw = await context
             .PerfumeWorns
             .Where(x => cursor < 1 || x.Id < cursor)
             .OrderByDescending(x => x.Id)
             .Take(pageSize)
-            .Select(x => new PerfumeWornDownloadDTO(
+            .Select(x => new PerfumeWornDownloadDto(
                 x.Id,
                 x.Created_At,
-                x.Perfume.Adapt<PerfumeDTO>(),
-                x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDTO>()).ToList()
+                x.Perfume.Adapt<PerfumeDto>(),
+                x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList()
             ))
             .ToListAsync();
         return raw;
@@ -34,7 +34,7 @@ public class PerfumeWornRepo(PerfumetrackerContext context) {
             .ToListAsync();
         return r;
     }
-    public record PerfumeWornResult(ResultTypes ResultType, PerfumeWornDownloadDTO? worn = null, string? ErrorMsg = null);
+    public record PerfumeWornResult(ResultTypes ResultType, PerfumeWornDownloadDto? worn = null, string? ErrorMsg = null);
     public async Task<PerfumeWornResult> DeletePerfumeWorn(int id) {
         var w = await context.PerfumeWorns.FindAsync(id);
         if (w == null) return new PerfumeWornResult(ResultTypes.NotFound);
@@ -43,9 +43,9 @@ public class PerfumeWornRepo(PerfumetrackerContext context) {
         return new PerfumeWornResult(ResultTypes.Ok);
     }
 
-    public async Task<PerfumeWornResult> AddPerfumeWorn(PerfumeWornUploadDTO dto) {
+    public async Task<PerfumeWornResult> AddPerfumeWorn(PerfumeWornUploadDto dto) {
         try {
-            if (context.PerfumeWorns.Any(x =>
+            if (await context.PerfumeWorns.AnyAsync(x =>
                 x.PerfumeId == dto.PerfumeId &&
                 x.Created_At.Date == dto.WornOn.Date
             )) {
@@ -57,7 +57,7 @@ public class PerfumeWornRepo(PerfumetrackerContext context) {
             };
             context.PerfumeWorns.Add(w);
             await context.SaveChangesAsync();
-            return new PerfumeWornResult(ResultTypes.Ok, w.Adapt<PerfumeWornDownloadDTO>());
+            return new PerfumeWornResult(ResultTypes.Ok, w.Adapt<PerfumeWornDownloadDto>());
         }
         catch (Exception ex) {
             return new PerfumeWornResult(ResultTypes.BadRequest, null, ex.Message);
