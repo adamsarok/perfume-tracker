@@ -10,7 +10,9 @@ export const dynamic = "force-dynamic";
 
 export default async function SuprisePerfumePage() {
   const id = await getPerfumeSuggestion(20);
-  if (!id) return notFound();
+  if (!id) return (
+    <div>No eligible perfumes found :(</div>
+  )
   console.log("id", id);
   const perfume = await getPerfume(id);
   if (!perfume) return notFound();
