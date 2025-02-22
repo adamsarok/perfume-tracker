@@ -14,7 +14,23 @@ namespace PerfumeTrackerAPI.Repo {
 					|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{fulltext}:*"))
 					|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, fulltext))
 					)
-				.Select(p => new PerfumeWithWornStatsDto(
+				.Select(p => MapToPerfumeWithWornStatsDto(p))
+				.AsSplitQuery()
+				.AsNoTracking()
+				.ToListAsync();
+			return raw;
+		}
+		public async Task<PerfumeWithWornStatsDto?> GetPerfume(int id) {
+			return await context
+				.Perfumes
+				.Where(p => p.Id == id)
+				.Select(p => MapToPerfumeWithWornStatsDto(p))
+				.AsSplitQuery()
+				.AsNoTracking()
+				.FirstOrDefaultAsync();
+		}
+		private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p) {
+			return new PerfumeWithWornStatsDto(
 					 new PerfumeDto(
 						p.Id,
 						p.House,
@@ -30,38 +46,7 @@ namespace PerfumeTrackerAPI.Repo {
 						p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
 					  ),
 					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count : 0,
-					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null
-				))
-				.AsSplitQuery()
-				.AsNoTracking()
-				.ToListAsync();
-			return raw;
-		}
-		public async Task<PerfumeWithWornStatsDto?> GetPerfume(int id) {
-			return await context
-				.Perfumes
-				.Where(p => p.Id == id)
-				.Select(p => new PerfumeWithWornStatsDto(
-					  new PerfumeDto(
-						p.Id,
-						p.House,
-						p.PerfumeName,
-						p.Rating,
-						p.Notes,
-						p.Ml,
-						p.ImageObjectKey,
-						p.Autumn,
-						p.Spring,
-						p.Summer,
-						p.Winter,
-						p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
-					  ),
-					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count : 0,
-					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null
-				))
-				.AsSplitQuery()
-				.AsNoTracking()
-				.FirstOrDefaultAsync();
+					  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null);
 		}
 		public async Task<PerfumeStatDto> GetPerfumeStats() {
 			var raw = await context
