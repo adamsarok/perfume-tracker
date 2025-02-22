@@ -1,9 +1,9 @@
 ﻿using Mapster;
 using Microsoft.EntityFrameworkCore;
 using PerfumeTracker.Server.Dto;
+using PerfumeTracker.Server.Exceptions;
 using PerfumeTrackerAPI.Dto;
 using PerfumeTrackerAPI.Models;
-using static PerfumeTrackerAPI.Repo.ResultType;
 
 namespace PerfumeTrackerAPI.Repo {
 	public class PerfumeRepo(PerfumetrackerContext context) {
@@ -11,7 +11,7 @@ namespace PerfumeTrackerAPI.Repo {
 			var raw = await context
 				.Perfumes
 				.Where(p => string.IsNullOrWhiteSpace(fulltext)
-					|| p.FullText.Matches(EF.Functions.ToTsQuery($"{fulltext}:*"))
+					|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{fulltext}:*"))
 					|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, fulltext))
 					)
 				.Select(p => new PerfumeWithWornStatsDto(
@@ -75,63 +75,55 @@ namespace PerfumeTrackerAPI.Repo {
 			if (raw != null && raw.Count > 0) return raw[0];
 			return new PerfumeStatDto(0, 0, 0);
 		}
-		public record PerfumeResult(ResultTypes ResultType, PerfumeDto? Perfume = null, string ErrorMsg = null);
-		public async Task<PerfumeResult> AddPerfume(PerfumeDto Dto) {
-			try {
-				var perfume = Dto.Adapt<Perfume>();
-				if (perfume == null) return new PerfumeResult(ResultTypes.BadRequest);
-				perfume.Created_At = DateTime.UtcNow;
-				context.Perfumes.Add(perfume);
-				await context.SaveChangesAsync();
-				foreach (var tag in Dto.Tags) {
-					context.PerfumeTags.Add(new PerfumeTag() {
-						Created_At = DateTime.UtcNow,
-						PerfumeId = perfume.Id,
-						TagId = tag.Id,
-					});
-				}
-				await context.SaveChangesAsync();
-				return new PerfumeResult(ResultTypes.Ok, perfume.Adapt<PerfumeDto>());
+		public async Task<PerfumeDto> AddPerfume(PerfumeDto Dto) {
+			var perfume = Dto.Adapt<Perfume>();
+			if (perfume == null) throw new InvalidOperationException("Perfume mapping failed");
+			perfume.Created_At = DateTime.UtcNow;
+			context.Perfumes.Add(perfume);
+			await context.SaveChangesAsync();
+			foreach (var tag in Dto.Tags) {
+				context.PerfumeTags.Add(new PerfumeTag() {
+					Created_At = DateTime.UtcNow,
+					PerfumeId = perfume.Id,
+					TagId = tag.Id,
+				});
 			}
-			catch (Exception ex) {
-				return new PerfumeResult(ResultTypes.BadRequest, null, ex.Message);
-			}
+			await context.SaveChangesAsync();
+			return perfume.Adapt<PerfumeDto>();
 		}
-		public async Task<PerfumeResult> DeletePerfume(int id) {
+		public async Task DeletePerfume(int id) {
 			var perfume = await context.Perfumes.FindAsync(id);
-			if (perfume == null) return new PerfumeResult(ResultTypes.NotFound);
+			if (perfume == null) throw new NotFoundException();
 			context.Perfumes.Remove(perfume);
 			await context.SaveChangesAsync();
-			return new PerfumeResult(ResultTypes.Ok);
 		}
-		public async Task<PerfumeResult> UpdatePerfume(int id, PerfumeDto Dto) {
+		public async Task<PerfumeDto> UpdatePerfume(int id, PerfumeDto Dto) {
 			var perfume = Dto.Adapt<Perfume>();
 			if (perfume == null || id != perfume.Id) {
-				return new PerfumeResult(ResultTypes.BadRequest);
+				throw new NotFoundException();
 			}
-
 			var find = await context
 				.Perfumes
 				.Include(x => x.PerfumeTags)
 				.ThenInclude(x => x.Tag)
 				.FirstOrDefaultAsync(x => x.Id == perfume.Id);
-			if (find == null) return new PerfumeResult(ResultTypes.NotFound);
+			if (find == null) throw new NotFoundException();
 
 			context.Entry(find).CurrentValues.SetValues(perfume);
 			find.Updated_At = DateTime.UtcNow;
 
 			await UpdateTags(Dto, find);
 
-			return new PerfumeResult(ResultTypes.Ok, find.Adapt<PerfumeDto>());
+			return find.Adapt<PerfumeDto>();
 		}
 
-		public async Task<PerfumeResult> UpdatePerfumeImageGuid(ImageGuidDto Dto) {
+		public async Task<PerfumeDto> UpdatePerfumeImageGuid(ImageGuidDto Dto) {
 			var find = await context.Perfumes.FindAsync(Dto.ParentObjectId);
-			if (find == null) return new PerfumeResult(ResultTypes.NotFound);
+			if (find == null) throw new NotFoundException();
 			find.ImageObjectKey = Dto.ImageObjectKey;
 			find.Updated_At = DateTime.UtcNow;
 			await context.SaveChangesAsync();
-			return new PerfumeResult(ResultTypes.Ok, find.Adapt<PerfumeDto>());
+			return find.Adapt<PerfumeDto>();
 		}
 
 		private async Task UpdateTags(PerfumeDto Dto, Perfume? find) {

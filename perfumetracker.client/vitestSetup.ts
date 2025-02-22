@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, vi } from "vitest";
+import { beforeAll, vi } from "vitest";
 
 beforeAll(() => {
     vi.mock('next/navigation', () => ({
@@ -23,13 +23,13 @@ class IntersectionObserver {
       return null;
     }
     observe(target: Element): void {
-      
+      // test
     }
     takeRecords(): IntersectionObserverEntry[] {
       return [];
     }
     unobserve(target: Element): void {
-      
+      // test
     }
     readonly root: Element | Document | null;
     readonly rootMargin: string;

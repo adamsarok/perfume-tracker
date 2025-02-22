@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using PerfumeTracker.Server.Exceptions;
 
 namespace PerfumeTrackerAPI.Server.Helpers {
     public sealed class GlobalExceptionHandler : IExceptionHandler {
@@ -17,7 +18,7 @@ namespace PerfumeTrackerAPI.Server.Helpers {
                 exception, "Exception occurred: {Message}", exception.Message);
 
             var problemDetails = new ProblemDetails {
-                Status = StatusCodes.Status500InternalServerError,
+                Status = exception is NotFoundException ? StatusCodes.Status404NotFound : StatusCodes.Status500InternalServerError,
                 Title = "Server error",
                 Detail = exception.Message
             };
