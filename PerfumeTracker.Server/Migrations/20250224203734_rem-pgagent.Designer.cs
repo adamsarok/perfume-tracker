@@ -13,8 +13,8 @@ using PerfumeTrackerAPI.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumetrackerContext))]
-    [Migration("20241209145839_init")]
-    partial class init
+    [Migration("20250224203734_rem-pgagent")]
+    partial class rempgagent
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,7 +24,6 @@ namespace PerfumeTracker.Server.Migrations
                 .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            //NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pgagent", "pgagent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("PerfumeTrackerAPI.Models.Perfume", b =>

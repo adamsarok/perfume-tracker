@@ -120,11 +120,13 @@ namespace PerfumeTrackerAPI.Repo {
 			foreach (var remove in find.PerfumeTags.Where(x => !Dto.Tags.Select(x => x.TagName).Contains(x.Tag.TagName))) {
 				context.PerfumeTags.Remove(remove);
 			}
-			foreach (var add in Dto.Tags.Where(x => !tagsInDB.Contains(x.TagName))) {
-				context.PerfumeTags.Add(new PerfumeTag() {
-					PerfumeId = find.Id,
-					TagId = add.Id //TODO: this is not good, tag ID is coming back from client side
-				});
+			if (Dto.Tags != null && Dto.Tags.Any()) {
+				foreach (var add in Dto.Tags.Where(x => !tagsInDB.Contains(x.TagName))) {
+					context.PerfumeTags.Add(new PerfumeTag() {
+						PerfumeId = find.Id,
+						TagId = add.Id //TODO: this is not good, tag ID is coming back from client side
+					});
+				}
 			}
 			await context.SaveChangesAsync();
 		}

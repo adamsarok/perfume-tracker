@@ -9,12 +9,9 @@ using PerfumeTrackerAPI.Server.Helpers;
 var builder = WebApplication.CreateBuilder(args);
 
 string? conn;
-if (builder.Environment.IsDevelopment()) conn = builder.Configuration.GetConnectionString("DefaultConnection");
-else {
-    conn = Environment.GetEnvironmentVariable("CONNECTION_STRING");
-    if (string.IsNullOrWhiteSpace(conn)) conn = builder.Configuration.GetConnectionString("DefaultConnection");
-}
-
+conn = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+if (string.IsNullOrWhiteSpace(conn)) conn = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(conn)) throw new Exception("Connection string is empty");
 
 if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 
@@ -45,3 +42,5 @@ app.UseCors(x => x.AllowAnyHeader()
     .WithOrigins("http://localhost", "http://192.168.1.79:3000", "https://192.168.1.79:3000", "https://localhost:3000", "http://localhost:3000"));
 
 app.Run();
+
+public partial class Program { } //for integration tests
