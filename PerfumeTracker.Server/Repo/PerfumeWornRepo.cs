@@ -26,6 +26,7 @@ public class PerfumeWornRepo(PerfumetrackerContext context) {
 		return raw;
 	}
 	public async Task<List<int>> GetWornPerfumeIDs(int daysFilter) {
+		var t = await context.PerfumeWorns.ToListAsync();
 		var r = await context
 			.PerfumeWorns
 			.Where(x => x.Created_At >= DateTimeOffset.UtcNow.AddDays(-daysFilter))

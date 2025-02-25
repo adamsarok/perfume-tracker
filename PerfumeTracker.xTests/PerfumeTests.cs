@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using PerfumeTracker.Server.Dto;
 using PerfumeTrackerAPI.Dto;
 using PerfumeTrackerAPI.Models;
 using System.Net;
 using System.Net.Http.Json;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace PerfumeTracker.xTests;
 
 public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
@@ -92,6 +94,20 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	}
 
 	[Fact]
+	public async Task UpdatePerfumeGuid() {
+		await PrepareData();
+		var client = factory.CreateClient();
+		var perfume = await GetFirst();
+		var dto = new ImageGuidDto(perfume.Id, Guid.NewGuid().ToString());
+		var content = JsonContent.Create(dto);
+		var response = await client.PutAsync($"/api/perfumes/imageguid", content);
+		response.EnsureSuccessStatusCode();
+
+		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeDto>();
+		Assert.NotNull(perfumes);
+	}
+
+	[Fact]
 	public async Task DeletePerfume() {
 		await PrepareData();
 		var perfume = await GetFirst();
@@ -114,27 +130,27 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 		Assert.NotNull(perfumes);
 	}
 
-	//[Fact]
-	//public async Task GetFullText() {
-	//	await PrepareData();
-	//	var client = factory.CreateClient();
-	//	var response = await client.GetAsync($"/api/Finder/{perfumeSeed[0].PerfumeName}");
-	//	response.EnsureSuccessStatusCode();
+	[Fact]
+	public async Task GetStats() {
+		await PrepareData();
+		var client = factory.CreateClient();
 
-	//	var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<SearchResultDTO>>();
-	//	Assert.NotNull(perfumes);
-	//}
+		var response = await client.GetAsync("/api/perfumes/stats");
+		response.EnsureSuccessStatusCode();
 
-	//[Fact]
-	//public async Task GetFindAll() {
-	//	await PrepareData();
-	//	var client = factory.CreateClient();
+		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeStatDto>();
+		Assert.NotNull(perfumes);
+	}
 
-	//	var response = await client.GetAsync("/api/Finder");
-	//	response.EnsureSuccessStatusCode();
+	[Fact]
+	public async Task GetFullText() {
+		await PrepareData();
+		var client = factory.CreateClient();
+		var response = await client.GetAsync($"/api/perfumes/fulltext/{perfumeSeed[0].PerfumeName}");
+		response.EnsureSuccessStatusCode();
 
-	//	var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<SearchResultDTO>>();
-	//	Assert.NotNull(perfumes);
-	//	Assert.NotEmpty(perfumes);
-	//}
+		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<PerfumeWithWornStatsDto>>();
+		Assert.NotNull(perfumes);
+		Assert.NotEmpty(perfumes);
+	}
 }
