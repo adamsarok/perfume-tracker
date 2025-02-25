@@ -1,6 +1,7 @@
 Simple NextJS app to track a perfume collection and get recommendations
 
 ![Docker Image CI](https://github.com/adamsarok/perfume-tracker/actions/workflows/docker-image.yml/badge.svg)
+[![codecov](https://codecov.io/gh/adamsarok/perfume-tracker/graph/badge.svg?token=U4CVA3ZUAJ)](https://codecov.io/gh/adamsarok/perfume-tracker)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adamsarok_perfume-tracker&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=adamsarok_perfume-tracker)
 
 Client: [![Docker Hub](https://img.shields.io/docker/pulls/adamsarok/perfume-tracker.svg)](https://hub.docker.com/r/adamsarok/perfume-tracker)
