@@ -66,6 +66,8 @@ jobs:
     - name: Build API
       working-directory: ./PerfumeTracker.Server
       env:
+        METABASE_URL: "localhost"
+        METABASE_SECRET_KEY: "dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret"
         DATABASE_URL: "postgresql://localhost:9999/placeholder"
       run: dotnet build
 
