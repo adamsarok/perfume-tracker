@@ -20,9 +20,13 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 			if (!dbUp) {
 				using var scope = factory.Services.CreateScope();
 				using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
-				var sql = "truncate table \"public\".\"Perfume\" cascade";
+				var sql = "truncate table \"public\".\"Perfume\" cascade; " +
+					"truncate table \"public\".\"Tag\" cascade; " +
+					"truncate table \"public\".\"PerfumeTag\" cascade";
 				await context.Database.ExecuteSqlRawAsync(sql);
+				context.Tags.AddRange(tagSeed);
 				context.Perfumes.AddRange(perfumeSeed);
+				context.PerfumeTags.AddRange(perfumeTagSeed);
 				await context.SaveChangesAsync();
 				dbUp = true;
 			}
@@ -39,6 +43,18 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume2")
 			},
 		};
+
+	static List<Tag> tagSeed = new List<Tag> {
+			new Tag { Id = 0, Color = "#FFFFFF", TagName = "Musky" },
+			new Tag { Id = 0, Color = "#FF0000", TagName = "Woody" },
+			new Tag { Id = 0, Color = "#FF0000", TagName = "Blue" }
+		};
+
+	static List<PerfumeTag> perfumeTagSeed = new List<PerfumeTag> {
+			new PerfumeTag { Id = 0, Perfume = perfumeSeed[0], Tag = tagSeed[0] },
+			new PerfumeTag { Id = 0, Perfume = perfumeSeed[1], Tag = tagSeed[1] }
+		};
+
 
 	private async Task<Perfume> GetFirst() {
 		using var scope = factory.Services.CreateScope();
@@ -84,6 +100,7 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 		await PrepareData();
 		var client = factory.CreateClient();
 		var perfume = await GetFirst();
+		perfume.PerfumeTags.Add(new PerfumeTag() { Perfume = perfume, Tag = tagSeed[2] });
 		var dto = perfume.Adapt<PerfumeDto>();
 		var content = JsonContent.Create(dto);
 		var response = await client.PutAsync($"/api/perfumes/{dto.Id}", content);
