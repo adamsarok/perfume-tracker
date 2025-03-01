@@ -7,10 +7,14 @@ using PerfumeTrackerAPI.Models;
 namespace PerfumeTracker.Server.Repo;
 
 public class RecommendationsRepo(PerfumetrackerContext context) {
-	public async Task<List<Recommendation>> GetRecommendations() {
+	public async Task<List<Recommendation>> GetRecommendations(int dayFilter) {
 		return await context
 			.Recommendations
+			.Where(x => x.Created_At >= DateTimeOffset.UtcNow.AddDays(-dayFilter))
 			.ToListAsync();
+	}
+	public async Task<Recommendation?> GetRecommendation(int id) {
+		return await context.Recommendations.FindAsync(id);
 	}
 	public async Task<Recommendation> AddRecommendation(RecommendationUploadDto dto) {
 		var r = dto.Adapt<Recommendation>();

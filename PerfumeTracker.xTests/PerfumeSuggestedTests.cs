@@ -34,7 +34,8 @@ public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : ICl
 				await context.SaveChangesAsync();
 				dbUp = true;
 			}
-		} finally {
+		}
+		finally {
 			semaphore.Release();
 		}
 	}
@@ -50,12 +51,6 @@ public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : ICl
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("NotWornPerfume")
 			},
 		};
-
-	private async Task<PerfumeWorn> GetFirst() {
-		using var scope = factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
-		return await context.PerfumeWorns.FirstAsync();
-	}
 
 	[Fact]
 	public async Task GetPerfumeSuggestion() {

@@ -10,13 +10,18 @@ public class RecommendationModule : ICarterModule {
         //TODO: the difference between perfume recommandation and perfume suggestion is unclear and misleading
 
         app.MapGet("/api/recommendations", async (int dayFilter, RecommendationsRepo repo) =>
-            await repo.GetRecommendations())
+            await repo.GetRecommendations(dayFilter))
             .WithTags("Recommendations")
             .WithName("GetRecommendations");
 
-        app.MapPost("/api/recommendations", async (RecommendationUploadDto dto, RecommendationsRepo repo) => {
+		app.MapGet("/api/recommendations/{id}", async (int id, RecommendationsRepo repo) =>
+			await repo.GetRecommendation(id))
+			.WithTags("Recommendations")
+			.WithName("GetRecommendation");
+
+		app.MapPost("/api/recommendations", async (RecommendationUploadDto dto, RecommendationsRepo repo) => {
             var result = await repo.AddRecommendation(dto);
-			return Results.CreatedAtRoute("GetRecommendations", new { id = result.Id }, result);
+			return Results.CreatedAtRoute("GetRecommendation", new { id = result.Id }, result);
         }).WithTags("Recommendations")
              .WithName("AddRecommendation");
     }
