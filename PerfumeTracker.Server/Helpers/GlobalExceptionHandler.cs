@@ -3,18 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using PerfumeTracker.Server.Exceptions;
 
 namespace PerfumeTrackerAPI.Server.Helpers {
-    public sealed class GlobalExceptionHandler : IExceptionHandler {
-        private readonly ILogger<GlobalExceptionHandler> _logger;
-
-        public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) {
-            _logger = logger;
-        }
-
-        public async ValueTask<bool> TryHandleAsync(
+    public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler {
+		public async ValueTask<bool> TryHandleAsync(
             HttpContext httpContext,
             Exception exception,
             CancellationToken cancellationToken) {
-            _logger.LogError(
+            logger.LogError(
                 exception, "Exception occurred: {Message}", exception.Message);
 
             var problemDetails = new ProblemDetails {

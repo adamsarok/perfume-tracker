@@ -25,10 +25,13 @@ namespace PerfumeTrackerAPI.Repo {
 		}
 
 		public async Task<TagDto> GetTag(int id) {
-			var r = await context
+			var t = await context
 				.Tags
 				.FindAsync(id);
-			return r.Adapt<TagDto>();
+			if (t == null) throw new NotFoundException();
+			var r = t.Adapt<TagDto>();
+			if (r == null) throw new MappingException();
+			return r;
 		}
 
 		public async Task<TagDto> AddTag(TagDto dto) {

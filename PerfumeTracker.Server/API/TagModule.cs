@@ -16,18 +16,15 @@ namespace FountainPensNg.Server.API {
 				.WithTags("Tags")
 				.WithName("GetTags");
 
-			app.MapGet("/api/tags/{id}", async (int id, TagRepo repo) => {
-				var perfume = await repo.GetTag(id);
-				if (perfume == null) return Results.NotFound();
-				return Results.Ok(perfume);
-			}).WithTags("Tags")
-			   .WithName("GetTag");
+			app.MapGet("/api/tags/{id}", async (int id, TagRepo repo) =>
+				await repo.GetTag(id))
+				.WithTags("Tags")
+			   	.WithName("GetTag");
 
-			app.MapPut("/api/tags/{id}", async (int id, TagDto dto, TagRepo repo) => {
-				var result = await repo.UpdateTag(id, dto);
-				return Results.Ok(result);
-			}).WithTags("Tags")
-			   .WithName("UpdateTag");
+			app.MapPut("/api/tags/{id}", async (int id, TagDto dto, TagRepo repo) =>
+				await repo.UpdateTag(id, dto))
+				.WithTags("Tags")
+				.WithName("UpdateTag");
 
 			app.MapPost("/api/tags", async (TagDto dto, TagRepo repo) => {
 				var result = await repo.AddTag(dto);

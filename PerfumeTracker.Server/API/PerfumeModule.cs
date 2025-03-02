@@ -23,23 +23,19 @@ namespace FountainPensNg.Server.API {
                 .WithTags(PERFUMES)
                 .WithName("GetPerfumes");
 
-            app.MapGet("/api/perfumes/{id}", async (int id, PerfumeRepo repo) => {
-                var perfume = await repo.GetPerfume(id);
-                if (perfume == null) return Results.NotFound();
-                return Results.Ok(perfume);
-            }).WithTags(PERFUMES)
+            app.MapGet("/api/perfumes/{id}", async (int id, PerfumeRepo repo) => 
+                await repo.GetPerfume(id))
+                .WithTags(PERFUMES)
                 .WithName("GetPerfume");
 
-            app.MapPut("/api/perfumes/{id}", async (int id, PerfumeDto dto, PerfumeRepo repo) => {
-                var result = await repo.UpdatePerfume(id, dto);
-				return Results.Ok(result);
-            }).WithTags(PERFUMES)
+            app.MapPut("/api/perfumes/{id}", async (int id, PerfumeDto dto, PerfumeRepo repo) => 
+                await repo.UpdatePerfume(id, dto))
+                .WithTags(PERFUMES)
                 .WithName("UpdatePerfume");
 
-            app.MapPut("/api/perfumes/imageguid", async (ImageGuidDto dto, PerfumeRepo repo) => {
-                var result = await repo.UpdatePerfumeImageGuid(dto);
-				return Results.Ok(result);
-            }).WithTags(PERFUMES)
+            app.MapPut("/api/perfumes/imageguid", async (ImageGuidDto dto, PerfumeRepo repo) => 
+                await repo.UpdatePerfumeImageGuid(dto))
+			    .WithTags(PERFUMES)
                 .WithName("UpdatePerfumeImageGuid");
 
             app.MapPost("/api/perfumes", async (PerfumeDto dto, PerfumeRepo repo) => {

@@ -21,13 +21,15 @@ namespace PerfumeTrackerAPI.Repo {
 			return raw;
 		}
 		public async Task<PerfumeWithWornStatsDto?> GetPerfume(int id) {
-			return await context
+			var p = await context
 				.Perfumes
 				.Where(p => p.Id == id)
 				.Select(p => MapToPerfumeWithWornStatsDto(p))
 				.AsSplitQuery()
 				.AsNoTracking()
 				.FirstOrDefaultAsync();
+			if (p == null) throw new NotFoundException();
+			return p;
 		}
 		private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p) {
 			return new PerfumeWithWornStatsDto(

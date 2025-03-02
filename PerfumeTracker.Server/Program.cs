@@ -16,14 +16,15 @@ if (string.IsNullOrWhiteSpace(conn)) throw new Exception("Connection string is e
 if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 
 builder.Services.AddDbContext<PerfumetrackerContext>(opt => opt.UseNpgsql(conn));
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>(); //TODO: does not work
-builder.Services.AddProblemDetails();
 builder.Services.AddScoped<PerfumeRepo>();
 builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeWornRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
 builder.Services.AddCarter();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowSpecificOrigin",
@@ -35,6 +36,7 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.MapCarter();
 app.UseCors(x => x.AllowAnyHeader()
     .AllowAnyMethod()
