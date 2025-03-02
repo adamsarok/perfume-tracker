@@ -20,6 +20,7 @@ public class RecommendationTests(WebApplicationFactory<Program> factory) : IClas
 			if (!dbUp) {
 				using var scope = factory.Services.CreateScope();
 				using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
+				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
 				var sql = "truncate table \"public\".\"Recommendation\" cascade";
 				await context.Database.ExecuteSqlRawAsync(sql);
 				context.Recommendations.AddRange(recommendationsSeed);

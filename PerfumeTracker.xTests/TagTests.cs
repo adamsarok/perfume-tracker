@@ -17,6 +17,7 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 			if (!dbUp) {
 				using var scope = factory.Services.CreateScope();
 				using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
+				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
 				var sql = "truncate table \"public\".\"Tag\" cascade";
 				await context.Database.ExecuteSqlRawAsync(sql);
 				context.Tags.AddRange(tagSeed);

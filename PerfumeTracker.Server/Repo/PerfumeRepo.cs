@@ -10,6 +10,7 @@ namespace PerfumeTrackerAPI.Repo {
 		public async Task<List<PerfumeWithWornStatsDto>> GetPerfumesWithWorn(string? fulltext = null) {
 			var raw = await context
 				.Perfumes
+				.Include(x => x.PerfumeWorns)
 				.Where(p => string.IsNullOrWhiteSpace(fulltext)
 					|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{fulltext}:*"))
 					|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, fulltext))
@@ -23,6 +24,9 @@ namespace PerfumeTrackerAPI.Repo {
 		public async Task<PerfumeWithWornStatsDto?> GetPerfume(int id) {
 			var p = await context
 				.Perfumes
+				.Include(x => x.PerfumeWorns)
+				.Include(x => x.PerfumeTags)
+				.ThenInclude(x => x.Tag)
 				.Where(p => p.Id == id)
 				.Select(p => MapToPerfumeWithWornStatsDto(p))
 				.AsSplitQuery()

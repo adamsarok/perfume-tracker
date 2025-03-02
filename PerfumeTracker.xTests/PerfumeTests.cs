@@ -20,6 +20,7 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 			if (!dbUp) {
 				using var scope = factory.Services.CreateScope();
 				using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
+				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
 				var sql = "truncate table \"public\".\"Perfume\" cascade; " +
 					"truncate table \"public\".\"Tag\" cascade; " +
 					"truncate table \"public\".\"PerfumeTag\" cascade";
