@@ -19,8 +19,6 @@ export default async function EditPerfumePage(props: EditPerfumePageProps) {
     if (!id) return notFound();
     const perfume = await getPerfume(id);
     if (!perfume) return notFound();
-    console.log('reload!');
-    //TODO: clean DB from pages
     const allTags = await getTags();
     const tags: TagDTO[] = [];
     perfume.perfume.tags.map(x => {

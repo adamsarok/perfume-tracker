@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { toast } from "react-toastify";
 import {
   Table,
   TableBody,
@@ -14,6 +13,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { TagDTO } from "@/dto/TagDTO";
 import { deleteTag, updateTag } from "@/services/tag-service";
+import { showError, showSuccess } from "@/services/toasty-service";
 
 export interface TagTableProps {
   tags: TagDTO[];
@@ -24,9 +24,9 @@ export default function TagTable({ tags }: TagTableProps) {
     const result = await deleteTag(id);
     if (result.ok) {
       tags = tags.filter((x) => x.id != id);
-      toast.success(`Tag ${tag} deleted`);
+      showSuccess(`Tag ${tag} deleted`);
     } else {
-      toast.error(result.error);
+      showError('Tag add failed', result.error);
     }
   };
   const onUpdate = async (id: number, tag: string) => {
@@ -37,9 +37,9 @@ export default function TagTable({ tags }: TagTableProps) {
     };
     const result = await updateTag(dto);
     if (result.ok) {
-      toast.success(`Tag ${tag} updated`);
+      showSuccess(`Tag ${tag} updated`);
     } else {
-      toast.error(result.error);
+      showError('Tag update failed', result.error);
     }
   };
   const [tagColors, setTagColors] = useState<Record<number, string>>(tags.reduce((acc, tag) => {

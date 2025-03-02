@@ -1,7 +1,5 @@
-//import uploadFile from '@/services/upload-service';
+import { showError } from "@/services/toasty-service";
 import FileSelector from "./file-selector";
-//import { R2_API_ADDRESS } from "@/services/conf";
-import { toast } from "react-toastify";
 
 interface UploadComponentProps {
   onUpload: (guid: string | undefined) => void;
@@ -20,17 +18,17 @@ export default function UploadComponent({ onUpload, r2_api_address }: UploadComp
   const handleUpload = async (file: File) => {
     try {
       if (!r2_api_address) {
-        toast.error("Error uploading file: R2 API address is not configured");
+        showError("Error uploading file: R2 API address is not configured");
         return;
       }
 
       if (!file) {
-        toast.error("File is empty");
+        showError("File is empty");
         return;
       }
 
       if (!file.name) {
-        toast.error("Filename is required");
+        showError("Filename is required");
         return;
       }
 
@@ -52,14 +50,13 @@ export default function UploadComponent({ onUpload, r2_api_address }: UploadComp
         },
       });
       const json = await response.json();
-      console.log(json);
       if (!response.ok) {
-        toast.error("error");
+        showError('Error uploading file:');
         return;
       }
       onUpload(json.guid);
     } catch (error) {
-      toast.error("Error uploading file:" + error);
+      showError('Error uploading file:', error);
     }
   };
 

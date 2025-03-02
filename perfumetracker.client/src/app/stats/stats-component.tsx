@@ -9,6 +9,7 @@ import { getPerfumeStats } from "@/services/perfume-service";
 import { getTagStats } from "@/services/tag-service";
 import { TagStatDTO } from "@/dto/TagStatDTO";
 import { PerfumeStatsDTO } from "@/dto/PerfumeStatsDTO";
+import { showError } from "@/services/toasty-service";
 
 export const dynamic = 'force-dynamic'
 
@@ -30,10 +31,8 @@ export default function StatsComponent() {
             setTagStats(transformedTagStats);
             setMaxMlInTags(Math.max(...Object.values(tagStats).map(tag => tag.ml)));
             setMaxWornInTags(Math.max(...Object.values(tagStats).map(tag => tag.wornTimes)));
-            console.log(tagStats);
           } catch (error) {
-            //TODO
-            console.error(error);
+            showError('Error in perfume stats:', error);
           }
         }
         fetchData();

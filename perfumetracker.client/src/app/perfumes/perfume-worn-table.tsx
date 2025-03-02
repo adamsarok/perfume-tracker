@@ -35,7 +35,6 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
         lastWorn: x.lastWorn,
         tags: x.perfume.tags,
       }));
-      console.log(perfumes);
       //TODO: move filtering to server side
       const hasTag = (perfume: PerfumeListDTO, tag: TagDTO) => {
         return perfume.tags.some((perfumeTag) => perfumeTag.id === tag.id);

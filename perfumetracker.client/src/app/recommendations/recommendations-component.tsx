@@ -5,11 +5,11 @@ import React from "react";
 import { useState } from "react";
 import ColorChip from "@/components/color-chip";
 import { getQuery, UserPreferences } from "@/services/recommendation-service";
-import { toast } from "react-toastify";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { showError } from "@/services/toasty-service";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +21,6 @@ export default function RecommendationsComponent({
   userPreferences,
 }: RecommendationsPageProps) {
   const [recommendations, setRecommendations] = useState<string | null>(null);
-  //const tags = await tagRepo.getTags();
-  //TODO: recommend perfumes already in collection, or already in coll
   const getRecommendations = async () => {
     const query = await getQuery(userPreferences, wearOrBuy, perfumesOrNotes);
     console.log(query);
@@ -41,10 +39,10 @@ export default function RecommendationsComponent({
       if (res.ok) {
         setRecommendations(json.recommendations);
       } else {
-        toast.error(`Failed to get download url: ${json.error}`);
+        showError('Failed to get download url:', json.error);
       }
     } else {
-      toast.error("Query generation failed, query is empty");
+      showError("Query generation failed, query is empty");
     }
   };
 

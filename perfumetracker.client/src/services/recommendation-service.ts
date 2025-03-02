@@ -6,6 +6,7 @@ import { getPerfumes } from "./perfume-service";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { RecommendationUploadDTO } from "@/dto/RecommendationUploadDTO copy";
 import { getOpenAIResponse } from "./openai-service";
+import { showError } from "./toasty-service";
 
 export interface TagWithCount {
   id: number;
@@ -173,10 +174,10 @@ export default async function getRecommendations(query: string) : Promise<Recomm
     }
   } catch (err: unknown) {
     if (err instanceof Error) {
-      console.error(err.message);
+      showError('Error getting recommendations:', err.message);
       return Promise.reject(err);
     } else {
-      console.error("Unknown error occured");
+      showError('Unknown error occured');
       return Promise.reject("Unknown error occured");
     }
   }

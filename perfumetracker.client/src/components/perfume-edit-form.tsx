@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { TrashBin } from "../icons/trash-bin";
 import { FloppyDisk } from "@/icons/floppy-disk";
@@ -39,6 +38,7 @@ import { ActionResultID } from "@/dto/ActionResultID";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "./ui/label";
 import { format } from 'date-fns';
+import { showError, showSuccess } from "@/services/toasty-service";
 
 interface PerfumeEditFormProps {
   perfumeWithWornStats: PerfumeWithWornStatsDTO | null;
@@ -111,16 +111,13 @@ export default function PerfumeEditForm({
       })),
     };
     let result: ActionResultID;
-    console.log(id);
     if (!id) result = await addPerfume(perf);
     else result = await updatePerfume(perf);
-    console.log(result);
     if (result.ok && result.id) {
       id = result.id;
-      toast.success("Update successful");
+      showSuccess("Update successful");
       reload(id);
-    } else toast.error(`Update failed: ${result.error ?? "unknown error"}`);
-    console.log(values);
+    } else showError('Update failed:', result.error ?? 'unknown error');
   }
 
   const reload = useCallback(
@@ -160,9 +157,9 @@ export default function PerfumeEditForm({
   const onDelete = async (id: number | undefined) => {
     if (id) {
       const result = await deletePerfume(id);
-      if (result.error) toast.error(result.error);
+      if (result.error) showError('Perfume deletion failed', result.error);
       else {
-        toast.success("Perfume deleted!");
+        showSuccess("Perfume deleted!");
         router.push("/");
       }
     }
@@ -179,21 +176,11 @@ export default function PerfumeEditForm({
       setImageObjectKey(guid);
       setImageUrl(getImageUrl(guid, r2_api_address));
       const result = await updateImageGuid(perfume.id, guid);
-      if (result.ok) toast.success("Image upload successful");
+      if (result.ok) showSuccess('Image upload successful');
       else
-        toast.error(`Image upload failed: ${result.error ?? "unknown error"}`);
+        showError('Image upload failed', result.error ?? 'unknown error');
     }
   };
-  // const setImageGuidInRepo = async (
-  //   guid: string | null
-  // ): Promise<ActionResult> => {
-  //   if (perfume && guid) {
-  //     return perfumeRepo.setImageObjectKey(perfume.id, guid);
-  //   }
-  //   return {
-  //     ok: true,
-  //   };
-  // };
   return (
     <div>
       <Form {...form}>
