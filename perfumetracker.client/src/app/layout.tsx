@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { Button } from "@/components/ui/button";
 import { Brain, Cake, ChartArea, Gauge, House, List, Plus, Settings, Tag } from "lucide-react";
 import Link from "next/link";
+import { Toaster } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +21,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ToastContainer position="top-right" />
         <div className="max-w-lg mx-auto px-4 py-8">
             <div className="flex items-center justify-center space-x-2 mb-2">
               <Link href="/" passHref>
@@ -55,8 +53,8 @@ export default function RootLayout({
                   <Tag />
                 </Button>
               </Link>
-              <Link href="/recommendations" passHref>
-                <Button variant="outline" size="icon" title="Recommendations" aria-label="Recommendations">
+              <Link href="/ai" passHref>
+                <Button variant="outline" size="icon" title="Ai Recommendations" aria-label="Ai Recommendations">
                   <Brain />
                 </Button>
               </Link>
@@ -72,6 +70,7 @@ export default function RootLayout({
               </Link>
             </div>
           {children}
+          <Toaster />
         </div>
       </body>
     </html>

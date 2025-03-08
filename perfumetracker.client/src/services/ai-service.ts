@@ -1,10 +1,9 @@
+"use server";
+
 import { RecommendationDownloadDTO } from "@/dto/RecommendationDownloadDTO";
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { getPerfumes } from "./perfume-service";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
-import { RecommendationUploadDTO } from "@/dto/RecommendationUploadDTO copy";
-import { getOpenAIResponse } from "./openai-service";
-import { showError } from "./toasty-service";
 import { PerfumeSettings } from "./settings-service";
 
 export interface TagWithCount {
@@ -97,7 +96,9 @@ function aggregatePerfumesTags(
   return result;
 }
 
-export async function getUserPreferences(settings: PerfumeSettings): Promise<UserPreferences> {
+export async function getUserPreferences(
+  settings: PerfumeSettings
+): Promise<UserPreferences> {
   //TODO: filter on server side!
   const perfumes = (await getPerfumes()).filter(
     (x) => x.perfume.ml > 0 && x.perfume.rating >= settings.minimumRating
@@ -133,51 +134,61 @@ export async function getAlreadyRecommended(): Promise<
   return r;
 }
 
-export async function addRecommendation(
-  recommendation: RecommendationUploadDTO
-): Promise<RecommendationDownloadDTO> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const qry = `${apiAddress}/recommendations/`;
-  const response = await fetch(qry, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(recommendation),
-  });
-  if (!response.ok) {
-    throw new Error("Failed to add recommendation");
-  }
-  const r: RecommendationDownloadDTO = await response.json();
-  return r;
-}
+// export async function addRecommendation(
+//   recommendation: RecommendationUploadDTO
+// ): Promise<RecommendationDownloadDTO> {
+//   if (!apiAddress) throw new Error("PerfumeAPI address not set");
+//   const qry = `${apiAddress}/recommendations/`;
+//   const response = await fetch(qry, {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify(recommendation),
+//   });
+//   if (!response.ok) {
+//     throw new Error("Failed to add recommendation");
+//   }
+//   const r: RecommendationDownloadDTO = await response.json();
+//   return r;
+// }
 
 function RemoveDiacritics(input: string) {
   return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-export default async function getRecommendations(
+export default async function getAiRecommendations(
   query: string
-): Promise<RecommendationDownloadDTO> {
-  try {
-    query = RemoveDiacritics(query);
-    const recommendations = await getOpenAIResponse(query);
-    if (recommendations) {
-      const dto: RecommendationUploadDTO = {
-        query,
-        recommendations,
-      };
-      return await addRecommendation(dto);
-    } else {
-      return Promise.reject(new Error("Open AI response is empty"));
-    }
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      showError("Error getting recommendations:", err.message);
-      return Promise.reject(err);
-    } else {
-      showError("Unknown error occured");
-      return Promise.reject("Unknown error occured");
-    }
+): Promise<string> {
+  query = RemoveDiacritics(query);
+  console.log(query);
+  return await getOpenAIResponse(query);
+  // if (recommendations) {
+  //   const dto: RecommendationUploadDTO = {
+  //     query,
+  //     recommendations,
+  //   };
+  //   return await addRecommendation(dto); //TODO: move this to server side
+  // } else {
+  //   return Promise.reject(new Error("Open AI response is empty"));
+  // }
+}
+
+async function getOpenAIResponse(query: string) {
+  if (!apiAddress) throw new Error("PerfumeAPI address not set");
+  const qry = `${apiAddress}/ai`;
+  console.log(qry);
+  const response = await fetch(qry, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query }),
+  });
+  console.log(response);
+  if (!response.ok) {
+    throw new Error("Failed to fetch ai recommendations");
   }
+  const text = await response.text();
+  return text.replace(/\\n/g, '\n').substring(1, text.length - 2);
 }

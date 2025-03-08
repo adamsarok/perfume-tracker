@@ -8,13 +8,6 @@ vi.mock('react-dom', async () => {
     };
   });
 
-vi.mock('react-toastify', () => ({
-  toast: {
-    error: 'eeee',
-    success: vi.fn()
-  }
-}));
-
 test('PerfumeEditForm handles errors', async () => {
     //TODO
     // const mockPerfume: Perfume = {

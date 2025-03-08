@@ -1,10 +1,10 @@
 import { MagicWand } from "@/icons/magic-wand";
-import { toast } from "react-toastify";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { wearPerfume } from "@/services/perfume-worn-service";
+import { showError, showSuccess } from "@/services/toasty-service";
 
 export interface SprayOnProps {
   perfumeId: number | undefined;
@@ -35,9 +35,9 @@ export default function SprayOnComponent({
       }
       const result = await wearPerfume(perfumeId, date);
       if (result.ok) {
-        toast.success("Smell on!");
+        showSuccess("Smell on!");
         if (onSuccess) onSuccess();
-      } else toast.error(result.error);
+      } else showError(result.error);
     }
   };
 

@@ -1,7 +1,7 @@
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
-export function showError(msg: string, error: unknown = '') {
-    toast.error(msg + error);
+export function showError(msg: string | undefined, error: unknown = '') {
+    toast.error(msg ?? '' + error);
     console.error(msg, error);
 }
 

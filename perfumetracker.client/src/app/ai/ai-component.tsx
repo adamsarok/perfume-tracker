@@ -1,10 +1,14 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import ColorChip from "@/components/color-chip";
-import { getQuery, getUserPreferences, UserPreferences } from "@/services/recommendation-service";
+import getAiRecommendations, {
+  getQuery,
+  getUserPreferences,
+  UserPreferences,
+} from "@/services/ai-service";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -14,41 +18,11 @@ import { useSettingsStore } from "@/services/settings-service";
 
 export const dynamic = "force-dynamic";
 
-
-export default function RecommendationsComponent() {
+export default function AiComponent() {
   const [recommendations, setRecommendations] = useState<string | null>(null);
-  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
-  const getRecommendations = async () => {
-    const { settings } = useSettingsStore();
-    setUserPreferences(await getUserPreferences(settings));
-    if (!userPreferences) {
-      showError('User preferences empty');
-      return;
-    }
-    const query = await getQuery(userPreferences, wearOrBuy, perfumesOrNotes);
-    console.log(query);
-    if (query) {
-      const res = await fetch(`/api/get-recommendations`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query,
-        }),
-      });
-      console.log(res);
-      const json = await res.json();
-      if (res.ok) {
-        setRecommendations(json.recommendations);
-      } else {
-        showError('Failed to get download url:', json.error);
-      }
-    } else {
-      showError("Query generation failed, query is empty");
-    }
-  };
-
+  const [userPreferences, setUserPreferences] =
+    useState<UserPreferences | null>(null);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [wearOrBuy, setWearOrBuy] = useState<"wear" | "buy" | null>("wear");
   const [perfumesOrNotes, setPerfumesOrNotes] = useState<
     "perfumes" | "notes" | null
@@ -56,6 +30,51 @@ export default function RecommendationsComponent() {
   const [timeRange, setTimeRange] = useState<string | null>("last-3");
   //TODO: timerange filtering
   console.log(timeRange);
+  const { settings } = useSettingsStore();
+
+  useEffect(() => {
+    const fetchUserPreferences = async () => {
+      try {
+        const preferences = await getUserPreferences(settings);
+        setUserPreferences(preferences);
+        setPreferencesLoaded(true);
+      } catch (error) {
+        showError("Failed to load user preferences", error);
+      }
+    };
+
+    fetchUserPreferences();
+  }, [settings]);
+
+  const getRecommendations = async () => {
+    console.log('trying recs:', preferencesLoaded, userPreferences);
+    if (preferencesLoaded && userPreferences) {
+      try {
+        const query = await getQuery(
+          userPreferences,
+          wearOrBuy,
+          perfumesOrNotes
+        );
+        if (query) {
+          const res = await getAiRecommendations(query);
+          if (res) {
+            setRecommendations(res);
+          } else {
+            showError("AI response is empty :(");
+          }
+        } else {
+          showError("Query generation failed, query is empty");
+        }
+      } catch (error) {
+        showError("Failed to fetch recommendations", error);
+      }
+    }
+  };
+
+  // useEffect(() => {
+  //   getRecommendations();
+  // }, [preferencesLoaded, userPreferences, wearOrBuy, perfumesOrNotes]);
+
 
   return (
     <div className="space-y-6">
@@ -99,12 +118,12 @@ export default function RecommendationsComponent() {
             ? "Based on the last 3 perfumes you wore:"
             : "Based on the notes of the last 3 perfumes you wore:"}
           {perfumesOrNotes === "perfumes"
-            ? userPreferences.last3perfumes.perfumes?.map((p) => (
+            ? userPreferences?.last3perfumes.perfumes?.map((p) => (
                 <div key={p.perfume.id}>
                   {p.perfume.house} - {p.perfume.perfumeName}
                 </div>
               ))
-            : userPreferences.last3perfumes.tags?.map((t) => (
+            : userPreferences?.last3perfumes.tags?.map((t) => (
                 <div key={t.id}>
                   <ColorChip
                     name={`${t.tag} - ${t.wornCount}`}

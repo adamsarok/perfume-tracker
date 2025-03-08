@@ -1,7 +1,6 @@
 "use client";
 
 import PerfumeEditForm from "@/components/perfume-edit-form";
-import { notFound } from "next/navigation";
 import { R2_API_ADDRESS } from "@/services/conf";
 import { getPerfumeSuggestion } from "@/services/perfume-suggested-service";
 import { getPerfume } from "@/services/perfume-service";

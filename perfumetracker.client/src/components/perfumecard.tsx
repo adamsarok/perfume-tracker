@@ -15,7 +15,7 @@ import {
 } from "./ui/tooltip";
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { deleteWear } from "@/services/perfume-worn-service";
-import { toast } from "react-toastify";
+import { showError, showSuccess } from "@/services/toasty-service";
 
 export interface PerfumeCardProps {
   worn: PerfumeWornDTO;
@@ -39,8 +39,8 @@ export default function PerfumeCard({
 
   const handlePressStart = async (id: number) => {
     const result = await deleteWear(id);
-    if (result.ok) toast.success("Worn deleted");
-    else toast.error(`Worn delete failed: ${result.error ?? "unknown error"}`);
+    if (result.ok) showSuccess("Worn deleted");
+    else showError(`Worn delete failed: ${result.error ?? "unknown error"}`);
     //TODO: revalidatepath
   };
 

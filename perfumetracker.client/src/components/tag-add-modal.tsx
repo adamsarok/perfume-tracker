@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { toast } from "react-toastify";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +25,7 @@ import {
 } from "./ui/form";
 import { TagDTO } from "@/dto/TagDTO";
 import { addTag } from "@/services/tag-service";
+import { showError, showSuccess } from "@/services/toasty-service";
 
 interface TagAddModalProps {
   tagAdded: (tag: TagDTO) => void;
@@ -60,9 +60,9 @@ export default function TagAddModal({
     const result = await addTag(tag);
     if (result.ok && result.id) {
       tag.id = result.id;
-      toast.success("Tag add successful");
+      showSuccess("Tag add successful");
       tagAdded(tag);
-    } else toast.error(`Tag add failed: ${result.error ?? "unknown error"}`);
+    } else showError(`Tag add failed: ${result.error ?? "unknown error"}`);
     console.log(values);
   }
 

@@ -9,7 +9,7 @@ export async function getPerfumeSuggestion(settings: PerfumeSettings) : Promise<
       dayFilter: encodeURIComponent(settings.dayFilter.toString()),
       minimumRating: encodeURIComponent(settings.minimumRating.toString()),
     });
-    const qry = `${apiAddress}/perfumesuggesteds/?${params.toString()}`;
+    const qry = `${apiAddress}/perfumesuggesteds?${params.toString()}`;
     const response = await fetch(qry);
     if (!response.ok) {
       throw new Error("Failed to fetch perfume suggestion");
