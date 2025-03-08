@@ -10,16 +10,12 @@ namespace PerfumeTracker.Server.API {
     public class MetabaseModule : ICarterModule {
         public void AddRoutes(IEndpointRouteBuilder app) {
             app.MapGet("/api/metabase", async (HttpContext context) => {
-                string? url = Environment.GetEnvironmentVariable("METABASE_URL");
-				string? apiKey = apiKey = Environment.GetEnvironmentVariable("METABASE_SECRET_KEY");
-				if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(apiKey)) {
-					var configuration = context.RequestServices.GetService<IConfiguration>();
-					url = configuration["Metabase:Url"];
-					apiKey = configuration["Metabase:SecretKey"];
+				var configuration = context.RequestServices.GetService<IConfiguration>();
+				string? url = configuration["Metabase:Url"];
+				string? apiKey = configuration["Metabase:SecretKey"];
+				if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(apiKey)) {
+					return Results.NotFound("Metabase config not set");
 				}
-                if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(apiKey)) {
-                    return Results.NotFound("Metabase config not set");
-                }
                 var jwtToken = getToken(2, apiKey);
                 var iframeUrl = $"{url}/embed/dashboard/{jwtToken}#bordered=false&titled=false";
                 return Results.Ok(new { iframeUrl });

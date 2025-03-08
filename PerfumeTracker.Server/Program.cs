@@ -9,9 +9,7 @@ using PerfumeTrackerAPI.Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string? conn;
-conn = Environment.GetEnvironmentVariable("CONNECTION_STRING");
-if (string.IsNullOrWhiteSpace(conn)) conn = builder.Configuration.GetConnectionString("DefaultConnection");
+string? conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 
 builder.Services.AddDbContext<PerfumetrackerContext>(opt => opt.UseNpgsql(conn));

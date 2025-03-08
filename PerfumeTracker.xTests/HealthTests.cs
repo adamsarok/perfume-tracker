@@ -16,7 +16,7 @@ public class HealthTests(WebApplicationFactory<Program> factory) : IClassFixture
 		var response = await client.GetAsync($"/api/health");
 		response.EnsureSuccessStatusCode();
 
-		var result = await response.Content.ReadFromJsonAsync<HealthCheckDTO>();
+		var result = await response.Content.ReadFromJsonAsync<HealthCheckDto>();
 		Assert.NotNull(result);
 		Assert.Equal("Healthy", result.status);
 		Assert.Equal("Healthy", result.entries.npgsql.status);
@@ -34,7 +34,7 @@ public class HealthTests(WebApplicationFactory<Program> factory) : IClassFixture
 		string status,
 		IReadOnlyList<object> tags
 	);
-	public record HealthCheckDTO(
+	public record HealthCheckDto(
 		string status,
 		string totalDuration,
 		Entries entries
