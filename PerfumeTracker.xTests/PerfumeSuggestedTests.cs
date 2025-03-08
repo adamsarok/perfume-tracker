@@ -57,7 +57,11 @@ public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : ICl
 	public async Task GetPerfumeSuggestion() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var response = await client.GetAsync("/api/perfumesuggesteds/5");
+		var queryParams = QueryString.Create(new Dictionary<string, string?>() {
+			{ "dayFilter", "5" },
+			{ "minimumRating", "8" }
+		});
+		var response = await client.GetAsync("/api/perfumesuggesteds" + queryParams);
 		response.EnsureSuccessStatusCode();
 
 		var perfumes = await response.Content.ReadFromJsonAsync<int>();

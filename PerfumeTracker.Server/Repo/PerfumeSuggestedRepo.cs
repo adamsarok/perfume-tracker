@@ -34,13 +34,13 @@ public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo
 		6 or 7 or 8 => Seasons.Summer,
 		9 or 10 or 11 => Seasons.Autumn,
 	};
-	public async Task<int> GetPerfumeSuggestion(int daysFilter) {
+	public async Task<int> GetPerfumeSuggestion(int daysFilter, int minimumRating) {
 		var alreadySug = await GetAlreadySuggestedPerfumeIds(daysFilter);
 		var worn = await perfumeWornRepo.GetWornPerfumeIDs(daysFilter);
 		var season = Season;
 		var all = await context
 			.Perfumes
-			.Where(x => x.Ml > 0 && x.Rating >= 8)
+			.Where(x => x.Ml > 0 && x.Rating >= minimumRating)
 			.Where(x => (!x.Winter && !x.Spring && !x.Summer && !x.Autumn) ||
 				(season == Seasons.Autumn && x.Autumn) ||
 				(season == Seasons.Winter && x.Winter) ||

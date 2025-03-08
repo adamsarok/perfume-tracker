@@ -15,6 +15,7 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { TagDTO } from "@/dto/TagDTO";
 import { columns, PerfumeListDTO } from "./perfume-worn-columns";
 import { DataTable } from "@/components/ui/data-table";
+import { useSettingsStore } from "@/services/settings-service";
 
 export interface PerfumeWornTableProps {
   readonly allTags: TagDTO[];
@@ -22,6 +23,7 @@ export interface PerfumeWornTableProps {
 
 export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
   const [fulltext, setFulltext] = useState("");
+  const { settings } = useSettingsStore();
   const list = useAsyncList({
     async load() {
       const r: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext);
@@ -45,20 +47,20 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
           items = perfumes;
           break;
         case "favorites":
-          items = perfumes.filter((x) => x.rating >= 8 && x.ml > 0);
+          items = perfumes.filter((x) => x.rating >= settings.minimumRating && x.ml > 0);
           break;
         case "buy-list":
-          items = perfumes.filter((x) => x.rating >= 8 && x.ml <= 0);
+          items = perfumes.filter((x) => x.rating >= settings.minimumRating && x.ml <= 0);
           break;
         case "untagged":
           items = perfumes.filter(
-            (x) => x.tags.length === 0 && x.rating >= 8 && x.ml > 0
+            (x) => x.tags.length === 0 && x.rating >= settings.minimumRating && x.ml > 0
           );
           break;
         case "tag-filter":
           items = perfumes.filter((perfume) => {
             return (
-              perfume.rating >= 8 &&
+              perfume.rating >= settings.minimumRating &&
               perfume.ml > 0 &&
               tags.every((tag) => hasTag(perfume, tag))
             );

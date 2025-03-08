@@ -4,24 +4,27 @@ import ReactMarkdown from "react-markdown";
 import React from "react";
 import { useState } from "react";
 import ColorChip from "@/components/color-chip";
-import { getQuery, UserPreferences } from "@/services/recommendation-service";
+import { getQuery, getUserPreferences, UserPreferences } from "@/services/recommendation-service";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { showError } from "@/services/toasty-service";
+import { useSettingsStore } from "@/services/settings-service";
 
 export const dynamic = "force-dynamic";
 
-interface RecommendationsPageProps {
-  userPreferences: UserPreferences;
-}
 
-export default function RecommendationsComponent({
-  userPreferences,
-}: RecommendationsPageProps) {
+export default function RecommendationsComponent() {
   const [recommendations, setRecommendations] = useState<string | null>(null);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
   const getRecommendations = async () => {
+    const { settings } = useSettingsStore();
+    setUserPreferences(await getUserPreferences(settings));
+    if (!userPreferences) {
+      showError('User preferences empty');
+      return;
+    }
     const query = await getQuery(userPreferences, wearOrBuy, perfumesOrNotes);
     console.log(query);
     if (query) {

@@ -1,5 +1,3 @@
-"use server";
-
 import { RecommendationDownloadDTO } from "@/dto/RecommendationDownloadDTO";
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { getPerfumes } from "./perfume-service";
@@ -7,6 +5,7 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { RecommendationUploadDTO } from "@/dto/RecommendationUploadDTO copy";
 import { getOpenAIResponse } from "./openai-service";
 import { showError } from "./toasty-service";
+import { PerfumeSettings } from "./settings-service";
 
 export interface TagWithCount {
   id: number;
@@ -98,15 +97,15 @@ function aggregatePerfumesTags(
   return result;
 }
 
-export async function getUserPreferences(): Promise<UserPreferences> {
+export async function getUserPreferences(settings: PerfumeSettings): Promise<UserPreferences> {
   //TODO: filter on server side!
   const perfumes = (await getPerfumes()).filter(
-    (x) => x.perfume.ml > 0 && x.perfume.rating >= 8
+    (x) => x.perfume.ml > 0 && x.perfume.rating >= settings.minimumRating
   );
 
   const past = new Date(0); //todo refactor
   const lastThreePerfumes = perfumes
-    .sort((a, b) => {
+    .toSorted((a, b) => {
       const dateA = a.lastWorn ? new Date(a.lastWorn) : past;
       const dateB = b.lastWorn ? new Date(b.lastWorn) : past;
       console.log(dateA, dateB);
@@ -136,7 +135,7 @@ export async function getAlreadyRecommended(): Promise<
 
 export async function addRecommendation(
   recommendation: RecommendationUploadDTO
-) : Promise<RecommendationDownloadDTO> {
+): Promise<RecommendationDownloadDTO> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const qry = `${apiAddress}/recommendations/`;
   const response = await fetch(qry, {
@@ -153,13 +152,13 @@ export async function addRecommendation(
   return r;
 }
 
-
-
 function RemoveDiacritics(input: string) {
   return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-export default async function getRecommendations(query: string) : Promise<RecommendationDownloadDTO> {
+export default async function getRecommendations(
+  query: string
+): Promise<RecommendationDownloadDTO> {
   try {
     query = RemoveDiacritics(query);
     const recommendations = await getOpenAIResponse(query);
@@ -170,16 +169,15 @@ export default async function getRecommendations(query: string) : Promise<Recomm
       };
       return await addRecommendation(dto);
     } else {
-      return Promise.reject(new Error('Open AI response is empty'));
+      return Promise.reject(new Error("Open AI response is empty"));
     }
   } catch (err: unknown) {
     if (err instanceof Error) {
-      showError('Error getting recommendations:', err.message);
+      showError("Error getting recommendations:", err.message);
       return Promise.reject(err);
     } else {
-      showError('Unknown error occured');
+      showError("Unknown error occured");
       return Promise.reject("Unknown error occured");
     }
   }
 }
-

@@ -3,6 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Button } from "@/components/ui/button";
+import { Brain, Cake, ChartArea, Gauge, House, List, Plus, Settings, Tag } from "lucide-react";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,68 +24,53 @@ export default function RootLayout({
       <body className={inter.className}>
         <ToastContainer position="top-right" />
         <div className="max-w-lg mx-auto px-4 py-8">
-          <details>
-            <summary>Menu</summary>
-            <div className="flex items-center space-x-2 mb-2">
-              <a className="menuButton" color="foreground" href="/">
-                Home
-              </a>
-              <a
-                className="menuButton flex-auto"
-                color="foreground"
-                href="/perfumes/surprise-me"
-              >
-                Surprise me!
-              </a>
-              <a
-                className="menuButton flex-auto"
-                color="foreground"
-                href="/perfumes/new-perfume"
-              >
-                New Perfume
-              </a>
-              </div>
-              <div className="flex items-center space-x-2 mb-2">
-              <a
-                className="menuButton flex-auto"
-                color="foreground"
-                href="/perfumes"
-              >
-                Perfumes
-              </a>
-
-              <a
-                className="menuButton flex-auto"
-                color="foreground"
-                href="/stats"
-              >
-                Stats
-              </a>
-              <a
-                className="menuButton flex-auto"
-                color="foreground"
-                href="/tags"
-              >
-                Tags
-              </a>
-              </div>
-              <div className="flex items-center space-x-2">
-              <a
-                className="menuButton flex-auto"
-                color="foreground"
-                href="/recommendations"
-              >
-                Ai
-              </a>
-              <a
-                className="menuButton flex-auto"
-                color="foreground"
-                href="/dashboard"
-              >
-                Dashboard
-              </a>
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <Link href="/" passHref>
+                <Button variant="outline" size="icon" title="Home" aria-label="Home">
+                  <House />
+                </Button>
+              </Link>
+              <Link href="/perfumes/surprise-me" passHref>
+                <Button variant="outline" size="icon" title="Surprise Me!" aria-label="Surprise Me!">
+                  <Cake />
+                </Button>
+              </Link>
+              <Link href="/perfumes/new-perfume" passHref>
+                <Button variant="outline" size="icon" title="New Perfume" aria-label="New Perfume">
+                  <Plus />
+                </Button>
+              </Link>
+              <Link href="/perfumes" passHref>
+                <Button variant="outline" size="icon" title="Perfume Finder" aria-label="Perfume Finder">
+                  <List />
+                </Button>
+              </Link>
+              <Link href="/stats" passHref>
+                <Button variant="outline" size="icon" title="Stats" aria-label="Stats">
+                  <ChartArea />
+                </Button>
+              </Link>
+              <Link href="/tags" passHref>
+                <Button variant="outline" size="icon" title="Tags" aria-label="Tags">
+                  <Tag />
+                </Button>
+              </Link>
+              <Link href="/recommendations" passHref>
+                <Button variant="outline" size="icon" title="Recommendations" aria-label="Recommendations">
+                  <Brain />
+                </Button>
+              </Link>
+              <Link href="/dashboard" passHref>
+                <Button variant="outline" size="icon" title="Dashboard" aria-label="Dashboard">
+                  <Gauge />
+                </Button>
+              </Link>
+              <Link href="/settings" passHref>
+                <Button variant="outline" size="icon" title="Settings" aria-label="Settings">
+                  <Settings />
+                </Button>
+              </Link>
             </div>
-          </details>
           {children}
         </div>
       </body>
