@@ -28,7 +28,7 @@ export default function AiComponent() {
     "perfumes" | "notes" | null
   >("perfumes");
   const [timeRange, setTimeRange] = useState<string | null>("last-3");
-  //TODO: timerange filtering 2
+  //TODO: timerange filtering 3
   console.log(timeRange);
   const { settings } = useSettingsStore();
 
