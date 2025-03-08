@@ -18,9 +18,9 @@ services:
       - 7080:8080
       - 7081:8081
     environment:
-      - CONNECTION_STRING=${CONNECTION_STRING}
-      - METABASE_URL=${METABASE_URL}
-      - METABASE_SECRET_KEY=${METABASE_SECRET_KEY}
+      - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
+      - Metabase__Url=${METABASE_URL}
+      - Metabase__SecretKey=${METABASE_SECRET_KEY}
     restart: unless-stopped
     build:
       context: .
