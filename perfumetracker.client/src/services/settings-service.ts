@@ -4,6 +4,9 @@ import { persist } from "zustand/middleware";
 export interface PerfumeSettings {
   minimumRating: number;
   dayFilter: number;
+  showMalePerfumes: boolean;
+  showUnisexPerfumes: boolean;
+  showFemalePerfumes: boolean;
 }
 
 interface SettingsStore {
@@ -16,7 +19,10 @@ export const useSettingsStore = create<SettingsStore>()(
     (set) => ({
       settings: {
         minimumRating: 8,
-        dayFilter: 30
+        dayFilter: 30,
+        showMalePerfumes: true,
+        showUnisexPerfumes: true,
+        showFemalePerfumes: true,
       },
       setSettings: (newSettings) => {
         set((state) => ({
