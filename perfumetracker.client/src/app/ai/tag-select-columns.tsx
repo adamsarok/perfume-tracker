@@ -5,7 +5,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { getContrastColor } from "../colors";
 
-// NOSONAR: This is a column definition file, code deduplication is not feasible.
 export const TagSelectColumns: ColumnDef<TagStatDTO>[] = [
   {
     id: "select",

@@ -9,7 +9,6 @@ export interface PerfumeSelectDto {
   wornTimes: number | undefined,
 }
 
-// NOSONAR: This is a column definition file, code deduplication is not feasible.
 export const PerfumeSelectColumns: ColumnDef<PerfumeSelectDto>[] = [
   {
     id: "select",
