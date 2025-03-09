@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { getContrastColor } from "../colors";
 
+// NOSONAR: This is a column definition file, code deduplication is not feasible.
 export const TagSelectColumns: ColumnDef<TagStatDTO>[] = [
   {
     id: "select",
@@ -61,30 +62,5 @@ export const TagSelectColumns: ColumnDef<TagStatDTO>[] = [
   {
     id: "actions",
     enableHiding: false,
-    //cell: ({ row }) => {
-    //const payment = row.original
-
-    // return (
-    //   <DropdownMenu>
-    //     <DropdownMenuTrigger asChild>
-    //       <Button variant="ghost" className="h-8 w-8 p-0">
-    //         <span className="sr-only">Open menu</span>
-    //         <MoreHorizontal />
-    //       </Button>
-    //     </DropdownMenuTrigger>
-    //     <DropdownMenuContent align="end">
-    //       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-    //       <DropdownMenuItem
-    //         onClick={() => navigator.clipboard.writeText(payment.id)}
-    //       >
-    //         Copy payment ID
-    //       </DropdownMenuItem>
-    //       <DropdownMenuSeparator />
-    //       <DropdownMenuItem>View customer</DropdownMenuItem>
-    //       <DropdownMenuItem>View payment details</DropdownMenuItem>
-    //     </DropdownMenuContent>
-    //   </DropdownMenu>
-    // )
-    //},
   },
 ];
