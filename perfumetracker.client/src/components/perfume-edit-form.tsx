@@ -37,14 +37,14 @@ import { TagDTO } from "@/dto/TagDTO";
 import { ActionResultID } from "@/dto/ActionResultID";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "./ui/label";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 
 interface PerfumeEditFormProps {
-  perfumeWithWornStats: PerfumeWithWornStatsDTO | null;
-  allTags: TagDTO[];
-  perfumesTags: TagDTO[];
-  r2_api_address: string | undefined;
+  readonly perfumeWithWornStats: PerfumeWithWornStatsDTO | null;
+  readonly allTags: TagDTO[];
+  readonly perfumesTags: TagDTO[];
+  readonly r2_api_address: string | undefined;
 }
 
 const formSchema = z.object({
@@ -71,7 +71,6 @@ export default function PerfumeEditForm({
   allTags,
   r2_api_address,
 }: PerfumeEditFormProps) {
-  //console.log(perfumeWithWornStats);
   const perfume = perfumeWithWornStats?.perfume;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -117,7 +116,7 @@ export default function PerfumeEditForm({
       id = result.id;
       showSuccess("Update successful");
       reload(id);
-    } else showError('Update failed:', result.error ?? 'unknown error');
+    } else showError("Update failed:", result.error ?? "unknown error");
   }
 
   const reload = useCallback(
@@ -129,7 +128,7 @@ export default function PerfumeEditForm({
 
   const topChipProps: ChipProp[] = [];
   const bottomChipProps: ChipProp[] = [];
-  allTags.map((allTag) => {
+  allTags.forEach((allTag) => {
     if (!tags.some((tag) => tag.tagName === allTag.tagName)) {
       bottomChipProps.push({
         name: allTag.tagName,
@@ -139,7 +138,7 @@ export default function PerfumeEditForm({
       });
     }
   });
-  tags.map((x) => {
+  tags.forEach((x) => {
     topChipProps.push({
       name: x.tagName,
       color: x.color,
@@ -157,14 +156,14 @@ export default function PerfumeEditForm({
   const onDelete = async (id: number | undefined) => {
     if (id) {
       const result = await deletePerfume(id);
-      if (result.error) showError('Perfume deletion failed', result.error);
+      if (result.error) showError("Perfume deletion failed", result.error);
       else {
         showSuccess("Perfume deleted!");
         router.push("/");
       }
     }
   };
-
+  const [showUploadButtons, setShowUploadButtons] = useState<boolean>(false);
   const [imageObjectKey, setImageObjectKey] = useState<string>(
     perfume ? perfume.imageObjectKey : ""
   );
@@ -172,13 +171,12 @@ export default function PerfumeEditForm({
     getImageUrl(perfume?.imageObjectKey, r2_api_address)
   );
   const onUpload = async (guid: string | undefined) => {
-    if (perfume && perfume.id && guid) {
+    if (perfume?.id && guid) {
       setImageObjectKey(guid);
       setImageUrl(getImageUrl(guid, r2_api_address));
       const result = await updateImageGuid(perfume.id, guid);
-      if (result.ok) showSuccess('Image upload successful');
-      else
-        showError('Image upload failed', result.error ?? 'unknown error');
+      if (result.ok) showSuccess("Image upload successful");
+      else showError("Image upload failed", result.error ?? "unknown error");
     }
   };
   return (
@@ -192,21 +190,25 @@ export default function PerfumeEditForm({
             <div className={styles.imageContainer}>
               <div className="flex items-center justify-center space-x-2 mb-2">
                 <img
+                  onClick={() => setShowUploadButtons(!showUploadButtons)}
                   alt={
                     imageUrl
                       ? "Image of a perfume"
                       : "Placeholder icon for a perfume"
                   }
                   className={styles.img}
-                  src={imageUrl ? imageUrl : "/perfume-icon.svg"}
+                  src={imageUrl || "/perfume-icon.svg"}
                 ></img>
               </div>
-              <UploadComponent
-                onUpload={onUpload}
-                r2_api_address={r2_api_address}
-              />
+              {showUploadButtons && (
+                <UploadComponent
+                  onUpload={onUpload}
+                  r2_api_address={r2_api_address}
+                />
+              )}
             </div>
             <div className={styles.content}>
+              {/* TODO implement <PlaylistDrawer className="mb-2 mt-2"></PlaylistDrawer> */}
               <FormField
                 control={form.control}
                 name="house"
@@ -363,8 +365,15 @@ export default function PerfumeEditForm({
               </div>
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2">
-                <Label>{`Last worn: ${perfumeWithWornStats?.lastWorn ? format(new Date(perfumeWithWornStats.lastWorn), 'yyyy.MM.dd') : ''}`}</Label>
-                <Separator orientation="vertical" className="h-6"/>
+                <Label>{`Last worn: ${
+                  perfumeWithWornStats?.lastWorn
+                    ? format(
+                        new Date(perfumeWithWornStats.lastWorn),
+                        "yyyy.MM.dd"
+                      )
+                    : ""
+                }`}</Label>
+                <Separator orientation="vertical" className="h-6" />
                 <Label>{`Worn ${perfumeWithWornStats?.wornTimes} times`}</Label>
               </div>
               <Separator className="mb-2"></Separator>
@@ -373,6 +382,7 @@ export default function PerfumeEditForm({
                 onSuccess={null}
                 className=""
               ></SprayOnComponent>
+              <Separator className="mb-2 mt-2"></Separator>
             </div>
           </div>
         </form>

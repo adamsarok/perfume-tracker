@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <div className="max-w-lg mx-auto px-4 py-8">
-            <div className="flex items-center justify-center space-x-2 mb-2">
+            <div className="flex items-center justify-center space-x-2">
               <Link href="/" passHref>
                 <Button variant="outline" size="icon" title="Home" aria-label="Home">
                   <House />
