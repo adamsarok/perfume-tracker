@@ -23,10 +23,10 @@ namespace PerfumeTrackerAPI.Repo {
 				.Include(x => x.Perfumes)
 				.AsSplitQuery()
 				.AsNoTracking()
-				.ProjectToType<PerfumePlaylistDto>()
+				//.ProjectToType<PerfumePlaylistDto>() of course ProjectTo does not work...
 				.FirstOrDefaultAsync(x => x.Name == name);
-			if (p == null) throw new NotFoundException();
-			return p;
+			if (p == null) throw new NotFoundException("PerfumePlaylist", name ?? "");
+			return p.Adapt<PerfumePlaylistDto>();
 		}
 
 		public async Task<PerfumePlaylistDto> AddPerfumePlaylist(PerfumePlaylistDto Dto) {

@@ -6,7 +6,7 @@ using PerfumeTrackerAPI.Repo;
 
 namespace FountainPensNg.Server.API {
     public class PerfumePlaylistModule : ICarterModule {
-        public void AddRoutes(IEndpointRouteBuilder app) {
+		public void AddRoutes(IEndpointRouteBuilder app) {
             const string tag = "PerfumePlaylists";
             app.MapGet("/api/perfume-playlists", async (PerfumePlaylistRepo repo) =>
                 await repo.GetPerfumePlaylists())
