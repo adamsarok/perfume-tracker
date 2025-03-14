@@ -78,10 +78,6 @@ export default function AiComponent({ tags, perfumes }: AiComponentProps) {
     }
   };
 
-  // useEffect(() => {
-  //   getRecommendations();
-  // }, [preferencesLoaded, userPreferences, wearOrBuy, perfumesOrNotes]);
-
   return (
     <div className="space-y-6">
       <details>

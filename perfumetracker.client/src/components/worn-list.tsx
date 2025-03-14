@@ -24,8 +24,7 @@ export default function WornList({r2_api_address}: WornListProps) {
             ...worn,
             wornOn: new Date(worn.wornOn)
         }));
-        setWorns([...worns, ...parsedWorns.sort((a, b) => { return b.wornOn.getTime() - a.wornOn.getTime()})]);
-        //TODO: this sort is not 100% correct - we load by id, but worn date can be a different order
+        setWorns([...worns, ...parsedWorns.toSorted((a, b) => { return b.wornOn.getTime() - a.wornOn.getTime()})]);
     };
     
     useEffect(() => {

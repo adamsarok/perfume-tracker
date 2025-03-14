@@ -5,8 +5,6 @@ import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
 import { useRouter } from "next/navigation";
-import { TrashBin } from "../icons/trash-bin";
-import { FloppyDisk } from "@/icons/floppy-disk";
 import UploadComponent from "./upload-component";
 import styles from "./perfume-edit-form.module.css";
 import SprayOnComponent from "./spray-on";
@@ -39,6 +37,7 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "./ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
+import { Save, Trash2 } from "lucide-react";
 
 interface PerfumeEditFormProps {
   readonly perfumeWithWornStats: PerfumeWithWornStatsDTO | null;
@@ -347,11 +346,11 @@ export default function PerfumeEditForm({
               <div></div>
               <div className="flex mt-4 mb-2">
                 <Button color="primary" className="mr-4 flex-1" type="submit">
-                  <FloppyDisk /> {perfume ? "Update" : "Insert"}
+                  <Save /> {perfume ? "Update" : "Insert"}
                 </Button>
                 <MessageBox
                   className="flex-1"
-                  startContent={<TrashBin />}
+                  startContent={<Trash2 />}
                   modalButtonColor="danger"
                   modalButtonText="Delete"
                   message="Are you sure you want to delete this Perfume?"

@@ -13,9 +13,6 @@ namespace PerfumeTracker.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            //migrationBuilder.AlterDatabase()
-            //    .Annotation("Npgsql:PostgresExtension:pgagent.pgagent", ",,");
-
             migrationBuilder.CreateTable(
                 name: "Perfume",
                 columns: table => new

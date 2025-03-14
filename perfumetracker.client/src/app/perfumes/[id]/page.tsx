@@ -8,7 +8,7 @@ import { getTags } from "@/services/tag-service";
 export const dynamic = 'force-dynamic'
 
 interface EditPerfumePageProps {
-    params: Promise<{
+    readonly params: Promise<{
         id: string
     }>
 }
@@ -21,7 +21,7 @@ export default async function EditPerfumePage(props: EditPerfumePageProps) {
     if (!perfume) return notFound();
     const allTags = await getTags();
     const tags: TagDTO[] = [];
-    perfume.perfume.tags.map(x => {
+    perfume.perfume.tags.forEach(x => {
         tags.push({
             id: x.id,
             tagName: x.tagName,

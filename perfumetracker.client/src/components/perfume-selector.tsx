@@ -47,7 +47,6 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            role="combobox"
             aria-expanded={open}
             className="flex w-full flex-wrap md:flex-nowrap gap-4"
           >

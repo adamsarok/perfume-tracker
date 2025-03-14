@@ -1,10 +1,10 @@
-import { MagicWand } from "@/icons/magic-wand";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { wearPerfume } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
+import { WandSparkles } from "lucide-react";
 
 export interface SprayOnProps {
   perfumeId: number | undefined;
@@ -44,7 +44,7 @@ export default function SprayOnComponent({
   return (
     <div className={"flex items-center space-x-4 " + className}>
       <Button color="secondary" onClick={() => onSprayOn()} className="flex-2">
-        <MagicWand /> Spray On
+        <WandSparkles /> Spray On
       </Button>
       <Label htmlFor="date">Worn On</Label>
       <Input
@@ -52,7 +52,6 @@ export default function SprayOnComponent({
         className="flex-1"
         id="date"
         value={dateStr}
-        //defaultValue={yymmdd}
         onChange={handleDateChange}
       />
     </div>
