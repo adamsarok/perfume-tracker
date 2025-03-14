@@ -18,6 +18,7 @@ builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeWornRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
+builder.Services.AddScoped<PerfumePlaylistRepo>();
 builder.Services.AddCarter();
 
 builder.Services.AddHealthChecks()
