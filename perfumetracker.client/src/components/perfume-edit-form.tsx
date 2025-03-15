@@ -38,6 +38,7 @@ import { Label } from "./ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2 } from "lucide-react";
+import PlaylistDrawer from "./playlist-drawer";
 
 interface PerfumeEditFormProps {
   readonly perfumeWithWornStats: PerfumeWithWornStatsDTO | null;
@@ -207,7 +208,11 @@ export default function PerfumeEditForm({
               )}
             </div>
             <div className={styles.content}>
-              {/* TODO implement <PlaylistDrawer className="mb-2 mt-2"></PlaylistDrawer> */}
+              {perfumeWithWornStats 
+                && perfumeWithWornStats.perfume.id 
+                && perfumeWithWornStats.perfume.house 
+                && perfumeWithWornStats.perfume.perfumeName &&
+              <PlaylistDrawer perfume={perfumeWithWornStats} className="mb-2 mt-2"></PlaylistDrawer>}
               <FormField
                 control={form.control}
                 name="house"
