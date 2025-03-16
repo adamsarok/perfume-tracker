@@ -20,6 +20,7 @@ public partial class PerfumetrackerContext : DbContext {
 	public virtual DbSet<Recommendation> Recommendations { get; set; }
 	public virtual DbSet<Tag> Tags { get; set; }
 	public virtual DbSet<PerfumePlayList> PerfumePlayLists { get; set; }
+	public virtual DbSet<Settings> Settings { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		modelBuilder.Entity<Perfume>(entity => {
 			entity.HasKey(e => e.Id).HasName("Perfume_pkey");
@@ -110,6 +111,12 @@ public partial class PerfumetrackerContext : DbContext {
 
 			entity.HasMany(d => d.Perfumes)
 				.WithMany(p => p.PerfumePlayList);
+		});
+
+		modelBuilder.Entity<Settings>(entity => {
+			entity.HasKey(e => e.UserId).HasName("Settings_pkey");
+
+			entity.ToTable("Settings");
 		});
 
 		OnModelCreatingPartial(modelBuilder);

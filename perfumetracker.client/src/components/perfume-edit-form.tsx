@@ -37,7 +37,7 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "./ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { Save, Trash2 } from "lucide-react";
+import { Percent, Save, Trash2 } from "lucide-react";
 
 interface PerfumeEditFormProps {
   readonly perfumeWithWornStats: PerfumeWithWornStatsDTO | null;
@@ -55,6 +55,7 @@ const formSchema = z.object({
   }),
   rating: z.coerce.number().min(0).max(10),
   amount: z.coerce.number().min(0).max(200),
+  percentLeft: z.coerce.number().min(0).max(100),
   notes: z.string().min(1, {
     message: "Notes must be at least 1 characters.",
   }),
@@ -78,6 +79,7 @@ export default function PerfumeEditForm({
       perfume: perfume ? perfume.perfumeName : "",
       rating: perfume ? perfume.rating : 0,
       amount: perfume ? perfume.ml : 0,
+      percentLeft: perfume ? perfume.percentLeft : 100,
       notes: perfume ? perfume.notes : "",
       winter: perfume ? perfume.winter : true,
       summer: perfume ? perfume.summer : true,
@@ -257,6 +259,19 @@ export default function PerfumeEditForm({
                       <FormLabel>Amount</FormLabel>
                       <FormControl>
                         <Input placeholder="Amount" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="percentLeft"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>% left</FormLabel>
+                      <FormControl>
+                        <Input placeholder="100 %" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

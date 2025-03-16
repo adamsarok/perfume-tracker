@@ -19,6 +19,7 @@ builder.Services.AddScoped<PerfumeWornRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
 builder.Services.AddScoped<PerfumePlaylistRepo>();
+builder.Services.AddScoped<SettingsRepo>();
 builder.Services.AddCarter();
 
 builder.Services.AddHealthChecks()
