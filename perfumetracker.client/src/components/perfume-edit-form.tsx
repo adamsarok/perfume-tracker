@@ -208,11 +208,9 @@ export default function PerfumeEditForm({
               )}
             </div>
             <div className={styles.content}>
-              {perfumeWithWornStats 
-                && perfumeWithWornStats.perfume.id 
-                && perfumeWithWornStats.perfume.house 
-                && perfumeWithWornStats.perfume.perfumeName &&
-              <PlaylistDrawer perfume={perfumeWithWornStats} className="mb-2 mt-2"></PlaylistDrawer>}
+                {perfumeWithWornStats?.perfume?.id && (
+                <PlaylistDrawer perfume={perfumeWithWornStats} className="mb-2 mt-2" />
+                )}
               <FormField
                 control={form.control}
                 name="house"
