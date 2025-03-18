@@ -22,7 +22,7 @@ builder.Services.AddScoped<PerfumePlaylistRepo>();
 builder.Services.AddCarter();
 
 builder.Services.AddHealthChecks()
-	.AddNpgSql(conn);
+    .AddNpgSql(conn);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -37,6 +37,11 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope()) {
+    var dbContext = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
 app.UseExceptionHandler();
 app.MapCarter();
 app.UseCors(x => x.AllowAnyHeader()
@@ -44,7 +49,7 @@ app.UseCors(x => x.AllowAnyHeader()
     .AllowCredentials()
     .WithOrigins("http://localhost", "http://192.168.1.79:3000", "https://192.168.1.79:3000", "https://localhost:3000", "http://localhost:3000"));
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
-	ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
 app.Run();
