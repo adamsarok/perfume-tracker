@@ -1,17 +1,18 @@
+import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export interface PerfumeForPlaylist {
-  id: number;
-  house: string;
-  perfumeName: string;
-}
+// export interface PerfumeForPlaylist {
+//   id: number;
+//   house: string;
+//   perfumeName: string;
+// }
 
 interface PlaylistStore {
   playlistName: string;
-  perfumes: PerfumeForPlaylist[];
+  perfumes: PerfumeWithWornStatsDTO[];
   setName: (newName: string) => void;
-  setPerfumes: (newPerfumes: PerfumeForPlaylist[]) => void;
+  setPerfumes: (newPerfumes: PerfumeWithWornStatsDTO[]) => void;
 }
 
 //TODO: users should build playlists of perfumes, which would work like a shopping cart functions:
