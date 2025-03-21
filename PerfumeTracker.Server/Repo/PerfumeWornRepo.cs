@@ -1,11 +1,3 @@
-using System;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.Dto;
-using PerfumeTracker.Server.Exceptions;
-using PerfumeTrackerAPI.Dto;
-using PerfumeTrackerAPI.Models;
-
 namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeWornRepo(PerfumetrackerContext context) {

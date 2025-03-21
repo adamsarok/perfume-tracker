@@ -1,8 +1,6 @@
 
 using Carter;
-using PerfumeTracker.Server.Dto;
-using PerfumeTrackerAPI.Dto;
-using PerfumeTrackerAPI.Repo;
+using PerfumeTracker.Server.Repo;
 
 namespace FountainPensNg.Server.API {
     public class PerfumePlaylistModule : ICarterModule {

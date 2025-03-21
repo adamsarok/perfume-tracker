@@ -1,11 +1,4 @@
-﻿using Mapster;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using PerfumeTrackerAPI.Dto;
-using PerfumeTrackerAPI.Models;
-using System.Net;
-using System.Net.Http.Json;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace PerfumeTracker.xTests;
 public class MetabaseTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {

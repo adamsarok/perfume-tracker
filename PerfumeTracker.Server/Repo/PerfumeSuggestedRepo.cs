@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.Exceptions;
-using PerfumeTrackerAPI.Models;
-
 namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo perfumeWornRepo) {

@@ -1,12 +1,5 @@
-﻿using FountainPensNg.Server.API;
-using Mapster;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using PerfumeTracker.Server.Dto;
-using PerfumeTracker.Server.Models;
-using PerfumeTrackerAPI.Dto;
-using PerfumeTrackerAPI.Models;
 using System.Net;
 using System.Net.Http.Json;
 

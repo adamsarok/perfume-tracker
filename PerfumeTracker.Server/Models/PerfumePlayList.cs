@@ -1,6 +1,4 @@
-﻿using PerfumeTrackerAPI.Models;
-
-namespace PerfumeTracker.Server.Models {
+﻿namespace PerfumeTracker.Server.Models {
 	public class PerfumePlayList {
 		public string Name { get; set; }
 		public virtual ICollection<Perfume> Perfumes { get; set; } = new List<Perfume>();

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PerfumeTrackerAPI.Models;
+namespace PerfumeTracker.Server.Models;
 
 public partial class Tag
 {

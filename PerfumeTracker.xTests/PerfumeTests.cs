@@ -1,10 +1,5 @@
-﻿using Mapster;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using PerfumeTracker.Server.Dto;
-using PerfumeTrackerAPI.Dto;
-using PerfumeTrackerAPI.Models;
 using System.Net;
 using System.Net.Http.Json;
 

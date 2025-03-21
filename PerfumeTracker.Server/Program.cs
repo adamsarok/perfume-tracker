@@ -1,11 +1,8 @@
 using Carter;
 using HealthChecks.UI.Client;
-using Microsoft.EntityFrameworkCore;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Repo;
-using PerfumeTrackerAPI.Models;
-using PerfumeTrackerAPI.Repo;
-using PerfumeTrackerAPI.Server.Helpers;
+using PerfumeTracker.Server.Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
