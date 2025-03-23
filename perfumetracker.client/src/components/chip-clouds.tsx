@@ -75,32 +75,39 @@ export default function ChipClouds({
       <details>
         <summary>Available tags:</summary>
         <div className={styles.chipContainer}>
-          <Card>
-            <CardHeader>
+          <div key="*">
+            <ColorChip
+                className=""
+                color="#FFFFFF"
+                name="*"
+                onChipClick={null}
+              />
               <div key="New" className={styles.chipItem}>
                 <TagAddModal tagAdded={handleModalClose}></TagAddModal>
               </div>
-            </CardHeader>
-          </Card>
+          </div>
           {Object.keys(groupedChips)
             .toSorted((a, b) => a.localeCompare(b))
             .map((letter) => (
-              <Card key={letter} className={styles.chipGroup}>
-                <CardHeader>
-                  {letter}
-                  {groupedChips[letter].map((c) => (
-                    <div key={c.name} className={styles.chipItem}>
-                      <ColorChip
-                        className={c.className}
-                        color={c.color}
-                        name={c.name}
-                        onChipClick={() => handleBottomChipClick(c)}
-                      />
-                    </div>
-                  ))}
-                </CardHeader>
-              </Card>
-            ))}
+              <div key={letter}>
+              <ColorChip
+                className=""
+                color="#FFFFFF"
+                name={letter}
+                onChipClick={null}
+              />
+              {groupedChips[letter].map((c) => (
+                <div key={c.name} className={styles.chipItem}>
+                  <ColorChip
+                    className={c.className}
+                    color={c.color}
+                    name={c.name}
+                    onChipClick={() => handleBottomChipClick(c)}
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </details>
     </div>
