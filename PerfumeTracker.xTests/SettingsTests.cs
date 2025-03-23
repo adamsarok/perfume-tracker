@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Models;
-using PerfumeTrackerAPI.Models;
 
 namespace PerfumeTracker.xTests;
 

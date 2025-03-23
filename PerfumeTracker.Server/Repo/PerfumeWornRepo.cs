@@ -35,16 +35,11 @@ public class PerfumeWornRepo(PerfumetrackerContext context) {
 	}
 
 	public async Task<PerfumeWornDownloadDto> AddPerfumeWorn(PerfumeWornUploadDto dto) {
-		// if (await context.PerfumeWorns.AnyAsync(x =>
-		// 	x.PerfumeId == dto.PerfumeId &&
-		// 	x.Created_At.Date == dto.WornOn.Date
-		// )) {
-		// 	throw new InvalidOperationException("You have already worn this perfume on this day");
-		// } //TODO: maybe reenable with setting? there should be a possibility to respray a perfume
 		var w = new PerfumeWorn() {
 			PerfumeId = dto.PerfumeId,
 			Created_At = dto.WornOn
 		};
+		//TODO: get spray amount setting & reduce perfume with amount
 		context.PerfumeWorns.Add(w);
 		await context.SaveChangesAsync();
 		return w.Adapt<PerfumeWornDownloadDto>();

@@ -1,7 +1,3 @@
-using System;
-using PerfumeTracker.Server.Models;
-using PerfumeTrackerAPI.Models;
-
 namespace PerfumeTracker.Server.Repo;
 
 public class SettingsRepo(PerfumetrackerContext context) {

@@ -31,7 +31,7 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
         id: x.perfume.id,
         house: x.perfume.house,
         perfume: x.perfume.perfumeName,
-        ml: x.perfume.ml,
+        ml: x.perfume.mlLeft,
         rating: x.perfume.rating,
         wornTimes: x.wornTimes,
         lastWorn: x.lastWorn,
@@ -176,7 +176,7 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
       <Separator></Separator>
       <div className="container mx-auto py-4">
         <Label className="text-right">
-          Total: {totalMl} ml of {list.items.length} perfumes
+          Total: {totalMl.toFixed()} ml of {list.items.length} perfumes
         </Label>
         <DataTable columns={columns} data={list.items} />
       </div>

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -20,7 +21,9 @@ namespace PerfumeTracker.Server.Migrations
                     ShowMalePerfumes = table.Column<bool>(type: "boolean", nullable: false),
                     ShowUnisexPerfumes = table.Column<bool>(type: "boolean", nullable: false),
                     ShowFemalePerfumes = table.Column<bool>(type: "boolean", nullable: false),
-                    SprayAmount = table.Column<decimal>(type: "numeric", nullable: false)
+                    SprayAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    Created_At = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Updated_At = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {

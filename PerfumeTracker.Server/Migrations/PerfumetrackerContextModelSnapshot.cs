@@ -237,6 +237,41 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("Recommendation", (string)null);
                 });
 
+            modelBuilder.Entity("PerfumeTracker.Server.Models.Settings", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DayFilter")
+                        .HasColumnType("integer");
+
+                    b.Property<float>("MinimumRating")
+                        .HasColumnType("real");
+
+                    b.Property<bool>("ShowFemalePerfumes")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ShowMalePerfumes")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ShowUnisexPerfumes")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("SprayAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("Updated_At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId")
+                        .HasName("Settings_pkey");
+
+                    b.ToTable("Settings", (string)null);
+                });
+
             modelBuilder.Entity("PerfumeTracker.Server.Models.Tag", b =>
                 {
                     b.Property<int>("Id")

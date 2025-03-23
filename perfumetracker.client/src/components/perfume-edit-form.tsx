@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
@@ -37,7 +37,7 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "./ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { Percent, Save, Trash2 } from "lucide-react";
+import { Save, Trash2 } from "lucide-react";
 
 interface PerfumeEditFormProps {
   readonly perfumeWithWornStats: PerfumeWithWornStatsDTO | null;
@@ -55,7 +55,7 @@ const formSchema = z.object({
   }),
   rating: z.coerce.number().min(0).max(10),
   amount: z.coerce.number().min(0).max(200),
-  percentLeft: z.coerce.number().min(0).max(100),
+  mlLeft: z.coerce.number().min(0).max(200),
   notes: z.string().min(1, {
     message: "Notes must be at least 1 characters.",
   }),
@@ -79,7 +79,7 @@ export default function PerfumeEditForm({
       perfume: perfume ? perfume.perfumeName : "",
       rating: perfume ? perfume.rating : 0,
       amount: perfume ? perfume.ml : 0,
-      percentLeft: perfume ? perfume.percentLeft : 100,
+      mlLeft: perfume ? perfume.mlLeft : 100,
       notes: perfume ? perfume.notes : "",
       winter: perfume ? perfume.winter : true,
       summer: perfume ? perfume.summer : true,
@@ -180,6 +180,13 @@ export default function PerfumeEditForm({
       else showError("Image upload failed", result.error ?? "unknown error");
     }
   };
+  const amount = form.watch("amount");
+  useEffect(() => {
+    if (!perfume?.id) {
+       form.setValue("mlLeft", amount);
+    }
+  }, [amount]);
+
   return (
     <div>
       <Form {...form}>
@@ -256,9 +263,9 @@ export default function PerfumeEditForm({
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Amount</FormLabel>
+                      <FormLabel>Bottle (ml)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Amount" {...field} />
+                        <Input placeholder="Ml" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -266,12 +273,12 @@ export default function PerfumeEditForm({
                 />
                 <FormField
                   control={form.control}
-                  name="percentLeft"
+                  name="mlLeft"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>% left</FormLabel>
+                      <FormLabel>Remaining (ml)</FormLabel>
                       <FormControl>
-                        <Input placeholder="100 %" {...field} />
+                        <Input placeholder="Ml left" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
