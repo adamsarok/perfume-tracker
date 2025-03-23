@@ -39,6 +39,7 @@ public class PerfumeRepo(PerfumetrackerContext context) {
 					p.Rating,
 					p.Notes,
 					p.Ml,
+					p.MlLeft,
 					p.ImageObjectKey,
 					p.Autumn,
 					p.Spring,

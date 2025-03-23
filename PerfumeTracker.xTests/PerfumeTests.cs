@@ -134,7 +134,7 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	public async Task AddPerfume() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var dto = new PerfumeDto(0, "House3", "Perfume3", 5, "Notes", 50, "", true, true, false, false, new());
+		var dto = new PerfumeDto(0, "House3", "Perfume3", 5, "Notes", 50, 50, "", true, true, false, false, new());
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/perfumes", content);
 		response.EnsureSuccessStatusCode();

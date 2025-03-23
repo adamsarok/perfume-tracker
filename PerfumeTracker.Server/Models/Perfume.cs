@@ -8,7 +8,8 @@ public partial class Perfume
     public string PerfumeName { get; set; } = null!;
     public double Rating { get; set; }
     public string Notes { get; set; } = null!;
-    public int Ml { get; set; }
+    public decimal Ml { get; set; }
+    public decimal MlLeft { get; set; }
     public string ImageObjectKey { get; set; } = null!;
     public bool Autumn { get; set; }
     public bool Spring { get; set; }
