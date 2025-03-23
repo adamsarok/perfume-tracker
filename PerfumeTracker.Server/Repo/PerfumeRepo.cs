@@ -49,18 +49,6 @@ public class PerfumeRepo(PerfumetrackerContext context) {
 				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count : 0,
 				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null);
 	}
-	public async Task<PerfumeStatDto> GetPerfumeStats() {
-		var raw = await context
-			.Perfumes
-			.GroupBy(g => 1)
-			.Select(x => new PerfumeStatDto(
-				x.Sum(s => s.Ml),
-				x.Sum(s => s.PerfumeWorns.Count),
-				x.Count()))
-			.ToListAsync();
-		if (raw != null && raw.Count > 0) return raw[0];
-		return new PerfumeStatDto(0, 0, 0);
-	}
 	public async Task<PerfumeDto> AddPerfume(PerfumeDto Dto) {
 		var perfume = Dto.Adapt<Perfume>();
 		if (perfume == null) throw new InvalidOperationException("Perfume mapping failed");

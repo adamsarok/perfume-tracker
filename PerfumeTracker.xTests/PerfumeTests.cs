@@ -144,18 +144,6 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	}
 
 	[Fact]
-	public async Task GetStats() {
-		await PrepareData();
-		var client = factory.CreateClient();
-
-		var response = await client.GetAsync("/api/perfumes/stats");
-		response.EnsureSuccessStatusCode();
-
-		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeStatDto>();
-		Assert.NotNull(perfumes);
-	}
-
-	[Fact]
 	public async Task GetFullText() {
 		await PrepareData();
 		var client = factory.CreateClient();

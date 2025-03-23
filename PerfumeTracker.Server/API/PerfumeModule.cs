@@ -11,11 +11,6 @@ namespace FountainPensNg.Server.API {
                 .WithTags(PERFUMES)
                 .WithName("GetPerfumesFulltext");
 
-            app.MapGet("/api/perfumes/stats", async (PerfumeRepo repo) =>
-               await repo.GetPerfumeStats())
-               .WithTags(PERFUMES)
-               .WithName("GetPerfumeStats");
-
             app.MapGet("/api/perfumes", async (PerfumeRepo repo) =>
                 await repo.GetPerfumesWithWorn())
                 .WithTags(PERFUMES)
