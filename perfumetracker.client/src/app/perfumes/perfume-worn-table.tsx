@@ -133,7 +133,7 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
         orientation="horizontal"
         onValueChange={setSelected}
         defaultValue="all"
-        className="mb-4"
+        className="mb-4 flex items-center space-x-2"
       >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="all" id="all" />

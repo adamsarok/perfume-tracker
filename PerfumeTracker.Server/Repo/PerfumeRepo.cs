@@ -4,6 +4,8 @@ public class PerfumeRepo(PerfumetrackerContext context) {
 		var raw = await context
 			.Perfumes
 			.Include(x => x.PerfumeWorns)
+			.Include(x => x.PerfumeTags)
+			.ThenInclude(x => x.Tag)
 			.Where(p => string.IsNullOrWhiteSpace(fulltext)
 				|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{fulltext}:*"))
 				|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, fulltext))
