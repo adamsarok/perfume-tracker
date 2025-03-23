@@ -4,8 +4,9 @@ import { useState } from "react";
 import styles from "./chip-clouds.module.css";
 import TagAddModal from "./tag-add-modal";
 import ColorChip, { ChipProp } from "./color-chip";
-import { Card, CardHeader } from "./ui/card";
 import { TagDTO } from "@/dto/TagDTO";
+import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { Button } from "./ui/button";
 
 export interface ChipCloudProps {
   readonly topChipProps: ChipProp[];
@@ -72,11 +73,15 @@ export default function ChipClouds({
             </div>
           ))}
       </div>
-      <details>
-        <summary>Available tags:</summary>
-        <div className={styles.chipContainer}>
-          <div key="*">
-            <ColorChip
+      <Drawer modal={false}>
+        <DrawerTrigger asChild>
+          <Button variant="outline">Available tags</Button>
+        </DrawerTrigger>
+        <DrawerContent className="max-h-128">
+          <DrawerTitle>Available tags:</DrawerTitle>
+          <div className={styles.chipContainer}>
+            <div key="*">
+              <ColorChip
                 className=""
                 color="#FFFFFF"
                 name="*"
@@ -85,31 +90,32 @@ export default function ChipClouds({
               <div key="New" className={styles.chipItem}>
                 <TagAddModal tagAdded={handleModalClose}></TagAddModal>
               </div>
-          </div>
-          {Object.keys(groupedChips)
-            .toSorted((a, b) => a.localeCompare(b))
-            .map((letter) => (
-              <div key={letter}>
-              <ColorChip
-                className=""
-                color="#FFFFFF"
-                name={letter}
-                onChipClick={null}
-              />
-              {groupedChips[letter].map((c) => (
-                <div key={c.name} className={styles.chipItem}>
+            </div>
+            {Object.keys(groupedChips)
+              .toSorted((a, b) => a.localeCompare(b))
+              .map((letter) => (
+                <div key={letter}>
                   <ColorChip
-                    className={c.className}
-                    color={c.color}
-                    name={c.name}
-                    onChipClick={() => handleBottomChipClick(c)}
+                    className=""
+                    color="#FFFFFF"
+                    name={letter}
+                    onChipClick={null}
                   />
+                  {groupedChips[letter].map((c) => (
+                    <div key={c.name} className={styles.chipItem}>
+                      <ColorChip
+                        className={c.className}
+                        color={c.color}
+                        name={c.name}
+                        onChipClick={() => handleBottomChipClick(c)}
+                      />
+                    </div>
+                  ))}
                 </div>
               ))}
-            </div>
-          ))}
-        </div>
-      </details>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
