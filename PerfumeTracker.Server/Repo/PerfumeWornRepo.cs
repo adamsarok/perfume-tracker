@@ -1,11 +1,3 @@
-using System;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.Dto;
-using PerfumeTracker.Server.Exceptions;
-using PerfumeTrackerAPI.Dto;
-using PerfumeTrackerAPI.Models;
-
 namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeWornRepo(PerfumetrackerContext context) {
@@ -43,12 +35,12 @@ public class PerfumeWornRepo(PerfumetrackerContext context) {
 	}
 
 	public async Task<PerfumeWornDownloadDto> AddPerfumeWorn(PerfumeWornUploadDto dto) {
-		if (await context.PerfumeWorns.AnyAsync(x =>
-			x.PerfumeId == dto.PerfumeId &&
-			x.Created_At.Date == dto.WornOn.Date
-		)) {
-			throw new InvalidOperationException("You have already worn this perfume on this day");
-		}
+		// if (await context.PerfumeWorns.AnyAsync(x =>
+		// 	x.PerfumeId == dto.PerfumeId &&
+		// 	x.Created_At.Date == dto.WornOn.Date
+		// )) {
+		// 	throw new InvalidOperationException("You have already worn this perfume on this day");
+		// } //TODO: maybe reenable with setting? there should be a possibility to respray a perfume
 		var w = new PerfumeWorn() {
 			PerfumeId = dto.PerfumeId,
 			Created_At = dto.WornOn

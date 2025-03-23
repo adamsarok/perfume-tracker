@@ -291,6 +291,15 @@ export default function PerfumeEditForm({
                   </FormItem>
                 )}
               />
+              <div className={styles.chipContainer}>
+                <ChipClouds
+                  className={styles.chipContainer}
+                  bottomChipProps={bottomChipProps}
+                  topChipProps={topChipProps}
+                  selectChip={selectChip}
+                  unSelectChip={unSelectChip}
+                ></ChipClouds>
+              </div>
 
               <div className="flex items-center space-x-4 mt-2 mb-2">
                 <FormField
@@ -401,16 +410,6 @@ export default function PerfumeEditForm({
           </div>
         </form>
       </Form>
-
-      <div className={styles.chipContainer}>
-        <ChipClouds
-          className={styles.chipContainer}
-          bottomChipProps={bottomChipProps}
-          topChipProps={topChipProps}
-          selectChip={selectChip}
-          unSelectChip={unSelectChip}
-        ></ChipClouds>
-      </div>
     </div>
   );
 }

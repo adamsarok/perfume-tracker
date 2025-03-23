@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
-using PerfumeTrackerAPI.Models;
+using PerfumeTracker.Server.Models;
 
 #nullable disable
 
@@ -38,59 +38,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("PerfumePerfumePlayList");
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumePlayList", b =>
-                {
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Created_At")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("Updated_At")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Name")
-                        .HasName("PerfumePlayList_pkey");
-
-                    b.ToTable("PerfumePlayList", (string)null);
-                });
-
-            modelBuilder.Entity("PerfumeTracker.Server.Models.Settings", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Created_At")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DayFilter")
-                        .HasColumnType("integer");
-
-                    b.Property<float>("MinimumRating")
-                        .HasColumnType("real");
-
-                    b.Property<bool>("ShowFemalePerfumes")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ShowMalePerfumes")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ShowUnisexPerfumes")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal>("SprayAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime?>("Updated_At")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("UserId")
-                        .HasName("Settings_pkey");
-
-                    b.ToTable("Settings", (string)null);
-                });
-
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.Perfume", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.Perfume", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -122,10 +70,13 @@ namespace PerfumeTracker.Server.Migrations
                         .HasColumnType("text")
                         .HasDefaultValueSql("''::text");
 
-                    b.Property<int>("Ml")
+                    b.Property<decimal>("Ml")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(2);
+                        .HasColumnType("numeric")
+                        .HasDefaultValue(2m);
+
+                    b.Property<decimal>("MlLeft")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Notes")
                         .IsRequired()
@@ -171,7 +122,24 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("Perfume", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.PerfumeSuggested", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumePlayList", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("Updated_At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Name")
+                        .HasName("PerfumePlayList_pkey");
+
+                    b.ToTable("PerfumePlayList", (string)null);
+                });
+
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeSuggested", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -193,7 +161,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("PerfumeSuggested", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.PerfumeTag", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeTag", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -220,7 +188,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("PerfumeTag", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.PerfumeWorn", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeWorn", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -242,7 +210,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("PerfumeWorn", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.Recommendation", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.Recommendation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -269,7 +237,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("Recommendation", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.Tag", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.Tag", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -308,16 +276,16 @@ namespace PerfumeTracker.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PerfumeTrackerAPI.Models.Perfume", null)
+                    b.HasOne("PerfumeTracker.Server.Models.Perfume", null)
                         .WithMany()
                         .HasForeignKey("PerfumesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.PerfumeSuggested", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeSuggested", b =>
                 {
-                    b.HasOne("PerfumeTrackerAPI.Models.Perfume", "Perfume")
+                    b.HasOne("PerfumeTracker.Server.Models.Perfume", "Perfume")
                         .WithMany("PerfumeSuggesteds")
                         .HasForeignKey("PerfumeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -327,16 +295,16 @@ namespace PerfumeTracker.Server.Migrations
                     b.Navigation("Perfume");
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.PerfumeTag", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeTag", b =>
                 {
-                    b.HasOne("PerfumeTrackerAPI.Models.Perfume", "Perfume")
+                    b.HasOne("PerfumeTracker.Server.Models.Perfume", "Perfume")
                         .WithMany("PerfumeTags")
                         .HasForeignKey("PerfumeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PerfumeTag_perfumeId_fkey");
 
-                    b.HasOne("PerfumeTrackerAPI.Models.Tag", "Tag")
+                    b.HasOne("PerfumeTracker.Server.Models.Tag", "Tag")
                         .WithMany("PerfumeTags")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -348,9 +316,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Navigation("Tag");
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.PerfumeWorn", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeWorn", b =>
                 {
-                    b.HasOne("PerfumeTrackerAPI.Models.Perfume", "Perfume")
+                    b.HasOne("PerfumeTracker.Server.Models.Perfume", "Perfume")
                         .WithMany("PerfumeWorns")
                         .HasForeignKey("PerfumeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -360,7 +328,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.Navigation("Perfume");
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.Perfume", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.Perfume", b =>
                 {
                     b.Navigation("PerfumeSuggesteds");
 
@@ -369,7 +337,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.Navigation("PerfumeWorns");
                 });
 
-            modelBuilder.Entity("PerfumeTrackerAPI.Models.Tag", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.Tag", b =>
                 {
                     b.Navigation("PerfumeTags");
                 });

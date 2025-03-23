@@ -1,11 +1,4 @@
-using System;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.Dto;
-using PerfumeTrackerAPI.Models;
-
 namespace PerfumeTracker.Server.Repo;
-
 public class RecommendationsRepo(PerfumetrackerContext context) {
 	public async Task<List<Recommendation>> GetRecommendations(int dayFilter) {
 		return await context

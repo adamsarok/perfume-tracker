@@ -43,11 +43,6 @@ export default function RootLayout({
                   <List />
                 </Button>
               </Link>
-              <Link href="/stats" passHref>
-                <Button variant="outline" size="icon" title="Stats" aria-label="Stats">
-                  <ChartArea />
-                </Button>
-              </Link>
               <Link href="/tags" passHref>
                 <Button variant="outline" size="icon" title="Tags" aria-label="Tags">
                   <Tag />

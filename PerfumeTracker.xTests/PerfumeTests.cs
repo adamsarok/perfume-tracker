@@ -1,10 +1,5 @@
-﻿using Mapster;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using PerfumeTracker.Server.Dto;
-using PerfumeTrackerAPI.Dto;
-using PerfumeTrackerAPI.Models;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -139,24 +134,12 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	public async Task AddPerfume() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var dto = new PerfumeDto(0, "House3", "Perfume3", 5, "Notes", 50, "", true, true, false, false, new());
+		var dto = new PerfumeDto(0, "House3", "Perfume3", 5, "Notes", 50, 50, "", true, true, false, false, new());
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/perfumes", content);
 		response.EnsureSuccessStatusCode();
 
 		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeDto>();
-		Assert.NotNull(perfumes);
-	}
-
-	[Fact]
-	public async Task GetStats() {
-		await PrepareData();
-		var client = factory.CreateClient();
-
-		var response = await client.GetAsync("/api/perfumes/stats");
-		response.EnsureSuccessStatusCode();
-
-		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeStatDto>();
 		Assert.NotNull(perfumes);
 	}
 

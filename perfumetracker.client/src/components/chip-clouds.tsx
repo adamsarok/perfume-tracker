@@ -4,8 +4,10 @@ import { useState } from "react";
 import styles from "./chip-clouds.module.css";
 import TagAddModal from "./tag-add-modal";
 import ColorChip, { ChipProp } from "./color-chip";
-import { Card, CardHeader } from "./ui/card";
 import { TagDTO } from "@/dto/TagDTO";
+import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { Button } from "./ui/button";
+import { ScrollArea } from "./ui/scroll-area";
 
 export interface ChipCloudProps {
   readonly topChipProps: ChipProp[];
@@ -22,6 +24,22 @@ export default function ChipClouds({
   unSelectChip,
   className,
 }: ChipCloudProps) {
+  const dividers: ChipProp[] = [];
+
+  const distinctFirstLetters = Array.from(
+    new Set(bottomChipProps.map((chip) => chip.name[0].toUpperCase()))
+  ).sort((a, b) => a.localeCompare(b));
+  
+  distinctFirstLetters.forEach((letter) => {
+    dividers.push({
+      name: letter,
+      color: "#FFFFFF",
+      className: "",
+      onChipClick: null,
+      enabled: false
+    })
+  });
+
   const [topChips, setTopChips] = useState(topChipProps);
   const [bottomChips, setBottomChips] = useState(bottomChipProps);
 
@@ -39,25 +57,12 @@ export default function ChipClouds({
   const handleModalClose = (tag: TagDTO) => {
     setBottomChips([
       ...bottomChips,
-      { name: tag.tagName, color: tag.color, onChipClick: null, className: "" },
+      { name: tag.tagName, color: tag.color, onChipClick: null, className: "", enabled:true },
     ]);
   };
 
-  const groupedChips: Record<string, ChipProp[]> = bottomChips.reduce(
-    (groups, chip) => {
-      const firstLetter = chip.name[0].toUpperCase();
-      if (!groups[firstLetter]) {
-        groups[firstLetter] = [];
-      }
-      groups[firstLetter].push(chip);
-      return groups;
-    },
-    {} as Record<string, ChipProp[]>
-  );
-
   return (
     <div className={className}>
-      Tags:
       <div className={styles.chipContainer}>
         {topChips
           .toSorted((a, b) => a.name.localeCompare(b.name))
@@ -68,41 +73,39 @@ export default function ChipClouds({
                 color={c.color}
                 name={c.name}
                 onChipClick={() => handleTopChipClick(c)}
+                enabled
               ></ColorChip>
             </div>
           ))}
       </div>
-      <details>
-        <summary>Available tags:</summary>
-        <div className={styles.chipContainer}>
-          <Card>
-            <CardHeader>
+      <Drawer modal={false}>
+        <DrawerTrigger asChild>
+          <Button>Add Tags</Button>
+        </DrawerTrigger>
+        <DrawerContent className="max-h-64">
+          <DrawerTitle>Available tags:</DrawerTitle>
+          <ScrollArea className="rounded-md border h-64">
+            <div className={styles.chipContainer}>
               <div key="New" className={styles.chipItem}>
-                <TagAddModal tagAdded={handleModalClose}></TagAddModal>
+                <TagAddModal tagAdded={handleModalClose} />
               </div>
-            </CardHeader>
-          </Card>
-          {Object.keys(groupedChips)
-            .toSorted((a, b) => a.localeCompare(b))
-            .map((letter) => (
-              <Card key={letter} className={styles.chipGroup}>
-                <CardHeader>
-                  {letter}
-                  {groupedChips[letter].map((c) => (
-                    <div key={c.name} className={styles.chipItem}>
-                      <ColorChip
-                        className={c.className}
-                        color={c.color}
-                        name={c.name}
-                        onChipClick={() => handleBottomChipClick(c)}
-                      />
-                    </div>
-                  ))}
-                </CardHeader>
-              </Card>
-            ))}
-        </div>
-      </details>
+              {bottomChips.concat(dividers)
+                .toSorted((a, b) => a.name.localeCompare(b.name))
+                .map((c) => (
+                  <div key={c.name} className={styles.chipItem}>
+                    <ColorChip
+                      className={c.className}
+                      color={c.color}
+                      name={c.name}
+                      onChipClick={() => handleBottomChipClick(c)}
+                      enabled={c.enabled}
+                    />
+                  </div>
+                ))}
+            </div>
+          </ScrollArea>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

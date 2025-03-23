@@ -1,10 +1,7 @@
   .chipContainer {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
     min-height: 50px;
-    background-color: #F4F4F5;
   }
 
   .chipItem {

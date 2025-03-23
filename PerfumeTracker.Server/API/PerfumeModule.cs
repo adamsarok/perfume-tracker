@@ -1,8 +1,6 @@
 
 using Carter;
-using PerfumeTracker.Server.Dto;
-using PerfumeTrackerAPI.Dto;
-using PerfumeTrackerAPI.Repo;
+using PerfumeTracker.Server.Repo;
 
 namespace FountainPensNg.Server.API {
     public class PerfumeModule : ICarterModule {
@@ -12,11 +10,6 @@ namespace FountainPensNg.Server.API {
                 await repo.GetPerfumesWithWorn(fulltext))
                 .WithTags(PERFUMES)
                 .WithName("GetPerfumesFulltext");
-
-            app.MapGet("/api/perfumes/stats", async (PerfumeRepo repo) =>
-               await repo.GetPerfumeStats())
-               .WithTags(PERFUMES)
-               .WithName("GetPerfumeStats");
 
             app.MapGet("/api/perfumes", async (PerfumeRepo repo) =>
                 await repo.GetPerfumesWithWorn())

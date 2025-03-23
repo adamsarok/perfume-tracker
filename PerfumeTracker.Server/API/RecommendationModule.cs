@@ -1,10 +1,7 @@
-using System;
 using Carter;
-using PerfumeTracker.Server.Dto;
 using PerfumeTracker.Server.Repo;
 
 namespace PerfumeTracker.Server.API;
-
 public class RecommendationModule : ICarterModule {
     public void AddRoutes(IEndpointRouteBuilder app) {
         //TODO: the difference between perfume recommandation and perfume suggestion is unclear and misleading

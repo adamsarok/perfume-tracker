@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.Models;
-
-namespace PerfumeTrackerAPI.Models;
+﻿namespace PerfumeTracker.Server.Models;
 
 public partial class PerfumetrackerContext : DbContext {
 	public PerfumetrackerContext() {

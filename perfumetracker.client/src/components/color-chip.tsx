@@ -6,15 +6,17 @@ export interface ChipProp {
   color: string;
   className: string;
   onChipClick: ((chip: ChipProp) => void) | null;
+  enabled?: boolean;
 }
 
 export default function ColorChip(c: ChipProp) {
+  const isEnabled = c.enabled ?? true;
   return (
     <Badge
       className={c.className}
       style={{ backgroundColor: c.color, color: getContrastColor(c.color) }}
       onClick={() => {
-        if (c.onChipClick) c.onChipClick(c);
+        if (isEnabled && c.onChipClick) c.onChipClick(c);
       }}
     >
       {c.name}

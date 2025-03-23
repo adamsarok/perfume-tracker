@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAsyncList } from "@react-stately/data";
 import React from "react";
 import ChipClouds from "../../components/chip-clouds";
@@ -117,6 +117,14 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
     });
   });
 
+  const totalMl = useMemo(() => {
+    return list.items.reduce((sum, perfume) => sum + (perfume.ml || 0), 0);
+  }, [list.items]);
+
+  const totalPerfumesOwned = useMemo(() => {
+    return list.items.filter(x => x.ml > 0).length;
+  }, [list.items]);
+
   return (
     <div>
       <Label htmlFor="filtering">Filtering</Label>
@@ -133,7 +141,7 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
         orientation="horizontal"
         onValueChange={setSelected}
         defaultValue="all"
-        className="mb-4"
+        className="mb-4 flex items-center space-x-2"
       >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="all" id="all" />
@@ -167,6 +175,9 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
       )}
       <Separator></Separator>
       <div className="container mx-auto py-4">
+        <Label className="text-right">
+          Total: {totalMl} ml of {list.items.length} perfumes
+        </Label>
         <DataTable columns={columns} data={list.items} />
       </div>
     </div>

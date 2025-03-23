@@ -1,11 +1,5 @@
 ﻿using Carter;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using OpenAI.Chat;
-using PerfumeTrackerAPI.Repo;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace PerfumeTracker.Server.API {
 	public class AiModule : ICarterModule {

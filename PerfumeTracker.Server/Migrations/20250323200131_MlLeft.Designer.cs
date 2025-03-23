@@ -13,18 +13,33 @@ using PerfumeTracker.Server.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumetrackerContext))]
-    [Migration("20250224203734_rem-pgagent")]
-    partial class rempgagent
+    [Migration("20250323200131_MlLeft")]
+    partial class MlLeft
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("PerfumePerfumePlayList", b =>
+                {
+                    b.Property<string>("PerfumePlayListName")
+                        .HasColumnType("text");
+
+                    b.Property<int>("PerfumesId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PerfumePlayListName", "PerfumesId");
+
+                    b.HasIndex("PerfumesId");
+
+                    b.ToTable("PerfumePerfumePlayList");
+                });
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.Perfume", b =>
                 {
@@ -58,10 +73,13 @@ namespace PerfumeTracker.Server.Migrations
                         .HasColumnType("text")
                         .HasDefaultValueSql("''::text");
 
-                    b.Property<int>("Ml")
+                    b.Property<decimal>("Ml")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(2);
+                        .HasColumnType("numeric")
+                        .HasDefaultValue(2m);
+
+                    b.Property<decimal>("MlLeft")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Notes")
                         .IsRequired()
@@ -105,6 +123,23 @@ namespace PerfumeTracker.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("Perfume", (string)null);
+                });
+
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumePlayList", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("Updated_At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Name")
+                        .HasName("PerfumePlayList_pkey");
+
+                    b.ToTable("PerfumePlayList", (string)null);
                 });
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeSuggested", b =>
@@ -234,6 +269,21 @@ namespace PerfumeTracker.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("Tag", (string)null);
+                });
+
+            modelBuilder.Entity("PerfumePerfumePlayList", b =>
+                {
+                    b.HasOne("PerfumeTracker.Server.Models.PerfumePlayList", null)
+                        .WithMany()
+                        .HasForeignKey("PerfumePlayListName")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PerfumeTracker.Server.Models.Perfume", null)
+                        .WithMany()
+                        .HasForeignKey("PerfumesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeSuggested", b =>
