@@ -13,4 +13,5 @@ export interface PerfumeDTO {
     summer: boolean;
     winter: boolean;
     tags: TagDTO[];
+    percentLeft: number;
 }

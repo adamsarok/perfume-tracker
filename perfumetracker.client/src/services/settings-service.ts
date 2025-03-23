@@ -7,6 +7,7 @@ export interface PerfumeSettings {
   showMalePerfumes: boolean;
   showUnisexPerfumes: boolean;
   showFemalePerfumes: boolean;
+  sprayAmount: number
 }
 
 interface SettingsStore {
@@ -23,6 +24,7 @@ export const useSettingsStore = create<SettingsStore>()(
         showMalePerfumes: true,
         showUnisexPerfumes: true,
         showFemalePerfumes: true,
+        sprayAmount: 0.2
       },
       setSettings: (newSettings) => {
         set((state) => ({

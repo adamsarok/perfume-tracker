@@ -120,6 +120,25 @@ export default function SettingsPage() {
         </div>
       </div>
       <Separator className="my-4" />
+      <div>
+        <Label htmlFor="sprayAmount" className="block mb-2">
+          Ml used per wear - (1 spray = 0.1ml, default 2 sprays)
+        </Label>
+        <div className="flex items-center space-x-2 mb-2">
+          <Slider
+            id="sprayAmount"
+            value={[localSettings.sprayAmount]}
+            max={1}
+            step={0.1}
+            min={0}
+            onValueChange={(value) =>
+              setLocalSettings({ ...localSettings, sprayAmount: value[0] })
+            }
+          />
+          <span className="ml-4">{localSettings.sprayAmount?.toFixed(1)}</span>
+        </div>
+      </div>
+      <Separator className="my-4" />
       <div className="mt-6 space-x-4">
         <Button onClick={() => setSettings(localSettings)}>Save</Button>
         <Button variant="secondary" onClick={() => setLocalSettings(settings)}>
