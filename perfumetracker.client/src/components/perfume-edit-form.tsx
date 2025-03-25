@@ -99,6 +99,7 @@ export default function PerfumeEditForm({
       rating: values.rating,
       notes: values.notes,
       ml: values.amount,
+      mlLeft: values.mlLeft,
       imageObjectKey: imageObjectKey,
       summer: values.summer,
       winter: values.winter,

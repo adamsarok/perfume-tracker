@@ -8,7 +8,7 @@ namespace PerfumeTracker.Server.API;
 public class SettingsModule : ICarterModule {
     public void AddRoutes(IEndpointRouteBuilder app) {
         app.MapGet("/api/settings/{userId}", async (string userId, SettingsRepo repo) =>
-            await repo.GetSettings(userId))
+            await repo.GetSettingsOrDefault(userId))
             .WithTags("Settings")
             .WithName("GetSettings");
 

@@ -1,6 +1,8 @@
+using PerfumeTracker.Server.Models;
+
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeWornRepo(PerfumetrackerContext context) {
+public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
 
 	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
 		var raw = await context
@@ -35,13 +37,17 @@ public class PerfumeWornRepo(PerfumetrackerContext context) {
 	}
 
 	public async Task<PerfumeWornDownloadDto> AddPerfumeWorn(PerfumeWornUploadDto dto) {
-		var w = new PerfumeWorn() {
+		var worn = new PerfumeWorn() {
 			PerfumeId = dto.PerfumeId,
 			Created_At = dto.WornOn
 		};
-		//TODO: get spray amount setting & reduce perfume with amount
-		context.PerfumeWorns.Add(w);
+		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
+		if (settings == null) throw new NotFoundException("Settings", "DEFAULT");
+		context.PerfumeWorns.Add(worn);
+		var perfume = await context.Perfumes.FindAsync(dto.PerfumeId);
+		if (perfume == null) throw new NotFoundException("Perfume", dto.PerfumeId);
+		perfume.MlLeft = Math.Max(0, perfume.MlLeft - settings.SprayAmount);
 		await context.SaveChangesAsync();
-		return w.Adapt<PerfumeWornDownloadDto>();
+		return worn.Adapt<PerfumeWornDownloadDto>();
 	}
 }

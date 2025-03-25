@@ -7,6 +7,7 @@ export interface PerfumeUploadDTO {
     rating: number;
     notes: string;
     ml: number;
+    mlLeft: number;
     imageObjectKey: string;
     autumn: boolean;
     spring: boolean;

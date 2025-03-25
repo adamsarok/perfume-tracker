@@ -1,10 +1,28 @@
 namespace PerfumeTracker.Server.Repo;
 
 public class SettingsRepo(PerfumetrackerContext context) {
-    public async Task<Settings?> GetSettings(string userId) {
+	private readonly Settings defaultSettings = new Settings() {
+		MinimumRating = 8,
+		DayFilter = 30,
+		ShowFemalePerfumes = true,
+		ShowMalePerfumes = true,
+		ShowUnisexPerfumes = true,
+		SprayAmount = 0.2M
+	};
+	public async Task<Settings?> AddDefaultSettings(string userId) {
+		var settings = defaultSettings;
+		settings.UserId = userId;
+		return await UpsertSettings(settings);
+	}
+	private async Task<Settings?> GetSettings(string userId) {
         return await context.Settings.FindAsync(userId);
     }
-    public async Task<Settings> UpsertSettings(Settings settings) {
+	public async Task<Settings?> GetSettingsOrDefault(string userId) {
+		var result = await context.Settings.FindAsync(userId);
+		if (result != null) return result;
+		return await AddDefaultSettings(userId);
+	}
+	public async Task<Settings> UpsertSettings(Settings settings) {
         var found = await GetSettings(settings.UserId);
         settings.Updated_At = DateTime.UtcNow;
         if (found != null) {

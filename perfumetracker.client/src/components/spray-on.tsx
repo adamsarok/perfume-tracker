@@ -43,7 +43,7 @@ export default function SprayOnComponent({
 
   return (
     <div className={"flex items-center space-x-4 " + className}>
-      <Button color="secondary" onClick={() => onSprayOn()} className="flex-2">
+      <Button type="button" color="secondary" onClick={() => onSprayOn()} className="flex-2">
         <WandSparkles /> Spray On
       </Button>
       <Label htmlFor="date">Worn On</Label>
