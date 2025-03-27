@@ -4,7 +4,7 @@ import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
-import { ActionResultID } from "@/dto/ActionResultID";
+import { ActionResult } from "@/dto/ActionResult";
 
 export async function getPerfumesFulltext(
   fulltext: string
@@ -45,7 +45,7 @@ export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {
 
 export async function addPerfume(
   perfume: PerfumeUploadDTO
-): Promise<ActionResultID> {
+): Promise<ActionResult> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const response = await fetch(`${apiAddress}/perfumes`, {
     method: "POST",
@@ -64,7 +64,7 @@ export async function addPerfume(
 
 export async function updatePerfume(
   perfume: PerfumeUploadDTO
-): Promise<ActionResultID> {
+): Promise<ActionResult> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const response = await fetch(`${apiAddress}/perfumes/${perfume.id}`, {
     method: "PUT",
@@ -84,7 +84,7 @@ export async function updatePerfume(
 
 export async function updateImageGuid(
   perfumeId: number, imageGuid: string
-): Promise<ActionResultID> {
+): Promise<ActionResult> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const dto: ImageGuidDTO = { parentObjectId: perfumeId, imageObjectKey: imageGuid };
   const response = await fetch(`${apiAddress}/perfumes/imageguid`, {
@@ -103,7 +103,7 @@ export async function updateImageGuid(
   return { ok: true, id: perfumeId };
 }
 
-export async function deletePerfume(id: number): Promise<ActionResultID> {
+export async function deletePerfume(id: number): Promise<ActionResult> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const response = await fetch(`${apiAddress}/perfumes/${id}`, {
     method: "DELETE"

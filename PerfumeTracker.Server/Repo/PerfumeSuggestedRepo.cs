@@ -28,7 +28,7 @@ public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo
 		6 or 7 or 8 => Seasons.Summer,
 		9 or 10 or 11 => Seasons.Autumn,
 	};
-	public async Task<int> GetPerfumeSuggestion(int daysFilter, int minimumRating) {
+	public async Task<int> GetPerfumeSuggestion(int daysFilter, double minimumRating) {
 		var alreadySug = await GetAlreadySuggestedPerfumeIds(daysFilter);
 		var worn = await perfumeWornRepo.GetWornPerfumeIDs(daysFilter);
 		var season = Season;

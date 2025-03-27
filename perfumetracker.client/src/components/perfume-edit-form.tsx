@@ -32,7 +32,7 @@ import {
   updatePerfume,
 } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
-import { ActionResultID } from "@/dto/ActionResultID";
+import { ActionResult } from "@/dto/ActionResult";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "./ui/label";
 import { format } from "date-fns";
@@ -111,7 +111,7 @@ export default function PerfumeEditForm({
         color: tag.color,
       })),
     };
-    let result: ActionResultID;
+    let result: ActionResult;
     if (!id) result = await addPerfume(perf);
     else result = await updatePerfume(perf);
     if (result.ok && result.id) {

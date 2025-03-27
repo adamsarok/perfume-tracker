@@ -1,21 +1,41 @@
 "use client";
 
-import { useSettingsStore } from "@/services/settings-service";
 import { useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { getSettings, PerfumeSettings, updateSettings } from "@/services/settings-service";
+import { showError, showSuccess } from "@/services/toasty-service";
 
 export const dynamic = "force-dynamic";
 
+// export interface SettingsPageProps {
+//   readonly settings: PerfumeSettings;
+// }
+
 export default function SettingsPage() {
-  const { settings, setSettings } = useSettingsStore();
-  const [localSettings, setLocalSettings] = useState(settings);
+  const [localSettings, setLocalSettings] = useState<PerfumeSettings | null>(null);
+  const [settings, setSettings] = useState<PerfumeSettings | null>(null);
+
   useEffect(() => {
-    setLocalSettings(settings);
-  }, [settings]);
+    async function fetchSettings() {
+      const fetchedSettings = await getSettings(); // Fetch settings
+      setSettings(fetchedSettings); // Update `settings`
+      setLocalSettings(fetchedSettings); // Update `localSettings` with the fetched settings
+    }
+    fetchSettings();
+  }, []);
+
+  if (!localSettings) {
+    return <div>Loading...</div>;
+  }
+
+  // const [localSettings, setLocalSettings] = useState({});
+  // useEffect(() => {
+  //   setLocalSettings(settings);
+  // }, [settings]);
 
   return (
     <div>
@@ -140,7 +160,15 @@ export default function SettingsPage() {
       </div>
       <Separator className="my-4" />
       <div className="mt-6 space-x-4">
-        <Button onClick={() => setSettings(localSettings)}>Save</Button>
+        <Button
+          onClick={async () => {
+            const result = await updateSettings(localSettings);
+            if (result.error) showError("Settings set failed", result.error);
+            else showSuccess("Settings set");
+          }}
+        >
+          Save
+        </Button>
         <Button variant="secondary" onClick={() => setLocalSettings(settings)}>
           Cancel
         </Button>

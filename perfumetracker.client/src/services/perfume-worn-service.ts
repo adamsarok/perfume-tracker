@@ -3,7 +3,7 @@
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
 import { PerfumeWornUploadDTO } from "@/dto/PerfumeWornUploadDTO";
-import { ActionResultID } from "@/dto/ActionResultID";
+import { ActionResult } from "@/dto/ActionResult";
 
 export async function getWornBeforeID(cursor: number | null, pageSize: number) : Promise<PerfumeWornDTO[]> {
     if (!apiAddress) throw new Error("PerfumeAPI address not set");
@@ -29,7 +29,7 @@ export async function getWornPerfumeIDs(dayFilter: number) : Promise<number[]> {
 
 export async function deleteWear(
   id: number
-): Promise<ActionResultID> {
+): Promise<ActionResult> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const response = await fetch(`${apiAddress}/perfumeworns/${encodeURIComponent(id)}`, {
     method: "DELETE"
@@ -40,7 +40,7 @@ export async function deleteWear(
   return { ok: true };
 }
 
-export async function wearPerfume(id: number, date: Date) : Promise<ActionResultID> {
+export async function wearPerfume(id: number, date: Date) : Promise<ActionResult> {
   if (!apiAddress) throw new Error("PerfumeAPI address not set");
   const dto: PerfumeWornUploadDTO = {
     perfumeId: id,

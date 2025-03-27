@@ -6,14 +6,12 @@ import { getPerfumeSuggestion } from "@/services/perfume-suggested-service";
 import { getPerfume } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
 import { getTags } from "@/services/tag-service";
-import { useSettingsStore } from "@/services/settings-service";
 import { useEffect, useState } from "react";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 
 export const dynamic = "force-dynamic";
 
 export default function SuprisePerfumePage() {
-  const { settings } = useSettingsStore();
   const [perfumeId, setPerfumeId] = useState<number | null>(null);
   const [perfume, setPerfume] = useState<PerfumeWithWornStatsDTO | null>(null);
   const [allTags, setAllTags] = useState<TagDTO[]>([]);
@@ -22,7 +20,7 @@ export default function SuprisePerfumePage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const id = await getPerfumeSuggestion(settings);
+        const id = await getPerfumeSuggestion();
         if (!id) {
           setPerfumeId(null);
           return;
@@ -51,7 +49,7 @@ export default function SuprisePerfumePage() {
     }
 
     fetchData();
-  }, [settings]);
+  }, []);
 
   if (loading) {
     return <div>Loading...</div>;

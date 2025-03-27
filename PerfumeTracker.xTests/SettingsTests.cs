@@ -59,7 +59,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
     public async Task GetSettings() {
         await PrepareData();
         var client = factory.CreateClient();
-        var response = await client.GetAsync($"/api/settings/{settingsSeed[0].UserId}");
+        var response = await client.GetAsync($"/api/settings");
         response.EnsureSuccessStatusCode();
         var tags = await response.Content.ReadFromJsonAsync<Settings>();
         Assert.NotNull(tags);

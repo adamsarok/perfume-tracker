@@ -12,17 +12,18 @@ import { PerfumeSelectTable } from "./perfume-select-table";
 import { PerfumeSelectDto } from "./perfume-select-columns";
 import { Input } from "@/components/ui/input";
 import getAiRecommendations from "@/services/ai-service";
-import { useSettingsStore } from "@/services/settings-service";
 import { Textarea } from "@/components/ui/textarea";
+import { PerfumeSettings } from "@/services/settings-service";
 
 export const dynamic = "force-dynamic";
 
 export interface AiComponentProps {
   readonly tags: TagStatDTO[];
   readonly perfumes: PerfumeSelectDto[];
+  readonly settings: PerfumeSettings;
 }
 
-export default function AiComponent({ tags, perfumes }: AiComponentProps) {
+export default function AiComponent({ tags, perfumes, settings }: AiComponentProps) {
   const [recommendations, setRecommendations] = useState<string | null>(null);
   const [selectedPerfumes, setSelectedPerfumes] = useState<PerfumeSelectDto[]>(
     []
@@ -30,7 +31,6 @@ export default function AiComponent({ tags, perfumes }: AiComponentProps) {
   const [selectedTags, setSelectedTags] = useState<TagStatDTO[]>([]);
   const [freeText, setFreeText] = useState<string>("");
   const perfumesCountSuggest = 3; //TODO
-  const { settings } = useSettingsStore();
   const genderFilter: string[] = [];
   const [query, setQuery] = useState<string>('');
   if (settings.showFemalePerfumes) genderFilter.push('female');

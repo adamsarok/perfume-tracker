@@ -15,15 +15,15 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { TagDTO } from "@/dto/TagDTO";
 import { columns, PerfumeListDTO } from "./perfume-worn-columns";
 import { DataTable } from "@/components/ui/data-table";
-import { useSettingsStore } from "@/services/settings-service";
+import { PerfumeSettings } from "@/services/settings-service";
 
 export interface PerfumeWornTableProps {
   readonly allTags: TagDTO[];
+  readonly settings: PerfumeSettings;
 }
 
-export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
+export default function PerfumeWornTable({ allTags, settings }: PerfumeWornTableProps) {
   const [fulltext, setFulltext] = useState("");
-  const { settings } = useSettingsStore();
   const list = useAsyncList({
     async load() {
       const r: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext);
@@ -121,9 +121,9 @@ export default function PerfumeWornTable({ allTags }: PerfumeWornTableProps) {
     return list.items.reduce((sum, perfume) => sum + (perfume.ml || 0), 0);
   }, [list.items]);
 
-  const totalPerfumesOwned = useMemo(() => {
-    return list.items.filter(x => x.ml > 0).length;
-  }, [list.items]);
+  // const totalPerfumesOwned = useMemo(() => {
+  //   return list.items.filter(x => x.ml > 0).length;
+  // }, [list.items]);
 
   return (
     <div>

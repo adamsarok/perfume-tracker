@@ -4,7 +4,7 @@ namespace PerfumeTracker.Server.Models;
 
 public class Settings {
     public string UserId { get; set; } = null!;
-    public float MinimumRating { get; set; }
+    public double MinimumRating { get; set; }
     public int DayFilter { get; set; }
     public bool ShowMalePerfumes { get; set; }
     public bool ShowUnisexPerfumes { get; set; }
