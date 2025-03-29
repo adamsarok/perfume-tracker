@@ -12,13 +12,12 @@ public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo
 		await context.SaveChangesAsync();
 	}
 	public async Task<List<int>> GetAlreadySuggestedPerfumeIds(int daysFilter) {
-		var r = await context
+		return await context
 			.PerfumeSuggesteds
 			.Where(x => x.Created_At >= DateTime.UtcNow.AddDays(-daysFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.ToListAsync();
-		return r;
 	}
 	enum Seasons { Winter, Spring, Summer, Autumn };
 	private static readonly Random _random = new();

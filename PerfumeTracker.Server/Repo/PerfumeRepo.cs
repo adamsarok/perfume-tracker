@@ -1,7 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Repo;
 public class PerfumeRepo(PerfumetrackerContext context) {
 	public async Task<List<PerfumeWithWornStatsDto>> GetPerfumesWithWorn(string? fulltext = null) {
-		var raw = await context
+		return await context
 			.Perfumes
 			.Include(x => x.PerfumeWorns)
 			.Include(x => x.PerfumeTags)
@@ -14,7 +14,6 @@ public class PerfumeRepo(PerfumetrackerContext context) {
 			.AsSplitQuery()
 			.AsNoTracking()
 			.ToListAsync();
-		return raw;
 	}
 	public async Task<PerfumeWithWornStatsDto?> GetPerfume(int id) {
 		var p = await context
@@ -27,8 +26,7 @@ public class PerfumeRepo(PerfumetrackerContext context) {
 			.AsSplitQuery()
 			.AsNoTracking()
 			.FirstOrDefaultAsync();
-		if (p == null) throw new NotFoundException();
-		return p;
+		return p ?? throw new NotFoundException();
 	}
 	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p) {
 		return new PerfumeWithWornStatsDto(

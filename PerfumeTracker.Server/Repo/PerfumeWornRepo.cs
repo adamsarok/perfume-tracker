@@ -5,7 +5,7 @@ namespace PerfumeTracker.Server.Repo;
 public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
 
 	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
-		var raw = await context
+		return await context
 			.PerfumeWorns
 			.Where(x => cursor < 1 || x.Id < cursor)
 			.OrderByDescending(x => x.Id)
@@ -17,17 +17,14 @@ public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo setting
 				x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList()
 			))
 			.ToListAsync();
-		return raw;
 	}
 	public async Task<List<int>> GetWornPerfumeIDs(int daysFilter) {
-		var t = await context.PerfumeWorns.ToListAsync();
-		var r = await context
+		return await context
 			.PerfumeWorns
 			.Where(x => x.Created_At >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.ToListAsync();
-		return r;
 	}
 	public async Task DeletePerfumeWorn(int id) {
 		var w = await context.PerfumeWorns.FindAsync(id);
