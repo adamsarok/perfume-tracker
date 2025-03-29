@@ -19,19 +19,20 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
 			MappingException => (
 				exception.Message,
 				exception.GetType().Name,
-				httpContext.Response.StatusCode = StatusCodes.Status400BadRequest
+				StatusCodes.Status400BadRequest
 			),
 			NotFoundException => (
 				exception.Message,
 				exception.GetType().Name,
-				httpContext.Response.StatusCode = StatusCodes.Status404NotFound
+				StatusCodes.Status404NotFound
 			),
 			_ => (
 				exception.Message,
 				exception.GetType().Name,
-				httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError
+				StatusCodes.Status500InternalServerError
 			)
 		};
+		httpContext.Response.StatusCode = details.StatusCode;
 		var problemDetails = new ProblemDetails {
 			Title = details.Title,
 			Detail = details.Detail,
