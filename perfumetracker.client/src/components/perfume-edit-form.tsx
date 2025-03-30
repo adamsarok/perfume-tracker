@@ -74,17 +74,28 @@ export default function PerfumeEditForm({
   const perfume = perfumeWithWornStats?.perfume;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      house: perfume ? perfume.house : "",
-      perfume: perfume ? perfume.perfumeName : "",
-      rating: perfume ? perfume.rating : 0,
-      amount: perfume ? perfume.ml : 0,
-      mlLeft: perfume ? perfume.mlLeft : 100,
-      notes: perfume ? perfume.notes : "",
-      winter: perfume ? perfume.winter : true,
-      summer: perfume ? perfume.summer : true,
-      autumn: perfume ? perfume.autumn : true,
-      spring: perfume ? perfume.spring : true,
+    defaultValues: perfume ? {
+      house: perfume.house,
+      perfume: perfume.perfumeName,
+      rating: perfume.rating,
+      amount: perfume.ml,
+      mlLeft: perfume.mlLeft,
+      notes: perfume.notes,
+      winter: perfume.winter,
+      summer: perfume.summer,
+      autumn: perfume.autumn,
+      spring: perfume.spring,
+    } : {
+      house: "",
+      perfume: "",
+      rating: 0,
+      amount: 0,
+      mlLeft: 0,
+      notes: "",
+      winter: true,
+      summer: true,
+      autumn: true,
+      spring: true,
     },
   });
   let id = perfume ? perfume.id : 0;
