@@ -25,11 +25,11 @@ export default function WornList() {
     
     useEffect(() => {
         if (inView) loadMoreCards();
-    }, [inView]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [inView]);
 
     useEffect(() => {
         loadMoreCards();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div>
