@@ -6,11 +6,7 @@ import { useInView } from 'react-intersection-observer'
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { getWornBeforeID } from "@/services/perfume-worn-service";
 
-export interface WornListProps{
-    r2_api_address: string | undefined
-}
-
-export default function WornList({r2_api_address}: WornListProps) {
+export default function WornList() {
     const [worns, setWorns] = useState<PerfumeWornDTO[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
     const { ref, inView } = useInView();
@@ -38,7 +34,7 @@ export default function WornList({r2_api_address}: WornListProps) {
     return (
         <div>
             {worns.map((worn) => (
-                <PerfumeCard key={worn.id} worn={worn} r2_api_address={r2_api_address}></PerfumeCard>
+                <PerfumeCard key={worn.id} worn={worn}></PerfumeCard>
             ))}
             {(!cursor || cursor > 1) && <div ref={ref}>
                 Loading...

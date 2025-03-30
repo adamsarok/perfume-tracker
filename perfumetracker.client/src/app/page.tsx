@@ -2,7 +2,6 @@
 import React from "react";
 import PerfumeSelector from "../components/perfume-selector";
 import WornList from "@/components/worn-list";
-import { R2_API_ADDRESS } from "@/services/conf";
 import { getPerfumes } from "@/services/perfume-service";
 
 export const dynamic = 'force-dynamic'
@@ -16,7 +15,7 @@ export default async function Home() {
       <PerfumeSelector perfumes={perfumes}/>
       </div>
       <div className="mt-2">
-      <WornList r2_api_address={R2_API_ADDRESS} />
+      <WornList />
       </div>
     </div>
   );

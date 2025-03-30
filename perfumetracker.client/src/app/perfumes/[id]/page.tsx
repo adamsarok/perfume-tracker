@@ -4,6 +4,8 @@ import { R2_API_ADDRESS } from "@/services/conf";
 import { getPerfume } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
 import { getTags } from "@/services/tag-service";
+import { showError } from "@/services/toasty-service";
+import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 
 export const dynamic = 'force-dynamic'
 
@@ -16,8 +18,13 @@ interface EditPerfumePageProps {
 export default async function EditPerfumePage(props: EditPerfumePageProps) {
     const params = await props.params;
     const id = parseInt(params.id);
+    let perfume: PerfumeWithWornStatsDTO | null = null;
     if (!id) return notFound();
-    const perfume = await getPerfume(id);
+    try {
+        perfume = await getPerfume(id);
+    } catch (error) {
+      console.log("Failed to fetch perfume", error);
+    }
     if (!perfume) return notFound();
     const allTags = await getTags();
     const tags: TagDTO[] = [];
