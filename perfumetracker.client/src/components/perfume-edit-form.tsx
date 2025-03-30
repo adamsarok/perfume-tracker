@@ -170,7 +170,7 @@ export default function PerfumeEditForm({
     perfume ? perfume.imageObjectKey : ""
   );
   const [imageUrl, setImageUrl] = useState<string | null>(
-    getImageUrl(perfume?.imageObjectKey, r2_api_address)
+    perfume ? perfume.imagerUrl : ""
   );
   const onUpload = async (guid: string | undefined) => {
     if (perfume?.id && guid) {

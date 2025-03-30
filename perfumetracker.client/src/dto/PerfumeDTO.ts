@@ -9,6 +9,7 @@ export interface PerfumeDTO {
     ml: number;
     mlLeft: number;
     imageObjectKey: string;
+    imagerUrl: string;
     autumn: boolean;
     spring: boolean;
     summer: boolean;

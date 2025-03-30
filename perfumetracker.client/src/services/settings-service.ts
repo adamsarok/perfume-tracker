@@ -1,7 +1,7 @@
 "use server";
 
 import { ActionResult } from "@/dto/ActionResult";
-import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
+import { PERFUMETRACKER_API_ADDRESS } from "./conf";
 
 export interface PerfumeSettings {
   minimumRating: number;
@@ -14,8 +14,8 @@ export interface PerfumeSettings {
 
 
 export async function getSettings(): Promise<PerfumeSettings> { //TODO userID
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const qry = `${apiAddress}/settings`;
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const qry = `${PERFUMETRACKER_API_ADDRESS}/settings`;
   const response = await fetch(qry);
   if (!response.ok) {
     throw new Error("Failed to fetch settings");
@@ -27,8 +27,8 @@ export async function getSettings(): Promise<PerfumeSettings> { //TODO userID
 export async function updateSettings(
   perfume: PerfumeSettings
 ): Promise<ActionResult> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${apiAddress}/settings`, {
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/settings`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

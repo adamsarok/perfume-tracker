@@ -2,8 +2,6 @@
 
 import React from "react";
 import ColorChip from "./color-chip";
-import { getImageUrl } from "./r2-image";
-
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -19,12 +17,10 @@ import { showError, showSuccess } from "@/services/toasty-service";
 
 export interface PerfumeCardProps {
   worn: PerfumeWornDTO;
-  r2_api_address: string | undefined;
 }
 
 export default function PerfumeCard({
-  worn,
-  r2_api_address,
+  worn
 }: PerfumeCardProps) {
   if (!worn || !worn.perfume) return <div></div>;
   const perfume = worn.perfume;
@@ -55,7 +51,7 @@ export default function PerfumeCard({
             <Avatar className="w-20 h-20 semi-bold">
               <AvatarImage
                 className="object-cover"
-                src={getImageUrl(perfume?.imageObjectKey, r2_api_address)}
+                src={perfume.imagerUrl}
               />
               <AvatarFallback>{avatar}</AvatarFallback>
             </Avatar>

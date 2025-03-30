@@ -1,16 +1,17 @@
 "use server";
 
-import { PERFUMETRACKER_API_ADDRESS as apiAddress } from "./conf";
+import { PERFUMETRACKER_API_ADDRESS, R2_API_ADDRESS } from "./conf";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
 import { ActionResult } from "@/dto/ActionResult";
+import { getImageUrl } from "@/components/r2-image";
 
 export async function getPerfumesFulltext(
   fulltext: string
 ): Promise<PerfumeWithWornStatsDTO[]> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const qry = `${apiAddress}/perfumes/${
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const qry = `${PERFUMETRACKER_API_ADDRESS}/perfumes/${
     fulltext ? `fulltext/${fulltext}` : ""
   }`;
   const response = await fetch(qry);
@@ -22,32 +23,34 @@ export async function getPerfumesFulltext(
 }
 
 export async function getPerfume(id: number): Promise<PerfumeWithWornStatsDTO> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const qry = `${apiAddress}/perfumes/${encodeURIComponent(id)}`;
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const qry = `${PERFUMETRACKER_API_ADDRESS}/perfumes/${encodeURIComponent(id)}`;
   const response = await fetch(qry);
   if (!response.ok) {
     throw new Error("Failed to fetch perfume");
   }
   const perfume: PerfumeWithWornStatsDTO = await response.json();
+  perfume.perfume.imagerUrl = getImageUrl(perfume.perfume.imageObjectKey, R2_API_ADDRESS);
   return perfume;
 }
 
 export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const qry = `${apiAddress}/perfumes/`;
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const qry = `${PERFUMETRACKER_API_ADDRESS}/perfumes/`;
   const response = await fetch(qry);
   if (!response.ok) {
     throw new Error("Failed to fetch perfumes");
   }
   const perfumes: PerfumeWithWornStatsDTO[] = await response.json();
+  perfumes.forEach(x => x.perfume.imagerUrl = getImageUrl(x.perfume.imageObjectKey, R2_API_ADDRESS));
   return perfumes;
 }
 
 export async function addPerfume(
   perfume: PerfumeUploadDTO
 ): Promise<ActionResult> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${apiAddress}/perfumes`, {
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfumes`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -65,8 +68,8 @@ export async function addPerfume(
 export async function updatePerfume(
   perfume: PerfumeUploadDTO
 ): Promise<ActionResult> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${apiAddress}/perfumes/${perfume.id}`, {
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfumes/${perfume.id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -85,9 +88,9 @@ export async function updatePerfume(
 export async function updateImageGuid(
   perfumeId: number, imageGuid: string
 ): Promise<ActionResult> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
   const dto: ImageGuidDTO = { parentObjectId: perfumeId, imageObjectKey: imageGuid };
-  const response = await fetch(`${apiAddress}/perfumes/imageguid`, {
+  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfumes/imageguid`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -104,8 +107,8 @@ export async function updateImageGuid(
 }
 
 export async function deletePerfume(id: number): Promise<ActionResult> {
-  if (!apiAddress) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${apiAddress}/perfumes/${id}`, {
+  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfumes/${id}`, {
     method: "DELETE"
   });
 
