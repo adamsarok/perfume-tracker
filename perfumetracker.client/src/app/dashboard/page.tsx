@@ -1,6 +1,7 @@
 'use client';
 
 import { getDashboardUrl } from "@/services/metabase-service";
+import { showError } from "@/services/toasty-service";
 import React, { useEffect, useState } from "react";
 
 export const dynamic = 'force-dynamic'
@@ -14,7 +15,7 @@ export default function StatsPage() {
           const url = await getDashboardUrl();
           if (url) setIframeUrl(url);
         } catch (error) {
-          console.error('Error fetching dashboard URL:', error);
+          showError('Error fetching dashboard URL:', error);
         }
       };
   
