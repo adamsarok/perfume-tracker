@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PerfumeTracker.MCP": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
