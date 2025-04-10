@@ -12,7 +12,6 @@ using System.Text.Json;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddConsole(consoleLogOptions => {
-	// Configure all logs to go to stderr
 	consoleLogOptions.LogToStandardErrorThreshold = LogLevel.Trace;
 });
 
@@ -25,11 +24,6 @@ builder.Services
 	.AddMcpServer()
 	.WithStdioServerTransport()
 	.WithToolsFromAssembly();
-
-builder.Logging.AddConsole(consoleLogOptions => {
-	// Configure all logs to go to stderr
-	consoleLogOptions.LogToStandardErrorThreshold = LogLevel.Trace;
-});
 
 await builder.Build().RunAsync();
 
@@ -47,6 +41,7 @@ public static class Perfumes {
 		var p = await repo.GetPerfume(id);
 		return JsonSerializer.Serialize(p);
 	}
+	
 	[McpServerTool, Description("Get perfumes")]
 	public static async Task<string> GetPerfumes(PerfumeRepo repo) {
 		var p = await repo.GetPerfumesWithWorn();
