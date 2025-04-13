@@ -53,11 +53,6 @@ export default function RootLayout({
                   <Brain />
                 </Button>
               </Link>
-              <Link href="/dashboard" passHref>
-                <Button variant="outline" size="icon" title="Dashboard" aria-label="Dashboard">
-                  <Gauge />
-                </Button>
-              </Link>
               <Link href="/settings" passHref>
                 <Button variant="outline" size="icon" title="Settings" aria-label="Settings">
                   <Settings />

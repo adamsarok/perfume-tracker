@@ -14,8 +14,6 @@ Perfume Tracker is a NextJS app which lets you track, review, and analyze your p
 
 ✅ Random Picks → Get a random perfume choice, find that one bottle that you forget to wear.
 
-✅ Analytics Dashboard → Integrated with Metabase for reporting and insights.
-
 ## Tech Stack
 - Frontend: Next.js 15 (Zustand, ShadCN)
 - Backend: ASP.NET Core 9
@@ -35,6 +33,7 @@ services:
           - NEXT_PUBLIC_R2_API_ADDRESS=http://localhost:9088
           - PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080/api
         restart: unless-stopped
+
     perfume-tracker-api:
         image: adamsarok/perfume-tracker-api
         ports:
@@ -42,8 +41,6 @@ services:
           - 7081:8081
         environment:
           - ConnectionStrings__DefaultConnection=Server=db; Port=5432; User Id=postgres; Password=postgres; Database=perfumetracker
-          - Metabase__Url=http://metabase:3066
-          - Metabase__SecretKey=${METABASE_SECRET_KEY}
           - OpenAi__ApiKey=${OPENAI_API_KEY}
         restart: unless-stopped
 
@@ -56,7 +53,7 @@ services:
       environment:
         POSTGRES_PASSWORD: postgres
         PGDATA: /var/lib/postgresql/data/pgdata
-        POSTGRES_DB: metabaseappdb 
+        POSTGRES_DB: perfumetracker 
       ports:
         - 5432:5432
 
@@ -76,27 +73,6 @@ services:
         volumes:
           - ./r2-api-go/cache:/config
         restart: unless-stopped
-
-    metabase:
-      image: metabase/metabase:latest
-      container_name: metabase
-      hostname: metabase
-      volumes:
-       - ./metabase:/dev/random:ro
-      ports:
-        - 3066:3000
-      environment:
-        MB_DB_TYPE: postgres
-        MB_DB_DBNAME: metabaseappdb
-        MB_DB_PORT: 5432
-        MB_DB_USER: postgres
-        MB_DB_PASS: postgres
-        MB_DB_HOST: db
-      healthcheck:
-        test: curl --fail -I http://localhost:3066/api/health || exit 1
-        interval: 15s
-        timeout: 5s
-        retries: 5 
 ```
 
 ## Badges

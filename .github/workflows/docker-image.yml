@@ -65,8 +65,6 @@ jobs:
     - name: Build API
       working-directory: ./PerfumeTracker.Server
       env:
-        Metabase__Url: "localhost"
-        Metabase__SecretKey: "dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret"
         ConnectionStrings__DefaultConnection: ${{ secrets.POSTGRES_CONNSTR }}
       run: dotnet build
 
@@ -82,8 +80,6 @@ jobs:
     - name: Run tests with coverage
       working-directory: ./PerfumeTracker.xTests
       env:
-       Metabase__Url: "localhost"
-       Metabase__SecretKey: "dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret_dummy_secret"
        ConnectionStrings__DefaultConnection: ${{ secrets.POSTGRES_CONNSTR }}
       run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings
 
