@@ -419,6 +419,12 @@ export default function PerfumeEditForm({
                 <Label>{`Worn ${perfumeWithWornStats?.wornTimes} times`}</Label>
               </div>
               <Separator className="mb-2"></Separator>
+              <div className="flex items-center space-x-4 mb-2 mt-2">
+                <Label>Usage: {perfumeWithWornStats?.burnRatePerYearMl?.toFixed(1)} ml/year</Label>
+                <Separator orientation="vertical" className="h-6" />
+                <Label>{perfumeWithWornStats?.yearsLeft?.toFixed(1)} years left</Label>
+              </div>
+              <Separator className="mb-2"></Separator>
               <SprayOnComponent
                 perfumeId={perfume?.id}
                 onSuccess={null}

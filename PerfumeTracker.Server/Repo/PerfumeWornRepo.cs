@@ -39,7 +39,6 @@ public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo setting
 			Created_At = dto.WornOn
 		};
 		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
-		if (settings == null) throw new NotFoundException("Settings", "DEFAULT");
 		context.PerfumeWorns.Add(worn);
 		var perfume = await context.Perfumes.FindAsync(dto.PerfumeId);
 		if (perfume == null) throw new NotFoundException("Perfume", dto.PerfumeId);

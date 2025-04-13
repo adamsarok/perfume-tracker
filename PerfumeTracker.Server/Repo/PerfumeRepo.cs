@@ -1,6 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Repo;
-public class PerfumeRepo(PerfumetrackerContext context) {
+public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
 	public async Task<List<PerfumeWithWornStatsDto>> GetPerfumesWithWorn(string? fulltext = null) {
+		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
 		return await context
 			.Perfumes
 			.Include(x => x.PerfumeWorns)
@@ -10,25 +11,37 @@ public class PerfumeRepo(PerfumetrackerContext context) {
 				|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{fulltext}:*"))
 				|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, fulltext))
 				)
-			.Select(p => MapToPerfumeWithWornStatsDto(p))
+			.Select(p => MapToPerfumeWithWornStatsDto(p, settings.SprayAmount))
 			.AsSplitQuery()
 			.AsNoTracking()
 			.ToListAsync();
 	}
 	public async Task<PerfumeWithWornStatsDto?> GetPerfume(int id) {
+		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
 		var p = await context
 			.Perfumes
 			.Include(x => x.PerfumeWorns)
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Where(p => p.Id == id)
-			.Select(p => MapToPerfumeWithWornStatsDto(p))
+			.Select(p => MapToPerfumeWithWornStatsDto(p, settings.SprayAmount))
 			.AsSplitQuery()
 			.AsNoTracking()
 			.FirstOrDefaultAsync();
 		return p ?? throw new NotFoundException();
 	}
-	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p) {
+	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p, decimal amountPerSprayMl) {
+		decimal burnRatePerYearMl = 0;
+		decimal yearsLeft = 0;
+		if (p.MlLeft > 0 && p.PerfumeWorns.Any()) {
+			var firstWorn = p.PerfumeWorns.Min(x => x.Created_At);
+			var daysSinceFirstWorn = (DateTime.UtcNow - firstWorn).TotalDays;
+			if (daysSinceFirstWorn >= 30 && p.PerfumeWorns.Count > 1) { //otherwise prediction will be inaccurate
+				var spraysPerYear = 365 * (decimal)p.PerfumeWorns.Count / (decimal)(DateTime.UtcNow - firstWorn).TotalDays;
+				burnRatePerYearMl = spraysPerYear * amountPerSprayMl;
+				yearsLeft = p.MlLeft / burnRatePerYearMl;
+			}
+		}
 		return new PerfumeWithWornStatsDto(
 				 new PerfumeDto(
 					p.Id,
@@ -46,7 +59,10 @@ public class PerfumeRepo(PerfumetrackerContext context) {
 					p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
 				  ),
 				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count : 0,
-				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null);
+				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null,
+				  burnRatePerYearMl,
+				  yearsLeft
+				  );
 	}
 	public async Task<PerfumeDto> AddPerfume(PerfumeDto Dto) {
 		var perfume = Dto.Adapt<Perfume>();

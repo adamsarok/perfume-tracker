@@ -9,18 +9,13 @@ public class SettingsRepo(PerfumetrackerContext context) {
 		ShowUnisexPerfumes = true,
 		SprayAmount = 0.2M
 	};
-	public async Task<Settings> AddDefaultSettings(string userId) {
-		var settings = defaultSettings;
-		settings.UserId = userId;
-		return await UpsertSettings(settings);
-	}
 	private async Task<Settings?> GetSettings(string userId) {
         return await context.Settings.FindAsync(userId);
     }
 	public async Task<Settings> GetSettingsOrDefault(string userId) {
 		var result = await context.Settings.FindAsync(userId);
 		if (result != null) return result;
-		return await AddDefaultSettings(userId);
+		return defaultSettings;
 	}
 	public async Task<Settings> UpsertSettings(Settings settings) {
         var found = await GetSettings(settings.UserId);

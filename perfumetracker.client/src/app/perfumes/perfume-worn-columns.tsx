@@ -16,6 +16,7 @@ export interface PerfumeListDTO {
   wornTimes: number | undefined;
   lastWorn: Date | undefined;
   tags: TagDTO[];
+  burnRatePerYearMl: number;
 }
 
 export const columns: ColumnDef<PerfumeListDTO>[] = [

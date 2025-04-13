@@ -22,7 +22,10 @@ export interface PerfumeWornTableProps {
   readonly settings: PerfumeSettings;
 }
 
-export default function PerfumeWornTable({ allTags, settings }: PerfumeWornTableProps) {
+export default function PerfumeWornTable({
+  allTags,
+  settings,
+}: PerfumeWornTableProps) {
   const [fulltext, setFulltext] = useState("");
   const list = useAsyncList({
     async load() {
@@ -36,6 +39,7 @@ export default function PerfumeWornTable({ allTags, settings }: PerfumeWornTable
         wornTimes: x.wornTimes,
         lastWorn: x.lastWorn,
         tags: x.perfume.tags,
+        burnRatePerYearMl: x.burnRatePerYearMl,
       }));
       //TODO: move filtering to server side
       const hasTag = (perfume: PerfumeListDTO, tag: TagDTO) => {
@@ -47,14 +51,21 @@ export default function PerfumeWornTable({ allTags, settings }: PerfumeWornTable
           items = perfumes;
           break;
         case "favorites":
-          items = perfumes.filter((x) => x.rating >= settings.minimumRating && x.ml > 0);
+          items = perfumes.filter(
+            (x) => x.rating >= settings.minimumRating && x.ml > 0
+          );
           break;
         case "buy-list":
-          items = perfumes.filter((x) => x.rating >= settings.minimumRating && x.ml <= 0);
+          items = perfumes.filter(
+            (x) => x.rating >= settings.minimumRating && x.ml <= 0
+          );
           break;
         case "untagged":
           items = perfumes.filter(
-            (x) => x.tags.length === 0 && x.rating >= settings.minimumRating && x.ml > 0
+            (x) =>
+              x.tags.length === 0 &&
+              x.rating >= settings.minimumRating &&
+              x.ml > 0
           );
           break;
         case "tag-filter":
@@ -117,8 +128,26 @@ export default function PerfumeWornTable({ allTags, settings }: PerfumeWornTable
     });
   });
 
-  const totalMl = useMemo(() => {
-    return list.items.reduce((sum, perfume) => sum + (perfume.ml || 0), 0);
+  interface Totals {
+    totalMl: number;
+    burnRatePerYearMl: number;
+    yearsLeft: number;
+  }
+
+  const totals: Totals = useMemo(() => {
+    const totalMl = list.items.reduce(
+      (sum, perfume) => sum + (perfume.ml || 0),
+      0
+    );
+    const totalBurn = list.items.reduce(
+      (sum, perfume) => sum + (perfume.burnRatePerYearMl || 0),
+      0
+    );
+    return {
+      totalMl,
+      burnRatePerYearMl: totalBurn,
+      yearsLeft: totalMl / totalBurn,
+    };
   }, [list.items]);
 
   // const totalPerfumesOwned = useMemo(() => {
@@ -175,9 +204,15 @@ export default function PerfumeWornTable({ allTags, settings }: PerfumeWornTable
       )}
       <Separator></Separator>
       <div className="container mx-auto py-4">
-        <Label className="text-right">
-          Total: {totalMl.toFixed()} ml of {list.items.length} perfumes
-        </Label>
+        <div className="flex items-center space-x-4 mb-2 mt-2">
+          <Label className="text-right">
+            Total: {totals.totalMl.toFixed()} ml of {list.items.length} perfumes
+          </Label>
+          <Separator orientation="vertical" className="h-6" />
+          <Label className="text-right">
+            Usage: {totals.burnRatePerYearMl.toFixed(1)} ml/yr {totals.yearsLeft.toFixed(1)} yrs left
+          </Label>
+        </div>
         <DataTable columns={columns} data={list.items} />
       </div>
     </div>
