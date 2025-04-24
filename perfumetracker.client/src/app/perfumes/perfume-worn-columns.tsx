@@ -5,8 +5,6 @@ import { TagDTO } from "@/dto/TagDTO";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
 export interface PerfumeListDTO {
   id: number;
   house: string;

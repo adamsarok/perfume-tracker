@@ -34,10 +34,10 @@ interface TagAddModalProps {
 const formSchema = z.object({
   tag: z.string().min(1, {
     message: "Tag must be at least 1 characters.",
-  }),
+  }).trim(),
   color: z.string().min(1, {
     message: "Color must be at least 1 characters.",
-  }),
+  }).trim(),
 });
 
 export default function TagAddModal({

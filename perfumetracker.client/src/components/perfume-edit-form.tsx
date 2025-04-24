@@ -49,16 +49,16 @@ interface PerfumeEditFormProps {
 const formSchema = z.object({
   house: z.string().min(1, {
     message: "House must be at least 1 characters.",
-  }),
+  }).trim(),
   perfume: z.string().min(1, {
     message: "Perfume must be at least 1 characters.",
-  }),
+  }).trim(),
   rating: z.coerce.number().min(0).max(10),
   amount: z.coerce.number().min(0).max(200),
   mlLeft: z.coerce.number().min(0).max(200),
   notes: z.string().min(1, {
     message: "Notes must be at least 1 characters.",
-  }),
+  }).trim(),
   winter: z.boolean(),
   summer: z.boolean(),
   autumn: z.boolean(),
