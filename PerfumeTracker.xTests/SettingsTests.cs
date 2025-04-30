@@ -38,7 +38,8 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
             ShowMalePerfumes = true,
             ShowUnisexPerfumes = true,
             ShowFemalePerfumes = true,
-            SprayAmount = 0.2m,
+            SprayAmountFullSizeMl = 0.2m,
+			SprayAmountSamplesMl = 0.1m,
             Created_At = DateTime.UtcNow,
             Updated_At = null
         },
@@ -49,8 +50,9 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
             ShowMalePerfumes = true,
             ShowUnisexPerfumes = true,
             ShowFemalePerfumes = true,
-            SprayAmount = 0.2m,
-            Created_At = DateTime.UtcNow,
+			SprayAmountFullSizeMl = 0.2m,
+			SprayAmountSamplesMl = 0.1m,
+			Created_At = DateTime.UtcNow,
             Updated_At = null
         },
     };
@@ -76,8 +78,9 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
             ShowMalePerfumes = true,
             ShowUnisexPerfumes = true,
             ShowFemalePerfumes = true,
-            SprayAmount = 0.2m,
-            Created_At = DateTime.UtcNow,
+			SprayAmountFullSizeMl = 0.2m,
+			SprayAmountSamplesMl = 0.1m,
+			Created_At = DateTime.UtcNow,
             Updated_At = null
         };
         var content = JsonContent.Create(setting);

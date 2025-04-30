@@ -9,7 +9,8 @@ export interface PerfumeSettings {
   showMalePerfumes: boolean;
   showUnisexPerfumes: boolean;
   showFemalePerfumes: boolean;
-  sprayAmount: number
+  sprayAmountFullSizeMl: number;
+  sprayAmountSamplesMl: number;
 }
 
 

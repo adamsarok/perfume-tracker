@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PerfumeTracker.Server.Models;
 
@@ -9,7 +10,9 @@ public class Settings {
     public bool ShowMalePerfumes { get; set; }
     public bool ShowUnisexPerfumes { get; set; }
     public bool ShowFemalePerfumes { get; set; }
-    public decimal SprayAmount { get; set; }
-    public DateTime Created_At { get; set; }
+    public decimal SprayAmountFullSizeMl { get; set; }
+	public decimal SprayAmountSamplesMl { get; set; }
+	public DateTime Created_At { get; set; }
 	public DateTime? Updated_At { get; set; }
+	public decimal SprayAmountForBottleSize(decimal bottleSizeMl) => bottleSizeMl >= 20 ? SprayAmountFullSizeMl : SprayAmountSamplesMl;
 }

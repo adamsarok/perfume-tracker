@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Repo;
+﻿using PerfumeTracker.Server.Models;
+
+namespace PerfumeTracker.Server.Repo;
 public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
 	public async Task<List<PerfumeWithWornStatsDto>> GetPerfumesWithWorn(string? fulltext = null) {
 		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
@@ -11,7 +13,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 				|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{fulltext}:*"))
 				|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, fulltext))
 				)
-			.Select(p => MapToPerfumeWithWornStatsDto(p, settings.SprayAmount))
+			.Select(p => MapToPerfumeWithWornStatsDto(p, settings))
 			.AsSplitQuery()
 			.AsNoTracking()
 			.ToListAsync();
@@ -24,13 +26,13 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Where(p => p.Id == id)
-			.Select(p => MapToPerfumeWithWornStatsDto(p, settings.SprayAmount))
+			.Select(p => MapToPerfumeWithWornStatsDto(p, settings))
 			.AsSplitQuery()
 			.AsNoTracking()
 			.FirstOrDefaultAsync();
 		return p ?? throw new NotFoundException();
 	}
-	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p, decimal amountPerSprayMl) {
+	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p, Settings settings) {
 		decimal burnRatePerYearMl = 0;
 		decimal yearsLeft = 0;
 		if (p.MlLeft > 0 && p.PerfumeWorns.Any()) {
@@ -38,8 +40,11 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 			var daysSinceFirstWorn = (DateTime.UtcNow - firstWorn).TotalDays;
 			if (daysSinceFirstWorn >= 30 && p.PerfumeWorns.Count > 1) { //otherwise prediction will be inaccurate
 				var spraysPerYear = 365 * (decimal)p.PerfumeWorns.Count / (decimal)(DateTime.UtcNow - firstWorn).TotalDays;
-				burnRatePerYearMl = spraysPerYear * amountPerSprayMl;
-				yearsLeft = p.MlLeft / burnRatePerYearMl;
+				var sprayAmountMl = settings.SprayAmountForBottleSize(p.Ml);
+				if (sprayAmountMl > 0) {
+					burnRatePerYearMl = spraysPerYear * settings.SprayAmountForBottleSize(p.Ml);
+					yearsLeft = p.MlLeft / burnRatePerYearMl;
+				}
 			}
 		}
 		return new PerfumeWithWornStatsDto(

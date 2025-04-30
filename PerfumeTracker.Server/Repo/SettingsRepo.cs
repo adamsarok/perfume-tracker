@@ -7,7 +7,8 @@ public class SettingsRepo(PerfumetrackerContext context) {
 		ShowFemalePerfumes = true,
 		ShowMalePerfumes = true,
 		ShowUnisexPerfumes = true,
-		SprayAmount = 0.2M
+		SprayAmountFullSizeMl = 0.2M, //0.1m * 2 sprays
+		SprayAmountSamplesMl = 0.1M, //0.5m * 2 sprays
 	};
 	private async Task<Settings?> GetSettings(string userId) {
         return await context.Settings.FindAsync(userId);

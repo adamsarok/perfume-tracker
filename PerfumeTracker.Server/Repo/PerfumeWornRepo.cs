@@ -1,3 +1,4 @@
+using PerfumeTracker.Server.Migrations;
 using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Repo;
@@ -30,6 +31,10 @@ public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo setting
 		var w = await context.PerfumeWorns.FindAsync(id);
 		if (w == null) throw new NotFoundException();
 		context.PerfumeWorns.Remove(w);
+		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
+		var perfume = await context.Perfumes.FindAsync(w.PerfumeId);
+		if (perfume == null) throw new NotFoundException("Perfume", w.PerfumeId);
+		perfume.MlLeft = Math.Min(perfume.Ml, perfume.MlLeft + settings.SprayAmountForBottleSize(perfume.Ml));
 		await context.SaveChangesAsync();
 	}
 
@@ -42,7 +47,7 @@ public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo setting
 		context.PerfumeWorns.Add(worn);
 		var perfume = await context.Perfumes.FindAsync(dto.PerfumeId);
 		if (perfume == null) throw new NotFoundException("Perfume", dto.PerfumeId);
-		perfume.MlLeft = Math.Max(0, perfume.MlLeft - settings.SprayAmount);
+		perfume.MlLeft = Math.Max(0, perfume.MlLeft - settings.SprayAmountForBottleSize(perfume.Ml));
 		await context.SaveChangesAsync();
 		return worn.Adapt<PerfumeWornDownloadDto>();
 	}
