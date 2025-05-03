@@ -1,6 +1,7 @@
 using Carter;
 using HealthChecks.UI.Client;
 using PerfumeTracker.Server;
+using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Repo;
 using PerfumeTracker.Server.Server.Helpers;
 
@@ -9,7 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 string? conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 
-builder.Services.AddDbContext<PerfumetrackerContext>(opt => opt.UseNpgsql(conn));
+builder.Services.AddDbContext<PerfumetrackerContext>(opt => {
+	opt.UseNpgsql(conn);
+	opt.AddInterceptors(new EntityInterceptor());
+});
 builder.Services.AddScoped<PerfumeRepo>();
 builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeWornRepo>();

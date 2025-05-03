@@ -1,7 +1,7 @@
 ﻿using NpgsqlTypes;
 namespace PerfumeTracker.Server.Models;
 
-public partial class Perfume
+public partial class Perfume : Entity
 {
     public int Id { get; set; }
     public string House { get; set; } = null!;
@@ -20,6 +20,4 @@ public partial class Perfume
     public virtual ICollection<PerfumeTag> PerfumeTags { get; set; } = new List<PerfumeTag>();
     public virtual ICollection<PerfumeWorn> PerfumeWorns { get; set; } = new List<PerfumeWorn>();
 	public virtual ICollection<PerfumePlayList> PerfumePlayList { get; set; } = new List<PerfumePlayList>();
-	public DateTime Created_At { get; set; }
-    public DateTime? Updated_At { get; set; }
 }

@@ -41,8 +41,8 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
             SprayAmountFullSizeMl = 0.2m,
 			SprayAmountSamplesMl = 0.1m,
             Created_At = DateTime.UtcNow,
-            Updated_At = null
-        },
+            Updated_At = DateTime.UtcNow,
+		},
             new Settings {
             UserId = "User2",
             MinimumRating = 8f,
@@ -53,8 +53,8 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
 			SprayAmountFullSizeMl = 0.2m,
 			SprayAmountSamplesMl = 0.1m,
 			Created_At = DateTime.UtcNow,
-            Updated_At = null
-        },
+            Updated_At = DateTime.UtcNow,
+		},
     };
 
     [Fact]
@@ -81,8 +81,8 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
 			SprayAmountFullSizeMl = 0.2m,
 			SprayAmountSamplesMl = 0.1m,
 			Created_At = DateTime.UtcNow,
-            Updated_At = null
-        };
+            Updated_At = DateTime.UtcNow,
+		};
         var content = JsonContent.Create(setting);
         var response = await client.PutAsync($"/api/settings", content);
         response.EnsureSuccessStatusCode();

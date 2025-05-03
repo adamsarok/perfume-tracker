@@ -6,7 +6,6 @@ public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo
 		if (p == null) throw new NotFoundException();
 		var s = new PerfumeSuggested() {
 			PerfumeId = perfumeId,
-			Created_At = DateTime.UtcNow,
 		};
 		context.PerfumeSuggesteds.Add(s);
 		await context.SaveChangesAsync();

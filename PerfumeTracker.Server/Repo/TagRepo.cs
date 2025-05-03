@@ -31,7 +31,6 @@ public class TagRepo(PerfumetrackerContext context) {
 	public async Task<TagDto> AddTag(TagDto dto) {
 		var tag = dto.Adapt<Tag>();
 		if (tag == null) throw new MappingException();
-		tag.Created_At = DateTime.UtcNow;
 		context.Tags.Add(tag);
 		await context.SaveChangesAsync();
 		return tag.Adapt<TagDto>();
@@ -50,12 +49,8 @@ public class TagRepo(PerfumetrackerContext context) {
 			.Tags
 			.FindAsync(id);
 		if (find == null) throw new NotFoundException();
-
 		context.Entry(find).CurrentValues.SetValues(tag);
-		find.Updated_At = DateTime.UtcNow;
-
 		await context.SaveChangesAsync();
-
 		return find.Adapt<TagDto>();
 	}
 }

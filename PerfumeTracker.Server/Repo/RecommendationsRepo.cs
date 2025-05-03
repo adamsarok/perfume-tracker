@@ -12,7 +12,6 @@ public class RecommendationsRepo(PerfumetrackerContext context) {
 	public async Task<Recommendation> AddRecommendation(RecommendationUploadDto dto) {
 		var r = dto.Adapt<Recommendation>();
 		if (r == null) throw new InvalidOperationException("Recommendation mapping failed");
-		r.Created_At = DateTime.UtcNow;
 		context.Recommendations.Add(r);
 		await context.SaveChangesAsync();
 		return r;

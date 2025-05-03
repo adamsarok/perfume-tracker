@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PerfumeTracker.Server.Models;
 
-public class Settings {
+public class Settings : Entity {
     public string UserId { get; set; } = null!;
     public double MinimumRating { get; set; }
     public int DayFilter { get; set; }
@@ -12,7 +12,5 @@ public class Settings {
     public bool ShowFemalePerfumes { get; set; }
     public decimal SprayAmountFullSizeMl { get; set; }
 	public decimal SprayAmountSamplesMl { get; set; }
-	public DateTime Created_At { get; set; }
-	public DateTime? Updated_At { get; set; }
 	public decimal SprayAmountForBottleSize(decimal bottleSizeMl) => bottleSizeMl >= 20 ? SprayAmountFullSizeMl : SprayAmountSamplesMl;
 }

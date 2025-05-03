@@ -24,7 +24,6 @@ public class PerfumePlaylistRepo(PerfumetrackerContext context) {
 	public async Task<PerfumePlaylistDto> AddPerfumePlaylist(PerfumePlaylistDto Dto) {
 		var perfumePlaylist = Dto.Adapt<PerfumePlayList>();
 		if (perfumePlaylist == null) throw new InvalidOperationException("Perfume playlist mapping failed");
-		perfumePlaylist.Created_At = DateTime.UtcNow;
 		context.PerfumePlayLists.Add(perfumePlaylist);
 		foreach (var p in perfumePlaylist.Perfumes) context.Entry(p).State = EntityState.Unchanged;
 		await context.SaveChangesAsync();
@@ -43,9 +42,6 @@ public class PerfumePlaylistRepo(PerfumetrackerContext context) {
 			.PerfumePlayLists
 			.FirstOrDefaultAsync(x => x.Name == perfumePlaylist.Name);
 		if (find == null) throw new NotFoundException();
-
-		context.Entry(find).CurrentValues.SetValues(perfumePlaylist);
-		find.Updated_At = DateTime.UtcNow;
 		return find.Adapt<PerfumePlaylistDto>();
 	}
 }

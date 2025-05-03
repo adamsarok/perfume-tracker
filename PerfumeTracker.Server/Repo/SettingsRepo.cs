@@ -20,11 +20,9 @@ public class SettingsRepo(PerfumetrackerContext context) {
 	}
 	public async Task<Settings> UpsertSettings(Settings settings) {
         var found = await GetSettings(settings.UserId);
-        settings.Updated_At = DateTime.UtcNow;
         if (found != null) {
             context.Entry(found).CurrentValues.SetValues(settings);
         } else {
-            settings.Created_At = DateTime.UtcNow;
             await context.Settings.AddAsync(settings);
         }
         await context.SaveChangesAsync();

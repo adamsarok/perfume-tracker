@@ -72,12 +72,10 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 	public async Task<PerfumeDto> AddPerfume(PerfumeDto Dto) {
 		var perfume = Dto.Adapt<Perfume>();
 		if (perfume == null) throw new InvalidOperationException("Perfume mapping failed");
-		perfume.Created_At = DateTime.UtcNow;
 		context.Perfumes.Add(perfume);
 		await context.SaveChangesAsync();
 		foreach (var tag in Dto.Tags) {
 			context.PerfumeTags.Add(new PerfumeTag() {
-				Created_At = DateTime.UtcNow,
 				PerfumeId = perfume.Id,
 				TagId = tag.Id,
 			});
@@ -104,10 +102,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 		if (find == null) throw new NotFoundException();
 
 		context.Entry(find).CurrentValues.SetValues(perfume);
-		find.Updated_At = DateTime.UtcNow;
-
 		await UpdateTags(Dto, find);
-
 		return find.Adapt<PerfumeDto>();
 	}
 
@@ -115,7 +110,6 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 		var find = await context.Perfumes.FindAsync(Dto.ParentObjectId);
 		if (find == null) throw new NotFoundException();
 		find.ImageObjectKey = Dto.ImageObjectKey;
-		find.Updated_At = DateTime.UtcNow;
 		await context.SaveChangesAsync();
 		return find.Adapt<PerfumeDto>();
 	}
