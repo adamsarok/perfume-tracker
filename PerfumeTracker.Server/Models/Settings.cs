@@ -1,6 +1,3 @@
-using System;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace PerfumeTracker.Server.Models;
 
 public class Settings : Entity {

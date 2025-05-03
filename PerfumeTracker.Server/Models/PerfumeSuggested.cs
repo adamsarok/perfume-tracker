@@ -1,5 +1,4 @@
 ﻿namespace PerfumeTracker.Server.Models;
-
 public partial class PerfumeSuggested : Entity
 {
     public int Id { get; set; }
