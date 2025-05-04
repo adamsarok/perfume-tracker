@@ -32,11 +32,13 @@ export default function WornList() {
     }, []);
 
     return (
-        <div>
-            {worns.map((worn) => (
-                <PerfumeCard key={worn.id} worn={worn}></PerfumeCard>
-            ))}
-            {(!cursor || cursor > 1) && <div ref={ref}>
+        <div className="w-full max-w-3xl mx-auto px-2">
+            <div className="grid grid-cols-1 gap-4">
+                {worns.map((worn) => (
+                    <PerfumeCard key={worn.id} worn={worn}></PerfumeCard>
+                ))}
+            </div>
+            {(!cursor || cursor > 1) && <div ref={ref} className="text-center py-4">
                 Loading...
             </div>}
         </div>

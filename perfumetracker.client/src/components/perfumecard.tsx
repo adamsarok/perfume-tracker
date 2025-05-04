@@ -42,47 +42,49 @@ export default function PerfumeCard({
 
   return (
     <form>
-      <Card key={worn.id} className="min-w-96 perfume-card">
+      <Card key={worn.id} className="w-full perfume-card">
         <CardHeader>
           <a
             href={`/perfumes/${perfume.id}/`}
-            className="flex items-center justify-between space-x-4"
+            className="flex items-center justify-between gap-4"
           >
-            <Avatar className="w-20 h-20 semi-bold">
-              <AvatarImage
-                className="object-cover"
-                src={perfume.imagerUrl}
-              />
-              <AvatarFallback>{avatar}</AvatarFallback>
-            </Avatar>
-            <div className="text-small leading-none text-default-600 ml-4">
-              {perfume.house} - {perfume.perfumeName}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <p className="mt-2 text-small tracking-tight text-default-400">
-                      {`Worn on: ${worn.wornOn.toDateString()}`}
-                    </p>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div>
-                      {worn.tags?.map((x) => (
-                        <ColorChip
-                          key={x.id}
-                          className="mr-2"
-                          onChipClick={null}
-                          name={x.tagName}
-                          color={x.color}
-                        ></ColorChip>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="flex items-center space-x-4">
+              <Avatar className="w-16 h-16 sm:w-20 sm:h-20 semi-bold">
+                <AvatarImage
+                  className="object-cover"
+                  src={perfume.imagerUrl}
+                />
+                <AvatarFallback>{avatar}</AvatarFallback>
+              </Avatar>
+              <div className="text-small leading-none text-default-600">
+                <p className="whitespace-normal text-small">{perfume.house} - {perfume.perfumeName}</p>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className="mt-2 text-small tracking-tight text-default-400">
+                        {`Worn on: ${worn.wornOn.toDateString()}`}
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div>
+                        {worn.tags?.map((x) => (
+                          <ColorChip
+                            key={x.id}
+                            className="mr-2"
+                            onChipClick={null}
+                            name={x.tagName}
+                            color={x.color}
+                          ></ColorChip>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
             <Button
               color="danger"
-              className="w-10"
+              className="w-10 h-8 p-0"
               size="sm"
               onClick={() => {
                 handlePressStart(worn.id);
