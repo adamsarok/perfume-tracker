@@ -27,7 +27,7 @@ public class RecommendationTests(WebApplicationFactory<Program> factory) : IClas
 	}
 
 	static List<Recommendation> recommendationsSeed = new List<Recommendation>() {
-		new Recommendation() { Query = "query1", Recommendations = "recommendations1", Created_At = DateTime.UtcNow },
+		new Recommendation() { Query = "query1", Recommendations = "recommendations1" },
 	};
 
 

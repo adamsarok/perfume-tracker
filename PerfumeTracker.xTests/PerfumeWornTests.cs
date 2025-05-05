@@ -20,11 +20,11 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 				context.Perfumes.AddRange(perfumeSeed);
 				context.PerfumeWorns.Add(new PerfumeWorn() {
 					Perfume = perfumeSeed[0],
-					Created_At = DateTime.UtcNow
+					WornOn = DateTime.UtcNow
 				});
 				context.PerfumeWorns.Add(new PerfumeWorn() {
 					Perfume = perfumeSeed[1],
-					Created_At = DateTime.UtcNow.AddDays(-1)
+					WornOn = DateTime.UtcNow.AddDays(-1)
 				});
 				await context.SaveChangesAsync();
 				dbUp = true;

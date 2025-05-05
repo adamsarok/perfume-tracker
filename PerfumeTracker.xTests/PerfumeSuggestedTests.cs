@@ -22,11 +22,10 @@ public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : ICl
 				context.Perfumes.AddRange(perfumeSeed);
 				context.PerfumeWorns.Add(new PerfumeWorn() {
 					Perfume = perfumeSeed[0],
-					Created_At = DateTime.UtcNow
+					WornOn = DateTime.UtcNow
 				});
 				context.PerfumeSuggesteds.Add(new PerfumeSuggested() {
 					Perfume = perfumeSeed[1],
-					Created_At = DateTime.UtcNow.AddDays(-2)
 				});
 				await context.SaveChangesAsync();
 				dbUp = true;

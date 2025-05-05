@@ -15,10 +15,10 @@ public class EntityInterceptor : SaveChangesInterceptor {
 		if (context == null) return;
 		foreach (var entry in context.ChangeTracker.Entries<IEntity>()) {
 			if (entry.State == EntityState.Added) {
-				entry.Entity.Created_At = DateTime.UtcNow;
+				entry.Entity.CreatedAt = DateTime.UtcNow;
 			}
 			if (entry.State == EntityState.Added || entry.State == EntityState.Modified) {
-				entry.Entity.Updated_At = DateTime.UtcNow;
+				entry.Entity.UpdatedAt = DateTime.UtcNow;
 			}
 		}
 	}

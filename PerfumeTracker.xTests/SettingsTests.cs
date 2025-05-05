@@ -39,9 +39,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
             ShowUnisexPerfumes = true,
             ShowFemalePerfumes = true,
             SprayAmountFullSizeMl = 0.2m,
-			SprayAmountSamplesMl = 0.1m,
-            Created_At = DateTime.UtcNow,
-            Updated_At = DateTime.UtcNow,
+			SprayAmountSamplesMl = 0.1m
 		},
             new Settings {
             UserId = "User2",
@@ -51,9 +49,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
             ShowUnisexPerfumes = true,
             ShowFemalePerfumes = true,
 			SprayAmountFullSizeMl = 0.2m,
-			SprayAmountSamplesMl = 0.1m,
-			Created_At = DateTime.UtcNow,
-            Updated_At = DateTime.UtcNow,
+			SprayAmountSamplesMl = 0.1m
 		},
     };
 
@@ -79,9 +75,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
             ShowUnisexPerfumes = true,
             ShowFemalePerfumes = true,
 			SprayAmountFullSizeMl = 0.2m,
-			SprayAmountSamplesMl = 0.1m,
-			Created_At = DateTime.UtcNow,
-            Updated_At = DateTime.UtcNow,
+			SprayAmountSamplesMl = 0.1m
 		};
         var content = JsonContent.Create(setting);
         var response = await client.PutAsync($"/api/settings", content);

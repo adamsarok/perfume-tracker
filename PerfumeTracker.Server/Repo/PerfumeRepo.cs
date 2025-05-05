@@ -36,7 +36,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 		decimal burnRatePerYearMl = 0;
 		decimal yearsLeft = 0;
 		if (p.MlLeft > 0 && p.PerfumeWorns.Any()) {
-			var firstWorn = p.PerfumeWorns.Min(x => x.Created_At);
+			var firstWorn = p.PerfumeWorns.Min(x => x.WornOn);
 			var daysSinceFirstWorn = (DateTime.UtcNow - firstWorn).TotalDays;
 			if (daysSinceFirstWorn >= 30 && p.PerfumeWorns.Count > 1) { //otherwise prediction will be inaccurate
 				var spraysPerYear = 365 * (decimal)p.PerfumeWorns.Count / (decimal)(DateTime.UtcNow - firstWorn).TotalDays;
@@ -64,7 +64,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 					p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
 				  ),
 				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count : 0,
-				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.Created_At) : null,
+				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.WornOn) : null,
 				  burnRatePerYearMl,
 				  yearsLeft
 				  );

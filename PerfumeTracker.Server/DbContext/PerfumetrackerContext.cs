@@ -87,7 +87,7 @@ public partial class PerfumetrackerContext : DbContext {
 
 			entity.ToTable("Recommendation");
 
-			entity.Property(e => e.Created_At)
+			entity.Property(e => e.CreatedAt)
 				.HasDefaultValueSql("CURRENT_TIMESTAMP");
 		});
 

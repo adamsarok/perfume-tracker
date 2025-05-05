@@ -1,6 +1,3 @@
-using PerfumeTracker.Server.Migrations;
-using PerfumeTracker.Server.Models;
-
 namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
@@ -13,7 +10,7 @@ public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo setting
 			.Take(pageSize)
 			.Select(x => new PerfumeWornDownloadDto(
 				x.Id,
-				x.Created_At,
+				x.WornOn,
 				x.Perfume.Adapt<PerfumeDto>(),
 				x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList()
 			))
@@ -22,7 +19,7 @@ public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo setting
 	public async Task<List<int>> GetWornPerfumeIDs(int daysFilter) {
 		return await context
 			.PerfumeWorns
-			.Where(x => x.Created_At >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
+			.Where(x => x.WornOn >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.ToListAsync();
@@ -39,10 +36,7 @@ public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo setting
 	}
 
 	public async Task<PerfumeWornDownloadDto> AddPerfumeWorn(PerfumeWornUploadDto dto) {
-		var worn = new PerfumeWorn() {
-			PerfumeId = dto.PerfumeId,
-			Created_At = dto.WornOn
-		};
+		var worn = dto.Adapt<PerfumeWorn>();
 		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
 		context.PerfumeWorns.Add(worn);
 		var perfume = await context.Perfumes.FindAsync(dto.PerfumeId);

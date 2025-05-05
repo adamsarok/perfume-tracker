@@ -13,7 +13,7 @@ public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo
 	public async Task<List<int>> GetAlreadySuggestedPerfumeIds(int daysFilter) {
 		return await context
 			.PerfumeSuggesteds
-			.Where(x => x.Created_At >= DateTime.UtcNow.AddDays(-daysFilter))
+			.Where(x => x.CreatedAt >= DateTime.UtcNow.AddDays(-daysFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.ToListAsync();
