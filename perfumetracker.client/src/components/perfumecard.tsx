@@ -84,7 +84,7 @@ export default function PerfumeCard({
             </div>
             <Button
               color="danger"
-              className="w-10 h-8 p-0"
+              className="w-9 h-8 p-0 flex-shrink-0"
               size="sm"
               onClick={() => {
                 handlePressStart(worn.id);
