@@ -11,7 +11,7 @@ public partial class PerfumetrackerContext : DbContext {
 	public virtual DbSet<Perfume> Perfumes { get; set; }
 	public virtual DbSet<PerfumeSuggested> PerfumeSuggesteds { get; set; }
 	public virtual DbSet<PerfumeTag> PerfumeTags { get; set; }
-	public virtual DbSet<PerfumeWorn> PerfumeWorns { get; set; }
+	public virtual DbSet<PerfumeWorn> PerfumeEvents { get; set; }
 	public virtual DbSet<Recommendation> Recommendations { get; set; }
 	public virtual DbSet<Tag> Tags { get; set; }
 	public virtual DbSet<PerfumePlayList> PerfumePlayLists { get; set; }
@@ -72,14 +72,14 @@ public partial class PerfumetrackerContext : DbContext {
 		});
 
 		modelBuilder.Entity<PerfumeWorn>(entity => {
-			entity.HasKey(e => e.Id).HasName("PerfumeWorn_pkey");
+			entity.HasKey(e => e.Id).HasName("PerfumeEvent_pkey");
 
-			entity.ToTable("PerfumeWorn");
+			entity.ToTable("PerfumeEvent");
 
 			entity.HasOne(d => d.Perfume)
-				.WithMany(p => p.PerfumeWorns)
+				.WithMany(p => p.PerfumeEvents)
 				.HasForeignKey(d => d.PerfumeId)
-				.HasConstraintName("PerfumeWorn_perfumeId_fkey");
+				.HasConstraintName("PerfumeEvent_perfumeId_fkey");
 		});
 
 		modelBuilder.Entity<Recommendation>(entity => {

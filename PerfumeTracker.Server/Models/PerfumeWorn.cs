@@ -5,5 +5,12 @@ public partial class PerfumeWorn : Entity
     public int Id { get; set; }
     public int PerfumeId { get; set; }
     public virtual Perfume Perfume { get; set; } = null!;
-	public DateTime WornOn { get; set; } = DateTime.UtcNow;
+	public DateTime EventDate { get; set; } = DateTime.UtcNow;
+	public enum PerfumeEventType {
+		Added = 0, 
+		Worn = 1,
+		Adjusted = 2
+	}
+	public PerfumeEventType Type { get; set; } = PerfumeEventType.Added;
+	public decimal AmountMl { get; set; } = 0;
 }

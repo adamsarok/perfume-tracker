@@ -16,7 +16,7 @@ builder.Services.AddDbContext<PerfumetrackerContext>(opt => {
 });
 builder.Services.AddScoped<PerfumeRepo>();
 builder.Services.AddScoped<TagRepo>();
-builder.Services.AddScoped<PerfumeWornRepo>();
+builder.Services.AddScoped<PerfumeEventsRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
 builder.Services.AddScoped<PerfumePlaylistRepo>();

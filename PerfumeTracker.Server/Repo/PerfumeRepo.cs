@@ -6,7 +6,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
 		return await context
 			.Perfumes
-			.Include(x => x.PerfumeWorns)
+			.Include(x => x.PerfumeEvents)
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Where(p => string.IsNullOrWhiteSpace(fulltext)
@@ -22,7 +22,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
 		var p = await context
 			.Perfumes
-			.Include(x => x.PerfumeWorns)
+			.Include(x => x.PerfumeEvents)
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Where(p => p.Id == id)
@@ -35,11 +35,11 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p, Settings settings) {
 		decimal burnRatePerYearMl = 0;
 		decimal yearsLeft = 0;
-		if (p.MlLeft > 0 && p.PerfumeWorns.Any()) {
-			var firstWorn = p.PerfumeWorns.Min(x => x.WornOn);
+		if (p.MlLeft > 0 && p.PerfumeEvents.Any()) {
+			var firstWorn = p.PerfumeEvents.Min(x => x.CreatedAt);
 			var daysSinceFirstWorn = (DateTime.UtcNow - firstWorn).TotalDays;
-			if (daysSinceFirstWorn >= 30 && p.PerfumeWorns.Count > 1) { //otherwise prediction will be inaccurate
-				var spraysPerYear = 365 * (decimal)p.PerfumeWorns.Count / (decimal)(DateTime.UtcNow - firstWorn).TotalDays;
+			if (daysSinceFirstWorn >= 30 && p.PerfumeEvents.Count > 1) { //otherwise prediction will be inaccurate
+				var spraysPerYear = 365 * (decimal)p.PerfumeEvents.Count / (decimal)(DateTime.UtcNow - firstWorn).TotalDays;
 				var sprayAmountMl = settings.SprayAmountForBottleSize(p.Ml);
 				if (sprayAmountMl > 0) {
 					burnRatePerYearMl = spraysPerYear * settings.SprayAmountForBottleSize(p.Ml);
@@ -63,8 +63,8 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 					p.Winter,
 					p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
 				  ),
-				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Count : 0,
-				  p.PerfumeWorns.Any() ? p.PerfumeWorns.Max(x => x.WornOn) : null,
+				  p.PerfumeEvents.Any() ? p.PerfumeEvents.Count : 0,
+				  p.PerfumeEvents.Any() ? p.PerfumeEvents.Max(x => x.CreatedAt) : null,
 				  burnRatePerYearMl,
 				  yearsLeft
 				  );

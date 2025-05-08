@@ -8,7 +8,7 @@ public class TagRepo(PerfumetrackerContext context) {
 				x.TagName,
 				x.Color,
 				x.PerfumeTags.Sum(pt => pt.Perfume.Ml),
-				x.PerfumeTags.Sum(pt => pt.Perfume.PerfumeWorns.Count)
+				x.PerfumeTags.Sum(pt => pt.Perfume.PerfumeEvents.Count)
 			 )).ToListAsync();
 	}
 	public async Task<List<TagDto>> GetTags() {

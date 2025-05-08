@@ -18,13 +18,17 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 				var sql = "truncate table \"public\".\"PerfumeWorn\" cascade; truncate table \"public\".\"Perfume\" cascade;";
 				await context.Database.ExecuteSqlRawAsync(sql);
 				context.Perfumes.AddRange(perfumeSeed);
-				context.PerfumeWorns.Add(new PerfumeWorn() {
+				context.PerfumeEvents.Add(new PerfumeWorn() {
 					Perfume = perfumeSeed[0],
-					WornOn = DateTime.UtcNow
+					CreatedAt = DateTime.UtcNow,
+					EventDate = DateTime.UtcNow,
+					Type = PerfumeWorn.PerfumeEventType.Worn
 				});
-				context.PerfumeWorns.Add(new PerfumeWorn() {
+				context.PerfumeEvents.Add(new PerfumeWorn() {
 					Perfume = perfumeSeed[1],
-					WornOn = DateTime.UtcNow.AddDays(-1)
+					CreatedAt = DateTime.UtcNow.AddDays(-1),
+					EventDate = DateTime.UtcNow.AddDays(-1),
+					Type = PerfumeWorn.PerfumeEventType.Worn
 				});
 				await context.SaveChangesAsync();
 				dbUp = true;
@@ -49,7 +53,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 	private async Task<PerfumeWorn> GetFirst() {
 		using var scope = factory.Services.CreateScope();
 		using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
-		return await context.PerfumeWorns.FirstAsync();
+		return await context.PerfumeEvents.FirstAsync();
 	}
 
 	[Fact]
@@ -94,7 +98,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 	public async Task AddPerfumeWorn() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var dto = new PerfumeWornUploadDto(perfumeSeed[2].Id, DateTime.UtcNow);
+		var dto = new PerfumeEventUploadDto(perfumeSeed[2].Id, DateTime.UtcNow, PerfumeWorn.PerfumeEventType.Worn, 0.05m);
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/perfumeworns", content);
 		response.EnsureSuccessStatusCode();

@@ -1,6 +1,6 @@
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeWornRepo perfumeWornRepo) {
+public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeEventsRepo perfumeWornRepo) {
 	public async Task AddSuggestedPerfume(int perfumeId) {
 		var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId);
 		if (p == null) throw new NotFoundException();
