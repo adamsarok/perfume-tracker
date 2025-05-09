@@ -15,7 +15,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 				using var scope = factory.Services.CreateScope();
 				using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
 				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
-				var sql = "truncate table \"public\".\"PerfumeWorn\" cascade; truncate table \"public\".\"Perfume\" cascade;";
+				var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;";
 				await context.Database.ExecuteSqlRawAsync(sql);
 				context.Perfumes.AddRange(perfumeSeed);
 				context.PerfumeEvents.Add(new PerfumeWorn() {
@@ -64,7 +64,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 			{ "cursor", "0" },
 			{ "pageSize", "20" }
 		});
-		var response = await client.GetAsync("/api/perfumeworns" + queryParams);
+		var response = await client.GetAsync("/api/perfume-events/worn-perfumes" + queryParams);
 		response.EnsureSuccessStatusCode();
 
 		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<PerfumeWornDownloadDto>>();
@@ -76,7 +76,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 	public async Task GetPerfumesBefore() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var response = await client.GetAsync("/api/perfumeworns/perfumesbefore/5");
+		var response = await client.GetAsync("/api/perfume-events/worn-perfumes/5");
 		response.EnsureSuccessStatusCode();
 
 		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<int>>();
@@ -89,7 +89,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 		await PrepareData();
 		var worn = await GetFirst();
 		var client = factory.CreateClient();
-		var response = await client.DeleteAsync($"/api/perfumeworns/{worn.Id}");
+		var response = await client.DeleteAsync($"/api/perfume-events/{worn.Id}");
 		response.EnsureSuccessStatusCode();
 		Assert.True(true);
 	}
@@ -100,7 +100,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 		var client = factory.CreateClient();
 		var dto = new PerfumeEventUploadDto(perfumeSeed[2].Id, DateTime.UtcNow, PerfumeWorn.PerfumeEventType.Worn, 0.05m);
 		var content = JsonContent.Create(dto);
-		var response = await client.PostAsync($"/api/perfumeworns", content);
+		var response = await client.PostAsync($"/api/perfume-events", content);
 		response.EnsureSuccessStatusCode();
 
 		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeWornDownloadDto>();
