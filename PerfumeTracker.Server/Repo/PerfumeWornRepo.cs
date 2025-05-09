@@ -1,48 +1,53 @@
+using PerfumeTracker.Server.Migrations;
+using PerfumeTracker.Server.Models;
+
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeWornRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
+public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
 
 	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
 		return await context
-			.PerfumeWorns
-			.Where(x => cursor < 1 || x.Id < cursor)
+			.PerfumeEvents
+			.Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn && (cursor < 1 || x.Id < cursor))
 			.OrderByDescending(x => x.Id)
 			.Take(pageSize)
 			.Select(x => new PerfumeWornDownloadDto(
 				x.Id,
-				x.WornOn,
-				x.Perfume.Adapt<PerfumeDto>(),
+				x.CreatedAt,
+				x.Perfume.Id,
+				x.Perfume.ImageObjectKey,
+				"",
+				x.Perfume.House,
+				x.Perfume.PerfumeName,
 				x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList()
 			))
 			.ToListAsync();
 	}
 	public async Task<List<int>> GetWornPerfumeIDs(int daysFilter) {
 		return await context
-			.PerfumeWorns
-			.Where(x => x.WornOn >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
+			.PerfumeEvents
+			.Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.ToListAsync();
 	}
-	public async Task DeletePerfumeWorn(int id) {
-		var w = await context.PerfumeWorns.FindAsync(id);
+	public async Task DeletePerfumeEvent(int id) {
+		var w = await context.PerfumeEvents.FindAsync(id);
 		if (w == null) throw new NotFoundException();
-		context.PerfumeWorns.Remove(w);
-		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
-		var perfume = await context.Perfumes.FindAsync(w.PerfumeId);
-		if (perfume == null) throw new NotFoundException("Perfume", w.PerfumeId);
-		perfume.MlLeft = Math.Min(perfume.Ml, perfume.MlLeft + settings.SprayAmountForBottleSize(perfume.Ml));
+		context.PerfumeEvents.Remove(w);
 		await context.SaveChangesAsync();
 	}
 
-	public async Task<PerfumeWornDownloadDto> AddPerfumeWorn(PerfumeWornUploadDto dto) {
-		var worn = dto.Adapt<PerfumeWorn>();
+	public async Task<PerfumeWornDownloadDto> AddPerfumeEvent(PerfumeEventUploadDto dto) {
+		var evt = dto.Adapt<PerfumeWorn>();
 		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
-		context.PerfumeWorns.Add(worn);
-		var perfume = await context.Perfumes.FindAsync(dto.PerfumeId);
-		if (perfume == null) throw new NotFoundException("Perfume", dto.PerfumeId);
-		perfume.MlLeft = Math.Max(0, perfume.MlLeft - settings.SprayAmountForBottleSize(perfume.Ml));
+		context.PerfumeEvents.Add(evt);
+		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
+		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
+		if (evt.AmountMl == 0 && evt.Type == PerfumeWorn.PerfumeEventType.Worn) {
+			evt.AmountMl = settings.SprayAmountForBottleSize(perfume.Ml);
+		}
 		await context.SaveChangesAsync();
-		return worn.Adapt<PerfumeWornDownloadDto>();
+		return evt.Adapt<PerfumeWornDownloadDto>();
 	}
 }

@@ -16,22 +16,21 @@ import { deleteWear } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
 
 export interface PerfumeCardProps {
-  worn: PerfumeWornDTO;
+  readonly worn: PerfumeWornDTO;
 }
 
 export default function PerfumeCard({
   worn
 }: PerfumeCardProps) {
-  if (!worn || !worn.perfume) return <div></div>;
-  const perfume = worn.perfume;
+  if (!worn) return <div></div>;
   const avatar =
-    perfume.perfumeName.split(" ").length > 1
-      ? perfume.perfumeName
+    worn.perfumeName.split(" ").length > 1
+      ? worn.perfumeName
           .split(" ")
           .map((x) => x[0])
           .slice(0, 2)
           .join("")
-      : perfume.perfumeName.slice(0, 2).toUpperCase();
+      : worn.perfumeName.slice(0, 2).toUpperCase();
 
   const handlePressStart = async (id: number) => {
     const result = await deleteWear(id);
@@ -45,19 +44,19 @@ export default function PerfumeCard({
       <Card key={worn.id} className="w-full perfume-card">
         <CardHeader>
           <a
-            href={`/perfumes/${perfume.id}/`}
+            href={`/perfumes/${worn.perfumeId}/`}
             className="flex items-center justify-between gap-4"
           >
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16 sm:w-20 sm:h-20 semi-bold">
                 <AvatarImage
                   className="object-cover"
-                  src={perfume.imagerUrl}
+                  src={worn.perfumeImageUrl}
                 />
                 <AvatarFallback>{avatar}</AvatarFallback>
               </Avatar>
               <div className="text-small leading-none text-default-600">
-                <p className="whitespace-normal text-small">{perfume.house} - {perfume.perfumeName}</p>
+                <p className="whitespace-normal text-small">{worn.perfumeHouse} - {worn.perfumeName}</p>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -67,7 +66,7 @@ export default function PerfumeCard({
                     </TooltipTrigger>
                     <TooltipContent>
                       <div>
-                        {worn.tags?.map((x) => (
+                        {worn.perfumeTags?.map((x) => (
                           <ColorChip
                             key={x.id}
                             className="mr-2"

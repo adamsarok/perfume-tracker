@@ -1,9 +1,12 @@
-import { PerfumeDTO } from "./PerfumeDTO";
 import { TagDTO } from "./TagDTO";
 
 export interface PerfumeWornDTO {
     id: number,
-    perfume: PerfumeDTO,
+    perfumeId: number,
+    perfumeImageObjectKey: string,
+    perfumeImageUrl: string,
+    perfumeHouse: string,
+    perfumeName: string,
+    perfumeTags: TagDTO[],
     wornOn: Date,
-    tags: TagDTO[]
 }

@@ -1,5 +1,4 @@
-using System;
+using static PerfumeTracker.Server.Models.PerfumeWorn;
 
 namespace PerfumeTracker.Server.Dto;
-
-public record PerfumeWornUploadDto(int PerfumeId, DateTime WornOn);
+public record PerfumeEventUploadDto(int PerfumeId, DateTime WornOn, PerfumeEventType Type, decimal? Amount);

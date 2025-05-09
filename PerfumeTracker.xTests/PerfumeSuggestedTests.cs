@@ -17,15 +17,18 @@ public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : ICl
 				using var scope = factory.Services.CreateScope();
 				using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
 				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
-				var sql = "truncate table \"public\".\"PerfumeWorn\" cascade; truncate table \"public\".\"Perfume\" cascade;  truncate table \"public\".\"PerfumeSuggested\" cascade;";
+				var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;  truncate table \"public\".\"PerfumeSuggested\" cascade;";
 				await context.Database.ExecuteSqlRawAsync(sql);
 				context.Perfumes.AddRange(perfumeSeed);
-				context.PerfumeWorns.Add(new PerfumeWorn() {
+				context.PerfumeEvents.Add(new PerfumeWorn() {
 					Perfume = perfumeSeed[0],
-					WornOn = DateTime.UtcNow
+					CreatedAt = DateTime.UtcNow,
+					EventDate = DateTime.UtcNow,
+					Type = PerfumeWorn.PerfumeEventType.Worn
 				});
 				context.PerfumeSuggesteds.Add(new PerfumeSuggested() {
 					Perfume = perfumeSeed[1],
+					CreatedAt = DateTime.UtcNow.AddDays(-2)
 				});
 				await context.SaveChangesAsync();
 				dbUp = true;
