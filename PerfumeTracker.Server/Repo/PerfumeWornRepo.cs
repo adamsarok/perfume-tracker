@@ -46,8 +46,10 @@ public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo setti
 		var evt = dto.Adapt<PerfumeWorn>();
 		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
 		context.PerfumeEvents.Add(evt);
+		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
+		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
 		if (evt.AmountMl == 0 && evt.Type == PerfumeWorn.PerfumeEventType.Worn) {
-			evt.AmountMl = settings.SprayAmountForBottleSize(evt.Perfume.Ml);
+			evt.AmountMl = settings.SprayAmountForBottleSize(perfume.Ml);
 		}
 		await context.SaveChangesAsync();
 		return evt.Adapt<PerfumeWornDownloadDto>();
