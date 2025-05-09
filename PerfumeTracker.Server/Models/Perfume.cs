@@ -1,5 +1,4 @@
-﻿using NpgsqlTypes;
-namespace PerfumeTracker.Server.Models;
+﻿namespace PerfumeTracker.Server.Models;
 
 public partial class Perfume : Entity
 {
@@ -9,6 +8,7 @@ public partial class Perfume : Entity
     public double Rating { get; set; }
     public string Notes { get; set; } = null!;
     public decimal Ml { get; set; }
+	[NotMapped]
     public decimal MlLeft { get; set; }
     public string ImageObjectKey { get; set; } = null!;
     public bool Autumn { get; set; }

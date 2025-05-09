@@ -35,11 +35,13 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p, Settings settings) {
 		decimal burnRatePerYearMl = 0;
 		decimal yearsLeft = 0;
-		if (p.MlLeft > 0 && p.PerfumeEvents.Any()) {
-			var firstWorn = p.PerfumeEvents.Min(x => x.CreatedAt);
+		p.MlLeft = Math.Max(0, p.PerfumeEvents.Sum(e => e.AmountMl));
+		var worns = p.PerfumeEvents.Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn).ToList();
+		if (p.MlLeft > 0 && worns.Any()) {
+			var firstWorn = worns.Min(x => x.CreatedAt);
 			var daysSinceFirstWorn = (DateTime.UtcNow - firstWorn).TotalDays;
-			if (daysSinceFirstWorn >= 30 && p.PerfumeEvents.Count > 1) { //otherwise prediction will be inaccurate
-				var spraysPerYear = 365 * (decimal)p.PerfumeEvents.Count / (decimal)(DateTime.UtcNow - firstWorn).TotalDays;
+			if (daysSinceFirstWorn >= 30 && worns.Count > 1) { //otherwise prediction will be inaccurate
+				var spraysPerYear = 365 * (decimal)worns.Count / (decimal)(DateTime.UtcNow - firstWorn).TotalDays;
 				var sprayAmountMl = settings.SprayAmountForBottleSize(p.Ml);
 				if (sprayAmountMl > 0) {
 					burnRatePerYearMl = spraysPerYear * settings.SprayAmountForBottleSize(p.Ml);
@@ -63,8 +65,8 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 					p.Winter,
 					p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id)).ToList()
 				  ),
-				  p.PerfumeEvents.Any() ? p.PerfumeEvents.Count : 0,
-				  p.PerfumeEvents.Any() ? p.PerfumeEvents.Max(x => x.CreatedAt) : null,
+				  worns.Any() ? worns.Count : 0,
+				  worns.Any() ? worns.Max(x => x.CreatedAt) : null,
 				  burnRatePerYearMl,
 				  yearsLeft
 				  );
@@ -78,6 +80,16 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 			context.PerfumeTags.Add(new PerfumeTag() {
 				PerfumeId = perfume.Id,
 				TagId = tag.Id,
+			});
+		}
+		if (Dto.MlLeft > 0) {
+			context.PerfumeEvents.Add(new PerfumeWorn() {
+				AmountMl = Dto.MlLeft,
+				CreatedAt = DateTime.UtcNow,
+				EventDate = DateTime.UtcNow,
+				Perfume = perfume,
+				Type = PerfumeWorn.PerfumeEventType.Added,
+				UpdatedAt = DateTime.UtcNow
 			});
 		}
 		await context.SaveChangesAsync();
@@ -102,6 +114,18 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 		if (find == null) throw new NotFoundException();
 
 		context.Entry(find).CurrentValues.SetValues(perfume);
+		var ayo = context.PerfumeEvents.Where(x => x.PerfumeId == perfume.Id).ToList();
+		var mlLeftInDb = context.PerfumeEvents.Where(x => x.PerfumeId == perfume.Id).Sum(s => s.AmountMl);
+		if (Dto.MlLeft != mlLeftInDb) {
+			context.PerfumeEvents.Add(new PerfumeWorn() {
+				AmountMl = Dto.MlLeft - mlLeftInDb,
+				CreatedAt = DateTime.UtcNow,
+				EventDate = DateTime.UtcNow,
+				PerfumeId = perfume.Id,
+				Type = PerfumeWorn.PerfumeEventType.Adjusted,
+				UpdatedAt = DateTime.UtcNow
+			});
+		}
 		await UpdateTags(Dto, find);
 		return find.Adapt<PerfumeDto>();
 	}

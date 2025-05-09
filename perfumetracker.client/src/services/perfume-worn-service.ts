@@ -8,19 +8,19 @@ import { getImageUrl } from "@/components/r2-image";
 
 export async function getWornBeforeID(cursor: number | null, pageSize: number) : Promise<PerfumeWornDTO[]> {
     if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-    const qry = `${PERFUMETRACKER_API_ADDRESS}/perfumeworns?cursor=${encodeURIComponent(cursor ?? 0)}&pageSize=${encodeURIComponent(pageSize)}`;
+    const qry = `${PERFUMETRACKER_API_ADDRESS}/perfume-events/worn-perfumes?cursor=${encodeURIComponent(cursor ?? 0)}&pageSize=${encodeURIComponent(pageSize)}`;
     const response = await fetch(qry);
     if (!response.ok) {
       throw new Error("Failed to fetch perfume worns");
     }
     const worns: PerfumeWornDTO[] = await response.json();
-    worns.forEach(x => x.perfume.imagerUrl = getImageUrl(x.perfume.imageObjectKey, R2_API_ADDRESS));
+    worns.forEach(x => x.perfumeImageUrl = getImageUrl(x.perfumeImageObjectKey, R2_API_ADDRESS));
     return worns;
 }
 
 export async function getWornPerfumeIDs(dayFilter: number) : Promise<number[]> {
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const qry = `${PERFUMETRACKER_API_ADDRESS}/perfumeworns/perfumesbefore/${encodeURIComponent(dayFilter)}`;
+  const qry = `${PERFUMETRACKER_API_ADDRESS}/perfume-events/worn-perfumes/${encodeURIComponent(dayFilter)}`;
   const response = await fetch(qry);
   if (!response.ok) {
     throw new Error("Failed to fetch already suggested perfumes");
@@ -33,7 +33,7 @@ export async function deleteWear(
   id: number
 ): Promise<ActionResult> {
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfumeworns/${encodeURIComponent(id)}`, {
+  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfume-events/${encodeURIComponent(id)}`, {
     method: "DELETE"
   });
   if (!response.ok) {
@@ -48,7 +48,7 @@ export async function wearPerfume(id: number, date: Date) : Promise<ActionResult
     perfumeId: id,
     wornOn: date
   };
-  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfumeworns`, {
+  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfume-events`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

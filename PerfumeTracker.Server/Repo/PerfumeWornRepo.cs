@@ -14,7 +14,11 @@ public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo setti
 			.Select(x => new PerfumeWornDownloadDto(
 				x.Id,
 				x.CreatedAt,
-				x.Perfume.Adapt<PerfumeDto>(),
+				x.Perfume.Id,
+				x.Perfume.ImageObjectKey,
+				"",
+				x.Perfume.House,
+				x.Perfume.PerfumeName,
 				x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList()
 			))
 			.ToListAsync();
