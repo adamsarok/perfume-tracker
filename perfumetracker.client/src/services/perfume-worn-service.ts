@@ -46,7 +46,8 @@ export async function wearPerfume(id: number, date: Date) : Promise<ActionResult
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
   const dto: PerfumeWornUploadDTO = {
     perfumeId: id,
-    wornOn: date
+    wornOn: date,
+    type: 1
   };
   const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfume-events`, {
     method: "POST",

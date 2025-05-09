@@ -45,7 +45,7 @@ public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo setti
 		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
 		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
 		if (evt.AmountMl == 0 && evt.Type == PerfumeWorn.PerfumeEventType.Worn) {
-			evt.AmountMl = settings.SprayAmountForBottleSize(perfume.Ml);
+			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		}
 		await context.SaveChangesAsync();
 		return evt.Adapt<PerfumeWornDownloadDto>();
