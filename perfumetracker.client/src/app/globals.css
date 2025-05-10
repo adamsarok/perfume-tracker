@@ -2,31 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.gradient-background {
-    background: linear-gradient(to right, #FEFEFF, #F8F9FF);
-    height: 100vh;
-    width: 100%;
-}
-
-.menuButton {
-  margin-right: 4px;
-  border-style: dotted;
-  border-width: 2px;
-  border-radius: 1px;
-  padding-left: 10px;
-  padding-right: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-details {
-  margin-right: 4px;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-bottom: 4px;
-}
-
 @layer base {
   :root {
         --background: 0 0% 100%;

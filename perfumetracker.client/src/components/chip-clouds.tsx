@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import styles from "./chip-clouds.module.css";
 import TagAddModal from "./tag-add-modal";
 import ColorChip, { ChipProp } from "./color-chip";
 import { TagDTO } from "@/dto/TagDTO";
@@ -63,18 +62,18 @@ export default function ChipClouds({
 
   return (
     <div className={className}>
-      <div className={styles.chipContainer}>
+      <div className="flex flex-wrap min-h-[50px]">
         {topChips
           .toSorted((a, b) => a.name.localeCompare(b.name))
           .map((c) => (
-            <div key={c.name} className={styles.chipItem}>
+            <div key={c.name} className="mt-1 cursor-pointer p-[5px] text-lg">
               <ColorChip
                 className={c.className}
                 color={c.color}
                 name={c.name}
                 onChipClick={() => handleTopChipClick(c)}
                 enabled
-              ></ColorChip>
+              />
             </div>
           ))}
       </div>
@@ -85,14 +84,14 @@ export default function ChipClouds({
         <DrawerContent className="max-h-64">
           <DrawerTitle>Available tags:</DrawerTitle>
           <ScrollArea className="rounded-md border h-64">
-            <div className={styles.chipContainer}>
-              <div key="New" className={styles.chipItem}>
+            <div className="flex flex-wrap min-h-[50px]">
+              <div key="New" className="mt-1 cursor-pointer p-[5px] text-lg">
                 <TagAddModal tagAdded={handleModalClose} />
               </div>
               {bottomChips.concat(dividers)
                 .toSorted((a, b) => a.name.localeCompare(b.name))
                 .map((c) => (
-                  <div key={c.name} className={styles.chipItem}>
+                  <div key={c.name} className="mt-1 cursor-pointer p-[5px] text-lg">
                     <ColorChip
                       className={c.className}
                       color={c.color}

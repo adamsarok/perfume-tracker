@@ -80,21 +80,21 @@ export default function AiComponent({ tags, perfumes, settings }: AiComponentPro
 
   return (
     <div className="space-y-6">
-      <details>
+      <details className="mr-1 px-2.5 pb-1">
         <summary>Similar to these perfumes...</summary>
         <PerfumeSelectTable
           perfumes={perfumes}
           onSelectionChange={setSelectedPerfumes}
         ></PerfumeSelectTable>
       </details>
-      <details>
+      <details className="mr-1 px-2.5 pb-1">
         <summary>With these notes...</summary>
         <TagSelectTable
           tags={tags}
           onSelectionChange={setSelectedTags}
         ></TagSelectTable>
       </details>
-      <details>
+      <details className="mr-1 px-2.5 pb-1">
         <summary>Free text...</summary>
         <Input
           placeholder=""
