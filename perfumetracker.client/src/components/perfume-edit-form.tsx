@@ -6,7 +6,6 @@ import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
 import { useRouter } from "next/navigation";
 import UploadComponent from "./upload-component";
-import styles from "./perfume-edit-form.module.css";
 import SprayOnComponent from "./spray-on";
 import { getImageUrl } from "./r2-image";
 import { Button } from "./ui/button";
@@ -204,10 +203,10 @@ export default function PerfumeEditForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className={styles.container}
+          className="flex flex-col items-center justify-center p-5 mt-0"
         >
-          <div className={styles.container}>
-            <div className={styles.imageContainer}>
+          <div className="flex flex-col items-center justify-center p-5 mt-0">
+            <div className="w-full max-w-[250px]">
               <div className="flex items-center justify-center space-x-2 mb-2">
                 <img
                   onClick={() => setShowUploadButtons(!showUploadButtons)}
@@ -216,9 +215,9 @@ export default function PerfumeEditForm({
                       ? "Image of a perfume"
                       : "Placeholder icon for a perfume"
                   }
-                  className={styles.img}
+                  className="max-w-[150px] object-contain"
                   src={imageUrl || "/perfume-icon.svg"}
-                ></img>
+                />
               </div>
               {showUploadButtons && (
                 <UploadComponent
@@ -227,8 +226,7 @@ export default function PerfumeEditForm({
                 />
               )}
             </div>
-            <div className={styles.content}>
-              {/* TODO implement <PlaylistDrawer className="mb-2 mt-2"></PlaylistDrawer> */}
+            <div className="text-center">
               <FormField
                 control={form.control}
                 name="house"
@@ -310,14 +308,14 @@ export default function PerfumeEditForm({
                   </FormItem>
                 )}
               />
-              <div className={styles.chipContainer}>
+              <div className="w-full mb-0 mr-5">
                 <ChipClouds
-                  className={styles.chipContainer}
+                  className="w-full mb-0 mr-5"
                   bottomChipProps={bottomChipProps}
                   topChipProps={topChipProps}
                   selectChip={selectChip}
                   unSelectChip={unSelectChip}
-                ></ChipClouds>
+                />
               </div>
 
               <div className="flex items-center space-x-4 mt-2 mb-2">
