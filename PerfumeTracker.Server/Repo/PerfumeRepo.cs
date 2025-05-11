@@ -1,7 +1,9 @@
-﻿using PerfumeTracker.Server.Models;
-
+﻿
 namespace PerfumeTracker.Server.Repo;
-public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
+public class PerfumeRepo(PerfumeTrackerContext context, SettingsRepo settingsRepo, IMediator mediator) {
+	public record class PerfumeAddedEvent(Perfume Perfume) : INotification;
+	public record class PerfumeUpdatedEvent(Perfume Perfume) : INotification;
+	public record class PerfumeTagsAddedEvent() : INotification;
 	public async Task<List<PerfumeWithWornStatsDto>> GetPerfumesWithWorn(string? fulltext = null) {
 		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
 		return await context
@@ -93,6 +95,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 			});
 		}
 		await context.SaveChangesAsync();
+		await mediator.Publish(new PerfumeAddedEvent(perfume));
 		return perfume.Adapt<PerfumeDto>();
 	}
 	public async Task DeletePerfume(int id) {
@@ -127,6 +130,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 			});
 		}
 		await UpdateTags(Dto, find);
+		await mediator.Publish(new PerfumeUpdatedEvent(perfume));
 		return find.Adapt<PerfumeDto>();
 	}
 
@@ -139,6 +143,7 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 	}
 
 	private async Task UpdateTags(PerfumeDto Dto, Perfume? find) {
+		bool tagsAdded = false;
 		if (find == null) return;
 		var tagsInDB = find.PerfumeTags
 			.Select(x => x.Tag)
@@ -153,8 +158,12 @@ public class PerfumeRepo(PerfumetrackerContext context, SettingsRepo settingsRep
 					PerfumeId = find.Id,
 					TagId = add.Id //TODO: this is not good, tag ID is coming back from client side
 				});
+				tagsAdded = true;
 			}
 		}
 		await context.SaveChangesAsync();
+		if (tagsAdded) {
+			await mediator.Publish(new PerfumeTagsAddedEvent());
+		}
 	}
 }

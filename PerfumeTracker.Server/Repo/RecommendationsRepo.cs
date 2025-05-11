@@ -1,5 +1,5 @@
 namespace PerfumeTracker.Server.Repo;
-public class RecommendationsRepo(PerfumetrackerContext context) {
+public class RecommendationsRepo(PerfumeTrackerContext context) {
 	public async Task<List<Recommendation>> GetRecommendations(int dayFilter) {
 		return await context
 			.Recommendations

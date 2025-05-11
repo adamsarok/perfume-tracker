@@ -3,8 +3,8 @@ using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
-
+public class PerfumeEventsRepo(PerfumeTrackerContext context, SettingsRepo settingsRepo, IMediator mediator) {
+	public record class PerfumeWornAddedEvent(PerfumeWorn PerfumeWorn) : INotification;
 	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
 		return await context
 			.PerfumeEvents
@@ -48,6 +48,9 @@ public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo setti
 			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		}
 		await context.SaveChangesAsync();
+		if (evt.Type == PerfumeWorn.PerfumeEventType.Worn) {
+			await mediator.Publish(new PerfumeWornAddedEvent(evt));
+		}
 		return evt.Adapt<PerfumeWornDownloadDto>();
 	}
 }

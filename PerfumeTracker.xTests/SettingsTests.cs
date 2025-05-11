@@ -16,7 +16,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
         try {
             if (!dbUp) {
                 using var scope = factory.Services.CreateScope();
-                using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
+                using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
                 if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
                 var sql = "truncate table \"public\".\"Settings\" cascade";
                 await context.Database.ExecuteSqlRawAsync(sql);

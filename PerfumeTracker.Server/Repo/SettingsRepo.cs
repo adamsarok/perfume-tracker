@@ -1,6 +1,6 @@
 namespace PerfumeTracker.Server.Repo;
 
-public class SettingsRepo(PerfumetrackerContext context) {
+public class SettingsRepo(PerfumeTrackerContext context) {
 	private readonly Settings defaultSettings = new Settings() {
 		MinimumRating = 8,
 		DayFilter = 30,

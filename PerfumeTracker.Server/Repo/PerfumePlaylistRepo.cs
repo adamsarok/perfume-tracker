@@ -1,5 +1,5 @@
 ﻿namespace PerfumeTracker.Server.Repo;
-public class PerfumePlaylistRepo(PerfumetrackerContext context) {
+public class PerfumePlaylistRepo(PerfumeTrackerContext context) {
 	public async Task<List<PerfumePlaylistDto>> GetPerfumePlaylists() {
 		return await context
 			.PerfumePlayLists

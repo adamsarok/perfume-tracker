@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 string? conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 
-builder.Services.AddDbContext<PerfumetrackerContext>(opt => {
+builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.UseNpgsql(conn);
 	opt.AddInterceptors(new EntityInterceptor());
 });
@@ -40,7 +40,7 @@ builder.Services.AddCors(options => {
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope()) {
-    var dbContext = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
     await dbContext.Database.MigrateAsync();
 }
 

@@ -1,6 +1,7 @@
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeEventsRepo perfumeWornRepo) {
+public class PerfumeSuggestedRepo(PerfumeTrackerContext context, PerfumeEventsRepo perfumeWornRepo, IMediator mediator) {
+	public record class PerfumeSuggestedAddedEvent(PerfumeSuggested PerfumeSuggested) : INotification;
 	public async Task AddSuggestedPerfume(int perfumeId) {
 		var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId);
 		if (p == null) throw new NotFoundException();
@@ -9,6 +10,7 @@ public class PerfumeSuggestedRepo(PerfumetrackerContext context, PerfumeEventsRe
 		};
 		context.PerfumeSuggesteds.Add(s);
 		await context.SaveChangesAsync();
+		await mediator.Publish(new PerfumeSuggestedAddedEvent(s));
 	}
 	public async Task<List<int>> GetAlreadySuggestedPerfumeIds(int daysFilter) {
 		return await context

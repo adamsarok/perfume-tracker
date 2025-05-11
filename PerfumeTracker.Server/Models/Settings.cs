@@ -1,7 +1,7 @@
 namespace PerfumeTracker.Server.Models;
 
 public class Settings : Entity {
-    public string UserId { get; set; } = null!;
+    public int UserId { get; set; }
     public double MinimumRating { get; set; }
     public int DayFilter { get; set; }
     public bool ShowMalePerfumes { get; set; }
