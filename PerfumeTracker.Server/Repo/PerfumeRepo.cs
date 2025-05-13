@@ -1,11 +1,11 @@
 ﻿
 namespace PerfumeTracker.Server.Repo;
-public class PerfumeRepo(PerfumeTrackerContext context, SettingsRepo settingsRepo, IMediator mediator) {
+public class PerfumeRepo(PerfumeTrackerContext context, UserProfilesRepo userProfilesRepo, IMediator mediator) {
 	public record class PerfumeAddedEvent(Perfume Perfume) : INotification;
 	public record class PerfumeUpdatedEvent(Perfume Perfume) : INotification;
 	public record class PerfumeTagsAddedEvent() : INotification;
 	public async Task<List<PerfumeWithWornStatsDto>> GetPerfumesWithWorn(string? fulltext = null) {
-		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
+		var settings = await userProfilesRepo.GetUserProfileOrDefault();
 		return await context
 			.Perfumes
 			.Include(x => x.PerfumeEvents)
@@ -21,7 +21,7 @@ public class PerfumeRepo(PerfumeTrackerContext context, SettingsRepo settingsRep
 			.ToListAsync();
 	}
 	public async Task<PerfumeWithWornStatsDto?> GetPerfume(int id) {
-		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
+		var settings = await userProfilesRepo.GetUserProfileOrDefault();
 		var p = await context
 			.Perfumes
 			.Include(x => x.PerfumeEvents)
@@ -34,7 +34,7 @@ public class PerfumeRepo(PerfumeTrackerContext context, SettingsRepo settingsRep
 			.FirstOrDefaultAsync();
 		return p ?? throw new NotFoundException();
 	}
-	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p, Settings settings) {
+	private static PerfumeWithWornStatsDto MapToPerfumeWithWornStatsDto(Perfume p, UserProfile userProfile) {
 		decimal burnRatePerYearMl = 0;
 		decimal yearsLeft = 0;
 		p.MlLeft = Math.Max(0, p.PerfumeEvents.Sum(e => e.AmountMl));
@@ -44,9 +44,9 @@ public class PerfumeRepo(PerfumeTrackerContext context, SettingsRepo settingsRep
 			var daysSinceFirstWorn = (DateTime.UtcNow - firstWorn).TotalDays;
 			if (daysSinceFirstWorn >= 30 && worns.Count > 1) { //otherwise prediction will be inaccurate
 				var spraysPerYear = 365 * (decimal)worns.Count / (decimal)(DateTime.UtcNow - firstWorn).TotalDays;
-				var sprayAmountMl = settings.SprayAmountForBottleSize(p.Ml);
+				var sprayAmountMl = userProfile.SprayAmountForBottleSize(p.Ml);
 				if (sprayAmountMl > 0) {
-					burnRatePerYearMl = spraysPerYear * settings.SprayAmountForBottleSize(p.Ml);
+					burnRatePerYearMl = spraysPerYear * userProfile.SprayAmountForBottleSize(p.Ml);
 					yearsLeft = p.MlLeft / burnRatePerYearMl;
 				}
 			}

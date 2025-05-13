@@ -3,7 +3,7 @@ using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeEventsRepo(PerfumeTrackerContext context, SettingsRepo settingsRepo, IMediator mediator) {
+public class PerfumeEventsRepo(PerfumeTrackerContext context, UserProfilesRepo userProfilesRepo, IMediator mediator) {
 	public record class PerfumeWornAddedEvent(PerfumeWorn PerfumeWorn) : INotification;
 	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
 		return await context
@@ -40,7 +40,7 @@ public class PerfumeEventsRepo(PerfumeTrackerContext context, SettingsRepo setti
 
 	public async Task<PerfumeWornDownloadDto> AddPerfumeEvent(PerfumeEventUploadDto dto) {
 		var evt = dto.Adapt<PerfumeWorn>();
-		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
+		var settings = await userProfilesRepo.GetUserProfileOrDefault();
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
 		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);

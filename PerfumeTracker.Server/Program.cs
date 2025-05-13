@@ -1,6 +1,7 @@
 using Carter;
 using HealthChecks.UI.Client;
 using PerfumeTracker.Server;
+using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Repo;
 using PerfumeTracker.Server.Server.Helpers;
@@ -9,18 +10,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 string? conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
-
 builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.UseNpgsql(conn);
 	opt.AddInterceptors(new EntityInterceptor());
 });
+
+var assembly = typeof(Program).Assembly;
+builder.Services.AddMediatR(config => {
+	config.RegisterServicesFromAssembly(assembly);
+});
+
 builder.Services.AddScoped<PerfumeRepo>();
 builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeEventsRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
 builder.Services.AddScoped<PerfumePlaylistRepo>();
-builder.Services.AddScoped<SettingsRepo>();
+builder.Services.AddScoped<UserProfilesRepo>();
 builder.Services.AddCarter();
 
 builder.Services.AddHealthChecks()
@@ -37,11 +43,13 @@ builder.Services.AddCors(options => {
 });
 
 
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
     await dbContext.Database.MigrateAsync();
+	await SeedAchievements.DoSeed(dbContext);
 }
 
 app.UseExceptionHandler();

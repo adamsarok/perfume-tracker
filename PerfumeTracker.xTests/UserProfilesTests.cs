@@ -8,7 +8,7 @@ using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.xTests;
 
-public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
+public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
     static bool dbUp = false;
     private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
     private async Task PrepareData() {          //fixtures don't have DI
@@ -20,7 +20,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
                 if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
                 var sql = "truncate table \"public\".\"Settings\" cascade";
                 await context.Database.ExecuteSqlRawAsync(sql);
-                context.Settings.AddRange(settingsSeed);
+                context.UserProfiles.AddRange(userProfilesSeed);
                 await context.SaveChangesAsync();
                 dbUp = true;
             }
@@ -30,9 +30,9 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
         }
     }
 
-    static List<Settings> settingsSeed = new List<Settings> {
-        new Settings {
-            UserId = "User1",
+    static List<UserProfile> userProfilesSeed = new List<UserProfile> {
+        new UserProfile {
+            UserId = 1,
             MinimumRating = 8f,
             DayFilter = 30,
             ShowMalePerfumes = true,
@@ -40,17 +40,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
             ShowFemalePerfumes = true,
             SprayAmountFullSizeMl = 0.2m,
 			SprayAmountSamplesMl = 0.1m
-		},
-            new Settings {
-            UserId = "User2",
-            MinimumRating = 8f,
-            DayFilter = 30,
-            ShowMalePerfumes = true,
-            ShowUnisexPerfumes = true,
-            ShowFemalePerfumes = true,
-			SprayAmountFullSizeMl = 0.2m,
-			SprayAmountSamplesMl = 0.1m
-		},
+		}
     };
 
     [Fact]
@@ -59,7 +49,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
         var client = factory.CreateClient();
         var response = await client.GetAsync($"/api/settings");
         response.EnsureSuccessStatusCode();
-        var tags = await response.Content.ReadFromJsonAsync<Settings>();
+        var tags = await response.Content.ReadFromJsonAsync<UserProfile>();
         Assert.NotNull(tags);
     }
 
@@ -67,8 +57,8 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
     public async Task InsertSettings() {
         await PrepareData();
         var client = factory.CreateClient();
-        var setting = new Settings() {
-            UserId = "User999",
+        var setting = new UserProfile() {
+            UserId = 2,
             MinimumRating = 8f,
             DayFilter = 30,
             ShowMalePerfumes = true,
@@ -81,7 +71,7 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
         var response = await client.PutAsync($"/api/settings", content);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<Settings>();
+        var result = await response.Content.ReadFromJsonAsync<UserProfile>();
         Assert.NotNull(result);
     }
 
@@ -89,12 +79,12 @@ public class SettingsTests(WebApplicationFactory<Program> factory) : IClassFixtu
     public async Task UpdateTag() {
         await PrepareData();
         var client = factory.CreateClient();
-        settingsSeed[1].MinimumRating = 9f;
-        var content = JsonContent.Create(settingsSeed[1]);
+        userProfilesSeed[1].MinimumRating = 9f;
+        var content = JsonContent.Create(userProfilesSeed[1]);
         var response = await client.PutAsync($"/api/settings", content);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<Settings>();
+        var result = await response.Content.ReadFromJsonAsync<UserProfile>();
         Assert.NotNull(result);
         Assert.Equal(9f, result.MinimumRating);
     }

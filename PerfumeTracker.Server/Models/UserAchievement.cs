@@ -6,4 +6,5 @@ public class UserAchievement : Entity {
 	public virtual Achievement Achievement { get; set; } = null!;
 	public int UserId { get; set; }
 	public virtual UserProfile UserProfile { get; set; } = null!;
+	public bool IsRead { get; set; } = false;
 }
