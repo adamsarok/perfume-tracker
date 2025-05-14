@@ -12,7 +12,7 @@ using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Migrations
 {
-    [DbContext(typeof(PerfumetrackerContext))]
+    [DbContext(typeof(PerfumeTrackerContext))]
     [Migration("20250509202220_MlLeftNotMapped")]
     partial class MlLeftNotMapped
     {

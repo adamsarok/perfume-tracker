@@ -13,17 +13,17 @@ import { PerfumeSelectDto } from "./perfume-select-columns";
 import { Input } from "@/components/ui/input";
 import getAiRecommendations from "@/services/ai-service";
 import { Textarea } from "@/components/ui/textarea";
-import { PerfumeSettings } from "@/services/settings-service";
+import { UserProfile } from "@/services/user-profiles-service";
 
 export const dynamic = "force-dynamic";
 
 export interface AiComponentProps {
   readonly tags: TagStatDTO[];
   readonly perfumes: PerfumeSelectDto[];
-  readonly settings: PerfumeSettings;
+  readonly userProfile: UserProfile;
 }
 
-export default function AiComponent({ tags, perfumes, settings }: AiComponentProps) {
+export default function AiComponent({ tags, perfumes, userProfile }: AiComponentProps) {
   const [recommendations, setRecommendations] = useState<string | null>(null);
   const [selectedPerfumes, setSelectedPerfumes] = useState<PerfumeSelectDto[]>(
     []
@@ -33,9 +33,9 @@ export default function AiComponent({ tags, perfumes, settings }: AiComponentPro
   const perfumesCountSuggest = 3; //TODO
   const genderFilter: string[] = [];
   const [query, setQuery] = useState<string>('');
-  if (settings.showFemalePerfumes) genderFilter.push('female');
-  if (settings.showMalePerfumes) genderFilter.push('male');
-  if (settings.showUnisexPerfumes) genderFilter.push('unisex');
+  if (userProfile.showFemalePerfumes) genderFilter.push('female');
+  if (userProfile.showMalePerfumes) genderFilter.push('male');
+  if (userProfile.showUnisexPerfumes) genderFilter.push('unisex');
 
   const getQuery = () => {
     let query = `Suggest ${perfumesCountSuggest} perfumes `;

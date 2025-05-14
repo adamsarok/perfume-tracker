@@ -12,7 +12,7 @@ using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Migrations
 {
-    [DbContext(typeof(PerfumetrackerContext))]
+    [DbContext(typeof(PerfumeTrackerContext))]
     [Migration("20250503201842_EntityBase")]
     partial class EntityBase
     {

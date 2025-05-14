@@ -1,5 +1,6 @@
 ﻿namespace PerfumeTracker.Server.Repo;
-public class TagRepo(PerfumetrackerContext context) {
+public class TagRepo(PerfumeTrackerContext context, IMediator mediator) {
+	public record class TagAddedEvent(Tag tag) : INotification;
 	public async Task<List<TagStatDto>> GetTagStats() {
 		return await context
 			.Tags
@@ -33,6 +34,7 @@ public class TagRepo(PerfumetrackerContext context) {
 		if (tag == null) throw new MappingException();
 		context.Tags.Add(tag);
 		await context.SaveChangesAsync();
+		await mediator.Publish(new TagAddedEvent(tag));
 		return tag.Adapt<TagDto>();
 	}
 	public async Task DeleteTag(int id) {

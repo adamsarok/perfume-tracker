@@ -1,10 +1,11 @@
 ﻿namespace PerfumeTracker.Server.Models;
 
-public partial class PerfumetrackerContext : DbContext {
-	public PerfumetrackerContext() {
+public partial class PerfumeTrackerContext : DbContext {
+	//private int userId = 1; //TODO multi-user when needed
+	public PerfumeTrackerContext() {
 	}
 
-	public PerfumetrackerContext(DbContextOptions<PerfumetrackerContext> options)
+	public PerfumeTrackerContext(DbContextOptions<PerfumeTrackerContext> options)
 		: base(options) {
 	}
 
@@ -15,8 +16,36 @@ public partial class PerfumetrackerContext : DbContext {
 	public virtual DbSet<Recommendation> Recommendations { get; set; }
 	public virtual DbSet<Tag> Tags { get; set; }
 	public virtual DbSet<PerfumePlayList> PerfumePlayLists { get; set; }
-	public virtual DbSet<Settings> Settings { get; set; }
+	public virtual DbSet<Achievement> Achievements { get; set; }
+	public virtual DbSet<UserAchievement> UserAchievements { get; set; }
+	public virtual DbSet<UserProfile> UserProfiles { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
+		modelBuilder.Entity<Achievement>(entity => {
+			entity.HasKey(e => e.Id).HasName("Achievement_pkey");
+			entity.ToTable("Achievement");
+		});
+		modelBuilder.Entity<UserAchievement>(entity => {
+			entity.HasKey(e => e.Id).HasName("UserAchievement_pkey");
+			entity.ToTable("UserAchievement");
+
+			entity.HasOne(e => e.Achievement)
+				.WithMany()
+				.HasForeignKey(e => e.AchievementId)
+				.HasConstraintName("UserAchievement_AchievementId_fkey");
+
+			entity.HasOne(e => e.UserProfile)
+				.WithMany(e => e.UserAchievements)
+				.HasForeignKey(e => e.UserId)
+				.OnDelete(DeleteBehavior.Restrict)
+				.HasConstraintName("UserAchievement_UserId_fkey");
+
+			//entity.HasQueryFilter(x => x.UserId == userId); //TODO multi-user when needed
+		});
+
+		modelBuilder.Entity<UserProfile>(entity => {
+			//entity.HasQueryFilter(x => x.UserId == userId); //TODO multi-user when needed
+		});
+
 		modelBuilder.Entity<Perfume>(entity => {
 			entity.HasKey(e => e.Id).HasName("Perfume_pkey");
 
@@ -106,12 +135,6 @@ public partial class PerfumetrackerContext : DbContext {
 
 			entity.HasMany(d => d.Perfumes)
 				.WithMany(p => p.PerfumePlayList);
-		});
-
-		modelBuilder.Entity<Settings>(entity => {
-			entity.HasKey(e => e.UserId).HasName("Settings_pkey");
-
-			entity.ToTable("Settings");
 		});
 
 		OnModelCreatingPartial(modelBuilder);

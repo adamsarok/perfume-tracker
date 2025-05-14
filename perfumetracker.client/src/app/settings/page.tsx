@@ -6,24 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { getSettings, PerfumeSettings, updateSettings } from "@/services/settings-service";
+import {getUserProfile, updateUserProfile, UserProfile } from "@/services/user-profiles-service";
 import { showError, showSuccess } from "@/services/toasty-service";
 
 export const dynamic = "force-dynamic";
 
-// export interface SettingsPageProps {
-//   readonly settings: PerfumeSettings;
-// }
-
 export default function SettingsPage() {
-  const [localSettings, setLocalSettings] = useState<PerfumeSettings | null>(null);
-  const [settings, setSettings] = useState<PerfumeSettings | null>(null);
+  const [localSettings, setLocalSettings] = useState<UserProfile | null>(null);
+  const [settings, setSettings] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     async function fetchSettings() {
-      const fetchedSettings = await getSettings(); // Fetch settings
-      setSettings(fetchedSettings); // Update `settings`
-      setLocalSettings(fetchedSettings); // Update `localSettings` with the fetched settings
+      const fetchedSettings = await getUserProfile();
+      setSettings(fetchedSettings);
+      setLocalSettings(fetchedSettings);
     }
     fetchSettings();
   }, []);
@@ -31,11 +27,6 @@ export default function SettingsPage() {
   if (!localSettings) {
     return <div>Loading...</div>;
   }
-
-  // const [localSettings, setLocalSettings] = useState({});
-  // useEffect(() => {
-  //   setLocalSettings(settings);
-  // }, [settings]);
 
   return (
     <div>
@@ -181,7 +172,7 @@ export default function SettingsPage() {
       <div className="mt-6 space-x-4">
         <Button
           onClick={async () => {
-            const result = await updateSettings(localSettings);
+            const result = await updateUserProfile(localSettings);
             if (result.error) showError("Settings set failed", result.error);
             else showSuccess("Settings set");
           }}

@@ -13,7 +13,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 		try {
 			if (!dbUp) {
 				using var scope = factory.Services.CreateScope();
-				using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
+				using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
 				var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;";
 				await context.Database.ExecuteSqlRawAsync(sql);
@@ -52,7 +52,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 
 	private async Task<PerfumeWorn> GetFirst() {
 		using var scope = factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumetrackerContext>();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		return await context.PerfumeEvents.FirstAsync();
 	}
 

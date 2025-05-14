@@ -1,10 +1,11 @@
+using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Migrations;
 using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo settingsRepo) {
-
+public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile getUserProfile, IMediator mediator) {
+	public record class PerfumeWornAddedEvent(PerfumeWorn PerfumeWorn) : INotification;
 	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
 		return await context
 			.PerfumeEvents
@@ -40,7 +41,7 @@ public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo setti
 
 	public async Task<PerfumeWornDownloadDto> AddPerfumeEvent(PerfumeEventUploadDto dto) {
 		var evt = dto.Adapt<PerfumeWorn>();
-		var settings = await settingsRepo.GetSettingsOrDefault("DEFAULT"); //TODO implement when multi user is needed
+		var settings = await getUserProfile.HandleAsync();
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
 		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
@@ -48,6 +49,9 @@ public class PerfumeEventsRepo(PerfumetrackerContext context, SettingsRepo setti
 			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		}
 		await context.SaveChangesAsync();
+		if (evt.Type == PerfumeWorn.PerfumeEventType.Worn) {
+			await mediator.Publish(new PerfumeWornAddedEvent(evt));
+		}
 		return evt.Adapt<PerfumeWornDownloadDto>();
 	}
 }
