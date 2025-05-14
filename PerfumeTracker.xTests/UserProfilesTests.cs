@@ -11,14 +11,14 @@ namespace PerfumeTracker.xTests;
 public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
     static bool dbUp = false;
     private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-    private async Task PrepareData() {          //fixtures don't have DI
+    private async Task PrepareData() {
         await semaphore.WaitAsync();
         try {
             if (!dbUp) {
                 using var scope = factory.Services.CreateScope();
                 using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
                 if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
-                var sql = "truncate table \"public\".\"Settings\" cascade";
+                var sql = "truncate table \"public\".\"UserProfiles\" cascade";
                 await context.Database.ExecuteSqlRawAsync(sql);
                 context.UserProfiles.AddRange(userProfilesSeed);
                 await context.SaveChangesAsync();
@@ -32,7 +32,8 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
 
     static List<UserProfile> userProfilesSeed = new List<UserProfile> {
         new UserProfile {
-            UserId = 1,
+            UserName = "DEFAULT",
+			Email = "",
             MinimumRating = 8f,
             DayFilter = 30,
             ShowMalePerfumes = true,
@@ -44,44 +45,43 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
     };
 
     [Fact]
-    public async Task GetSettings() {
+    public async Task GetUserProfiles() {
         await PrepareData();
         var client = factory.CreateClient();
-        var response = await client.GetAsync($"/api/settings");
+        var response = await client.GetAsync($"/api/user-profiles");
         response.EnsureSuccessStatusCode();
         var tags = await response.Content.ReadFromJsonAsync<UserProfile>();
         Assert.NotNull(tags);
     }
 
-    [Fact]
-    public async Task InsertSettings() {
+	//  [Fact] since the user profile is seeded, this test is not needed - add when multi-user is implemented
+	//  public async Task InsertUserProfiles() {
+	//      await PrepareData();
+	//      var client = factory.CreateClient();
+	//      var setting = new UserProfile() {
+	//          MinimumRating = 8f,
+	//          DayFilter = 30,
+	//          ShowMalePerfumes = true,
+	//          ShowUnisexPerfumes = true,
+	//          ShowFemalePerfumes = true,
+	//	SprayAmountFullSizeMl = 0.2m,
+	//	SprayAmountSamplesMl = 0.1m
+	//};
+	//      var content = JsonContent.Create(setting);
+	//      var response = await client.PutAsync($"/api/user-profiles", content);
+	//      response.EnsureSuccessStatusCode();
+
+	//      var result = await response.Content.ReadFromJsonAsync<UserProfile>();
+	//      Assert.NotNull(result);
+	//  }
+
+	[Fact]
+    public async Task UpdateUserProfiles() {
         await PrepareData();
         var client = factory.CreateClient();
-        var setting = new UserProfile() {
-            UserId = 2,
-            MinimumRating = 8f,
-            DayFilter = 30,
-            ShowMalePerfumes = true,
-            ShowUnisexPerfumes = true,
-            ShowFemalePerfumes = true,
-			SprayAmountFullSizeMl = 0.2m,
-			SprayAmountSamplesMl = 0.1m
-		};
-        var content = JsonContent.Create(setting);
-        var response = await client.PutAsync($"/api/settings", content);
-        response.EnsureSuccessStatusCode();
-
-        var result = await response.Content.ReadFromJsonAsync<UserProfile>();
-        Assert.NotNull(result);
-    }
-
-    [Fact]
-    public async Task UpdateTag() {
-        await PrepareData();
-        var client = factory.CreateClient();
-        userProfilesSeed[1].MinimumRating = 9f;
-        var content = JsonContent.Create(userProfilesSeed[1]);
-        var response = await client.PutAsync($"/api/settings", content);
+        userProfilesSeed[0].MinimumRating = 9f;
+        var content = JsonContent.Create(userProfilesSeed[0]);
+        var response = await client.PutAsync($"/api/user-profiles", content);
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<UserProfile>();

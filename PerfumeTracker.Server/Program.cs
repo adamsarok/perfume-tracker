@@ -2,6 +2,7 @@ using Carter;
 using HealthChecks.UI.Client;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Features.Achievements;
+using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Repo;
 using PerfumeTracker.Server.Server.Helpers;
@@ -26,7 +27,8 @@ builder.Services.AddScoped<PerfumeEventsRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
 builder.Services.AddScoped<PerfumePlaylistRepo>();
-builder.Services.AddScoped<UserProfilesRepo>();
+builder.Services.AddScoped<GetUserProfile>();
+builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddCarter();
 
 builder.Services.AddHealthChecks()
@@ -50,6 +52,7 @@ using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
     await dbContext.Database.MigrateAsync();
 	await SeedAchievements.DoSeed(dbContext);
+    await SeedUserProfiles.DoSeed(dbContext);
 }
 
 app.UseExceptionHandler();

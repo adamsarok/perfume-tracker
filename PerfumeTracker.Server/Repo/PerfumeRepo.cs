@@ -1,11 +1,13 @@
 ﻿
+using PerfumeTracker.Server.Features.UserProfiles;
+
 namespace PerfumeTracker.Server.Repo;
-public class PerfumeRepo(PerfumeTrackerContext context, UserProfilesRepo userProfilesRepo, IMediator mediator) {
+public class PerfumeRepo(PerfumeTrackerContext context, GetUserProfile getUserProfile, IMediator mediator) {
 	public record class PerfumeAddedEvent(Perfume Perfume) : INotification;
 	public record class PerfumeUpdatedEvent(Perfume Perfume) : INotification;
 	public record class PerfumeTagsAddedEvent() : INotification;
 	public async Task<List<PerfumeWithWornStatsDto>> GetPerfumesWithWorn(string? fulltext = null) {
-		var settings = await userProfilesRepo.GetUserProfileOrDefault();
+		var settings = await getUserProfile.HandleAsync();
 		return await context
 			.Perfumes
 			.Include(x => x.PerfumeEvents)
@@ -21,7 +23,7 @@ public class PerfumeRepo(PerfumeTrackerContext context, UserProfilesRepo userPro
 			.ToListAsync();
 	}
 	public async Task<PerfumeWithWornStatsDto?> GetPerfume(int id) {
-		var settings = await userProfilesRepo.GetUserProfileOrDefault();
+		var settings = await getUserProfile.HandleAsync();
 		var p = await context
 			.Perfumes
 			.Include(x => x.PerfumeEvents)

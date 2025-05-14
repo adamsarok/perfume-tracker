@@ -1,9 +1,10 @@
+using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Migrations;
 using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Repo;
 
-public class PerfumeEventsRepo(PerfumeTrackerContext context, UserProfilesRepo userProfilesRepo, IMediator mediator) {
+public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile getUserProfile, IMediator mediator) {
 	public record class PerfumeWornAddedEvent(PerfumeWorn PerfumeWorn) : INotification;
 	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
 		return await context
@@ -40,7 +41,7 @@ public class PerfumeEventsRepo(PerfumeTrackerContext context, UserProfilesRepo u
 
 	public async Task<PerfumeWornDownloadDto> AddPerfumeEvent(PerfumeEventUploadDto dto) {
 		var evt = dto.Adapt<PerfumeWorn>();
-		var settings = await userProfilesRepo.GetUserProfileOrDefault();
+		var settings = await getUserProfile.HandleAsync();
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
 		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
