@@ -2,6 +2,7 @@ using Carter;
 using HealthChecks.UI.Client;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Features.Achievements;
+using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Repo;
@@ -44,7 +45,7 @@ builder.Services.AddCors(options => {
                           .AllowAnyMethod());
 });
 
-
+builder.Services.AddHostedService<OutboxProcessor>();
 
 var app = builder.Build();
 

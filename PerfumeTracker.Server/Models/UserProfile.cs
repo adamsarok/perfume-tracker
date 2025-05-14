@@ -1,5 +1,5 @@
 ﻿namespace PerfumeTracker.Server.Models;
-public class UserProfile {
+public class UserProfile : Entity {
 	public int Id { get; set; }
 	public string UserName { get; set; } = null!;
 	public string Email { get; set; } = null!;

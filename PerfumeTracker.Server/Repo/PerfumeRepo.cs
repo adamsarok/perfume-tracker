@@ -1,10 +1,11 @@
 ﻿
+using Newtonsoft.Json;
 using PerfumeTracker.Server.Features.UserProfiles;
 
 namespace PerfumeTracker.Server.Repo;
 public class PerfumeRepo(PerfumeTrackerContext context, GetUserProfile getUserProfile, IMediator mediator) {
-	public record class PerfumeAddedEvent(Perfume Perfume) : INotification;
-	public record class PerfumeUpdatedEvent(Perfume Perfume) : INotification;
+	public record class PerfumeAddedEvent() : INotification;
+	public record class PerfumeUpdatedEvent() : INotification;
 	public record class PerfumeTagsAddedEvent() : INotification;
 	public async Task<List<PerfumeWithWornStatsDto>> GetPerfumesWithWorn(string? fulltext = null) {
 		var settings = await getUserProfile.HandleAsync();
@@ -96,8 +97,8 @@ public class PerfumeRepo(PerfumeTrackerContext context, GetUserProfile getUserPr
 				UpdatedAt = DateTime.UtcNow
 			});
 		}
+		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeAddedEvent()));
 		await context.SaveChangesAsync();
-		await mediator.Publish(new PerfumeAddedEvent(perfume));
 		return perfume.Adapt<PerfumeDto>();
 	}
 	public async Task DeletePerfume(int id) {
@@ -132,7 +133,7 @@ public class PerfumeRepo(PerfumeTrackerContext context, GetUserProfile getUserPr
 			});
 		}
 		await UpdateTags(Dto, find);
-		await mediator.Publish(new PerfumeUpdatedEvent(perfume));
+		await mediator.Publish(new PerfumeUpdatedEvent());
 		return find.Adapt<PerfumeDto>();
 	}
 

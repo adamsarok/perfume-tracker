@@ -9,7 +9,7 @@ public class UpsertUserProfile(PerfumeTrackerContext context, GetUserProfile get
 			await context.UserProfiles.AddAsync(userProfile);
 		}
 		await context.SaveChangesAsync();
-		return userProfile;
+		return found ?? userProfile;
 	}
 }
 public class UpsertUserProfilesModule : ICarterModule {
