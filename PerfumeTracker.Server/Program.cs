@@ -22,7 +22,6 @@ builder.Services.AddMediatR(config => {
 	config.RegisterServicesFromAssembly(assembly);
 });
 
-builder.Services.AddScoped<PerfumeRepo>();
 builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeEventsRepo>();
 builder.Services.AddScoped<PerfumeSuggestedRepo>();

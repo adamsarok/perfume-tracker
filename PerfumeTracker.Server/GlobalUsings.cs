@@ -4,3 +4,6 @@ global using MediatR;
 global using PerfumeTracker.Server.Models;
 global using PerfumeTracker.Server.Repo;
 global using Carter;
+global using PerfumeTracker.Server.Features.Perfumes;
+global using PerfumeTracker.Server.Features.UserProfiles;
+global using PerfumeTracker.Server.Features.CQRS;
