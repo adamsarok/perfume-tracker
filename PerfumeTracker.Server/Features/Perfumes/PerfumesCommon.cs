@@ -14,7 +14,7 @@ public static class PerfumesCommon {
 				var sprayAmountMl = userProfile.SprayAmountForBottleSize(p.Ml);
 				if (sprayAmountMl > 0) {
 					burnRatePerYearMl = spraysPerYear * userProfile.SprayAmountForBottleSize(p.Ml);
-					yearsLeft = p.MlLeft / burnRatePerYearMl;
+					yearsLeft = burnRatePerYearMl > 0 ? p.MlLeft / burnRatePerYearMl : 0;
 				}
 			}
 		}

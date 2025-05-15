@@ -4,7 +4,6 @@ public class AddPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfumes", async (PerfumeDto dto, ISender sender) => {
 			var result = await sender.Send(new AddPerfumeCommand(dto));
-			var response = result.Adapt<PerfumeDto>();
 			return Results.CreatedAtRoute("GetPerfume", new { id = result.Id }, result);
 		}).WithTags("Perfumes")
 			.WithName("PostPerfume");
@@ -13,6 +12,7 @@ public class AddPerfumeEndpoint : ICarterModule {
 public record class PerfumeAddedNotification() : INotification;
 public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(AddPerfumeCommand request, CancellationToken cancellationToken) {
+		using var transaction = await context.Database.BeginTransactionAsync(cancellationToken); //TODO change to GUID, remove double savechanges
 		var perfume = request.Dto.Adapt<Perfume>();
 		if (perfume == null) throw new InvalidOperationException("Perfume mapping failed");
 		context.Perfumes.Add(perfume);
@@ -35,6 +35,7 @@ public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<
 		}
 		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeAddedNotification()));
 		await context.SaveChangesAsync();
+		await transaction.CommitAsync(cancellationToken);
 		return perfume.Adapt<PerfumeDto>();
 	}
 }
