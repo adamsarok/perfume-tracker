@@ -1,11 +1,8 @@
-﻿using PerfumeTracker.Server.Features.UserProfiles;
-using static PerfumeTracker.Server.Repo.PerfumeRepo;
-
-namespace PerfumeTracker.Server.Features.Achievements;
+﻿namespace PerfumeTracker.Server.Features.Achievements;
 
 public class AssignAchievements {
-	public class PerfumeAddEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : INotificationHandler<PerfumeAddedEvent> {
-		public async Task Handle(PerfumeAddedEvent notification, CancellationToken cancellationToken) {
+	public class PerfumeAddEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : INotificationHandler<PerfumeAddedNotification> {
+		public async Task Handle(PerfumeAddedNotification notification, CancellationToken cancellationToken) {
 			var perfumesAdded = await context.Perfumes.CountAsync();
 			var userProfile = await getUserProfile.HandleAsync();
 			var achievements = await context.Achievements
@@ -27,8 +24,8 @@ public class AssignAchievements {
 			await context.SaveChangesAsync(cancellationToken);
 		}
 	}
-	public class PerfumeUpdatedEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : INotificationHandler<PerfumeUpdatedEvent> {
-		public async Task Handle(PerfumeUpdatedEvent notification, CancellationToken cancellationToken) {
+	public class PerfumeUpdatedEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : INotificationHandler<PerfumeUpdatedNotification> {
+		public async Task Handle(PerfumeUpdatedNotification notification, CancellationToken cancellationToken) {
 			//no achievement yet?
 			var userProfile = await getUserProfile.HandleAsync();
 			userProfile.XP += 1;

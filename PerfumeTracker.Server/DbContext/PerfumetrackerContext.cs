@@ -19,7 +19,14 @@ public partial class PerfumeTrackerContext : DbContext {
 	public virtual DbSet<Achievement> Achievements { get; set; }
 	public virtual DbSet<UserAchievement> UserAchievements { get; set; }
 	public virtual DbSet<UserProfile> UserProfiles { get; set; }
+	public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
+		modelBuilder.Entity<OutboxMessage>(entity => {
+			entity.HasKey(e => e.Id).HasName("OutboxMessage_pkey");
+			entity.ToTable("OutboxMessage");
+			entity.HasIndex(o => new { o.ProcessedAt, o.CreatedAt })
+				.HasDatabaseName("IX_Outbox_ProcessedAt_CreatedAt");
+		});
 		modelBuilder.Entity<Achievement>(entity => {
 			entity.HasKey(e => e.Id).HasName("Achievement_pkey");
 			entity.ToTable("Achievement");
