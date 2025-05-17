@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace PerfumeTracker.Server.Features.Outbox;
+﻿namespace PerfumeTracker.Server.Features.Outbox;
 
 public class OutboxProcessor : BackgroundService {
 	private readonly IServiceProvider _sp;
@@ -20,7 +18,7 @@ public class OutboxProcessor : BackgroundService {
 
 			foreach (var message in messages) {
 				var typ = Type.GetType(message.EventType);
-				var evt = JsonConvert.DeserializeObject(message.Payload, Type.GetType(message.EventType));
+				var evt = JsonSerializer.Deserialize(message.Payload, Type.GetType(message.EventType));
 				await mediator.Publish(evt);
 				message.ProcessedAt = DateTime.UtcNow;
 			}
