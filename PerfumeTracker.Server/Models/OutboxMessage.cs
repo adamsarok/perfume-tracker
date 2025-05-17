@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json;
 
 namespace PerfumeTracker.Server.Models;
 
@@ -7,7 +7,7 @@ public class OutboxMessage {
 		return new OutboxMessage() {
 			CreatedAt = DateTime.UtcNow,
 			EventType = payload.GetType().AssemblyQualifiedName,
-			Payload = JsonConvert.SerializeObject(payload)
+			Payload = JsonSerializer.Serialize(payload)
 		};
 	}
 	public int Id { get; set; }
