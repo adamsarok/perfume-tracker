@@ -40,7 +40,7 @@ public class TagRepo(PerfumeTrackerContext context, IMediator mediator) {
 	public async Task DeleteTag(int id) {
 		var tag = await context.Tags.FindAsync(id);
 		if (tag == null) throw new NotFoundException();
-		context.Tags.Remove(tag);
+		tag.IsDeleted = true;
 		await context.SaveChangesAsync();
 	}
 	public async Task<TagDto> UpdateTag(int id, TagDto dto) {

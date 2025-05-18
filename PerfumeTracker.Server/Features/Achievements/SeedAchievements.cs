@@ -3,12 +3,12 @@
 public static class SeedAchievements{
 	public static async Task DoSeed(PerfumeTrackerContext context) {
 		if (!await context.Achievements.AnyAsync()) {
-			await context.Achievements.AddRangeAsync(perfumesAdded);
-			await context.Achievements.AddRangeAsync(perfumeWornDays);
-			await context.Achievements.AddRangeAsync(tags);
-			await context.Achievements.AddRangeAsync(perfumeTags);
-			await context.Achievements.AddRangeAsync(streaks);
-			await context.Achievements.AddRangeAsync(xpMilestones);
+			await context.Achievements.AddRangeAsync(
+				perfumesAdded
+				.Concat(perfumeWornDays).Concat(tags)
+				.Concat(perfumeTags)
+				.Concat(streaks)
+				.Concat(xpMilestones));
 			await context.SaveChangesAsync();
 		}
 	}

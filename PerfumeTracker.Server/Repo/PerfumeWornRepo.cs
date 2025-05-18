@@ -35,7 +35,7 @@ public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile get
 	public async Task DeletePerfumeEvent(int id) {
 		var w = await context.PerfumeEvents.FindAsync(id);
 		if (w == null) throw new NotFoundException();
-		context.PerfumeEvents.Remove(w);
+		w.IsDeleted = true;
 		await context.SaveChangesAsync();
 	}
 
