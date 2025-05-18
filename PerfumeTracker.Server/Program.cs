@@ -2,6 +2,7 @@ using Carter;
 using HealthChecks.UI.Client;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Features.Achievements;
+using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Helpers;
@@ -24,11 +25,12 @@ builder.Services.AddMediatR(config => {
 
 builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeEventsRepo>();
-builder.Services.AddScoped<PerfumeSuggestedRepo>();
+builder.Services.AddScoped<RandomPerfumeRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
 builder.Services.AddScoped<PerfumePlaylistRepo>();
 builder.Services.AddScoped<GetUserProfile>();
 builder.Services.AddScoped<UpsertUserProfile>();
+builder.Services.AddScoped<MissionService>();
 builder.Services.AddCarter();
 
 builder.Services.AddHealthChecks()
@@ -44,7 +46,8 @@ builder.Services.AddCors(options => {
                           .AllowAnyMethod());
 });
 
-builder.Services.AddHostedService<OutboxProcessor>();
+builder.Services.AddHostedService<OutboxService>();
+builder.Services.AddHostedService<MissionService>();
 
 var app = builder.Build();
 

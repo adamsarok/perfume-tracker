@@ -10,7 +10,7 @@ public partial class PerfumeTrackerContext : DbContext {
 	}
 
 	public virtual DbSet<Perfume> Perfumes { get; set; }
-	public virtual DbSet<PerfumeSuggested> PerfumeSuggesteds { get; set; }
+	public virtual DbSet<PerfumeRandoms> PerfumeRandoms { get; set; }
 	public virtual DbSet<PerfumeTag> PerfumeTags { get; set; }
 	public virtual DbSet<PerfumeWorn> PerfumeEvents { get; set; }
 	public virtual DbSet<Recommendation> Recommendations { get; set; }
@@ -20,6 +20,8 @@ public partial class PerfumeTrackerContext : DbContext {
 	public virtual DbSet<UserAchievement> UserAchievements { get; set; }
 	public virtual DbSet<UserProfile> UserProfiles { get; set; }
 	public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
+	public virtual DbSet<Mission> Missions { get; set; }
+	public virtual DbSet<UserMission> UserMissions { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		modelBuilder.Entity<OutboxMessage>(entity => {
 			entity.HasKey(e => e.Id).HasName("OutboxMessage_pkey");
@@ -81,15 +83,15 @@ public partial class PerfumeTrackerContext : DbContext {
 				.HasIndex(p => new { p.House, p.PerfumeName }).IsUnique();
 		});
 
-		modelBuilder.Entity<PerfumeSuggested>(entity => {
-			entity.HasKey(e => e.Id).HasName("PerfumeSuggested_pkey");
+		modelBuilder.Entity<PerfumeRandoms>(entity => {
+			entity.HasKey(e => e.Id).HasName("PerfumeRandom_pkey");
 
-			entity.ToTable("PerfumeSuggested");
+			entity.ToTable("PerfumeRandom");
 
 			entity.HasOne(d => d.Perfume)
-				.WithMany(p => p.PerfumeSuggesteds)
+				.WithMany(p => p.PerfumeRandoms)
 				.HasForeignKey(d => d.PerfumeId)
-				.HasConstraintName("PerfumeSuggested_perfumeId_fkey");
+				.HasConstraintName("PerfumeRandom_perfumeId_fkey");
 		});
 
 		modelBuilder.Entity<PerfumeTag>(entity => {
@@ -142,6 +144,26 @@ public partial class PerfumeTrackerContext : DbContext {
 
 			entity.HasMany(d => d.Perfumes)
 				.WithMany(p => p.PerfumePlayList);
+		});
+
+		modelBuilder.Entity<Mission>(entity => {
+			entity.HasKey(e => e.Id).HasName("Mission_pkey");
+			entity.ToTable("Mission");
+		});
+
+		modelBuilder.Entity<UserMission>(entity => {
+			entity.HasKey(e => e.Id).HasName("UserMission_pkey");
+			entity.ToTable("UserMission");
+			
+			entity.HasOne(e => e.User)
+				.WithMany()
+				.HasForeignKey(e => e.UserId)
+				.HasConstraintName("UserMission_UserId_fkey");
+				
+			entity.HasOne(e => e.Mission)
+				.WithMany()
+				.HasForeignKey(e => e.MissionId)
+				.HasConstraintName("UserMission_MissionId_fkey");
 		});
 
 		OnModelCreatingPartial(modelBuilder);

@@ -1,7 +1,7 @@
 "use client";
 
 import PerfumeEditForm from "@/components/perfume-edit-form";
-import { getPerfumeSuggestion } from "@/services/perfume-suggested-service";
+import { getPerfumeRandom } from "@/services/random-perfume-service";
 import { getPerfume } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
 import { getTags } from "@/services/tag-service";
@@ -23,7 +23,7 @@ export default function SuprisePerfumeComponent({r2_api_address}: SuprisePerfume
   useEffect(() => {
     async function fetchData() {
       try {
-        const id = await getPerfumeSuggestion();
+        const id = await getPerfumeRandom();
         if (!id) {
           setPerfumeId(null);
           return;

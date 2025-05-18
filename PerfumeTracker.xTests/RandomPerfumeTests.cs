@@ -7,7 +7,7 @@ using System.Net.Http.Json;
 
 namespace PerfumeTracker.xTests;
 
-public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
+public class RandomPerfumeTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
 	static bool dbUp = false;
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 	private async Task PrepareData() {          //fixtures don't have DI
@@ -17,7 +17,7 @@ public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : ICl
 				using var scope = factory.Services.CreateScope();
 				using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
-				var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;  truncate table \"public\".\"PerfumeSuggested\" cascade;";
+				var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;  truncate table \"public\".\"PerfumeRandom\" cascade;";
 				await context.Database.ExecuteSqlRawAsync(sql);
 				context.Perfumes.AddRange(perfumeSeed);
 				context.PerfumeEvents.Add(new PerfumeWorn() {
@@ -26,7 +26,7 @@ public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : ICl
 					EventDate = DateTime.UtcNow,
 					Type = PerfumeWorn.PerfumeEventType.Worn
 				});
-				context.PerfumeSuggesteds.Add(new PerfumeSuggested() {
+				context.PerfumeRandoms.Add(new PerfumeRandoms() {
 					Perfume = perfumeSeed[1],
 					CreatedAt = DateTime.UtcNow.AddDays(-2)
 				});
@@ -59,7 +59,7 @@ public class PerfumeSuggestedTests(WebApplicationFactory<Program> factory) : ICl
 			{ "dayFilter", "5" },
 			{ "minimumRating", "8" }
 		});
-		var response = await client.GetAsync("/api/perfumesuggesteds" + queryParams);
+		var response = await client.GetAsync("/api/random-perfumes" + queryParams);
 		response.EnsureSuccessStatusCode();
 
 		var perfumes = await response.Content.ReadFromJsonAsync<int>();
