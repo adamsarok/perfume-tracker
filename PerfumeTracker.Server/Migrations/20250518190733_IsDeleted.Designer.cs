@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTracker.Server.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumetrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250518190733_IsDeleted")]
+    partial class IsDeleted
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -568,6 +571,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -664,14 +670,14 @@ namespace PerfumeTracker.Server.Migrations
             modelBuilder.Entity("PerfumeTracker.Server.Models.UserMission", b =>
                 {
                     b.HasOne("PerfumeTracker.Server.Models.Mission", "Mission")
-                        .WithMany("UserMissions")
+                        .WithMany()
                         .HasForeignKey("MissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("UserMission_MissionId_fkey");
 
                     b.HasOne("PerfumeTracker.Server.Models.UserProfile", "User")
-                        .WithMany("UserMissions")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -680,11 +686,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Navigation("Mission");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PerfumeTracker.Server.Models.Mission", b =>
-                {
-                    b.Navigation("UserMissions");
                 });
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.Perfume", b =>
@@ -704,8 +705,6 @@ namespace PerfumeTracker.Server.Migrations
             modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfile", b =>
                 {
                     b.Navigation("UserAchievements");
-
-                    b.Navigation("UserMissions");
                 });
 #pragma warning restore 612, 618
         }

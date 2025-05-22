@@ -43,6 +43,7 @@ interface PerfumeEditFormProps {
   readonly allTags: TagDTO[];
   readonly perfumesTags: TagDTO[];
   readonly r2_api_address: string | undefined;
+  readonly isRandomPerfume: boolean;
 }
 
 const formSchema = z.object({
@@ -69,6 +70,7 @@ export default function PerfumeEditForm({
   perfumesTags,
   allTags,
   r2_api_address,
+  isRandomPerfume,
 }: PerfumeEditFormProps) {
   const perfume = perfumeWithWornStats?.perfume;
   const form = useForm<z.infer<typeof formSchema>>({
@@ -427,6 +429,7 @@ export default function PerfumeEditForm({
                 perfumeId={perfume?.id}
                 onSuccess={null}
                 className=""
+                isRandomPerfume={isRandomPerfume}
               ></SprayOnComponent>
               <Separator className="mb-2 mt-2"></Separator>
             </div>

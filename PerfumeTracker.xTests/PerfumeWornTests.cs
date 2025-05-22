@@ -98,7 +98,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 	public async Task AddPerfumeWorn() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var dto = new PerfumeEventUploadDto(perfumeSeed[2].Id, DateTime.UtcNow, PerfumeWorn.PerfumeEventType.Worn, 0.05m);
+		var dto = new PerfumeEventUploadDto(perfumeSeed[2].Id, DateTime.UtcNow, PerfumeWorn.PerfumeEventType.Worn, 0.05m, false);
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/perfume-events", content);
 		response.EnsureSuccessStatusCode();

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTracker.Server.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumetrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250517084819_Achievements5")]
+    partial class Achievements5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,9 +56,6 @@ namespace PerfumeTracker.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<int?>("MinPerfumeTags")
                         .HasColumnType("integer");
 
@@ -87,58 +87,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("Achievement", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.Mission", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int?>("RequiredCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("RequiredId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("XP")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id")
-                        .HasName("Mission_pkey");
-
-                    b.ToTable("Mission", (string)null);
-                });
-
             modelBuilder.Entity("PerfumeTracker.Server.Models.OutboxMessage", b =>
                 {
                     b.Property<int>("Id")
@@ -154,17 +102,11 @@ namespace PerfumeTracker.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Payload")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id")
@@ -207,9 +149,6 @@ namespace PerfumeTracker.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text")
                         .HasDefaultValueSql("''::text");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
 
                     b.Property<decimal>("Ml")
                         .ValueGeneratedOnAdd()
@@ -268,9 +207,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -280,7 +216,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("PerfumePlayList", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeRandoms", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeSuggested", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -291,12 +227,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsAccepted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("PerfumeId")
                         .HasColumnType("integer");
 
@@ -304,11 +234,11 @@ namespace PerfumeTracker.Server.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id")
-                        .HasName("PerfumeRandom_pkey");
+                        .HasName("PerfumeSuggested_pkey");
 
                     b.HasIndex("PerfumeId");
 
-                    b.ToTable("PerfumeRandom", (string)null);
+                    b.ToTable("PerfumeSuggested", (string)null);
                 });
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeTag", b =>
@@ -321,9 +251,6 @@ namespace PerfumeTracker.Server.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("PerfumeId")
                         .HasColumnType("integer");
@@ -361,9 +288,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("PerfumeId")
                         .HasColumnType("integer");
 
@@ -393,9 +317,6 @@ namespace PerfumeTracker.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Query")
                         .IsRequired()
@@ -429,9 +350,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("TagName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -462,9 +380,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
@@ -484,48 +399,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("UserAchievement", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.UserMission", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("MissionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Progress")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id")
-                        .HasName("UserMission_pkey");
-
-                    b.HasIndex("MissionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserMission", (string)null);
-                });
-
             modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -543,9 +416,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
 
                     b.Property<double>("MinimumRating")
                         .HasColumnType("double precision");
@@ -567,6 +437,9 @@ namespace PerfumeTracker.Server.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -595,14 +468,14 @@ namespace PerfumeTracker.Server.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeRandoms", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeSuggested", b =>
                 {
                     b.HasOne("PerfumeTracker.Server.Models.Perfume", "Perfume")
-                        .WithMany("PerfumeRandoms")
+                        .WithMany("PerfumeSuggesteds")
                         .HasForeignKey("PerfumeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("PerfumeRandom_perfumeId_fkey");
+                        .HasConstraintName("PerfumeSuggested_perfumeId_fkey");
 
                     b.Navigation("Perfume");
                 });
@@ -661,37 +534,11 @@ namespace PerfumeTracker.Server.Migrations
                     b.Navigation("UserProfile");
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.UserMission", b =>
-                {
-                    b.HasOne("PerfumeTracker.Server.Models.Mission", "Mission")
-                        .WithMany("UserMissions")
-                        .HasForeignKey("MissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("UserMission_MissionId_fkey");
-
-                    b.HasOne("PerfumeTracker.Server.Models.UserProfile", "User")
-                        .WithMany("UserMissions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("UserMission_UserId_fkey");
-
-                    b.Navigation("Mission");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PerfumeTracker.Server.Models.Mission", b =>
-                {
-                    b.Navigation("UserMissions");
-                });
-
             modelBuilder.Entity("PerfumeTracker.Server.Models.Perfume", b =>
                 {
                     b.Navigation("PerfumeEvents");
 
-                    b.Navigation("PerfumeRandoms");
+                    b.Navigation("PerfumeSuggesteds");
 
                     b.Navigation("PerfumeTags");
                 });
@@ -704,8 +551,6 @@ namespace PerfumeTracker.Server.Migrations
             modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfile", b =>
                 {
                     b.Navigation("UserAchievements");
-
-                    b.Navigation("UserMissions");
                 });
 #pragma warning restore 612, 618
         }

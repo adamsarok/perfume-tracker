@@ -32,7 +32,7 @@ public class PerfumePlaylistRepo(PerfumeTrackerContext context) {
 	public async Task DeletePerfumePlaylist(string name) {
 		var perfumePlayList = await context.PerfumePlayLists.FindAsync(name);
 		if (perfumePlayList == null) throw new NotFoundException();
-		context.PerfumePlayLists.Remove(perfumePlayList);
+		perfumePlayList.IsDeleted = true;
 		await context.SaveChangesAsync();
 	}
 	public async Task<PerfumePlaylistDto> UpdatePerfumePlaylist(PerfumePlaylistDto Dto) {

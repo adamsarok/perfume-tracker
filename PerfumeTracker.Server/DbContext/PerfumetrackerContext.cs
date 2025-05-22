@@ -10,7 +10,7 @@ public partial class PerfumeTrackerContext : DbContext {
 	}
 
 	public virtual DbSet<Perfume> Perfumes { get; set; }
-	public virtual DbSet<PerfumeSuggested> PerfumeSuggesteds { get; set; }
+	public virtual DbSet<PerfumeRandoms> PerfumeRandoms { get; set; }
 	public virtual DbSet<PerfumeTag> PerfumeTags { get; set; }
 	public virtual DbSet<PerfumeWorn> PerfumeEvents { get; set; }
 	public virtual DbSet<Recommendation> Recommendations { get; set; }
@@ -20,16 +20,20 @@ public partial class PerfumeTrackerContext : DbContext {
 	public virtual DbSet<UserAchievement> UserAchievements { get; set; }
 	public virtual DbSet<UserProfile> UserProfiles { get; set; }
 	public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
+	public virtual DbSet<Mission> Missions { get; set; }
+	public virtual DbSet<UserMission> UserMissions { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		modelBuilder.Entity<OutboxMessage>(entity => {
 			entity.HasKey(e => e.Id).HasName("OutboxMessage_pkey");
 			entity.ToTable("OutboxMessage");
 			entity.HasIndex(o => new { o.ProcessedAt, o.CreatedAt })
 				.HasDatabaseName("IX_Outbox_ProcessedAt_CreatedAt");
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 		modelBuilder.Entity<Achievement>(entity => {
 			entity.HasKey(e => e.Id).HasName("Achievement_pkey");
 			entity.ToTable("Achievement");
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 		modelBuilder.Entity<UserAchievement>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserAchievement_pkey");
@@ -46,10 +50,12 @@ public partial class PerfumeTrackerContext : DbContext {
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("UserAchievement_UserId_fkey");
 
+			entity.HasQueryFilter(x => !x.IsDeleted);
 			//entity.HasQueryFilter(x => x.UserId == userId); //TODO multi-user when needed
 		});
 
 		modelBuilder.Entity<UserProfile>(entity => {
+			entity.HasQueryFilter(x => !x.IsDeleted);
 			//entity.HasQueryFilter(x => x.UserId == userId); //TODO multi-user when needed
 		});
 
@@ -79,17 +85,19 @@ public partial class PerfumeTrackerContext : DbContext {
 				.HasMethod("GIN");
 			entity
 				.HasIndex(p => new { p.House, p.PerfumeName }).IsUnique();
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
-		modelBuilder.Entity<PerfumeSuggested>(entity => {
-			entity.HasKey(e => e.Id).HasName("PerfumeSuggested_pkey");
+		modelBuilder.Entity<PerfumeRandoms>(entity => {
+			entity.HasKey(e => e.Id).HasName("PerfumeRandom_pkey");
 
-			entity.ToTable("PerfumeSuggested");
+			entity.ToTable("PerfumeRandom");
 
 			entity.HasOne(d => d.Perfume)
-				.WithMany(p => p.PerfumeSuggesteds)
+				.WithMany(p => p.PerfumeRandoms)
 				.HasForeignKey(d => d.PerfumeId)
-				.HasConstraintName("PerfumeSuggested_perfumeId_fkey");
+				.HasConstraintName("PerfumeRandom_perfumeId_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
 		modelBuilder.Entity<PerfumeTag>(entity => {
@@ -105,6 +113,7 @@ public partial class PerfumeTrackerContext : DbContext {
 				.HasForeignKey(d => d.TagId)
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("PerfumeTag_tagId_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
 		modelBuilder.Entity<PerfumeWorn>(entity => {
@@ -116,6 +125,7 @@ public partial class PerfumeTrackerContext : DbContext {
 				.WithMany(p => p.PerfumeEvents)
 				.HasForeignKey(d => d.PerfumeId)
 				.HasConstraintName("PerfumeEvent_perfumeId_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
 		modelBuilder.Entity<Recommendation>(entity => {
@@ -125,6 +135,7 @@ public partial class PerfumeTrackerContext : DbContext {
 
 			entity.Property(e => e.CreatedAt)
 				.HasDefaultValueSql("CURRENT_TIMESTAMP");
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
 		modelBuilder.Entity<Tag>(entity => {
@@ -133,6 +144,7 @@ public partial class PerfumeTrackerContext : DbContext {
 			entity.ToTable("Tag");
 
 			entity.HasIndex(e => e.TagName, "Tag_tag_key").IsUnique();
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
 		modelBuilder.Entity<PerfumePlayList>(entity => {
@@ -142,6 +154,29 @@ public partial class PerfumeTrackerContext : DbContext {
 
 			entity.HasMany(d => d.Perfumes)
 				.WithMany(p => p.PerfumePlayList);
+			entity.HasQueryFilter(x => !x.IsDeleted);
+		});
+
+		modelBuilder.Entity<Mission>(entity => {
+			entity.HasKey(e => e.Id).HasName("Mission_pkey");
+			entity.ToTable("Mission");
+			entity.HasQueryFilter(x => !x.IsDeleted);
+		});
+
+		modelBuilder.Entity<UserMission>(entity => {
+			entity.HasKey(e => e.Id).HasName("UserMission_pkey");
+			entity.ToTable("UserMission");
+			
+			entity.HasOne(e => e.User)
+				.WithMany(e => e.UserMissions)
+				.HasForeignKey(e => e.UserId)
+				.HasConstraintName("UserMission_UserId_fkey");
+				
+			entity.HasOne(e => e.Mission)
+				.WithMany(e => e.UserMissions)
+				.HasForeignKey(e => e.MissionId)
+				.HasConstraintName("UserMission_MissionId_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
 		OnModelCreatingPartial(modelBuilder);
