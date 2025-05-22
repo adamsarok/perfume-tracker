@@ -29,19 +29,16 @@ public class CompleteMissions
             var userProfile = await getUserProfile.HandleAsync();
             var perfumeId = notification.Dto.PerfumeId;
 
-            // Update WearPerfumes mission
-            await UpdateMissionProgress(context, userProfile.Id, MissionType.WearPerfumes);
+            await UpdateMissionProgress(context, userProfile.Id, MissionType.WearPerfumes, cancellationToken);
 
-            // Update WearSamePerfume mission
             var samePerfumeWornCount = await context.PerfumeEvents
                 .CountAsync(x => x.PerfumeId == perfumeId && 
                                 x.Type == PerfumeWorn.PerfumeEventType.Worn && 
                                 x.EventDate >= DateTime.UtcNow.AddDays(-7));
             if (samePerfumeWornCount > 1) {
-                await UpdateMissionProgress(context, userProfile.Id, MissionType.WearSamePerfume);
+                await UpdateMissionProgress(context, userProfile.Id, MissionType.WearSamePerfume, cancellationToken);
             }
 
-            // Update UseUnusedPerfumes mission
             var lastWorn = await context.PerfumeEvents
                 .Where(x => x.PerfumeId == perfumeId && x.Type == PerfumeWorn.PerfumeEventType.Worn)
                 .OrderByDescending(x => x.EventDate)
@@ -49,10 +46,9 @@ public class CompleteMissions
                 .FirstOrDefaultAsync();
             
             if (lastWorn != null && (DateTime.UtcNow - lastWorn.EventDate).TotalDays >= 30) {
-                await UpdateMissionProgress(context, userProfile.Id, MissionType.UseUnusedPerfumes);
+                await UpdateMissionProgress(context, userProfile.Id, MissionType.UseUnusedPerfumes, cancellationToken);
             }
 
-            // Update WearDifferentPerfumes mission
             var uniquePerfumesWorn = await context.PerfumeEvents
                 .Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn && 
                            x.EventDate >= DateTime.UtcNow.AddDays(-7))
@@ -61,10 +57,9 @@ public class CompleteMissions
                 .CountAsync();
             
             if (uniquePerfumesWorn > 1) {
-                await UpdateMissionProgress(context, userProfile.Id, MissionType.WearDifferentPerfumes);
+                await UpdateMissionProgress(context, userProfile.Id, MissionType.WearDifferentPerfumes, cancellationToken);
             }
 
-            // Update WearNote mission
             var activeNoteMission = await context.Missions
                 .FirstOrDefaultAsync(m => m.Type == MissionType.WearNote && m.IsActive);
             
@@ -75,7 +70,7 @@ public class CompleteMissions
                     .ToListAsync();
                 
                 if (perfumeTags.Any()) {
-                    await UpdateMissionProgress(context, userProfile.Id, MissionType.WearNote);
+                    await UpdateMissionProgress(context, userProfile.Id, MissionType.WearNote, cancellationToken);
                 }
             }
 
@@ -86,7 +81,7 @@ public class CompleteMissions
     public class RandomPerfumeEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : INotificationHandler<RandomPerfumeRepo.RandomPerfumeAddedEvent> {
         public async Task Handle(RandomPerfumeRepo.RandomPerfumeAddedEvent notification, CancellationToken cancellationToken) {
             var userProfile = await getUserProfile.HandleAsync();
-            await UpdateMissionProgress(context, userProfile.Id, MissionType.GetRandoms);
+            await UpdateMissionProgress(context, userProfile.Id, MissionType.GetRandoms, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
         }
     }
@@ -94,7 +89,7 @@ public class CompleteMissions
     public class PerfumeTagsAddedEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : INotificationHandler<PerfumeTagsAddedNotification> {
         public async Task Handle(PerfumeTagsAddedNotification notification, CancellationToken cancellationToken) {
             var userProfile = await getUserProfile.HandleAsync();
-            await UpdateMissionProgress(context, userProfile.Id, MissionType.PerfumesTaggedPhotographed);
+            await UpdateMissionProgress(context, userProfile.Id, MissionType.PerfumesTaggedPhotographed, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
         }
     }
@@ -102,21 +97,21 @@ public class CompleteMissions
 	public class PerfumeRandomAcceptedNotificationHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : INotificationHandler<PerfumeRandomAcceptedNotification> {
 		public async Task Handle(PerfumeRandomAcceptedNotification notification, CancellationToken cancellationToken) {
 			var userProfile = await getUserProfile.HandleAsync(); //TODO: remove all redundant userId calls
-			await UpdateMissionProgress(context, userProfile.Id, MissionType.AcceptRandoms);
+			await UpdateMissionProgress(context, userProfile.Id, MissionType.AcceptRandoms, cancellationToken);
 			await context.SaveChangesAsync(cancellationToken);
 		}
 	}
 
 
-	private static async Task UpdateMissionProgress(PerfumeTrackerContext context, int userId, MissionType type, int progress = 1) {
+	private static async Task UpdateMissionProgress(PerfumeTrackerContext context, int userId, MissionType type, CancellationToken cancellationToken, int progress = 1) {
         var now = DateTime.UtcNow;
         var activeMissions = await context.Missions
             .Where(m => m.IsActive && m.Type == type && m.StartDate <= now && m.EndDate > now)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         foreach (var mission in activeMissions) {
             var userMission = await context.UserMissions //TODO this is duplicate
-                .FirstOrDefaultAsync(um => um.UserId == userId && um.MissionId == mission.Id);
+                .FirstOrDefaultAsync(um => um.UserId == userId && um.MissionId == mission.Id, cancellationToken);
 
             if (userMission == null) {
                 userMission = new UserMission {
@@ -136,7 +131,7 @@ public class CompleteMissions
                     userMission.CompletedAt = now;
 
                     // Award XP to user
-                    var userProfile = await context.UserProfiles.FindAsync(userId);
+                    var userProfile = await context.UserProfiles.FindAsync(userId, cancellationToken);
                     if (userProfile != null) {
                         userProfile.XP += mission.XP;
                     }
