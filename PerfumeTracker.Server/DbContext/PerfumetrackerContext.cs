@@ -168,12 +168,12 @@ public partial class PerfumeTrackerContext : DbContext {
 			entity.ToTable("UserMission");
 			
 			entity.HasOne(e => e.User)
-				.WithMany()
+				.WithMany(e => e.UserMissions)
 				.HasForeignKey(e => e.UserId)
 				.HasConstraintName("UserMission_UserId_fkey");
 				
 			entity.HasOne(e => e.Mission)
-				.WithMany()
+				.WithMany(e => e.UserMissions)
 				.HasForeignKey(e => e.MissionId)
 				.HasConstraintName("UserMission_MissionId_fkey");
 			entity.HasQueryFilter(x => !x.IsDeleted);

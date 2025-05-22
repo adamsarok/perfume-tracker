@@ -42,12 +42,13 @@ export async function deleteWear(
   return { ok: true };
 }
 
-export async function wearPerfume(id: number, date: Date) : Promise<ActionResult> {
+export async function wearPerfume(id: number, date: Date, isRandomPerfume: boolean) : Promise<ActionResult> {
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
   const dto: PerfumeWornUploadDTO = {
     perfumeId: id,
     wornOn: date,
-    type: 1
+    type: 1,
+    isRandomPerfume: isRandomPerfume,
   };
   const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfume-events`, {
     method: "POST",

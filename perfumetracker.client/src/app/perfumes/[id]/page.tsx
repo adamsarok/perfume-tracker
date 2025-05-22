@@ -35,5 +35,5 @@ export default async function EditPerfumePage(props: EditPerfumePageProps) {
         })
     });
     console.log(R2_API_ADDRESS);
-    return <PerfumeEditForm perfumeWithWornStats={perfume} perfumesTags={tags} allTags={allTags} r2_api_address={R2_API_ADDRESS}></PerfumeEditForm>
+    return <PerfumeEditForm perfumeWithWornStats={perfume} perfumesTags={tags} allTags={allTags} r2_api_address={R2_API_ADDRESS} isRandomPerfume={false}></PerfumeEditForm>
 }

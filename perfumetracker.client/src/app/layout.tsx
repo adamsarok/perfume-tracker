@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Button } from "@/components/ui/button";
-import { Brain, Cake, ChartArea, Gauge, House, List, Plus, Settings, Tag } from "lucide-react";
+import { Brain, Cake, House, List, Plus, Settings, Tag, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { Toaster } from "@/components/ui/sonner"
 
@@ -46,6 +46,11 @@ export default function RootLayout({
               <Link href="/tags" passHref>
                 <Button variant="outline" size="icon" title="Tags" aria-label="Tags">
                   <Tag />
+                </Button>
+              </Link>
+              <Link href="/progress" passHref>
+                <Button variant="outline" size="icon" title="Missions & Achievements" aria-label="Missions & Achievements">
+                  <ListChecks />
                 </Button>
               </Link>
               <Link href="/ai" passHref>

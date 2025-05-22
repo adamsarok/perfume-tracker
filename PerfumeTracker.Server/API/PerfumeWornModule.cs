@@ -17,12 +17,6 @@ public class PerfumeWornModule : ICarterModule {
             .WithTags("PerfumeWorns")
             .WithName("GetPerfumesBefore");
 
-		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, PerfumeEventsRepo repo) => {
-            var result = await repo.AddPerfumeEvent(dto);
-			return Results.Created();
-        }).WithTags("PerfumeWorns")
-            .WithName("PostPerfumeWorn");
-
         app.MapDelete("/api/perfume-events/{id}", async (int id, PerfumeEventsRepo repo) => {
             await repo.DeletePerfumeEvent(id);
 			return Results.NoContent();

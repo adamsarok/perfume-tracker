@@ -13,6 +13,7 @@ public class Mission : Entity {
     public int? RequiredCount { get; set; }
     public int? RequiredId { get; set; }
     public bool IsActive { get; set; }
+	public virtual ICollection<UserMission> UserMissions { get; set; } = new List<UserMission>();
 }
 
 public enum MissionType {

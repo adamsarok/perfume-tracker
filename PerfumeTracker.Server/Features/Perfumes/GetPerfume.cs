@@ -1,6 +1,4 @@
-﻿using PerfumeTracker.Server.Dto;
-
-namespace PerfumeTracker.Server.Features.Perfumes;
+﻿namespace PerfumeTracker.Server.Features.Perfumes;
 public record GetPerfumeQuery(int Id) : IQuery<PerfumeWithWornStatsDto>;
 public class GetPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

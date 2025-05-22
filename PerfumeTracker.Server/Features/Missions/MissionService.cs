@@ -29,8 +29,8 @@ public class MissionService(IServiceProvider serviceProvider) : BackgroundServic
 			.Where(m => m.EndDate < now)
 			.ExecuteUpdateAsync(s => s.SetProperty(m => m.IsActive, false));
 
-		if (!await context.Missions.AnyAsync(m => m.StartDate == startDate)) {
-			var missions = await GenerateRandomMissions(3, context);
+		if (!await context.Missions.AnyAsync(m => m.StartDate == startDate && m.IsActive)) {
+			var missions = await GenerateRandomMissions(7, context);
 
 			foreach (var mission in missions) {
 				mission.StartDate = startDate;

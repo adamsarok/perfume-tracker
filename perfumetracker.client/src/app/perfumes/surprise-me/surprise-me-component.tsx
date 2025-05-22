@@ -68,6 +68,7 @@ export default function SuprisePerfumeComponent({r2_api_address}: SuprisePerfume
       perfumesTags={tags}
       allTags={allTags}
       r2_api_address={r2_api_address}
+      isRandomPerfume={true}
     ></PerfumeEditForm>
   );
 }
