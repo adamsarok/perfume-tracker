@@ -18,9 +18,9 @@ namespace PerfumeTracker.Server.Migrations
             //    name: "UserMission_UserId_fkey",
             //    table: "UserMission");
 
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_UserProfileNew",
-                table: "UserProfileNew");
+            //migrationBuilder.DropPrimaryKey(
+            //    name: "PK_UserProfileNew",
+            //    table: "UserProfileNew");
 
             migrationBuilder.DropColumn(
                 name: "Id",
