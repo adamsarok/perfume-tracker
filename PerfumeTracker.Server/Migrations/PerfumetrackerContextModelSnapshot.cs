@@ -12,7 +12,7 @@ using PerfumeTracker.Server.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumetrackerContextModelSnapshot : ModelSnapshot
+    partial class PerfumeTrackerContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -568,7 +568,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("UserMission", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfileNew", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfile", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("text");
@@ -615,9 +615,9 @@ namespace PerfumeTracker.Server.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("UserId")
-                        .HasName("UserProfileNew_pkey");
+                        .HasName("UserProfile_pkey");
 
-                    b.ToTable("UserProfileNew", (string)null);
+                    b.ToTable("UserProfile", (string)null);
                 });
 
             modelBuilder.Entity("PerfumePerfumePlayList", b =>
@@ -689,7 +689,7 @@ namespace PerfumeTracker.Server.Migrations
                         .IsRequired()
                         .HasConstraintName("UserAchievement_AchievementId_fkey");
 
-                    b.HasOne("PerfumeTracker.Server.Models.UserProfileNew", "UserProfile")
+                    b.HasOne("PerfumeTracker.Server.Models.UserProfile", "UserProfile")
                         .WithMany("UserAchievements")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -710,7 +710,7 @@ namespace PerfumeTracker.Server.Migrations
                         .IsRequired()
                         .HasConstraintName("UserMission_MissionId_fkey");
 
-                    b.HasOne("PerfumeTracker.Server.Models.UserProfileNew", "User")
+                    b.HasOne("PerfumeTracker.Server.Models.UserProfile", "User")
                         .WithMany("UserMissions")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -741,7 +741,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.Navigation("PerfumeTags");
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfileNew", b =>
+            modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfile", b =>
                 {
                     b.Navigation("UserAchievements");
 

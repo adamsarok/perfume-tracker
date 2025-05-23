@@ -1,6 +1,4 @@
 ﻿
-using PerfumeTracker.Server.Features.UserProfiles;
-
 namespace PerfumeTracker.Server.Features.Missions;
 public record GenerateMissionCommand : ICommand;
 public class GenerateMissionsEndpoint : ICarterModule {

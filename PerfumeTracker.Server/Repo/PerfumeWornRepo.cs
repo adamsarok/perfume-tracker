@@ -1,7 +1,3 @@
-using PerfumeTracker.Server.Features.UserProfiles;
-using PerfumeTracker.Server.Migrations;
-using PerfumeTracker.Server.Models;
-
 namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile getUserProfile, IMediator mediator) {

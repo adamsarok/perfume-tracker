@@ -30,8 +30,8 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
         }
     }
 
-    static List<UserProfileNew> userProfilesSeed = new List<UserProfileNew> {
-        new UserProfileNew {
+    static List<UserProfile> userProfilesSeed = new List<UserProfile> {
+        new UserProfile {
 			UserId = PerfumeTrackerContext.DEFAULT_USERID,
 			UserName = PerfumeTrackerContext.DEFAULT_USERID,
 			Email = "",
@@ -51,7 +51,7 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
         var client = factory.CreateClient();
         var response = await client.GetAsync($"/api/user-profiles");
         response.EnsureSuccessStatusCode();
-        var tags = await response.Content.ReadFromJsonAsync<UserProfileNew>();
+        var tags = await response.Content.ReadFromJsonAsync<UserProfile>();
         Assert.NotNull(tags);
     }
 
@@ -85,7 +85,7 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
         var response = await client.PutAsync($"/api/user-profiles", content);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<UserProfileNew>();
+        var result = await response.Content.ReadFromJsonAsync<UserProfile>();
         Assert.NotNull(result);
         Assert.Equal(9f, result.MinimumRating);
     }

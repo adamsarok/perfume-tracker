@@ -19,7 +19,7 @@ public partial class PerfumeTrackerContext : DbContext {
 	public virtual DbSet<PerfumePlayList> PerfumePlayLists { get; set; }
 	public virtual DbSet<Achievement> Achievements { get; set; }
 	public virtual DbSet<UserAchievement> UserAchievements { get; set; }
-	public virtual DbSet<UserProfileNew> UserProfiles { get; set; }
+	public virtual DbSet<UserProfile> UserProfiles { get; set; }
 	public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 	public virtual DbSet<Mission> Missions { get; set; }
 	public virtual DbSet<UserMission> UserMissions { get; set; }
@@ -54,9 +54,9 @@ public partial class PerfumeTrackerContext : DbContext {
 			entity.HasQueryFilter(x => !x.IsDeleted && x.UserId == currentUserID);
 		});
 
-		modelBuilder.Entity<UserProfileNew>(entity => {
-			entity.HasKey(e => e.UserId).HasName("UserProfileNew_pkey");
-			entity.ToTable("UserProfileNew");
+		modelBuilder.Entity<UserProfile>(entity => {
+			entity.HasKey(e => e.UserId).HasName("UserProfile_pkey");
+			entity.ToTable("UserProfile");
 			entity.HasQueryFilter(x => !x.IsDeleted && x.UserId == currentUserID);
 		});
 

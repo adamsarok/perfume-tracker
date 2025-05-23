@@ -1,7 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Features.UserProfiles;
 
 public class UpsertUserProfile(PerfumeTrackerContext context, GetUserProfile getUserProfile) {
-	public async Task<UserProfileNew> HandleAsync(UserProfileNew userProfile) {
+	public async Task<UserProfile> HandleAsync(UserProfile userProfile) {
 		var found = await getUserProfile.HandleAsync();
 		if (found != null) {
 			context.Entry(found).CurrentValues.SetValues(userProfile);
@@ -14,7 +14,7 @@ public class UpsertUserProfile(PerfumeTrackerContext context, GetUserProfile get
 }
 public class UpsertUserProfilesModule : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPut("/api/user-profiles", async (UserProfileNew userProfile, UpsertUserProfile upsertUserProfile) =>
+		app.MapPut("/api/user-profiles", async (UserProfile userProfile, UpsertUserProfile upsertUserProfile) =>
 			await upsertUserProfile.HandleAsync(userProfile))
 			.WithTags("UserProfiles")
 			.WithName("UpsertUserProfile");

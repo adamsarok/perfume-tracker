@@ -1,7 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Features.UserProfiles;
 
 public static class SeedUserProfiles {
-	private static UserProfileNew seed = new UserProfileNew() {
+	private static UserProfile seed = new UserProfile() {
 		UserId = PerfumeTrackerContext.DEFAULT_USERID,
 		UserName = PerfumeTrackerContext.DEFAULT_USERID,
 		Email = "",

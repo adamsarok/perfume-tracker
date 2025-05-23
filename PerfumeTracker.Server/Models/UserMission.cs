@@ -8,6 +8,6 @@ public class UserMission : Entity {
     public int Progress { get; set; }
     public bool IsCompleted { get; set; }
     public DateTime? CompletedAt { get; set; }
-    public virtual UserProfileNew User { get; set; } = null!;
+    public virtual UserProfile User { get; set; } = null!;
     public virtual Mission Mission { get; set; } = null!;
 } 

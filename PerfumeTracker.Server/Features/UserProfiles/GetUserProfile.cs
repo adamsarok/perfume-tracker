@@ -1,7 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Features.UserProfiles;
 
 public class GetUserProfile(PerfumeTrackerContext context) {
-	public async Task<UserProfileNew?> HandleAsync() {
+	public async Task<UserProfile?> HandleAsync() {
 		return await context.UserProfiles.FirstOrDefaultAsync();
 	}
 }
