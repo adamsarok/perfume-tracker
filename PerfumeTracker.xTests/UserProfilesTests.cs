@@ -18,7 +18,7 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
                 using var scope = factory.Services.CreateScope();
                 using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
                 if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
-                var sql = "truncate table \"public\".\"UserProfiles\" cascade";
+                var sql = "truncate table \"public\".\"UserProfile\" cascade";
                 await context.Database.ExecuteSqlRawAsync(sql);
                 context.UserProfiles.AddRange(userProfilesSeed);
                 await context.SaveChangesAsync();
