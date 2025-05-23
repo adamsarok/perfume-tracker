@@ -10,9 +10,9 @@ namespace PerfumeTracker.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Id",
-                table: "UserProfileNew");
+            //migrationBuilder.DropColumn(
+            //    name: "Id",
+            //    table: "UserProfileNew");
 
             migrationBuilder.AddPrimaryKey(
                 name: "UserProfileNew_pkey",

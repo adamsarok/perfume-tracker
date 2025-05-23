@@ -139,7 +139,7 @@ namespace PerfumeTracker.Server.Migrations
 				table: "UserAchievement",
 				column: "UserId",
 				principalTable: "UserProfileNew",
-				principalColumn: "Id",
+				principalColumn: "UserId",
 				onDelete: ReferentialAction.Restrict);
 
 			migrationBuilder.AddForeignKey(
@@ -147,7 +147,7 @@ namespace PerfumeTracker.Server.Migrations
 				table: "UserMission",
 				column: "UserId",
 				principalTable: "UserProfileNew",
-				principalColumn: "Id",
+				principalColumn: "UserId",
 				onDelete: ReferentialAction.Cascade);
 		}
 
