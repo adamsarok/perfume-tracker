@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using PerfumeTracker.Server.Features.Missions;
-using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
-
+﻿
 namespace PerfumeTracker.Server.Features.Outbox;
 
 public class OutboxService(IServiceProvider sp) : BackgroundService {

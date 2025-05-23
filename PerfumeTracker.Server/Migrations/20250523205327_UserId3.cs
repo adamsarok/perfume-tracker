@@ -10,18 +10,6 @@ namespace PerfumeTracker.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            //migrationBuilder.DropForeignKey(
-            //    name: "UserAchievement_UserId_fkey",
-            //    table: "UserAchievement");
-
-            //migrationBuilder.DropForeignKey(
-            //    name: "UserMission_UserId_fkey",
-            //    table: "UserMission");
-
-            //migrationBuilder.DropPrimaryKey(
-            //    name: "PK_UserProfileNew",
-            //    table: "UserProfileNew");
-
             migrationBuilder.DropColumn(
                 name: "Id",
                 table: "UserProfileNew");

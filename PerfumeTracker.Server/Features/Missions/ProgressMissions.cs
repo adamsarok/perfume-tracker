@@ -52,8 +52,6 @@ public class ProgressMissions {
 					await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearNote, cancellationToken);
 				}
 			}
-
-			await context.SaveChangesAsync(cancellationToken);
 		}
 	}
 
