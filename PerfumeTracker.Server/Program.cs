@@ -1,13 +1,11 @@
-using Carter;
 using HealthChecks.UI.Client;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
-using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Helpers;
-using PerfumeTracker.Server.Repo;
 using PerfumeTracker.Server.Server.Helpers;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +30,7 @@ builder.Services.AddScoped<GetUserProfile>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<MissionService>();
 builder.Services.AddCarter();
+builder.Services.AddSignalR();
 
 builder.Services.AddHealthChecks()
     .AddNpgSql(conn);
@@ -67,6 +66,7 @@ app.UseCors(x => x.AllowAnyHeader()
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
+app.MapHub<MissinProgressHub>("/hub/mission-progress");
 
 app.Run();
 

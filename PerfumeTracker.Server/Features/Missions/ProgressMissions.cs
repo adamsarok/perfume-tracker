@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 
 namespace PerfumeTracker.Server.Features.Missions;
 
-public class CompleteMissions
+public class ProgressMissions
 {
     public class PerfumeAddEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : INotificationHandler<PerfumeAddedNotification> {
 		public async Task Handle(PerfumeAddedNotification notification, CancellationToken cancellationToken) {
@@ -102,7 +103,6 @@ public class CompleteMissions
 		}
 	}
 
-
 	private static async Task UpdateMissionProgress(PerfumeTrackerContext context, int userId, MissionType type, CancellationToken cancellationToken, int progress = 1) {
         var now = DateTime.UtcNow;
         var activeMissions = await context.Missions
@@ -139,4 +139,10 @@ public class CompleteMissions
             }
         }
     }
+	public class MissinProgressHub : Hub {
+		public async Task SignalMissionProgress(List<UserMissionDto> progressedMissions) {
+			//TODO multi-user
+			await Clients.Others.SendAsync("ReceiveMissionProgress", progressedMissions);
+		}
+	}
 }
