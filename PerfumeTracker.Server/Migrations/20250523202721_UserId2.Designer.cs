@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTracker.Server.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumetrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250523202721_UserId2")]
+    partial class UserId2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -570,7 +573,7 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfileNew", b =>
                 {
-                    b.Property<string>("UserId")
+                    b.Property<string>("Id")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
@@ -607,6 +610,10 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -614,8 +621,7 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<int>("XP")
                         .HasColumnType("integer");
 
-                    b.HasKey("UserId")
-                        .HasName("UserProfileNew_pkey");
+                    b.HasKey("Id");
 
                     b.ToTable("UserProfileNew", (string)null);
                 });

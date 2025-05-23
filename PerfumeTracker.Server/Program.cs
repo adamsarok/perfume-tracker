@@ -29,6 +29,8 @@ builder.Services.AddScoped<PerfumePlaylistRepo>();
 builder.Services.AddScoped<GetUserProfile>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<MissionService>();
+builder.Services.AddScoped<UpdateMissionProgressHandler>();
+builder.Services.AddScoped<MissionProgressHub>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
@@ -66,7 +68,7 @@ app.UseCors(x => x.AllowAnyHeader()
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
-app.MapHub<MissinProgressHub>("/hub/mission-progress");
+app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
 
 app.Run();
 

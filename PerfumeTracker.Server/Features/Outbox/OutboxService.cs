@@ -1,12 +1,13 @@
-﻿namespace PerfumeTracker.Server.Features.Outbox;
+﻿using Microsoft.AspNetCore.SignalR;
+using PerfumeTracker.Server.Features.Missions;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
-public class OutboxService : BackgroundService {
-	private readonly IServiceProvider _sp;
-	public OutboxService(IServiceProvider sp) => _sp = sp;
+namespace PerfumeTracker.Server.Features.Outbox;
 
+public class OutboxService(IServiceProvider sp) : BackgroundService {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 		while (!stoppingToken.IsCancellationRequested) {
-			using var scope = _sp.CreateScope();
+			using var scope = sp.CreateScope();
 			var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 			var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 

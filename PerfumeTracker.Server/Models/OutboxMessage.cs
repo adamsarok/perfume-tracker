@@ -6,7 +6,8 @@ public class OutboxMessage : Entity {
 	public static OutboxMessage From<T>(T payload) {
 		return new OutboxMessage() {
 			EventType = payload.GetType().AssemblyQualifiedName,
-			Payload = JsonSerializer.Serialize(payload)
+			Payload = JsonSerializer.Serialize(payload),
+			UserId = PerfumeTrackerContext.DEFAULT_USERID,
 		};
 	}
 	public int Id { get; set; }

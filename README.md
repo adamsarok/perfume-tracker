@@ -31,7 +31,7 @@ services:
           - 3000:3000
         environment:
           - NEXT_PUBLIC_R2_API_ADDRESS=http://localhost:9088
-          - PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080/api
+          - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080/api
         restart: unless-stopped
 
     perfume-tracker-api:
