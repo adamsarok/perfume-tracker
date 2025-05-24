@@ -25,7 +25,6 @@ builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeEventsRepo>();
 builder.Services.AddScoped<RandomPerfumeRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
-builder.Services.AddScoped<PerfumePlaylistRepo>();
 builder.Services.AddScoped<GetUserProfile>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<MissionService>();

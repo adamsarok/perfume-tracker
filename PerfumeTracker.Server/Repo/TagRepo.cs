@@ -19,7 +19,7 @@ public class TagRepo(PerfumeTrackerContext context, IMediator mediator) {
 			.ToListAsync();
 	}
 
-	public async Task<TagDto> GetTag(int id) {
+	public async Task<TagDto> GetTag(Guid id) {
 		var t = await context
 			.Tags
 			.FindAsync(id);
@@ -37,13 +37,13 @@ public class TagRepo(PerfumeTrackerContext context, IMediator mediator) {
 		await mediator.Publish(new TagAddedEvent(tag));
 		return tag.Adapt<TagDto>();
 	}
-	public async Task DeleteTag(int id) {
+	public async Task DeleteTag(Guid id) {
 		var tag = await context.Tags.FindAsync(id);
 		if (tag == null) throw new NotFoundException();
 		tag.IsDeleted = true;
 		await context.SaveChangesAsync();
 	}
-	public async Task<TagDto> UpdateTag(int id, TagDto dto) {
+	public async Task<TagDto> UpdateTag(Guid id, TagDto dto) {
 		var tag = dto.Adapt<Tag>();
 		if (tag == null) throw new MappingException();
 		if (id != tag.Id) throw new NotFoundException();

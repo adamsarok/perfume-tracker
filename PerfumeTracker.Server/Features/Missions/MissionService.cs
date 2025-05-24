@@ -33,7 +33,7 @@ public class MissionService(IServiceProvider serviceProvider) : BackgroundServic
 			.ExecuteUpdateAsync(s => s.SetProperty(m => m.IsActive, false));
 
 		if (!await context.Missions.AnyAsync(m => m.StartDate == startDate && m.IsActive)) {
-			var missions = await GenerateRandomMissions(7, context);
+			var missions = await GenerateRandomMissions(3, context);
 
 			foreach (var mission in missions) {
 				mission.StartDate = startDate;

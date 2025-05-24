@@ -7,10 +7,9 @@ public class OutboxMessage : Entity {
 		return new OutboxMessage() {
 			EventType = payload.GetType().AssemblyQualifiedName,
 			Payload = JsonSerializer.Serialize(payload),
-			UserId = PerfumeTrackerContext.DEFAULT_USERID,
+			UserId = PerfumeTrackerContext.DefaultUserID,
 		};
 	}
-	public int Id { get; set; }
 	public string EventType { get; set; }
 	public string Payload { get; set; }
 	public DateTime? ProcessedAt { get; set; }

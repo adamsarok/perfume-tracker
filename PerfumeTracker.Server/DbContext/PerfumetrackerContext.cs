@@ -1,8 +1,8 @@
 ﻿namespace PerfumeTracker.Server.Models;
 
 public partial class PerfumeTrackerContext : DbContext {
-	public const string DEFAULT_USERID = "DEFAULT";
-	private string currentUserID = DEFAULT_USERID;
+	public static Guid DefaultUserID = new Guid("dc972e5e-1cd9-4105-92e9-f37bb9958dd9");
+	private Guid currentUserID = DefaultUserID;
 	public PerfumeTrackerContext() {
 	}
 
@@ -16,7 +16,6 @@ public partial class PerfumeTrackerContext : DbContext {
 	public virtual DbSet<PerfumeWorn> PerfumeEvents { get; set; }
 	public virtual DbSet<Recommendation> Recommendations { get; set; }
 	public virtual DbSet<Tag> Tags { get; set; }
-	public virtual DbSet<PerfumePlayList> PerfumePlayLists { get; set; }
 	public virtual DbSet<Achievement> Achievements { get; set; }
 	public virtual DbSet<UserAchievement> UserAchievements { get; set; }
 	public virtual DbSet<UserProfile> UserProfiles { get; set; }
@@ -55,7 +54,7 @@ public partial class PerfumeTrackerContext : DbContext {
 		});
 
 		modelBuilder.Entity<UserProfile>(entity => {
-			entity.HasKey(e => e.UserId).HasName("UserProfile_pkey");
+			entity.HasKey(e => e.Id).HasName("UserProfile_pkey");
 			entity.ToTable("UserProfile");
 			entity.HasQueryFilter(x => !x.IsDeleted && x.UserId == currentUserID);
 		});
@@ -145,16 +144,6 @@ public partial class PerfumeTrackerContext : DbContext {
 			entity.ToTable("Tag");
 
 			entity.HasIndex(e => e.TagName, "Tag_tag_key").IsUnique();
-			entity.HasQueryFilter(x => !x.IsDeleted && x.UserId == currentUserID);
-		});
-
-		modelBuilder.Entity<PerfumePlayList>(entity => {
-			entity.HasKey(e => e.Name).HasName("PerfumePlayList_pkey");
-
-			entity.ToTable("PerfumePlayList");
-
-			entity.HasMany(d => d.Perfumes)
-				.WithMany(p => p.PerfumePlayList);
 			entity.HasQueryFilter(x => !x.IsDeleted && x.UserId == currentUserID);
 		});
 

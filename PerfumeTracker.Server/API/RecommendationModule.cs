@@ -11,7 +11,7 @@ public class RecommendationModule : ICarterModule {
             .WithTags("Recommendations")
             .WithName("GetRecommendations");
 
-		app.MapGet("/api/recommendations/{id}", async (int id, RecommendationsRepo repo) =>
+		app.MapGet("/api/recommendations/{id}", async (Guid id, RecommendationsRepo repo) =>
 			await repo.GetRecommendation(id))
 			.WithTags("Recommendations")
 			.WithName("GetRecommendation");

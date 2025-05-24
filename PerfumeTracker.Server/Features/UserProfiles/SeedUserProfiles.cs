@@ -2,8 +2,9 @@
 
 public static class SeedUserProfiles {
 	private static UserProfile seed = new UserProfile() {
-		UserId = PerfumeTrackerContext.DEFAULT_USERID,
-		UserName = PerfumeTrackerContext.DEFAULT_USERID,
+		Id = PerfumeTrackerContext.DefaultUserID,
+		UserId = PerfumeTrackerContext.DefaultUserID,
+		UserName = "DEFAULT",
 		Email = "",
 		MinimumRating = 8,
 		DayFilter = 30,

@@ -32,8 +32,8 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
 
     static List<UserProfile> userProfilesSeed = new List<UserProfile> {
         new UserProfile {
-			UserId = PerfumeTrackerContext.DEFAULT_USERID,
-			UserName = PerfumeTrackerContext.DEFAULT_USERID,
+			UserId = PerfumeTrackerContext.DefaultUserID,
+			UserName = "DEFAULT",
 			Email = "",
             MinimumRating = 8f,
             DayFilter = 30,

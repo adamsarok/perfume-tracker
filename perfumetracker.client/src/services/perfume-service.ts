@@ -22,7 +22,7 @@ export async function getPerfumesFulltext(
   return perfumes;
 }
 
-export async function getPerfume(id: number): Promise<PerfumeWithWornStatsDTO> {
+export async function getPerfume(id: string): Promise<PerfumeWithWornStatsDTO> {
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
   const qry = `${PERFUMETRACKER_API_ADDRESS}/perfumes/${encodeURIComponent(id)}`;
   const response = await fetch(qry);
@@ -86,7 +86,7 @@ export async function updatePerfume(
 }
 
 export async function updateImageGuid(
-  perfumeId: number, imageGuid: string
+  perfumeId: string, imageGuid: string
 ): Promise<ActionResult> {
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
   const dto: ImageGuidDTO = { parentObjectId: perfumeId, imageObjectKey: imageGuid };
@@ -106,7 +106,7 @@ export async function updateImageGuid(
   return { ok: true, id: perfumeId };
 }
 
-export async function deletePerfume(id: number): Promise<ActionResult> {
+export async function deletePerfume(id: string): Promise<ActionResult> {
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
   const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfumes/${id}`, {
     method: "DELETE"

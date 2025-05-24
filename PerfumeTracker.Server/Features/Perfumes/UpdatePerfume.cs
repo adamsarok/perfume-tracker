@@ -1,10 +1,10 @@
 ﻿
 namespace PerfumeTracker.Server.Features.Perfumes;
 
-public record UpdatePerfumeCommand(int Id, PerfumeDto Dto) : ICommand<PerfumeDto>;
+public record UpdatePerfumeCommand(Guid Id, PerfumeDto Dto) : ICommand<PerfumeDto>;
 public class UpdatePerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPut("/api/perfumes/{id}", async (int id, PerfumeDto dto, ISender sender) =>
+		app.MapPut("/api/perfumes/{id}", async (Guid id, PerfumeDto dto, ISender sender) =>
 			await sender.Send(new UpdatePerfumeCommand(id, dto)))
 			.WithTags("Perfumes")
 			.WithName("UpdatePerfume");

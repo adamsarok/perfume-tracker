@@ -86,7 +86,7 @@ public class ProgressMissions {
 
 				if (userMission == null) {
 					userMission = new UserMission {
-						UserId = PerfumeTrackerContext.DEFAULT_USERID,
+						UserId = PerfumeTrackerContext.DefaultUserID,
 						MissionId = mission.Id,
 						Progress = 0,
 						IsCompleted = false

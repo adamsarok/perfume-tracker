@@ -20,7 +20,7 @@ export interface TagTableProps {
 }
 
 export default function TagTable({ tags }: TagTableProps) {
-  const onDelete = async (id: number, tag: string) => {
+  const onDelete = async (id: string, tag: string) => {
     const result = await deleteTag(id);
     if (result.ok) {
       tags = tags.filter((x) => x.id != id);
@@ -29,7 +29,7 @@ export default function TagTable({ tags }: TagTableProps) {
       showError('Tag add failed', result.error);
     }
   };
-  const onUpdate = async (id: number, tag: string) => {
+  const onUpdate = async (id: string, tag: string) => {
     const dto: TagDTO = {
       id,
       tagName: tag,
@@ -42,12 +42,12 @@ export default function TagTable({ tags }: TagTableProps) {
       showError('Tag update failed', result.error);
     }
   };
-  const [tagColors, setTagColors] = useState<Record<number, string>>(tags.reduce((acc, tag) => {
+  const [tagColors, setTagColors] = useState<Record<string, string>>(tags.reduce((acc, tag) => {
     acc[tag.id] = tag.color;
     return acc;
-  }, {} as Record<number, string>));
+  }, {} as Record<string, string>));
 
-  const handleColorChange = (id: number, color: string) => {
+  const handleColorChange = (id: string, color: string) => {
     setTagColors(prev => ({
       ...prev,
       [id]: color,
