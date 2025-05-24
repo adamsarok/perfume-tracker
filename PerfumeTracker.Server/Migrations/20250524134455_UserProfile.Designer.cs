@@ -13,8 +13,8 @@ using PerfumeTracker.Server.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    [Migration("20250522193729_UserProfile2")]
-    partial class UserProfile2
+    [Migration("20250524134455_UserProfile")]
+    partial class UserProfile
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,28 +26,11 @@ namespace PerfumeTracker.Server.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("PerfumePerfumePlayList", b =>
-                {
-                    b.Property<string>("PerfumePlayListName")
-                        .HasColumnType("text");
-
-                    b.Property<int>("PerfumesId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("PerfumePlayListName", "PerfumesId");
-
-                    b.HasIndex("PerfumesId");
-
-                    b.ToTable("PerfumePerfumePlayList");
-                });
-
             modelBuilder.Entity("PerfumeTracker.Server.Models.Achievement", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -84,6 +67,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id")
                         .HasName("Achievement_pkey");
 
@@ -92,11 +78,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.Mission", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -121,8 +105,8 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<int?>("RequiredCount")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("RequiredId")
-                        .HasColumnType("integer");
+                    b.Property<Guid?>("RequiredId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
@@ -132,6 +116,9 @@ namespace PerfumeTracker.Server.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("XP")
                         .HasColumnType("integer");
@@ -144,11 +131,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.OutboxMessage", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -170,6 +155,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id")
                         .HasName("OutboxMessage_pkey");
 
@@ -181,11 +169,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.Perfume", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("Autumn")
                         .ValueGeneratedOnAdd()
@@ -245,6 +231,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("Winter")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -263,33 +252,11 @@ namespace PerfumeTracker.Server.Migrations
                     b.ToTable("Perfume", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumePlayList", b =>
-                {
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Name")
-                        .HasName("PerfumePlayList_pkey");
-
-                    b.ToTable("PerfumePlayList", (string)null);
-                });
-
             modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeRandoms", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -300,11 +267,14 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("PerfumeId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("PerfumeId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id")
                         .HasName("PerfumeRandom_pkey");
@@ -316,11 +286,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeTag", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -328,14 +296,17 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("PerfumeId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("PerfumeId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("TagId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id")
                         .HasName("PerfumeTag_pkey");
@@ -349,11 +320,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeWorn", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("AmountMl")
                         .HasColumnType("numeric");
@@ -367,14 +336,17 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("PerfumeId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("PerfumeId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id")
                         .HasName("PerfumeEvent_pkey");
@@ -386,11 +358,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.Recommendation", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -411,6 +381,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id")
                         .HasName("Recommendation_pkey");
 
@@ -419,11 +392,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.Tag", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Color")
                         .IsRequired()
@@ -442,6 +413,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id")
                         .HasName("Tag_pkey");
 
@@ -453,14 +427,12 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.UserAchievement", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AchievementId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("AchievementId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -474,8 +446,8 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id")
                         .HasName("UserAchievement_pkey");
@@ -489,11 +461,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.UserMission", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -507,8 +477,8 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("MissionId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("MissionId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Progress")
                         .HasColumnType("integer");
@@ -516,8 +486,8 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id")
                         .HasName("UserMission_pkey");
@@ -531,11 +501,9 @@ namespace PerfumeTracker.Server.Migrations
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.UserProfile", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -571,6 +539,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -578,24 +549,10 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<int>("XP")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("UserProfile_pkey");
 
-                    b.ToTable("UserProfiles");
-                });
-
-            modelBuilder.Entity("PerfumePerfumePlayList", b =>
-                {
-                    b.HasOne("PerfumeTracker.Server.Models.PerfumePlayList", null)
-                        .WithMany()
-                        .HasForeignKey("PerfumePlayListName")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PerfumeTracker.Server.Models.Perfume", null)
-                        .WithMany()
-                        .HasForeignKey("PerfumesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.ToTable("UserProfile", (string)null);
                 });
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.PerfumeRandoms", b =>

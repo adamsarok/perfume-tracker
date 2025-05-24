@@ -1,4 +1,4 @@
 export interface ImageGuidDTO {
-    parentObjectId: number;
+    parentObjectId: string;
     imageObjectKey: string;
 }

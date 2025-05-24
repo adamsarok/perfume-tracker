@@ -1,8 +1,8 @@
 ﻿namespace PerfumeTracker.Server.Features.Perfumes;
-public record GetPerfumeQuery(int Id) : IQuery<PerfumeWithWornStatsDto>;
+public record GetPerfumeQuery(Guid Id) : IQuery<PerfumeWithWornStatsDto>;
 public class GetPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfumes/{id}", async (int id, ISender sender) => {
+		app.MapGet("/api/perfumes/{id}", async (Guid id, ISender sender) => {
 			return await sender.Send(new GetPerfumeQuery(id));
 		})
 			.WithTags("Perfumes")

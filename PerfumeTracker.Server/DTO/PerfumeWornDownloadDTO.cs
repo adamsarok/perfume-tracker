@@ -2,9 +2,9 @@ using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Dto;
 public record PerfumeWornDownloadDto(
-	int Id,
+	Guid Id,
 	DateTime WornOn,
-	int PerfumeId,
+	Guid PerfumeId,
 	string perfumeImageObjectKey,
 	string perfumeImageUrl,
 	string perfumeHouse,

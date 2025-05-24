@@ -6,7 +6,7 @@ public class RecommendationsRepo(PerfumeTrackerContext context) {
 			.Where(x => x.CreatedAt >= DateTimeOffset.UtcNow.AddDays(-dayFilter))
 			.ToListAsync();
 	}
-	public async Task<Recommendation?> GetRecommendation(int id) {
+	public async Task<Recommendation?> GetRecommendation(Guid id) {
 		return await context.Recommendations.FindAsync(id);
 	}
 	public async Task<Recommendation> AddRecommendation(RecommendationUploadDto dto) {

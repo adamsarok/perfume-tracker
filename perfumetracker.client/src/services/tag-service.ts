@@ -60,7 +60,7 @@ export async function addTag(tag: TagDTO) : Promise<ActionResult> {
       return { ok: true, id: tag.id };
   }
   
-  export async function deleteTag(id: number) : Promise<ActionResult> {
+  export async function deleteTag(id: string) : Promise<ActionResult> {
     if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
     const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/tags/${id}`, {
         method: "DELETE",

@@ -15,7 +15,7 @@ export interface SuprisePerfumeComponentProps {
 }
 
 export default function SuprisePerfumeComponent({r2_api_address}: SuprisePerfumeComponentProps) {
-  const [perfumeId, setPerfumeId] = useState<number | null>(null);
+  const [perfumeId, setPerfumeId] = useState<string | null>(null);
   const [perfume, setPerfume] = useState<PerfumeWithWornStatsDTO | null>(null);
   const [allTags, setAllTags] = useState<TagDTO[]>([]);
   const [tags, setTags] = useState<TagDTO[]>([]);

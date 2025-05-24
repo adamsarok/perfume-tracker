@@ -6,10 +6,10 @@ public class OutboxMessage : Entity {
 	public static OutboxMessage From<T>(T payload) {
 		return new OutboxMessage() {
 			EventType = payload.GetType().AssemblyQualifiedName,
-			Payload = JsonSerializer.Serialize(payload)
+			Payload = JsonSerializer.Serialize(payload),
+			UserId = PerfumeTrackerContext.DefaultUserID,
 		};
 	}
-	public int Id { get; set; }
 	public string EventType { get; set; }
 	public string Payload { get; set; }
 	public DateTime? ProcessedAt { get; set; }

@@ -1,5 +1,5 @@
 ﻿namespace PerfumeTracker.Server.Features.Missions;
-public record UserMissionDto(int Id, 
+public record UserMissionDto(Guid Id, 
 	string Name, 
 	string Description, 
 	DateTime StartDate, 

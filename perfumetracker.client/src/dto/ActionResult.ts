@@ -1,5 +1,5 @@
 export interface ActionResult {
     error?: string;
-    id?: number;
+    id?: string;
     ok: boolean;
 }

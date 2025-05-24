@@ -7,8 +7,12 @@ namespace PerfumeTracker.Server.API;
 
 public class PerfumeWornModule : ICarterModule {
     public void AddRoutes(IEndpointRouteBuilder app) {
-        app.MapGet("/api/perfume-events/worn-perfumes", async (int cursor, int pageSize, PerfumeEventsRepo repo) =>
-            await repo.GetPerfumesWithWorn(cursor, pageSize))
+        app.MapGet("/api/perfume-events/worn-perfumes", async (string cursor, int pageSize, PerfumeEventsRepo repo) => {
+			if (!string.IsNullOrWhiteSpace(cursor) && DateTime.TryParse(cursor, out DateTime date)) {
+				return await repo.GetPerfumesWithWorn(date, pageSize);
+			}
+			return await repo.GetPerfumesWithWorn(null, pageSize);
+		})
             .WithTags("PerfumeWorns")
             .WithName("GetPerfumeWorns");
 
@@ -17,7 +21,7 @@ public class PerfumeWornModule : ICarterModule {
             .WithTags("PerfumeWorns")
             .WithName("GetPerfumesBefore");
 
-        app.MapDelete("/api/perfume-events/{id}", async (int id, PerfumeEventsRepo repo) => {
+        app.MapDelete("/api/perfume-events/{id}", async (Guid id, PerfumeEventsRepo repo) => {
             await repo.DeletePerfumeEvent(id);
 			return Results.NoContent();
         }).WithTags("PerfumeWorns")

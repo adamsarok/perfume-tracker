@@ -39,13 +39,13 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 	}
 
 	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = 0, House = "House1", PerfumeName = "Perfume1", Rating = 10
+			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1", Rating = 10
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume1")
 			},
-			new Perfume { Id = 0, House = "House2", PerfumeName = "Perfume2", Rating = 1
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2", Rating = 1
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume2")
 			},
-			new Perfume { Id = 0, House = "House2", PerfumeName = "NotWornPerfume", Rating = 1
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "NotWornPerfume", Rating = 1
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("NotWornPerfume")
 			},
 		};
@@ -79,7 +79,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 		var response = await client.GetAsync("/api/perfume-events/worn-perfumes/5");
 		response.EnsureSuccessStatusCode();
 
-		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<int>>();
+		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<Guid>>();
 		Assert.NotNull(perfumes);
 		Assert.NotEmpty(perfumes);
 	}

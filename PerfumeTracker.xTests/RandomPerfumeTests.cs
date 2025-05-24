@@ -40,13 +40,13 @@ public class RandomPerfumeTests(WebApplicationFactory<Program> factory) : IClass
 	}
 
 	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = 0, House = "House1", PerfumeName = "Perfume1", Rating = 10
+			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1", Rating = 10
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume1")
 			},
-			new Perfume { Id = 0, House = "House2", PerfumeName = "Perfume2", Rating = 1
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2", Rating = 1
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume2")
 			},
-			new Perfume { Id = 0, House = "House2", PerfumeName = "NotWornPerfume", Rating = 1
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "NotWornPerfume", Rating = 1
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("NotWornPerfume")
 			},
 		};
@@ -62,8 +62,8 @@ public class RandomPerfumeTests(WebApplicationFactory<Program> factory) : IClass
 		var response = await client.GetAsync("/api/random-perfumes" + queryParams);
 		response.EnsureSuccessStatusCode();
 
-		var perfumes = await response.Content.ReadFromJsonAsync<int>();
-		Assert.True(perfumes > 0);
+		var perfume = await response.Content.ReadFromJsonAsync<Guid>();
+		Assert.Contains(perfume, perfumeSeed.Select(x => x.Id));
 	}
 
 }

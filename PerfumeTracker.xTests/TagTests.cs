@@ -26,8 +26,8 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 	}
 
 	static List<Tag> tagSeed = new List<Tag> {
-			new Tag { Id = 0, Color = "#FFFFFF", TagName = "Musky" },
-			new Tag { Id = 0, Color = "#FF0000", TagName = "Woody" }
+			new Tag { Id = Guid.NewGuid(), Color = "#FFFFFF", TagName = "Musky" },
+			new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" }
 		};
 
 	private async Task<Tag> GetFirst() {
@@ -52,7 +52,7 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 	public async Task GetTag_NotFound() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/tags/{int.MaxValue}");
+		var response = await client.GetAsync($"/api/tags/{Guid.NewGuid()}");
 		Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 	}
 
@@ -97,7 +97,7 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 	public async Task AddTag() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var dto = new TagDto("Purple", "#630330", 0);
+		var dto = new TagDto("Purple", "#630330", Guid.NewGuid());
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/tags", content);
 		response.EnsureSuccessStatusCode();

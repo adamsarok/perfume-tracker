@@ -2,7 +2,7 @@ namespace PerfumeTracker.Server.Repo;
 
 public class RandomPerfumeRepo(PerfumeTrackerContext context, PerfumeEventsRepo perfumeWornRepo) {
 	public record class RandomPerfumeAddedEvent() : INotification;
-	public async Task AddRandomPerfume(int perfumeId) {
+	public async Task AddRandomPerfume(Guid perfumeId) {
 		var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId);
 		if (p == null) throw new NotFoundException();
 		var s = new PerfumeRandoms() {
@@ -12,7 +12,7 @@ public class RandomPerfumeRepo(PerfumeTrackerContext context, PerfumeEventsRepo 
 		context.PerfumeRandoms.Add(s);
 		await context.SaveChangesAsync();
 	}
-	public async Task<List<int>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter) {
+	public async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter) {
 		return await context
 			.PerfumeRandoms
 			.Where(x => x.CreatedAt >= DateTime.UtcNow.AddDays(-daysFilter))
@@ -28,7 +28,7 @@ public class RandomPerfumeRepo(PerfumeTrackerContext context, PerfumeEventsRepo 
 		6 or 7 or 8 => Seasons.Summer,
 		9 or 10 or 11 => Seasons.Autumn,
 	};
-	public async Task<int> GetRandomPerfume(int daysFilter, double minimumRating) {
+	public async Task<Guid?> GetRandomPerfume(int daysFilter, double minimumRating) {
 		var alreadySug = await GetAlreadySuggestedRandomPerfumeIds(daysFilter);
 		var worn = await perfumeWornRepo.GetWornPerfumeIDs(daysFilter);
 		var season = Season;
@@ -43,7 +43,7 @@ public class RandomPerfumeRepo(PerfumeTrackerContext context, PerfumeEventsRepo 
 			)
 			.Select(x => x.Id)
 			.ToListAsync();
-		if (all.Count == 0) return 0;
+		if (all.Count == 0) return null;
 		var filtered = all.Except(alreadySug).Except(worn);
 		if (!filtered.Any()) filtered = all.Except(worn);
 		if (!filtered.Any()) filtered = all;

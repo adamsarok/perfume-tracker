@@ -1,6 +1,6 @@
 
 export interface PerfumeWornUploadDTO {
-    perfumeId: number;
+    perfumeId: string;
     wornOn: Date;
     type: number;
     isRandomPerfume: boolean;
