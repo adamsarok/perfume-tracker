@@ -52,7 +52,7 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 	public async Task GetTag_NotFound() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/tags/{int.MaxValue}");
+		var response = await client.GetAsync($"/api/tags/{Guid.NewGuid()}");
 		Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 	}
 

@@ -6,7 +6,7 @@ using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 namespace PerfumeTracker.Server.Features.Missions;
 
-public class MissionService(IServiceProvider serviceProvider) : BackgroundService {
+public class MissionService(IServiceProvider serviceProvider, ILogger<MissionService> logger) : BackgroundService {
 	private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1);
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
@@ -15,8 +15,9 @@ public class MissionService(IServiceProvider serviceProvider) : BackgroundServic
 				using var scope = serviceProvider.CreateScope();
 				var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 				await CreateWeeklyMissionsAsync(context);
-			} catch (Exception) {
-				// Log error if needed
+			} catch (Exception ex) {
+				//TODO: set up DB logging!
+				logger.LogError(ex, "CreateWeeklyMissionsAsync failed");
 			}
 
 			await Task.Delay(_checkInterval, stoppingToken);

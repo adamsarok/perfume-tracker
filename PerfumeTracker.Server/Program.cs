@@ -53,8 +53,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
     await dbContext.Database.MigrateAsync();
-	await SeedAchievements.DoSeed(dbContext);
     await SeedUserProfiles.DoSeed(dbContext);
+	await SeedAchievements.DoSeed(dbContext);
 }
 
 app.UseExceptionHandler();

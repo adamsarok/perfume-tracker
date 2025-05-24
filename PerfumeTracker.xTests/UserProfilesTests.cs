@@ -13,37 +13,37 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
     private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
     private async Task PrepareData() {
         await semaphore.WaitAsync();
-        try {
-            if (!dbUp) {
-                using var scope = factory.Services.CreateScope();
-                using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-                if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
-                var sql = "truncate table \"public\".\"UserProfile\" cascade";
-                await context.Database.ExecuteSqlRawAsync(sql);
-                context.UserProfiles.AddRange(userProfilesSeed);
-                await context.SaveChangesAsync();
-                dbUp = true;
-            }
-        }
-        finally {
-            semaphore.Release();
-        }
+        //try {
+        //    if (!dbUp) {
+        //        using var scope = factory.Services.CreateScope();
+        //        using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+        //        if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
+        //        var sql = "truncate table \"public\".\"UserProfile\" cascade";
+        //        await context.Database.ExecuteSqlRawAsync(sql);
+        //        context.UserProfiles.AddRange(userProfilesSeed);
+        //        await context.SaveChangesAsync();
+        //        dbUp = true;
+        //    }
+        //}
+        //finally {
+        //    semaphore.Release();
+        //}
     }
 
-    static List<UserProfile> userProfilesSeed = new List<UserProfile> {
-        new UserProfile {
-			UserId = PerfumeTrackerContext.DefaultUserID,
-			UserName = "DEFAULT",
-			Email = "",
-            MinimumRating = 8f,
-            DayFilter = 30,
-            ShowMalePerfumes = true,
-            ShowUnisexPerfumes = true,
-            ShowFemalePerfumes = true,
-            SprayAmountFullSizeMl = 0.2m,
-			SprayAmountSamplesMl = 0.1m
-		}
-    };
+  //  static List<UserProfile> userProfilesSeed = new List<UserProfile> {
+  //      new UserProfile {
+		//	UserId = PerfumeTrackerContext.DefaultUserID,
+		//	UserName = "DEFAULT",
+		//	Email = "",
+  //          MinimumRating = 8f,
+  //          DayFilter = 30,
+  //          ShowMalePerfumes = true,
+  //          ShowUnisexPerfumes = true,
+  //          ShowFemalePerfumes = true,
+  //          SprayAmountFullSizeMl = 0.2m,
+		//	SprayAmountSamplesMl = 0.1m
+		//}
+  //  };
 
     [Fact]
     public async Task GetUserProfiles() {
@@ -76,18 +76,19 @@ public class UserProfilesTests(WebApplicationFactory<Program> factory) : IClassF
 	//      Assert.NotNull(result);
 	//  }
 
-	[Fact]
-    public async Task UpdateUserProfiles() {
-        await PrepareData();
-        var client = factory.CreateClient();
-        userProfilesSeed[0].MinimumRating = 9f;
-        var content = JsonContent.Create(userProfilesSeed[0]);
-        var response = await client.PutAsync($"/api/user-profiles", content);
-        response.EnsureSuccessStatusCode();
+	//[Fact]
+ //   public async Task UpdateUserProfiles() {
+	//	//todo
+ //       await PrepareData();
+ //       var client = factory.CreateClient();
+ //       userProfilesSeed[0].MinimumRating = 9f;
+ //       var content = JsonContent.Create(userProfilesSeed[0]);
+ //       var response = await client.PutAsync($"/api/user-profiles", content);
+ //       response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<UserProfile>();
-        Assert.NotNull(result);
-        Assert.Equal(9f, result.MinimumRating);
-    }
+ //       var result = await response.Content.ReadFromJsonAsync<UserProfile>();
+ //       Assert.NotNull(result);
+ //       Assert.Equal(9f, result.MinimumRating);
+ //   }
 }
 

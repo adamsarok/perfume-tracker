@@ -79,7 +79,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 		var response = await client.GetAsync("/api/perfume-events/worn-perfumes/5");
 		response.EnsureSuccessStatusCode();
 
-		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<int>>();
+		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<Guid>>();
 		Assert.NotNull(perfumes);
 		Assert.NotEmpty(perfumes);
 	}

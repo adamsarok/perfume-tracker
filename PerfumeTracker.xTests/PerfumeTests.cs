@@ -74,7 +74,7 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	public async Task GetPerfume_NotFound() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/perfumes/{int.MaxValue}");
+		var response = await client.GetAsync($"/api/perfumes/{Guid.NewGuid()}");
 		Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 	}
 
