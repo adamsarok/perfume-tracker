@@ -7,7 +7,7 @@ import { showError, showSuccess } from "@/services/toasty-service";
 import { WandSparkles } from "lucide-react";
 
 export interface SprayOnProps {
-  readonly perfumeId: number | undefined;
+  readonly perfumeId: string | undefined;
   readonly onSuccess: (() => void) | null;
   readonly className: string;
   readonly isRandomPerfume: boolean;

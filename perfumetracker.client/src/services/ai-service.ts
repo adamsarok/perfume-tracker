@@ -5,7 +5,7 @@ import { PERFUMETRACKER_API_ADDRESS } from "./conf";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 
 export interface TagWithCount {
-  id: number;
+  id: string;
   tag: string;
   color: string;
   wornCount: number;

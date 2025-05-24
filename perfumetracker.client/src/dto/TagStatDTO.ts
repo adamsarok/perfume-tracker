@@ -1,5 +1,5 @@
 export interface TagStatDTO {
-    id: number;
+    id: string;
     tagName: string;
     color: string;
     ml: number;

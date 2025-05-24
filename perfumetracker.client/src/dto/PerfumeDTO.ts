@@ -1,7 +1,7 @@
 import { TagDTO } from "./TagDTO";
 
 export interface PerfumeDTO {
-    id: number;
+    id: string;
     house: string;
     perfumeName: string;
     rating: number;

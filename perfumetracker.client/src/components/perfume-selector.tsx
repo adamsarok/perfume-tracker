@@ -35,10 +35,10 @@ export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
 
-  function getPerfumeID(): number {
+  function getPerfumeID(): string {
     const res = perfumeMap.filter((x) => x.label === value);
     if (res && res.length > 0) return res[0].id;
-    return 0;
+    return "";
   }
 
   return (
