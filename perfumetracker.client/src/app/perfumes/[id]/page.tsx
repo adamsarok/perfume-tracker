@@ -16,11 +16,9 @@ interface EditPerfumePageProps {
 
 export default async function EditPerfumePage(props: EditPerfumePageProps) {
     const params = await props.params;
-    const id = parseInt(params.id);
     let perfume: PerfumeWithWornStatsDTO | null = null;
-    if (!id) return notFound();
     try {
-        perfume = await getPerfume(id);
+        perfume = await getPerfume(params.id);
     } catch (error) {
       console.log("Failed to fetch perfume", error);
     }

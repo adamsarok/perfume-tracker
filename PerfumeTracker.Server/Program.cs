@@ -1,13 +1,11 @@
-using Carter;
 using HealthChecks.UI.Client;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
-using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Helpers;
-using PerfumeTracker.Server.Repo;
 using PerfumeTracker.Server.Server.Helpers;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,11 +25,12 @@ builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<PerfumeEventsRepo>();
 builder.Services.AddScoped<RandomPerfumeRepo>();
 builder.Services.AddScoped<RecommendationsRepo>();
-builder.Services.AddScoped<PerfumePlaylistRepo>();
 builder.Services.AddScoped<GetUserProfile>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<MissionService>();
+builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddCarter();
+builder.Services.AddSignalR();
 
 builder.Services.AddHealthChecks()
     .AddNpgSql(conn);
@@ -54,8 +53,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
     await dbContext.Database.MigrateAsync();
-	await SeedAchievements.DoSeed(dbContext);
     await SeedUserProfiles.DoSeed(dbContext);
+	await SeedAchievements.DoSeed(dbContext);
 }
 
 app.UseExceptionHandler();
@@ -67,6 +66,7 @@ app.UseCors(x => x.AllowAnyHeader()
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
+app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
 
 app.Run();
 

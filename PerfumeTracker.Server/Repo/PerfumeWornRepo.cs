@@ -1,15 +1,11 @@
-using PerfumeTracker.Server.Features.UserProfiles;
-using PerfumeTracker.Server.Migrations;
-using PerfumeTracker.Server.Models;
-
 namespace PerfumeTracker.Server.Repo;
 
 public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile getUserProfile, IMediator mediator) {
-	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(int cursor, int pageSize) {
+	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(DateTime? cursor, int pageSize) {
 		return await context
 			.PerfumeEvents
-			.Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn && (cursor < 1 || x.Id < cursor))
-			.OrderByDescending(x => x.Id)
+			.Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn && (!cursor.HasValue || x.CreatedAt < cursor.Value))
+			.OrderByDescending(x => x.CreatedAt)
 			.Take(pageSize)
 			.Select(x => new PerfumeWornDownloadDto(
 				x.Id,
@@ -23,7 +19,7 @@ public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile get
 			))
 			.ToListAsync();
 	}
-	public async Task<List<int>> GetWornPerfumeIDs(int daysFilter) {
+	public async Task<List<Guid>> GetWornPerfumeIDs(int daysFilter) {
 		return await context
 			.PerfumeEvents
 			.Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
@@ -31,7 +27,7 @@ public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile get
 			.Distinct()
 			.ToListAsync();
 	}
-	public async Task DeletePerfumeEvent(int id) {
+	public async Task DeletePerfumeEvent(Guid id) {
 		var w = await context.PerfumeEvents.FindAsync(id);
 		if (w == null) throw new NotFoundException();
 		w.IsDeleted = true;

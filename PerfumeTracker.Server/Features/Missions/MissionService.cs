@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using PerfumeTracker.Server.Models;
 using System.Threading.Tasks;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 namespace PerfumeTracker.Server.Features.Missions;
 
-public class MissionService(IServiceProvider serviceProvider) : BackgroundService {
+public class MissionService(IServiceProvider serviceProvider, ILogger<MissionService> logger) : BackgroundService {
 	private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1);
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
@@ -12,8 +15,9 @@ public class MissionService(IServiceProvider serviceProvider) : BackgroundServic
 				using var scope = serviceProvider.CreateScope();
 				var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 				await CreateWeeklyMissionsAsync(context);
-			} catch (Exception) {
-				// Log error if needed
+			} catch (Exception ex) {
+				//TODO: set up DB logging!
+				logger.LogError(ex, "CreateWeeklyMissionsAsync failed");
 			}
 
 			await Task.Delay(_checkInterval, stoppingToken);
@@ -30,7 +34,7 @@ public class MissionService(IServiceProvider serviceProvider) : BackgroundServic
 			.ExecuteUpdateAsync(s => s.SetProperty(m => m.IsActive, false));
 
 		if (!await context.Missions.AnyAsync(m => m.StartDate == startDate && m.IsActive)) {
-			var missions = await GenerateRandomMissions(7, context);
+			var missions = await GenerateRandomMissions(3, context);
 
 			foreach (var mission in missions) {
 				mission.StartDate = startDate;

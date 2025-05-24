@@ -6,7 +6,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - NEXT_PUBLIC_R2_API_ADDRESS=${NEXT_PUBLIC_R2_API_ADDRESS}
-      - PERFUMETRACKER_API_ADDRESS=${PERFUMETRACKER_API_ADDRESS}
+      - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=${PERFUMETRACKER_API_ADDRESS}
     restart: unless-stopped
     # build:
     #   context: .

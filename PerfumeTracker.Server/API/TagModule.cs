@@ -15,12 +15,12 @@ public class TagModule : ICarterModule {
 			.WithTags("Tags")
 			.WithName("GetTags");
 
-		app.MapGet("/api/tags/{id}", async (int id, TagRepo repo) =>
+		app.MapGet("/api/tags/{id}", async (Guid id, TagRepo repo) =>
 			await repo.GetTag(id))
 			.WithTags("Tags")
 			   .WithName("GetTag");
 
-		app.MapPut("/api/tags/{id}", async (int id, TagDto dto, TagRepo repo) =>
+		app.MapPut("/api/tags/{id}", async (Guid id, TagDto dto, TagRepo repo) =>
 			await repo.UpdateTag(id, dto))
 			.WithTags("Tags")
 			.WithName("UpdateTag");
@@ -31,7 +31,7 @@ public class TagModule : ICarterModule {
 		}).WithTags("Tags")
 		   .WithName("AddTag");
 
-		app.MapDelete("/api/tags/{id}", async (int id, TagRepo repo) => {
+		app.MapDelete("/api/tags/{id}", async (Guid id, TagRepo repo) => {
 			await repo.DeleteTag(id);
 			return Results.NoContent();
 		}).WithTags("Tags")

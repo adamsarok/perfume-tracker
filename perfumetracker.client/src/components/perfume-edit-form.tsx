@@ -99,7 +99,7 @@ export default function PerfumeEditForm({
       spring: true,
     },
   });
-  let id = perfume ? perfume.id : 0;
+  let id = perfume ? perfume.id : "";
   const router = useRouter();
   const [tags, setTags] = useState(perfumesTags);
 
@@ -134,7 +134,7 @@ export default function PerfumeEditForm({
   }
 
   const reload = useCallback(
-    (id: number | undefined) => {
+    (id: string | undefined) => {
       if (id) router.push(`/perfumes/${id}`);
     },
     [router]
@@ -167,7 +167,7 @@ export default function PerfumeEditForm({
   const unSelectChip = (chip: string) => {
     setTags((tags: TagDTO[]) => tags.filter((x) => x.tagName != chip));
   };
-  const onDelete = async (id: number | undefined) => {
+  const onDelete = async (id: string | undefined) => {
     if (id) {
       const result = await deletePerfume(id);
       if (result.error) showError("Perfume deletion failed", result.error);

@@ -2,6 +2,8 @@
 
 public static class SeedUserProfiles {
 	private static UserProfile seed = new UserProfile() {
+		Id = PerfumeTrackerContext.DefaultUserID,
+		UserId = PerfumeTrackerContext.DefaultUserID,
 		UserName = "DEFAULT",
 		Email = "",
 		MinimumRating = 8,

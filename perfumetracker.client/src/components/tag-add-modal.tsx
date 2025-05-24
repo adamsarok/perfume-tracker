@@ -53,7 +53,7 @@ export default function TagAddModal({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const tag: TagDTO = {
-      id: 0,
+      id: "",
       tagName: values.tag,
       color: values.color,
     };

@@ -32,7 +32,7 @@ export default function PerfumeCard({
           .join("")
       : worn.perfumeName.slice(0, 2).toUpperCase();
 
-  const handlePressStart = async (id: number) => {
+  const handlePressStart = async (id: string) => {
     const result = await deleteWear(id);
     if (result.ok) showSuccess("Worn deleted");
     else showError(`Worn delete failed: ${result.error ?? "unknown error"}`);

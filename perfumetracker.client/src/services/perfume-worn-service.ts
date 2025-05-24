@@ -6,9 +6,9 @@ import { PerfumeWornUploadDTO } from "@/dto/PerfumeWornUploadDTO";
 import { ActionResult } from "@/dto/ActionResult";
 import { getImageUrl } from "@/components/r2-image";
 
-export async function getWornBeforeID(cursor: number | null, pageSize: number) : Promise<PerfumeWornDTO[]> {
+export async function getWornBeforeID(cursor: Date | null, pageSize: number) : Promise<PerfumeWornDTO[]> {
     if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-    const qry = `${PERFUMETRACKER_API_ADDRESS}/perfume-events/worn-perfumes?cursor=${encodeURIComponent(cursor ?? 0)}&pageSize=${encodeURIComponent(pageSize)}`;
+    const qry = `${PERFUMETRACKER_API_ADDRESS}/perfume-events/worn-perfumes?cursor=${encodeURIComponent(cursor ? cursor.toISOString() : "")}&pageSize=${encodeURIComponent(pageSize)}`;
     const response = await fetch(qry);
     if (!response.ok) {
       throw new Error("Failed to fetch perfume worns");
@@ -30,7 +30,7 @@ export async function getWornPerfumeIDs(dayFilter: number) : Promise<number[]> {
 }
 
 export async function deleteWear(
-  id: number
+  id: string
 ): Promise<ActionResult> {
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
   const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/perfume-events/${encodeURIComponent(id)}`, {
@@ -42,7 +42,7 @@ export async function deleteWear(
   return { ok: true };
 }
 
-export async function wearPerfume(id: number, date: Date, isRandomPerfume: boolean) : Promise<ActionResult> {
+export async function wearPerfume(id: string, date: Date, isRandomPerfume: boolean) : Promise<ActionResult> {
   if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
   const dto: PerfumeWornUploadDTO = {
     perfumeId: id,

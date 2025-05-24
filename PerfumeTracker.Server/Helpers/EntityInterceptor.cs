@@ -16,6 +16,7 @@ public class EntityInterceptor : SaveChangesInterceptor {
 		foreach (var entry in context.ChangeTracker.Entries<IEntity>()) {
 			if (entry.State == EntityState.Added) {
 				entry.Entity.CreatedAt = DateTime.UtcNow;
+				entry.Entity.UserId = PerfumeTrackerContext.DefaultUserID;
 			}
 			if (entry.State == EntityState.Added || entry.State == EntityState.Modified) {
 				entry.Entity.UpdatedAt = DateTime.UtcNow;

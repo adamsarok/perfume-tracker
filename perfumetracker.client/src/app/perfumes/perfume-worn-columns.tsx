@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 
 export interface PerfumeListDTO {
-  id: number;
+  id: string;
   house: string;
   perfume: string;
   ml: number;

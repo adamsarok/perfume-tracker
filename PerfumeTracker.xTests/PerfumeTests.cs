@@ -32,23 +32,23 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	}
 
 	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = 0, House = "House1", PerfumeName = "Perfume1", Rating = 10
+			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1", Rating = 10
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume1")
 			},
-			new Perfume { Id = 0, House = "House2", PerfumeName = "Perfume2", Rating = 1
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2", Rating = 1
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume2")
 			},
 		};
 
 	static List<Tag> tagSeed = new List<Tag> {
-			new Tag { Id = 0, Color = "#FFFFFF", TagName = "Musky" },
-			new Tag { Id = 0, Color = "#FF0000", TagName = "Woody" },
-			new Tag { Id = 0, Color = "#FF0000", TagName = "Blue" }
+			new Tag { Id = Guid.NewGuid(), Color = "#FFFFFF", TagName = "Musky" },
+			new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" },
+			new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Blue" }
 		};
 
 	static List<PerfumeTag> perfumeTagSeed = new List<PerfumeTag> {
-			new PerfumeTag { Id = 0, Perfume = perfumeSeed[0], Tag = tagSeed[0] },
-			new PerfumeTag { Id = 0, Perfume = perfumeSeed[1], Tag = tagSeed[1] }
+			new PerfumeTag { Id = Guid.NewGuid(), Perfume = perfumeSeed[0], Tag = tagSeed[0] },
+			new PerfumeTag { Id = Guid.NewGuid(), Perfume = perfumeSeed[1], Tag = tagSeed[1] }
 		};
 
 
@@ -74,7 +74,7 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	public async Task GetPerfume_NotFound() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/perfumes/{int.MaxValue}");
+		var response = await client.GetAsync($"/api/perfumes/{Guid.NewGuid()}");
 		Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 	}
 
@@ -134,7 +134,7 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	public async Task AddPerfume() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var dto = new PerfumeDto(0, "House3", "Perfume3", 5, "Notes", 50, 50, "", true, true, false, false, new());
+		var dto = new PerfumeDto(Guid.NewGuid(), "House3", "Perfume3", 5, "Notes", 50, 50, "", true, true, false, false, new());
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/perfumes", content);
 		response.EnsureSuccessStatusCode();
