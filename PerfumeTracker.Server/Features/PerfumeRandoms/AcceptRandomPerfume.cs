@@ -5,7 +5,12 @@ namespace PerfumeTracker.Server.Features.PerfumeRandoms;
 public record AcceptRandomPerfumeCommand(int RandomsId) : ICommand<Unit>;
 public class AcceptRandomPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		throw new NotImplementedException();
+		app.MapPost("/api/random-perfumes/{randomsId}", async (int randomsId, ISender sender) => {
+			await sender.Send(new AcceptRandomPerfumeCommand(randomsId));
+			return Results.Created();
+		})
+				.WithTags("PerfumeRandoms")
+				.WithName("AcceptPerfumeSuggestion");
 	}
 }
 public record class RandomsAcceptedNotification() : INotification;

@@ -11,10 +11,10 @@ public class AddPerfumeEventEndpoint : ICarterModule {
 			.WithName("PostPerfumeWorn");
 	}
 }
-public class AddPerfumeEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : ICommandHandler<AddPerfumeEventCommand, PerfumeWornDownloadDto> {
+public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISender sender) : ICommandHandler<AddPerfumeEventCommand, PerfumeWornDownloadDto> {
 	public async Task<PerfumeWornDownloadDto> Handle(AddPerfumeEventCommand request, CancellationToken cancellationToken) {
 		var evt = request.Dto.Adapt<PerfumeEvent>();
-		var settings = await getUserProfile.HandleAsync();
+		var settings = await sender.Send(new GetUserProfileQuery());
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
 		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);

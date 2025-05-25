@@ -24,9 +24,7 @@ builder.Services.AddMediatR(config => {
 });
 
 builder.Services.AddScoped<TagRepo>();
-builder.Services.AddScoped<GetUserProfile>();
 builder.Services.AddScoped<UpsertUserProfile>();
-builder.Services.AddScoped<MissionService>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();

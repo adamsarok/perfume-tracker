@@ -13,9 +13,9 @@ public class GetAiRecommendationEndpoint {
 	}
 }
 
-public class GetAiRecommendationHandler(HttpContext context) : IQueryHandler<GetAiRecommendationQuery, string> {
+public class GetAiRecommendationHandler(IConfiguration configuration) : IQueryHandler<GetAiRecommendationQuery, string> {
 	public async Task<string> Handle(GetAiRecommendationQuery request, CancellationToken cancellationToken) {
-		var configuration = context.RequestServices.GetService<IConfiguration>();
+		//var configuration = context.RequestServices.GetService<IConfiguration>();
 		string? apiKey = configuration["OpenAi:ApiKey"];
 		ChatClient client = new(model: "gpt-4o-mini", apiKey: apiKey);
 		List<ChatMessage> messages = [

@@ -7,8 +7,9 @@ public class AddPerfumeCommandValidator : AbstractValidator<AddPerfumeCommand> {
 }
 public class AddPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/perfumes", async (PerfumeDto dto, ISender sender) => {
-			var result = await sender.Send(new AddPerfumeCommand(dto));
+		app.MapPost("/api/perfumes", async (PerfumeAddDto dto, ISender sender) => {
+			var perfume = dto.Adapt<PerfumeDto>();
+			var result = await sender.Send(new AddPerfumeCommand(perfume));
 			return Results.CreatedAtRoute("GetPerfume", new { id = result.Id }, result);
 		}).WithTags("Perfumes")
 			.WithName("PostPerfume");
@@ -17,6 +18,7 @@ public class AddPerfumeEndpoint : ICarterModule {
 public record class PerfumeAddedNotification(Guid PerfumeId) : INotification;
 public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(AddPerfumeCommand request, CancellationToken cancellationToken) {
+		//TODO: unique constraint on perfume name should be a soft constraint - eg if soft deleted, enable duplications 
 		using var transaction = await context.Database.BeginTransactionAsync(cancellationToken); //TODO change to GUID, remove double savechanges
 		var perfume = request.Dto.Adapt<Perfume>();
 		if (perfume == null) throw new InvalidOperationException("Perfume mapping failed");

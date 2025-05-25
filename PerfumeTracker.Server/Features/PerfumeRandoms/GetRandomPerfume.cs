@@ -1,24 +1,30 @@
 ﻿
 
 using PerfumeTracker.Server.Features.PerfumeEvents;
+using PerfumeTracker.Server.Features.UserProfiles;
 
 namespace PerfumeTracker.Server.Features.PerfumeRandoms;
-public record GetRandomPerfumeQuery(int DaysFilter, double MinimumRating) : IQuery<GetRandomPerfumeResponse>;
+public record GetRandomPerfumeQuery() : IQuery<GetRandomPerfumeResponse>;
 public record GetRandomPerfumeResponse(Guid? PerfumeId);
 public class GetRandomPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		throw new NotImplementedException();
+		app.MapGet("/api/random-perfumes", async (ISender sender) => {
+			return await sender.Send(new GetRandomPerfumeQuery());
+		})
+			.WithTags("PerfumeRandoms")
+			.WithName("GetPerfumeSuggestion");
 	}
 }
 public record class RandomPerfumeAddedEvent(Guid PerfumeId) : INotification;
 public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISender sender) : IQueryHandler<GetRandomPerfumeQuery, GetRandomPerfumeResponse> {
 	public async Task<GetRandomPerfumeResponse> Handle(GetRandomPerfumeQuery request, CancellationToken cancellationToken) {
-		var alreadySug = await GetAlreadySuggestedRandomPerfumeIds(request.DaysFilter);
-		var worn = await sender.Send(new GetWornPerfumeIdsQuery(request.DaysFilter));
+		var settings = await sender.Send(new GetUserProfileQuery(), cancellationToken);
+		var alreadySug = await GetAlreadySuggestedRandomPerfumeIds(settings.DayFilter);
+		var worn = await sender.Send(new GetWornPerfumeIdsQuery(settings.DayFilter));
 		var season = Season;
 		var all = await context
 			.Perfumes
-			.Where(x => x.Ml > 0 && x.Rating >= request.MinimumRating)
+			.Where(x => x.Ml > 0 && x.Rating >= settings.MinimumRating)
 			.Where(x => (!x.Winter && !x.Spring && !x.Summer && !x.Autumn) ||
 				(season == Seasons.Autumn && x.Autumn) ||
 				(season == Seasons.Winter && x.Winter) ||

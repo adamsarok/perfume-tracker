@@ -10,7 +10,7 @@ public class GetWornPerfumeIdsEndpoint : ICarterModule {
 			.WithName("GetPerfumesBefore");
 	}
 }
-public class GetWornPerfumeIdsHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile)
+public class GetWornPerfumeIdsHandler(PerfumeTrackerContext context)
 	: IQueryHandler<GetWornPerfumeIdsQuery, List<Guid>> {
 	public async Task<List<Guid>> Handle(GetWornPerfumeIdsQuery request, CancellationToken cancellationToken) {
 		return await context
