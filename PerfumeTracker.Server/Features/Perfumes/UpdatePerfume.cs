@@ -1,7 +1,11 @@
 ﻿
 namespace PerfumeTracker.Server.Features.Perfumes;
-
 public record UpdatePerfumeCommand(Guid Id, PerfumeDto Dto) : ICommand<PerfumeDto>;
+public class UpdatePerfumeCommandValidator : AbstractValidator<UpdatePerfumeCommand> {
+	public UpdatePerfumeCommandValidator() {
+		RuleFor(x => x.Dto).SetValidator(new PerfumeValidator());
+	}
+}
 public class UpdatePerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPut("/api/perfumes/{id}", async (Guid id, PerfumeDto dto, ISender sender) =>
@@ -11,8 +15,8 @@ public class UpdatePerfumeEndpoint : ICarterModule {
 
 	}
 }
-public record class PerfumeUpdatedNotification() : INotification;
-public record class PerfumeTagsAddedNotification() : INotification;
+public record class PerfumeUpdatedNotification(Guid PerfumeId) : INotification;
+public record class PerfumeTagsAddedNotification(List<Guid> PerfumeTagIds) : INotification;
 public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<UpdatePerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(UpdatePerfumeCommand request, CancellationToken cancellationToken) {
 		var perfume = request.Dto.Adapt<Perfume>();
@@ -28,22 +32,21 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandl
 		context.Entry(find).CurrentValues.SetValues(perfume);
 		var mlLeftInDb = Math.Max(0, context.PerfumeEvents.Where(x => x.PerfumeId == perfume.Id).Sum(s => s.AmountMl));
 		if (request.Dto.MlLeft != mlLeftInDb) {
-			context.PerfumeEvents.Add(new PerfumeWorn() {
+			context.PerfumeEvents.Add(new PerfumeEvent() {
 				AmountMl = request.Dto.MlLeft - mlLeftInDb,
 				CreatedAt = DateTime.UtcNow,
 				EventDate = DateTime.UtcNow,
 				PerfumeId = perfume.Id,
-				Type = PerfumeWorn.PerfumeEventType.Adjusted,
+				Type = PerfumeEvent.PerfumeEventType.Adjusted,
 				UpdatedAt = DateTime.UtcNow
 			});
 		}
 		await UpdateTags(request.Dto, find);
-		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeUpdatedNotification()));
+		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeUpdatedNotification(perfume.Id)));
 		await context.SaveChangesAsync();
 		return find.Adapt<PerfumeDto>();
 	}
 	private async Task UpdateTags(PerfumeDto Dto, Perfume? find) {
-		bool tagsAdded = false;
 		if (find == null) return;
 		var tagsInDB = find.PerfumeTags
 			.Select(x => x.Tag)
@@ -52,15 +55,18 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandl
 		foreach (var remove in find.PerfumeTags.Where(x => !Dto.Tags.Select(x => x.TagName).Contains(x.Tag.TagName))) {
 			context.PerfumeTags.Remove(remove);
 		}
+		List<PerfumeTag> tagsToAdd = new List<PerfumeTag>();
 		if (Dto.Tags != null && Dto.Tags.Any()) {
 			foreach (var add in Dto.Tags.Where(x => !tagsInDB.Contains(x.TagName))) {
-				context.PerfumeTags.Add(new PerfumeTag() {
+				tagsToAdd.Add(new PerfumeTag() {
 					PerfumeId = find.Id,
-					TagId = add.Id //TODO: this is not good, tag ID is coming back from client side
+					TagId = add.Id
 				});
-				tagsAdded = true;
 			}
 		}
-		if (tagsAdded) context.OutboxMessages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification()));
+		if (tagsToAdd.Any()) {
+			context.PerfumeTags.AddRange(tagsToAdd);
+			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification(tagsToAdd.Select(x => x.Id).ToList())));
+		}
 	}
 }

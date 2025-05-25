@@ -1,17 +1,24 @@
 ﻿namespace PerfumeTracker.Server.Features.Perfumes;
 public record AddPerfumeCommand(PerfumeDto Dto) : ICommand<PerfumeDto>;
+public class AddPerfumeCommandValidator : AbstractValidator<AddPerfumeCommand> {
+	public AddPerfumeCommandValidator() {
+		RuleFor(x => x.Dto).SetValidator(new PerfumeValidator());
+	}
+}
 public class AddPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/perfumes", async (PerfumeDto dto, ISender sender) => {
-			var result = await sender.Send(new AddPerfumeCommand(dto));
+		app.MapPost("/api/perfumes", async (PerfumeAddDto dto, ISender sender) => {
+			var perfume = dto.Adapt<PerfumeDto>();
+			var result = await sender.Send(new AddPerfumeCommand(perfume));
 			return Results.CreatedAtRoute("GetPerfume", new { id = result.Id }, result);
 		}).WithTags("Perfumes")
 			.WithName("PostPerfume");
 	}
 }
-public record class PerfumeAddedNotification() : INotification;
+public record class PerfumeAddedNotification(Guid PerfumeId) : INotification;
 public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(AddPerfumeCommand request, CancellationToken cancellationToken) {
+		//TODO: unique constraint on perfume name should be a soft constraint - eg if soft deleted, enable duplications 
 		using var transaction = await context.Database.BeginTransactionAsync(cancellationToken); //TODO change to GUID, remove double savechanges
 		var perfume = request.Dto.Adapt<Perfume>();
 		if (perfume == null) throw new InvalidOperationException("Perfume mapping failed");
@@ -24,16 +31,16 @@ public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<
 			});
 		}
 		if (request.Dto.MlLeft > 0) {
-			context.PerfumeEvents.Add(new PerfumeWorn() {
+			context.PerfumeEvents.Add(new PerfumeEvent() {
 				AmountMl = request.Dto.MlLeft,
 				CreatedAt = DateTime.UtcNow,
 				EventDate = DateTime.UtcNow,
 				Perfume = perfume,
-				Type = PerfumeWorn.PerfumeEventType.Added,
+				Type = PerfumeEvent.PerfumeEventType.Added,
 				UpdatedAt = DateTime.UtcNow
 			});
 		}
-		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeAddedNotification()));
+		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeAddedNotification(perfume.Id)));
 		await context.SaveChangesAsync();
 		await transaction.CommitAsync(cancellationToken);
 		return perfume.Adapt<PerfumeDto>();

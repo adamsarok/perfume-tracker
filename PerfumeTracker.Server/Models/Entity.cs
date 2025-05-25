@@ -5,5 +5,5 @@ public class Entity : IEntity {
 	public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 	public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 	public bool IsDeleted { get; set; }
-	public Guid UserId { get; set; } = Guid.NewGuid();
+	public Guid UserId { get; set; } = PerfumeTrackerContext.DefaultUserID;
 }

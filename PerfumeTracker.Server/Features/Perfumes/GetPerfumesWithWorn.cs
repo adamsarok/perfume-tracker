@@ -3,7 +3,7 @@ using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 public record GetPerfumesWithWornQuery(string? FullText = null) : IQuery<List<PerfumeWithWornStatsDto>>;
-public class GetPerfumesWithWorn : ICarterModule {
+public class GetPerfumesWithWornEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/perfumes/fulltext/{fulltext}", async (string fulltext, ISender sender) =>
 			await sender.Send(new GetPerfumesWithWornQuery(fulltext)))
@@ -16,10 +16,10 @@ public class GetPerfumesWithWorn : ICarterModule {
 	}
 }
 
-public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) 
+public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, ISender sender) 
 	: IQueryHandler<GetPerfumesWithWornQuery, List<PerfumeWithWornStatsDto>> {
 	public async Task<List<PerfumeWithWornStatsDto>> Handle(GetPerfumesWithWornQuery request, CancellationToken cancellationToken) {
-		var settings = await getUserProfile.HandleAsync();
+		var settings = await sender.Send(new GetUserProfileQuery());
 		return await context
 			.Perfumes
 			.Include(x => x.PerfumeEvents)

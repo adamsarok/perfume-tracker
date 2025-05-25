@@ -1,7 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Features.Achievements;
 
 public class CompleteAchievements {
-	public class PerfumeAddEventHandler(PerfumeTrackerContext context, ILogger<PerfumeAddEventHandler> logger) : INotificationHandler<PerfumeAddedNotification> {
+	public class PerfumeAddNotificationHandler(PerfumeTrackerContext context, ILogger<PerfumeAddNotificationHandler> logger) : INotificationHandler<PerfumeAddedNotification> {
 		public async Task Handle(PerfumeAddedNotification notification, CancellationToken cancellationToken) {
 			try {
 				var perfumesAdded = await context.Perfumes.CountAsync();

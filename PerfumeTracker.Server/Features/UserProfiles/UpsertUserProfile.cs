@@ -1,8 +1,8 @@
 ﻿namespace PerfumeTracker.Server.Features.UserProfiles;
 
-public class UpsertUserProfile(PerfumeTrackerContext context, GetUserProfile getUserProfile) {
+public class UpsertUserProfile(PerfumeTrackerContext context) {
 	public async Task<UserProfile> HandleAsync(UserProfile userProfile) {
-		var found = await getUserProfile.HandleAsync();
+		var found = await context.UserProfiles.FirstOrDefaultAsync();
 		if (found != null) {
 			context.Entry(found).CurrentValues.SetValues(userProfile);
 		} else {

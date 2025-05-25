@@ -112,16 +112,17 @@ public class MissionService(IServiceProvider serviceProvider, ILogger<MissionSer
 				_ => throw new ArgumentException($"Unhandled mission type: {selectedType}")
 			};
 
-			missions.Add(mission);
+			if (mission != null) missions.Add(mission);
 		}
 
 		return missions;
 	}
 
-	private async Task<Mission> GetWearMissionAsync(PerfumeTrackerContext context) {
+	private async Task<Mission?> GetWearMissionAsync(PerfumeTrackerContext context) {
 		var randomTag = await context.Tags
 			.OrderBy(t => EF.Functions.Random())
 			.FirstOrDefaultAsync();
+		if (randomTag == null) return null;
 		return new Mission {
 			Name = "Note Hunter",
 			Description = $"Wear perfumes with a {randomTag.TagName} note",

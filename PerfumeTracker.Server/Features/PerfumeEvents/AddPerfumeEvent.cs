@@ -1,10 +1,7 @@
-﻿using PerfumeTracker.Server.Features.UserProfiles;
-using static PerfumeTracker.Server.Repo.PerfumeEventsRepo;
-
-namespace PerfumeTracker.Server.Features.PerfumeEvents;
+﻿namespace PerfumeTracker.Server.Features.PerfumeEvents;
 public record AddPerfumeEventCommand(PerfumeEventUploadDto Dto) : ICommand<PerfumeWornDownloadDto>;
-public record PerfumeEventAddedNotification(PerfumeWornDownloadDto Dto) : INotification;
-public record PerfumeRandomAcceptedNotification(PerfumeWornDownloadDto Dto) : INotification;
+public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId) : INotification;
+public record PerfumeRandomAcceptedNotification(Guid PerfumeId) : INotification;
 public class AddPerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, ISender sender) => {
@@ -14,18 +11,18 @@ public class AddPerfumeEventEndpoint : ICarterModule {
 			.WithName("PostPerfumeWorn");
 	}
 }
-public class AddPerfumeEventHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile) : ICommandHandler<AddPerfumeEventCommand, PerfumeWornDownloadDto> {
+public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISender sender) : ICommandHandler<AddPerfumeEventCommand, PerfumeWornDownloadDto> {
 	public async Task<PerfumeWornDownloadDto> Handle(AddPerfumeEventCommand request, CancellationToken cancellationToken) {
-		var evt = request.Dto.Adapt<PerfumeWorn>();
-		var settings = await getUserProfile.HandleAsync();
+		var evt = request.Dto.Adapt<PerfumeEvent>();
+		var settings = await sender.Send(new GetUserProfileQuery());
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
 		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
-		if (evt.AmountMl == 0 && evt.Type == PerfumeWorn.PerfumeEventType.Worn) evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
+		if (evt.AmountMl == 0 && evt.Type == PerfumeEvent.PerfumeEventType.Worn) evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		var result = evt.Adapt<PerfumeWornDownloadDto>();
-		if (evt.Type == PerfumeWorn.PerfumeEventType.Worn) {
-			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result)));
-			if (request.Dto.IsRandomPerfume) context.OutboxMessages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(result)));
+		if (evt.Type == PerfumeEvent.PerfumeEventType.Worn) {
+			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId)));
+			if (request.Dto.IsRandomPerfume) context.OutboxMessages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(result.PerfumeId)));
 		}
 		await context.SaveChangesAsync();
 		return result;
