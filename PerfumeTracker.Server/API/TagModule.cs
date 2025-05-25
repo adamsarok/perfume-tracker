@@ -15,11 +15,6 @@ public class TagModule : ICarterModule {
 			.WithTags("Tags")
 			.WithName("GetTags");
 
-		app.MapGet("/api/tags/{id}", async (Guid id, TagRepo repo) =>
-			await repo.GetTag(id))
-			.WithTags("Tags")
-			   .WithName("GetTag");
-
 		app.MapPut("/api/tags/{id}", async (Guid id, TagDto dto, TagRepo repo) =>
 			await repo.UpdateTag(id, dto))
 			.WithTags("Tags")

@@ -53,12 +53,6 @@ public class ProgressMissions {
 		}
 	}
 
-	public class RandomPerfumeNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<RandomPerfumeRepo.RandomPerfumeAddedEvent> {
-		public async Task Handle(RandomPerfumeRepo.RandomPerfumeAddedEvent notification, CancellationToken cancellationToken) {
-			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.GetRandoms, cancellationToken);
-		}
-	}
-
 	public class PerfumeTagsAddedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeTagsAddedNotification> {
 		public async Task Handle(PerfumeTagsAddedNotification notification, CancellationToken cancellationToken) {
 			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.PerfumesTaggedPhotographed, cancellationToken);

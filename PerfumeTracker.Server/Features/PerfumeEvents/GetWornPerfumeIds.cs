@@ -1,0 +1,23 @@
+﻿
+namespace PerfumeTracker.Server.Features.PerfumeEvents;
+
+public record GetWornPerfumeIdsQuery(int DaysFilter) : IQuery<List<Guid>>;
+public class GetWornPerfumeIdsEndpoint : ICarterModule {
+	public void AddRoutes(IEndpointRouteBuilder app) {
+		app.MapGet("/api/perfume-events/worn-perfumes/{daysBefore}", async (int daysBefore, ISender sender) =>
+			await sender.Send(new GetWornPerfumeIdsQuery(daysBefore)))
+			.WithTags("PerfumeWorns")
+			.WithName("GetPerfumesBefore");
+	}
+}
+public class GetWornPerfumeIdsHandler(PerfumeTrackerContext context, GetUserProfile getUserProfile)
+	: IQueryHandler<GetWornPerfumeIdsQuery, List<Guid>> {
+	public async Task<List<Guid>> Handle(GetWornPerfumeIdsQuery request, CancellationToken cancellationToken) {
+		return await context
+			.PerfumeEvents
+			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-request.DaysFilter))
+			.Select(x => x.PerfumeId)
+			.Distinct()
+			.ToListAsync();
+	}
+}

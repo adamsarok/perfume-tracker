@@ -19,16 +19,6 @@ public class TagRepo(PerfumeTrackerContext context, IMediator mediator) {
 			.ToListAsync();
 	}
 
-	public async Task<TagDto> GetTag(Guid id) {
-		var t = await context
-			.Tags
-			.FindAsync(id);
-		if (t == null) throw new NotFoundException();
-		var r = t.Adapt<TagDto>();
-		if (r == null) throw new MappingException();
-		return r;
-	}
-
 	public async Task<TagDto> AddTag(TagDto dto) {
 		var tag = dto.Adapt<Tag>();
 		if (tag == null) throw new MappingException();

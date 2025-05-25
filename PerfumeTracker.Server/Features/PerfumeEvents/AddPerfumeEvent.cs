@@ -1,7 +1,4 @@
-﻿using PerfumeTracker.Server.Features.UserProfiles;
-using static PerfumeTracker.Server.Repo.PerfumeEventsRepo;
-
-namespace PerfumeTracker.Server.Features.PerfumeEvents;
+﻿namespace PerfumeTracker.Server.Features.PerfumeEvents;
 public record AddPerfumeEventCommand(PerfumeEventUploadDto Dto) : ICommand<PerfumeWornDownloadDto>;
 public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId) : INotification;
 public record PerfumeRandomAcceptedNotification(Guid PerfumeId) : INotification;
