@@ -4,7 +4,7 @@ public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile get
 	public async Task<List<PerfumeWornDownloadDto>> GetPerfumesWithWorn(DateTime? cursor, int pageSize) {
 		return await context
 			.PerfumeEvents
-			.Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn && (!cursor.HasValue || x.CreatedAt < cursor.Value))
+			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn && (!cursor.HasValue || x.CreatedAt < cursor.Value))
 			.OrderByDescending(x => x.CreatedAt)
 			.Take(pageSize)
 			.Select(x => new PerfumeWornDownloadDto(
@@ -22,7 +22,7 @@ public class PerfumeEventsRepo(PerfumeTrackerContext context, GetUserProfile get
 	public async Task<List<Guid>> GetWornPerfumeIDs(int daysFilter) {
 		return await context
 			.PerfumeEvents
-			.Where(x => x.Type == PerfumeWorn.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
+			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-daysFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.ToListAsync();

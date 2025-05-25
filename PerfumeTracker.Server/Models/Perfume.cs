@@ -16,5 +16,5 @@ public partial class Perfume : Entity {
 	public NpgsqlTsVector? FullText { get; set; } = null;
 	public virtual ICollection<PerfumeRandoms> PerfumeRandoms { get; set; } = new List<PerfumeRandoms>();
 	public virtual ICollection<PerfumeTag> PerfumeTags { get; set; } = new List<PerfumeTag>();
-	public virtual ICollection<PerfumeWorn> PerfumeEvents { get; set; } = new List<PerfumeWorn>();
+	public virtual ICollection<PerfumeEvent> PerfumeEvents { get; set; } = new List<PerfumeEvent>();
 }

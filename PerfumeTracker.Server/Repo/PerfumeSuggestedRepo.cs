@@ -1,14 +1,14 @@
 namespace PerfumeTracker.Server.Repo;
 
 public class RandomPerfumeRepo(PerfumeTrackerContext context, PerfumeEventsRepo perfumeWornRepo) {
-	public record class RandomPerfumeAddedEvent() : INotification;
+	public record class RandomPerfumeAddedEvent(Guid PerfumeId) : INotification;
 	public async Task AddRandomPerfume(Guid perfumeId) {
 		var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId);
 		if (p == null) throw new NotFoundException();
 		var s = new PerfumeRandoms() {
 			PerfumeId = perfumeId,
 		};
-		context.OutboxMessages.Add(OutboxMessage.From(new RandomPerfumeAddedEvent()));
+		context.OutboxMessages.Add(OutboxMessage.From(new RandomPerfumeAddedEvent(perfumeId)));
 		context.PerfumeRandoms.Add(s);
 		await context.SaveChangesAsync();
 	}

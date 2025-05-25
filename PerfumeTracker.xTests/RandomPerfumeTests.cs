@@ -20,11 +20,11 @@ public class RandomPerfumeTests(WebApplicationFactory<Program> factory) : IClass
 				var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;  truncate table \"public\".\"PerfumeRandom\" cascade;";
 				await context.Database.ExecuteSqlRawAsync(sql);
 				context.Perfumes.AddRange(perfumeSeed);
-				context.PerfumeEvents.Add(new PerfumeWorn() {
+				context.PerfumeEvents.Add(new PerfumeEvent() {
 					Perfume = perfumeSeed[0],
 					CreatedAt = DateTime.UtcNow,
 					EventDate = DateTime.UtcNow,
-					Type = PerfumeWorn.PerfumeEventType.Worn
+					Type = PerfumeEvent.PerfumeEventType.Worn
 				});
 				context.PerfumeRandoms.Add(new PerfumeRandoms() {
 					Perfume = perfumeSeed[1],

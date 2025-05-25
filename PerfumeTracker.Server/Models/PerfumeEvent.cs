@@ -1,6 +1,6 @@
 ﻿namespace PerfumeTracker.Server.Models;
 
-public partial class PerfumeWorn : Entity {
+public partial class PerfumeEvent : Entity {
 	public Guid PerfumeId { get; set; }
 	public virtual Perfume Perfume { get; set; } = null!;
 	public DateTime EventDate { get; set; } = DateTime.UtcNow;

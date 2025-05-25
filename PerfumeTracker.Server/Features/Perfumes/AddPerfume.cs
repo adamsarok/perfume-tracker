@@ -9,7 +9,7 @@ public class AddPerfumeEndpoint : ICarterModule {
 			.WithName("PostPerfume");
 	}
 }
-public record class PerfumeAddedNotification() : INotification;
+public record class PerfumeAddedNotification(Guid PerfumeId) : INotification;
 public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(AddPerfumeCommand request, CancellationToken cancellationToken) {
 		using var transaction = await context.Database.BeginTransactionAsync(cancellationToken); //TODO change to GUID, remove double savechanges
@@ -24,16 +24,16 @@ public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<
 			});
 		}
 		if (request.Dto.MlLeft > 0) {
-			context.PerfumeEvents.Add(new PerfumeWorn() {
+			context.PerfumeEvents.Add(new PerfumeEvent() {
 				AmountMl = request.Dto.MlLeft,
 				CreatedAt = DateTime.UtcNow,
 				EventDate = DateTime.UtcNow,
 				Perfume = perfume,
-				Type = PerfumeWorn.PerfumeEventType.Added,
+				Type = PerfumeEvent.PerfumeEventType.Added,
 				UpdatedAt = DateTime.UtcNow
 			});
 		}
-		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeAddedNotification()));
+		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeAddedNotification(perfume.Id)));
 		await context.SaveChangesAsync();
 		await transaction.CommitAsync(cancellationToken);
 		return perfume.Adapt<PerfumeDto>();
