@@ -1,8 +1,8 @@
 ﻿namespace PerfumeTracker.Server.Features.Tags;
-public record class UpdateTagCommand(Guid TagId, TagUploadDto TagDto) : ICommand<TagDto>;
+public record class UpdateTagCommand(Guid TagId, TagDto TagDto) : ICommand<TagDto>;
 public class UpdateTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPut("/api/tags/{id}", async (Guid id, TagUploadDto dto, ISender sender) =>
+		app.MapPut("/api/tags/{id}", async (Guid id, TagDto dto, ISender sender) =>
 			await sender.Send(new UpdateTagCommand(id, dto)))
 			.WithTags("Tags")
 			.WithName("UpdateTag");

@@ -9,7 +9,8 @@ public record GetRandomPerfumeResponse(Guid? PerfumeId);
 public class GetRandomPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/random-perfumes", async (ISender sender) => {
-			return await sender.Send(new GetRandomPerfumeQuery());
+			var result = await sender.Send(new GetRandomPerfumeQuery());
+			return result.PerfumeId;
 		})
 			.WithTags("PerfumeRandoms")
 			.WithName("GetPerfumeSuggestion");
