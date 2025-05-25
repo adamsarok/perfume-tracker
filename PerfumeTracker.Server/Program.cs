@@ -1,5 +1,6 @@
 using HealthChecks.UI.Client;
 using PerfumeTracker.Server;
+using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
@@ -19,6 +20,7 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 var assembly = typeof(Program).Assembly;
 builder.Services.AddMediatR(config => {
 	config.RegisterServicesFromAssembly(assembly);
+	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
 builder.Services.AddScoped<TagRepo>();

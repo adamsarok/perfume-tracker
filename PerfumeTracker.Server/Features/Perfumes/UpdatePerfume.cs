@@ -1,7 +1,11 @@
 ﻿
 namespace PerfumeTracker.Server.Features.Perfumes;
-
 public record UpdatePerfumeCommand(Guid Id, PerfumeDto Dto) : ICommand<PerfumeDto>;
+public class UpdatePerfumeCommandValidator : AbstractValidator<UpdatePerfumeCommand> {
+	public UpdatePerfumeCommandValidator() {
+		RuleFor(x => x.Dto).SetValidator(new PerfumeValidator());
+	}
+}
 public class UpdatePerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPut("/api/perfumes/{id}", async (Guid id, PerfumeDto dto, ISender sender) =>

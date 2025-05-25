@@ -1,5 +1,10 @@
 ﻿namespace PerfumeTracker.Server.Features.Perfumes;
 public record AddPerfumeCommand(PerfumeDto Dto) : ICommand<PerfumeDto>;
+public class AddPerfumeCommandValidator : AbstractValidator<AddPerfumeCommand> {
+	public AddPerfumeCommandValidator() {
+		RuleFor(x => x.Dto).SetValidator(new PerfumeValidator());
+	}
+}
 public class AddPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfumes", async (PerfumeDto dto, ISender sender) => {
