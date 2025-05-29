@@ -1,9 +1,9 @@
 ﻿namespace PerfumeTracker.Server.Features.Tags;
-public record class AddTagCommand(TagDto TagDto) : ICommand<TagDto>;
+public record class AddTagCommand(TagAddDto TagDto) : ICommand<TagDto>;
 public class AddTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/tags", async (TagDto dto, TagRepo repo) => {
-			var result = await repo.AddTag(dto);
+		app.MapPost("/api/tags", async (TagAddDto dto, ISender sender) => {
+			var result = await sender.Send(new AddTagCommand(dto));
 			return Results.CreatedAtRoute("GetTag", new { id = result.Id }, result);
 		}).WithTags("Tags")
 	   .WithName("AddTag");

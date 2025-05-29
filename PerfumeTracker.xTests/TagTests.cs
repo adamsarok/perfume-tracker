@@ -97,7 +97,7 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 	public async Task AddTag() {
 		await PrepareData();
 		var client = factory.CreateClient();
-		var dto = new TagDto("Purple", "#630330", Guid.NewGuid());
+		var dto = new TagAddDto("Purple", "#630330");
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/tags", content);
 		response.EnsureSuccessStatusCode();

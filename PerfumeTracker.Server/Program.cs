@@ -6,6 +6,7 @@ using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Server.Helpers;
+using System.Text;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,6 @@ builder.Services.AddMediatR(config => {
 	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
-builder.Services.AddScoped<TagRepo>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddCarter();

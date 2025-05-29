@@ -66,6 +66,7 @@ public class ProgressMissions {
 	}
 
 	public class UpdateMissionProgressHandler(PerfumeTrackerContext context, IHubContext<MissionProgressHub> missionProgressHub) {
+		//TODO refactor
 		public async Task UpdateMissionProgress(MissionType type, CancellationToken cancellationToken, int progress = 1) {
 			var now = DateTime.UtcNow;
 			var activeMissions = await context.Missions
