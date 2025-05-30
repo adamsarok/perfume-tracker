@@ -1,7 +1,7 @@
 using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Dto;
-public record PerfumeWornDownloadDto(
+public record PerfumeEventDownloadDto(
 	Guid Id,
 	DateTime WornOn,
 	Guid PerfumeId,

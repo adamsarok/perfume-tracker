@@ -30,7 +30,8 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandl
 			.FirstOrDefaultAsync(x => x.Id == perfume.Id);
 		if (find == null) throw new NotFoundException();
 		context.Entry(find).CurrentValues.SetValues(perfume);
-		var mlLeftInDb = Math.Max(0, context.PerfumeEvents.Where(x => x.PerfumeId == perfume.Id).Sum(s => s.AmountMl));
+		var sum = await context.PerfumeEvents.Where(x => x.PerfumeId == perfume.Id).SumAsync(s => s.AmountMl);
+		var mlLeftInDb = Math.Max(0, sum);
 		if (request.Dto.MlLeft != mlLeftInDb) {
 			context.PerfumeEvents.Add(new PerfumeEvent() {
 				AmountMl = request.Dto.MlLeft - mlLeftInDb,

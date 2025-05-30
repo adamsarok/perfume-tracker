@@ -61,7 +61,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 		var response = await client.GetAsync("/api/perfume-events/worn-perfumes" + queryParams);
 		response.EnsureSuccessStatusCode();
 
-		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<PerfumeWornDownloadDto>>();
+		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<PerfumeEventDownloadDto>>();
 		Assert.NotNull(perfumes);
 		Assert.NotEmpty(perfumes);
 	}
@@ -100,5 +100,7 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/perfume-events", content);
 		response.EnsureSuccessStatusCode();
+		using var scope = factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 	}
 }
