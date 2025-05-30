@@ -100,7 +100,9 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/perfume-events", content);
 		response.EnsureSuccessStatusCode();
+		var ev = await response.Content.ReadFromJsonAsync<PerfumeEventDownloadDto>();
 		using var scope = factory.Services.CreateScope();
 		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		Assert.True(await context.PerfumeEvents.AnyAsync(x => x.Id == ev.Id));
 	}
 }

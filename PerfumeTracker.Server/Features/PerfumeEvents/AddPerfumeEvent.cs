@@ -6,7 +6,7 @@ public class AddPerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, ISender sender) => {
 			var result = await sender.Send(new AddPerfumeEventCommand(dto));
-			return Results.CreatedAtRoute("GetPerfumeEvent", result);
+			return Results.CreatedAtRoute("GetPerfumeEvent", new { id = result.Id }, result);
 		}).WithTags("PerfumeWorns")
 			.WithName("PostPerfumeWorn");
 	}
