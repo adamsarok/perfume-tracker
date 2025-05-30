@@ -8,11 +8,37 @@ using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Server.Helpers;
 using System.Text;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Serilog
 string? conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
+
+var loggerConfig = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.PostgreSQL(
+        connectionString: conn,
+        tableName: "Log",
+        columnOptions: new Dictionary<string, ColumnWriterBase>
+        {
+            { "message", new RenderedMessageColumnWriter() },
+            { "message_template", new MessageTemplateColumnWriter() },
+            { "level", new LevelColumnWriter() },
+            { "timestamp", new TimestampColumnWriter() },
+            { "exception", new ExceptionColumnWriter() },
+            { "properties", new LogEventSerializedColumnWriter() }
+        },
+        needAutoCreateTable: true)
+    .Enrich.FromLogContext();
+    
+if (!builder.Environment.IsDevelopment()) loggerConfig.MinimumLevel.Error();
+Log.Logger = loggerConfig.CreateLogger();
+builder.Host.UseSerilog();
+
 builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.UseNpgsql(conn);
 	opt.AddInterceptors(new EntityInterceptor());
