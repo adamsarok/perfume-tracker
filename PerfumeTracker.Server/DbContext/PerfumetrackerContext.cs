@@ -1,7 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Models;
 
 public partial class PerfumeTrackerContext : DbContext {
-	public static Guid DefaultUserID = new Guid("dc972e5e-1cd9-4105-92e9-f37bb9958dd9");
+	public static readonly Guid DefaultUserID = new Guid("dc972e5e-1cd9-4105-92e9-f37bb9958dd9");
 	private Guid currentUserID = DefaultUserID;
 	public PerfumeTrackerContext() {
 	}
