@@ -50,12 +50,6 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 			},
 		};
 
-	private async Task<PerfumeEvent> GetFirst() {
-		using var scope = factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		return await context.PerfumeEvents.FirstAsync();
-	}
-
 	[Fact]
 	public async Task GetPerfumeWorns() {
 		await PrepareData();
@@ -87,11 +81,15 @@ public class PerfumeWornTests(WebApplicationFactory<Program> factory) : IClassFi
 	[Fact]
 	public async Task DeletePerfumeWorn() {
 		await PrepareData();
-		var worn = await GetFirst();
+		using var scope = factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var worn = context.PerfumeEvents.First();
 		var client = factory.CreateClient();
 		var response = await client.DeleteAsync($"/api/perfume-events/{worn.Id}");
 		response.EnsureSuccessStatusCode();
-		Assert.True(true);
+		var ev = await context.PerfumeEvents.FindAsync(worn.Id);
+		await context.Entry(ev).ReloadAsync();
+		Assert.True(ev.IsDeleted);
 	}
 
 	[Fact]
