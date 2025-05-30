@@ -77,7 +77,7 @@ export default function TagAddModal({
         <DialogContent>
           <DialogHeader className="flex flsex-col gap-1">
             <DialogTitle>Create Tag</DialogTitle>
-            <DialogDescription>
+            <DialogDescription asChild>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                   <FormField
