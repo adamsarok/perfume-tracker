@@ -1,7 +1,5 @@
 using ModelContextProtocol.Server;
-using PerfumeTracker.Server.Repo;
 using System.ComponentModel;
-using System.Text.Json;
 
 namespace PerfumeTracker.MCP;
 
