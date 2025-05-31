@@ -3,7 +3,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Button } from "@/components/ui/button";
-import { Brain, Cake, House, List, Plus, Settings, Tag, ListChecks } from "lucide-react";
+import { Brain, Cake, House, List, Plus, Settings, Tag, ListChecks, FileText } from "lucide-react";
 import Link from "next/link";
 import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner";
@@ -93,6 +93,11 @@ export default function RootLayout({
             <Link href="/ai" passHref>
               <Button variant="outline" size="icon" title="Ai Recommendations" aria-label="Ai Recommendations">
                 <Brain />
+              </Button>
+            </Link>
+            <Link href="/logs" passHref>
+              <Button variant="outline" size="icon" title="Logs" aria-label="Logs">
+                <FileText />
               </Button>
             </Link>
             <Link href="/settings" passHref>
