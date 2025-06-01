@@ -45,7 +45,7 @@ export default function LogsPage() {
     };
 
     fetchLogs();
-  }, [minLevel]);
+  }, [minLevel, currentPage]);
 
   const getLevelColor = (level: number) => {
     switch (level) {
@@ -53,7 +53,6 @@ export default function LogsPage() {
         return "secondary";
       case 4:
       case 5:
-      case 6:
         return "destructive";
       default:
         return "default";
@@ -121,7 +120,7 @@ export default function LogsPage() {
                           variant="ghost"
                           size="icon"
                           className="absolute right-2 top-2"
-                          onClick={() => copyToClipboard(log.exception!)}
+                          onClick={() => copyToClipboard(log.exception ?? "")}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -159,24 +158,59 @@ export default function LogsPage() {
       <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious href="#" />
+            <PaginationPrevious 
+              href="#" 
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                  setCurrentPage(currentPage - 1);
+                }
+              }}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+            />
           </PaginationItem>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+            // Show first page, last page, current page, and pages around current page
+            if (
+              page === 1 ||
+              page === totalPages ||
+              (page >= currentPage - 1 && page <= currentPage + 1)
+            ) {
+              return (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCurrentPage(page);
+                    }}
+                    isActive={currentPage === page}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            } else if (
+              page === currentPage - 2 ||
+              page === currentPage + 2
+            ) {
+              return <PaginationEllipsis key={page} />;
+            }
+            return null;
+          })}
+
           <PaginationItem>
-            <PaginationLink href="#">1</PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="#" isActive>
-              2
-            </PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="#">3</PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationNext href="#" />
+            <PaginationNext 
+              href="#" 
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                  setCurrentPage(currentPage + 1);
+                }
+              }}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+            />
           </PaginationItem>
         </PaginationContent>
       </Pagination>
