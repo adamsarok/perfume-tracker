@@ -8,9 +8,9 @@ services:
       - NEXT_PUBLIC_R2_API_ADDRESS=${NEXT_PUBLIC_R2_API_ADDRESS}
       - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=${PERFUMETRACKER_API_ADDRESS}
     restart: unless-stopped
-    # build:
-    #   context: .
-    #   dockerfile: perfumetracker.client/Dockerfile
+    build:
+       context: ./perfumetracker.client/
+       dockerfile: Dockerfile
   perfume-tracker-api:
     image: adamsarok/perfume-tracker-api
     ports:
