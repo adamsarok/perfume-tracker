@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
 
 interface LogEntry {
   message: string;
@@ -66,6 +68,14 @@ export default function LogsPage() {
     return LOG_LEVELS.find(l => l.value === level)?.label || `Level ${level}`;
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
   return (
     <div className="container mx-auto py-6">
       <Card className="w-full">
@@ -102,18 +112,29 @@ export default function LogsPage() {
                         <span className="text-sm text-gray-500">
                           {new Date(log.timestamp).toLocaleString()}
                         </span>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-2"
+                            onClick={() => copyToClipboard(log.exception!)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
                       </div>
                       <p className="mb-2 break-words">{log.message}</p>
                       {log.exception && (
-                        <pre className="text-sm text-red-500 bg-red-50 p-2 rounded overflow-x-auto">
-                          {log.exception}
-                        </pre>
+                        <div className="relative">
+                      
+                          <pre className="text-sm text-red-500 bg-red-50 p-2 rounded overflow-x-auto">
+                            {log.exception}
+                          </pre>
+                        </div>
                       )}
-                      {log.properties && Object.keys(log.properties).length > 0 && (
-                        <div className="mt-2">
+                      {log.properties && (
+                        <div className="mt-2 relative">
                           <p className="text-sm font-semibold">Properties:</p>
                           <pre className="text-sm bg-gray-50 p-2 rounded overflow-x-auto">
-                            {typeof log.properties === 'string' 
+                            {typeof log.properties === 'string'
                               ? JSON.stringify(JSON.parse(log.properties), null, 2)
                               : JSON.stringify(log.properties, null, 2)}
                           </pre>
