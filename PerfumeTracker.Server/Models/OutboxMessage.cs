@@ -15,5 +15,5 @@ public class OutboxMessage : Entity {
 	public DateTime? ProcessedAt { get; set; }
 	public int TryCount { get; set; } = 0;
 	public DateTime? FailedAt { get; set; }
-	public string LastError { get; set; } = null!;
+	public string? LastError { get; set; } = null;
 }
