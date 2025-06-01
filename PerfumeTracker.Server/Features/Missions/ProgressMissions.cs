@@ -104,7 +104,6 @@ public class ProgressMissions {
 							MissionType: mission.Type,
 							Name: mission.Name,
 							RequiredCount: mission.RequiredCount,
-							RequiredName: "TODO",
 							StartDate: mission.StartDate,
 							XP: mission.XP
 					));

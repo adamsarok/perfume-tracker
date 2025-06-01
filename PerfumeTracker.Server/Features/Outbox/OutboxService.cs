@@ -10,16 +10,23 @@ public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger) :
 				var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
 				var messages = await context.OutboxMessages
-					.Where(m => m.ProcessedAt == null)
+					.Where(m => m.ProcessedAt == null && m.TryCount < 5)
 					.OrderBy(m => m.CreatedAt)
 					.Take(10)
 					.ToListAsync();
 
 				foreach (var message in messages) {
-					var typ = Type.GetType(message.EventType);
-					var evt = JsonSerializer.Deserialize(message.Payload, Type.GetType(message.EventType));
-					await mediator.Publish(evt);
-					message.ProcessedAt = DateTime.UtcNow;
+					try {
+						var typ = Type.GetType(message.EventType);
+						var evt = JsonSerializer.Deserialize(message.Payload, Type.GetType(message.EventType));
+						await mediator.Publish(evt);
+						message.ProcessedAt = DateTime.UtcNow;
+					} catch (Exception ex) {
+						logger.LogError(ex, "Failed to process outbox message {MessageId}", message.Id);
+						message.TryCount++;
+						message.LastError = ex.Message;
+						message.FailedAt = DateTime.UtcNow;
+					}
 				}
 
 				await context.SaveChangesAsync();
@@ -27,7 +34,6 @@ public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger) :
 			} catch (Exception ex) {
 				logger.LogError(ex, "OutboxService failed");
 			}
-			//TODO cleanup
 		}
 	}
 }

@@ -7,7 +7,6 @@ public record UserMissionDto(Guid Id,
 	int XP, 
 	MissionType MissionType, 
 	int? RequiredCount, 
-	string? RequiredName,
 	int Progress,
 	bool IsCompleted);
 public record GetActiveMissionsQuery() : IQuery<List<UserMissionDto>>;
@@ -35,7 +34,6 @@ public class GetActiveMissionsHandler(PerfumeTrackerContext context)
 			x.Mission.XP,
 			x.Mission.Type,
 			x.Mission.RequiredCount,
-			x.Mission.RequiredId.ToString(), //TODO: get related name
 			x.Progress,
 			x.IsCompleted)).ToListAsync();
 	}
