@@ -1,10 +1,10 @@
 import PerfumeEditForm from "@/components/perfume-edit-form";
 import { notFound } from "next/navigation";
-import { R2_API_ADDRESS } from "@/services/conf-service";
 import { getPerfume } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
 import { getTags } from "@/services/tag-service";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
+import { env } from "process";
 
 export const dynamic = 'force-dynamic'
 
@@ -32,6 +32,5 @@ export default async function EditPerfumePage(props: EditPerfumePageProps) {
             color: x.color
         })
     });
-    console.log(R2_API_ADDRESS);
-    return <PerfumeEditForm perfumeWithWornStats={perfume} perfumesTags={tags} allTags={allTags} r2_api_address={R2_API_ADDRESS} isRandomPerfume={false}></PerfumeEditForm>
+    return <PerfumeEditForm perfumeWithWornStats={perfume} perfumesTags={tags} allTags={allTags} r2_api_address={env.NEXT_PUBLIC_R2_API_ADDRESS} isRandomPerfume={false}></PerfumeEditForm>
 }
