@@ -26,6 +26,10 @@ export default function LogsPage() {
   const pageSize = 10;
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [minLevel]);
+
+  useEffect(() => {
     const fetchLogs = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
@@ -158,8 +162,8 @@ export default function LogsPage() {
       <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious 
-              href="#" 
+            <PaginationPrevious
+              href="#"
               onClick={(e) => {
                 e.preventDefault();
                 if (currentPage > 1) {
@@ -169,9 +173,8 @@ export default function LogsPage() {
               className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
             />
           </PaginationItem>
-          
+
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-            // Show first page, last page, current page, and pages around current page
             if (
               page === 1 ||
               page === totalPages ||
@@ -201,8 +204,8 @@ export default function LogsPage() {
           })}
 
           <PaginationItem>
-            <PaginationNext 
-              href="#" 
+            <PaginationNext
+              href="#"
               onClick={(e) => {
                 e.preventDefault();
                 if (currentPage < totalPages) {
@@ -214,10 +217,6 @@ export default function LogsPage() {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-
-
-
-
     </div>
   );
 } 
