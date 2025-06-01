@@ -22,7 +22,7 @@ var loggerConfig = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.PostgreSQL(
         connectionString: conn,
-        tableName: "Log",
+        tableName: "log",
         columnOptions: new Dictionary<string, ColumnWriterBase>
         {
             { "message", new RenderedMessageColumnWriter() },
