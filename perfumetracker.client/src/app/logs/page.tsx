@@ -11,7 +11,7 @@ interface LogEntry {
   level: number;
   timestamp: string;
   exception?: string;
-  properties?: Record<string, any>;
+  properties?: string;
 }
 
 export default function LogsPage() {
@@ -113,7 +113,9 @@ export default function LogsPage() {
                         <div className="mt-2">
                           <p className="text-sm font-semibold">Properties:</p>
                           <pre className="text-sm bg-gray-50 p-2 rounded overflow-x-auto">
-                            {JSON.stringify(log.properties, null, 2)}
+                            {typeof log.properties === 'string' 
+                              ? JSON.stringify(JSON.parse(log.properties), null, 2)
+                              : JSON.stringify(log.properties, null, 2)}
                           </pre>
                         </div>
                       )}
