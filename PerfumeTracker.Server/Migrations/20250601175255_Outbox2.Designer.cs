@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTracker.Server.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumeTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250601175255_Outbox2")]
+    partial class Outbox2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,32 +74,6 @@ namespace PerfumeTracker.Server.Migrations
                         .HasName("Achievement_pkey");
 
                     b.ToTable("Achievement", (string)null);
-                });
-
-            modelBuilder.Entity("PerfumeTracker.Server.Models.LogEntry", b =>
-                {
-                    b.Property<string>("Exception")
-                        .HasColumnType("text")
-                        .HasColumnName("exception");
-
-                    b.Property<int>("Level")
-                        .HasColumnType("integer")
-                        .HasColumnName("level");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("message");
-
-                    b.Property<string>("Properties")
-                        .HasColumnType("text")
-                        .HasColumnName("properties");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("timestamp");
-
-                    b.ToTable("log", (string)null);
                 });
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.Mission", b =>
@@ -172,6 +149,7 @@ namespace PerfumeTracker.Server.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("LastError")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Payload")

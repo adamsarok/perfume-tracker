@@ -12,8 +12,7 @@ public static class SeedAchievements{
 			await context.SaveChangesAsync();
 		}
 	}
-	//TODO: total ml - hoarding, expand achievement types
-
+	
 	private readonly static List<Achievement> perfumesAdded = new List<Achievement>() {
 		new Achievement() {
 			MinPerfumesAdded = 1,

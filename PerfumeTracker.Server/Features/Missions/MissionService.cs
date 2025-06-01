@@ -16,10 +16,8 @@ public class MissionService(IServiceProvider serviceProvider, ILogger<MissionSer
 				var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 				await CreateWeeklyMissionsAsync(context);
 			} catch (Exception ex) {
-				//TODO: set up DB logging!
 				logger.LogError(ex, "CreateWeeklyMissionsAsync failed");
 			}
-
 			await Task.Delay(_checkInterval, stoppingToken);
 		}
 	}

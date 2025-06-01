@@ -22,6 +22,7 @@ public partial class PerfumeTrackerContext : DbContext {
 	public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 	public virtual DbSet<Mission> Missions { get; set; }
 	public virtual DbSet<UserMission> UserMissions { get; set; }
+	public virtual DbSet<LogEntry> LogEntries { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		modelBuilder.Entity<OutboxMessage>(entity => {
 			entity.HasKey(e => e.Id).HasName("OutboxMessage_pkey");
@@ -156,17 +157,27 @@ public partial class PerfumeTrackerContext : DbContext {
 		modelBuilder.Entity<UserMission>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserMission_pkey");
 			entity.ToTable("UserMission");
-			
+
 			entity.HasOne(e => e.User)
 				.WithMany(e => e.UserMissions)
 				.HasForeignKey(e => e.UserId)
 				.HasConstraintName("UserMission_UserId_fkey");
-				
+
 			entity.HasOne(e => e.Mission)
 				.WithMany(e => e.UserMissions)
 				.HasForeignKey(e => e.MissionId)
 				.HasConstraintName("UserMission_MissionId_fkey");
 			entity.HasQueryFilter(x => !x.IsDeleted && x.UserId == currentUserID);
+		});
+
+		modelBuilder.Entity<LogEntry>(entity => { 
+			entity.ToTable("log")
+				.HasNoKey();
+			entity.Property(x => x.Message).HasColumnName("message");
+			entity.Property(x => x.Properties).HasColumnName("properties");
+			entity.Property(x => x.Exception).HasColumnName("exception");
+			entity.Property(x => x.Level).HasColumnName("level");
+			entity.Property(x => x.Timestamp).HasColumnName("timestamp");
 		});
 
 		OnModelCreatingPartial(modelBuilder);

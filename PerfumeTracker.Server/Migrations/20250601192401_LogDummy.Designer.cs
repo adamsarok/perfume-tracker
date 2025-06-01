@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTracker.Server.Models;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumeTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250601192401_LogDummy")]
+    partial class LogDummy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,25 +79,20 @@ namespace PerfumeTracker.Server.Migrations
             modelBuilder.Entity("PerfumeTracker.Server.Models.LogEntry", b =>
                 {
                     b.Property<string>("Exception")
-                        .HasColumnType("text")
-                        .HasColumnName("exception");
+                        .HasColumnType("text");
 
                     b.Property<int>("Level")
-                        .HasColumnType("integer")
-                        .HasColumnName("level");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("message");
+                        .HasColumnType("text");
 
                     b.Property<string>("Properties")
-                        .HasColumnType("text")
-                        .HasColumnName("properties");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.ToTable("log", (string)null);
                 });
@@ -172,6 +170,7 @@ namespace PerfumeTracker.Server.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("LastError")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Payload")

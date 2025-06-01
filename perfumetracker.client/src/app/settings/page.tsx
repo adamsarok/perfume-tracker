@@ -8,6 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {getUserProfile, updateUserProfile, UserProfile } from "@/services/user-profiles-service";
 import { showError, showSuccess } from "@/services/toasty-service";
+import Link from "next/link";
+import { CircleX, FileText, SaveIcon } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -177,11 +179,16 @@ export default function SettingsPage() {
             else showSuccess("Settings set");
           }}
         >
-          Save
+         <SaveIcon /> Save
         </Button>
         <Button variant="secondary" onClick={() => setLocalSettings(settings)}>
-          Cancel
+          <CircleX /> Cancel
         </Button>
+        <Link href="/logs" passHref>
+          <Button variant="outline" size="default" title="Logs" aria-label="Logs">
+            <FileText /> Logs
+          </Button>
+        </Link>
       </div>
     </div>
   );
