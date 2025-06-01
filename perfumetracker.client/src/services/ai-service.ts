@@ -1,8 +1,8 @@
 "use server";
 
 import { RecommendationDownloadDTO } from "@/dto/RecommendationDownloadDTO";
-import { PERFUMETRACKER_API_ADDRESS } from "./conf";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
+import { env } from "process";
 
 export interface TagWithCount {
   id: string;
@@ -25,8 +25,8 @@ export interface UserPreferences {
 export async function getAlreadyRecommended(): Promise<
   RecommendationDownloadDTO[]
 > {
-  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const qry = `${PERFUMETRACKER_API_ADDRESS}/recommendations/`;
+  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const qry = `${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/recommendations/`;
   const response = await fetch(qry);
   if (!response.ok) {
     throw new Error("Failed to fetch previous recommendations");
@@ -76,8 +76,8 @@ export default async function getAiRecommendations(
 }
 
 async function getOpenAIResponse(query: string) {
-  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const qry = `${PERFUMETRACKER_API_ADDRESS}/ai`;
+  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const qry = `${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/ai`;
   console.log(qry);
   const response = await fetch(qry, {
     method: "POST",

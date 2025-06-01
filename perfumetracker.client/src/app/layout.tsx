@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useEffect } from "react";
 import * as signalR from "@microsoft/signalr";
 import { UserMissionDto } from "@/dto/MissionDto";
+import { getPerfumeTrackerApiAddress } from "@/services/conf-service";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,39 +21,42 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
-    console.log("apiUrl", apiUrl);
-    if (!apiUrl) {
-      console.error("API URL not configured");
-      return;
-    }
-
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${apiUrl}/hubs/mission-progress`)
-      .withAutomaticReconnect()
-      .build();
-
-    connection.on("ReceiveMissionProgress", (mission: UserMissionDto) => {
-      console.log("received missions", mission);
-      if (mission.isCompleted) {
-        toast.success(`Mission Completed: ${mission.name}`, {
-          description: mission.description,
-        });
-      } else {
-        toast.info(`Mission Updated: ${mission.name}`, {
-          description: `Progress: ${mission.progress}%`,
-        });
+    const initSignalR = async () => {
+      const apiUrl = await getPerfumeTrackerApiAddress();
+      console.log("apiUrl", apiUrl);
+      if (!apiUrl) {
+        console.error("API URL not configured");
+        return;
       }
-    }
-    );
 
-    connection.start()
-      .then(() => console.log("SignalR Connected"))
-      .catch(err => console.error("SignalR Connection Error: ", err));
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${apiUrl}/hubs/mission-progress`)
+        .withAutomaticReconnect()
+        .build();
 
-    return () => {
-      connection.stop();
+      connection.on("ReceiveMissionProgress", (mission: UserMissionDto) => {
+        console.log("received missions", mission);
+        if (mission.isCompleted) {
+          toast.success(`Mission Completed: ${mission.name}`, {
+            description: mission.description,
+          });
+        } else {
+          toast.info(`Mission Updated: ${mission.name}`, {
+            description: `Progress: ${mission.progress}%`,
+          });
+        }
+      });
+
+      connection.start()
+        .then(() => console.log("SignalR Connected"))
+        .catch(err => console.error("SignalR Connection Error: ", err));
+
+      return () => {
+        connection.stop();
+      };
     };
+
+    initSignalR();
   }, []);
 
   return (

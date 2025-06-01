@@ -1,13 +1,13 @@
 "use server";
 
 import { TagDTO } from "@/dto/TagDTO";
-import { PERFUMETRACKER_API_ADDRESS } from "./conf";
+import { env } from "process";
 import { TagStatDTO } from "@/dto/TagStatDTO";
 import { ActionResult } from "@/dto/ActionResult";
 
 export async function getTagStats(): Promise<TagStatDTO[]> {
-  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/tags/stats`);
+  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const response = await fetch(`${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/tags/stats`);
   if (!response.ok) {
     //TODO: fix unhandled errors
     throw new Error("Failed to fetch tag stats");
@@ -17,8 +17,8 @@ export async function getTagStats(): Promise<TagStatDTO[]> {
 }
 
 export async function getTags(): Promise<TagDTO[]> {
-  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/tags`);
+  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const response = await fetch(`${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/tags`);
   if (!response.ok) {
     //TODO: fix unhandled errors
     throw new Error("Failed to fetch tag stats");
@@ -28,8 +28,8 @@ export async function getTags(): Promise<TagDTO[]> {
 }
 
 export async function addTag(tag: TagDTO) : Promise<ActionResult> {
-    if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-    const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/tags`, {
+    if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+    const response = await fetch(`${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/tags`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,8 +44,8 @@ export async function addTag(tag: TagDTO) : Promise<ActionResult> {
   }
   
   export async function updateTag(tag: TagDTO) : Promise<ActionResult> {
-    if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-    const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/tags/${tag.id}`, {
+    if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+    const response = await fetch(`${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/tags/${tag.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -61,8 +61,8 @@ export async function addTag(tag: TagDTO) : Promise<ActionResult> {
   }
   
   export async function deleteTag(id: string) : Promise<ActionResult> {
-    if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-    const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/tags/${id}`, {
+    if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+    const response = await fetch(`${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/tags/${id}`, {
         method: "DELETE",
       });
   

@@ -1,7 +1,7 @@
 "use server";
 
 import { ActionResult } from "@/dto/ActionResult";
-import { PERFUMETRACKER_API_ADDRESS } from "./conf";
+import { env } from "process";
 
 export interface UserProfile {
   minimumRating: number;
@@ -14,8 +14,8 @@ export interface UserProfile {
 }
 
 export async function getUserProfile(): Promise<UserProfile> {
-  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const qry = `${PERFUMETRACKER_API_ADDRESS}/user-profiles`;
+  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const qry = `${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/user-profiles`;
   const response = await fetch(qry);
   if (!response.ok) {
     throw new Error("Failed to fetch user profile");
@@ -27,8 +27,8 @@ export async function getUserProfile(): Promise<UserProfile> {
 export async function updateUserProfile(
   userProfile: UserProfile
 ): Promise<ActionResult> {
-  if (!PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${PERFUMETRACKER_API_ADDRESS}/user-profiles`, {
+  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
+  const response = await fetch(`${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/user-profiles`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

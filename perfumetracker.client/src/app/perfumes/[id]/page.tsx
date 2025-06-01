@@ -1,6 +1,6 @@
 import PerfumeEditForm from "@/components/perfume-edit-form";
 import { notFound } from "next/navigation";
-import { R2_API_ADDRESS } from "@/services/conf";
+import { R2_API_ADDRESS } from "@/services/conf-service";
 import { getPerfume } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
 import { getTags } from "@/services/tag-service";

@@ -1,4 +1,4 @@
-import { R2_API_ADDRESS } from "@/services/conf";
+import { R2_API_ADDRESS } from "@/services/conf-service";
 import SuprisePerfumeComponent from "./surprise-me-component";
 
 export const dynamic = "force-dynamic";

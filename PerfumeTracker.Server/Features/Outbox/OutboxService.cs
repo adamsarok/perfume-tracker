@@ -30,4 +30,5 @@ public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger) :
 			//TODO cleanup
 		}
 	}
+	//TODO: maintenance - clean old messages, move retry > 5 to dead letter queue
 }
