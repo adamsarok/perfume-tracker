@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface LogEntry {
   message: string;
@@ -20,6 +21,9 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [minLevel, setMinLevel] = useState(4);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -29,9 +33,10 @@ export default function LogsPage() {
           console.error("API URL not configured");
           return;
         }
-        const response = await fetch(`${apiUrl}/logs?minLevel=${minLevel}`);
+        const response = await fetch(`${apiUrl}/logs?minLevel=${minLevel}&page=${currentPage}&pageSize=${pageSize}`);
         const data = await response.json();
-        setLogs(data);
+        setLogs(data.items);
+        setTotalPages(Math.ceil(data.totalCount / pageSize));
       } catch (error) {
         console.error("Failed to fetch logs:", error);
       } finally {
@@ -113,42 +118,72 @@ export default function LogsPage() {
                           {new Date(log.timestamp).toLocaleString()}
                         </span>
                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-2"
-                            onClick={() => copyToClipboard(log.exception!)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-2"
+                          onClick={() => copyToClipboard(log.exception!)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                       </div>
                       <p className="mb-2 break-words">{log.message}</p>
                       {log.exception && (
                         <div className="relative">
-                      
                           <pre className="text-sm text-red-500 bg-red-50 p-2 rounded overflow-x-auto">
                             {log.exception}
                           </pre>
                         </div>
                       )}
                       {log.properties && (
-                        <div className="mt-2 relative">
-                          <p className="text-sm font-semibold">Properties:</p>
-                          <pre className="text-sm bg-gray-50 p-2 rounded overflow-x-auto">
-                            {typeof log.properties === 'string'
-                              ? JSON.stringify(JSON.parse(log.properties), null, 2)
-                              : JSON.stringify(log.properties, null, 2)}
-                          </pre>
-                        </div>
+                        <details>
+                          <div className="mt-2 relative">
+                            <p className="text-sm font-semibold">Properties:</p>
+                            <pre className="text-sm bg-gray-50 p-2 rounded overflow-x-auto">
+                              {typeof log.properties === 'string'
+                                ? JSON.stringify(JSON.parse(log.properties), null, 2)
+                                : JSON.stringify(log.properties, null, 2)}
+                            </pre>
+                          </div>
+                        </details>
                       )}
                     </div>
                   ))}
                 </div>
               )}
-              <ScrollBar orientation="vertical"/>
+              <ScrollBar orientation="vertical" />
             </ScrollArea>
           </div>
         </CardContent>
       </Card>
+
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious href="#" />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#">1</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#" isActive>
+              2
+            </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#">3</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext href="#" />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+
+
+
+
     </div>
   );
 } 
