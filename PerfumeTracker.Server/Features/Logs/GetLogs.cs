@@ -11,6 +11,7 @@ public class GetLogsEndpoint : ICarterModule {
 			) => {
 				var totalCount = await context.LogEntries.CountAsync(x => x.Level >= minLevel);
 				int offset = (page - 1) * pageSize;
+				//TODO: log does not have UserID - add with global filter
 				var logs = await context.LogEntries
 					.Where(x => x.Level >= minLevel)
 					.Skip(offset)

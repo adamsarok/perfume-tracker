@@ -139,8 +139,8 @@ export default function LogsPage() {
                       )}
                       {log.properties && (
                         <details>
+                          <summary className="text-sm font-semibold">Properties</summary>
                           <div className="mt-2 relative">
-                            <p className="text-sm font-semibold">Properties:</p>
                             <pre className="text-sm bg-gray-50 p-2 rounded overflow-x-auto">
                               {typeof log.properties === 'string'
                                 ? JSON.stringify(JSON.parse(log.properties), null, 2)

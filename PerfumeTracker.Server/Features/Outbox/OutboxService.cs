@@ -17,8 +17,9 @@ public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger) :
 
 				foreach (var message in messages) {
 					try {
-						var typ = Type.GetType(message.EventType);
-						var evt = JsonSerializer.Deserialize(message.Payload, Type.GetType(message.EventType));
+						var eventType = Type.GetType(message.EventType);
+						if (eventType == null) throw new InvalidOperationException($"Unknown event type: {message.EventType}");
+						var evt = JsonSerializer.Deserialize(message.Payload, eventType);
 						await mediator.Publish(evt);
 						message.ProcessedAt = DateTime.UtcNow;
 					} catch (Exception ex) {
