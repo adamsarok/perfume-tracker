@@ -19,7 +19,7 @@ public class GetPerfumeHandler(PerfumeTrackerContext context, ISender sender)
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Where(p => p.Id == request.Id)
-			.Select(p => PerfumesCommon.ToPerfumeWithWornStatsDto(p, settings))
+			.Select(p => p.ToPerfumeWithWornStatsDto(settings))
 			.AsSplitQuery()
 			.AsNoTracking()
 			.FirstOrDefaultAsync();

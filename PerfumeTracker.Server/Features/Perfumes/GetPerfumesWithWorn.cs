@@ -29,7 +29,7 @@ public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, ISender s
 				|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{request.FullText}:*"))
 				|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, request.FullText))
 				)
-			.Select(p => PerfumesCommon.ToPerfumeWithWornStatsDto(p, settings))
+			.Select(p => p.ToPerfumeWithWornStatsDto(settings))
 			.AsSplitQuery()
 			.AsNoTracking()
 			.ToListAsync();
