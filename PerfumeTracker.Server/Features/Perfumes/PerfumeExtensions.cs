@@ -1,7 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Features.Perfumes;
 
-public static class PerfumesCommon {
-	public static PerfumeWithWornStatsDto ToPerfumeWithWornStatsDto(Perfume p, UserProfile userProfile) {
+public static class PerfumeExtensions {
+	public static PerfumeWithWornStatsDto ToPerfumeWithWornStatsDto(this Perfume p, UserProfile userProfile) {
 		decimal burnRatePerYearMl = 0;
 		decimal yearsLeft = 0;
 		p.MlLeft = Math.Max(0, p.PerfumeEvents.Sum(e => e.AmountMl));
