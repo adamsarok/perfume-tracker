@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 
 namespace PerfumeTracker.Server.Features.Logs;
-public record GetLogsResult(int TotalCount, IEnumerable<LogEntry> Items);
 public class GetLogsEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/logs", async (PerfumeTrackerContext context, [FromQuery] int minLevel = 0,
@@ -17,7 +16,7 @@ public class GetLogsEndpoint : ICarterModule {
 					.Skip(offset)
 					.Take(pageSize)
 					.ToListAsync();
-				return Results.Ok(new GetLogsResult(totalCount, logs));
+				return Results.Ok(new PaginatedResult<LogEntry>(page, pageSize, totalCount, logs));
 			})
 		.WithTags("Logs")
 		.WithName("GetLogs");
