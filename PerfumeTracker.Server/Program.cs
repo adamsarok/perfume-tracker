@@ -1,16 +1,20 @@
 using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
+using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Server.Helpers;
-using System.Text;
-using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
+using System;
+using System.Text;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +48,37 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+	.AddEntityFrameworkStores<PerfumeTrackerContext>()
+	.AddDefaultTokenProviders();
+
+builder.Services.Configure<IdentityOptions>(options => {
+	options.Password.RequireDigit = false;
+	options.Password.RequireLowercase = false;
+	options.Password.RequireNonAlphanumeric = false;
+	options.Password.RequireUppercase = false;
+	options.Password.RequiredLength = 5;
+	options.Password.RequiredUniqueChars = 1;
+
+	options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+	options.Lockout.MaxFailedAccessAttempts = 5;
+	options.Lockout.AllowedForNewUsers = true;
+
+	options.User.AllowedUserNameCharacters =
+	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+	options.User.RequireUniqueEmail = false;
+});
+
+builder.Services.ConfigureApplicationCookie(options => {
+	options.Cookie.HttpOnly = true;
+	options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+
+	options.LoginPath = "/api/identity/account/login";
+	options.AccessDeniedPath = "/api/identity/account/access-denied";
+	options.SlidingExpiration = true;
+});
+
+
 var assembly = typeof(Program).Assembly;
 builder.Services.AddMediatR(config => {
 	config.RegisterServicesFromAssembly(assembly);
@@ -76,8 +111,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
     await dbContext.Database.MigrateAsync();
-    await SeedUserProfiles.DoSeed(dbContext);
-	await SeedAchievements.DoSeed(dbContext);
+    await SeedUserProfiles.SeedUserProfilesAsync(dbContext);
+	await SeedAchievements.SeedAchievementsAsync(dbContext);
+	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
+	await SeedAdmin.SeedAdminAsync(scope.ServiceProvider);
 }
 
 app.UseExceptionHandler();
