@@ -3,11 +3,11 @@
 namespace PerfumeTracker.Server.Features.Auth;
 public static class SeedAdmin {
 	public static async Task SeedAdminAsync(IServiceProvider serviceProvider) {
-		var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+		var userManager = serviceProvider.GetRequiredService<UserManager<PerfumeIdentityUser>>();
 		var user = await userManager.FindByNameAsync("admin");
 
 		if (user == null) {
-			user = new ApplicationUser {
+			user = new PerfumeIdentityUser {
 				UserName = "admin",
 				Email = "admin@example.com",
 				EmailConfirmed = true

@@ -48,7 +48,7 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<PerfumeIdentityUser, PerfumeIdentityRole>()
 	.AddEntityFrameworkStores<PerfumeTrackerContext>()
 	.AddDefaultTokenProviders();
 
@@ -71,7 +71,7 @@ builder.Services.Configure<IdentityOptions>(options => {
 
 builder.Services.ConfigureApplicationCookie(options => {
 	options.Cookie.HttpOnly = true;
-	options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+	options.ExpireTimeSpan = TimeSpan.FromHours(24);
 
 	options.LoginPath = "/api/identity/account/login";
 	options.AccessDeniedPath = "/api/identity/account/access-denied";

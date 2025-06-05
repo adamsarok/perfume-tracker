@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace PerfumeTracker.Server.Models;
 
-public partial class PerfumeTrackerContext : IdentityDbContext<ApplicationUser> {
+public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUser, PerfumeIdentityRole, Guid> {
 	public static readonly Guid DefaultUserID = new Guid("dc972e5e-1cd9-4105-92e9-f37bb9958dd9");
 	private Guid currentUserID = DefaultUserID;
 	public PerfumeTrackerContext() {
@@ -181,11 +182,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<ApplicationUser> 
 			entity.Property(x => x.Level).HasColumnName("level");
 			entity.Property(x => x.Timestamp).HasColumnName("timestamp");
 		});
-
-		//modelBuilder.Entity<ApplicationUser>(entity => {
-		//	entity.ToTable("ApplicationUser")
-		//		.HasKey(x => x.Id);
-		//});
 
 		base.OnModelCreating(modelBuilder);
 	}

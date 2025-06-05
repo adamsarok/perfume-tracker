@@ -16,7 +16,7 @@ public static class SeedUserProfiles {
 	};
 	public static async Task SeedUserProfilesAsync(PerfumeTrackerContext context) {
 		if (!await context.UserProfiles.AnyAsync()) {
-			await context.UserProfiles.AddRangeAsync(seed);
+			await context.UserProfiles.AddAsync(seed);
 			await context.SaveChangesAsync();
 		}
 	}
