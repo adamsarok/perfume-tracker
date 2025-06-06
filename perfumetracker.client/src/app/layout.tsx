@@ -5,6 +5,9 @@ import { Toaster } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getCurrentUser, logout } from "@/services/auth-service";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react";
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -106,7 +109,52 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         </div>
       </nav>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
+      <div className="max-w-lg mx-auto px-4 py-8">
+          <div className="flex items-center justify-center space-x-2">
+            <Link href="/" passHref>
+              <Button variant="outline" size="icon" title="Home" aria-label="Home">
+                <House />
+              </Button>
+            </Link>
+            <Link href="/perfumes/surprise-me" passHref>
+              <Button variant="outline" size="icon" title="Surprise Me!" aria-label="Surprise Me!">
+                <Cake />
+              </Button>
+            </Link>
+            <Link href="/perfumes/new-perfume" passHref>
+              <Button variant="outline" size="icon" title="New Perfume" aria-label="New Perfume">
+                <Plus />
+              </Button>
+            </Link>
+            <Link href="/perfumes" passHref>
+              <Button variant="outline" size="icon" title="Perfume Finder" aria-label="Perfume Finder">
+                <List />
+              </Button>
+            </Link>
+            <Link href="/tags" passHref>
+              <Button variant="outline" size="icon" title="Tags" aria-label="Tags">
+                <Tag />
+              </Button>
+            </Link>
+            <Link href="/progress" passHref>
+              <Button variant="outline" size="icon" title="Missions & Achievements" aria-label="Missions & Achievements">
+                <ListChecks />
+              </Button>
+            </Link>
+            <Link href="/ai" passHref>
+              <Button variant="outline" size="icon" title="Ai Recommendations" aria-label="Ai Recommendations">
+                <Brain />
+              </Button>
+            </Link>
+            <Link href="/settings" passHref>
+              <Button variant="outline" size="icon" title="Settings" aria-label="Settings">
+                <Settings />
+              </Button>
+            </Link>
+          </div>
+          {children}
+          <Toaster />
+        </div>
       </main>
     </div>
   );

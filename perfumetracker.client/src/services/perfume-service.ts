@@ -1,24 +1,15 @@
-"use server";
-
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
 import { ActionResult } from "@/dto/ActionResult";
 import { getImageUrl } from "@/components/r2-image";
-import axios from "axios";
-
-// Create axios instance with default config
-const api = axios.create({
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import { getPerfumeTrackerApiAddress } from "./conf-service";
+import { api } from "./auth-service";
 
 export async function getPerfumesFulltext(
   fulltext: string
 ): Promise<PerfumeWithWornStatsDTO[]> {
-  const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
+  const apiUrl = await getPerfumeTrackerApiAddress();
   if (!apiUrl) throw new Error("PerfumeAPI address not set");
   
   const qry = `${apiUrl}/perfumes/${fulltext ? `fulltext/${fulltext}` : ""}`;
@@ -27,7 +18,7 @@ export async function getPerfumesFulltext(
 }
 
 export async function getPerfume(id: string): Promise<PerfumeWithWornStatsDTO> {
-  const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
+  const apiUrl = await getPerfumeTrackerApiAddress();
   if (!apiUrl) throw new Error("PerfumeAPI address not set");
   
   const qry = `${apiUrl}/perfumes/${encodeURIComponent(id)}`;
@@ -37,7 +28,7 @@ export async function getPerfume(id: string): Promise<PerfumeWithWornStatsDTO> {
 }
 
 export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {
-  const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
+  const apiUrl = await getPerfumeTrackerApiAddress();
   if (!apiUrl) throw new Error("PerfumeAPI address not set");
   
   const qry = `${apiUrl}/perfumes/`;
@@ -49,7 +40,7 @@ export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {
 export async function addPerfume(
   perfume: PerfumeUploadDTO
 ): Promise<ActionResult> {
-  const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
+  const apiUrl = await getPerfumeTrackerApiAddress();
   if (!apiUrl) throw new Error("PerfumeAPI address not set");
   
   const response = await api.post<PerfumeUploadDTO>(`${apiUrl}/perfumes`, perfume);
@@ -59,7 +50,7 @@ export async function addPerfume(
 export async function updatePerfume(
   perfume: PerfumeUploadDTO
 ): Promise<ActionResult> {
-  const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
+  const apiUrl = await getPerfumeTrackerApiAddress();
   if (!apiUrl) throw new Error("PerfumeAPI address not set");
   
   await api.put(`${apiUrl}/perfumes/${perfume.id}`, perfume);
@@ -69,7 +60,7 @@ export async function updatePerfume(
 export async function updateImageGuid(
   perfumeId: string, imageGuid: string
 ): Promise<ActionResult> {
-  const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
+  const apiUrl = await getPerfumeTrackerApiAddress();
   if (!apiUrl) throw new Error("PerfumeAPI address not set");
   
   const dto: ImageGuidDTO = { parentObjectId: perfumeId, imageObjectKey: imageGuid };
@@ -78,7 +69,7 @@ export async function updateImageGuid(
 }
 
 export async function deletePerfume(id: string): Promise<ActionResult> {
-  const apiUrl = process.env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS;
+  const apiUrl = await getPerfumeTrackerApiAddress();
   if (!apiUrl) throw new Error("PerfumeAPI address not set");
   
   await api.delete(`${apiUrl}/perfumes/${id}`);

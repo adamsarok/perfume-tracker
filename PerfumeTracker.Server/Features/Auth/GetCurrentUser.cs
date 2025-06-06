@@ -9,7 +9,7 @@ namespace PerfumeTracker.Server.Features.Auth;
 public record UserResponse(string UserName, string Email, string Id, IEnumerable<string> Roles);
 public class GetCurrentUser : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/identity/account/me", [Authorize] (HttpContext context) =>
+		app.MapGet("/api/identity/account/me", (HttpContext context) =>
 		{
 			var user = context.User;
 			return Results.Ok(new UserResponse(

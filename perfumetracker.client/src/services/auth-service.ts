@@ -13,14 +13,12 @@ export interface UserResponse {
   roles: string[];
 }
 
-// Create axios instance with default config
-const api = axios.create({
-  withCredentials: true, // This is crucial for cookies
+export const api = axios.create({
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  // Ensure cookies are sent with cross-origin requests
   xsrfCookieName: 'XSRF-TOKEN',
   xsrfHeaderName: 'X-XSRF-TOKEN',
 });
