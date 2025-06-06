@@ -9,3 +9,4 @@ global using PerfumeTracker.Server.Features.CQRS;
 global using System.Text.Json;
 global using FluentValidation;
 global using PerfumeTracker.Server.Features.Auth;
+global using System.IdentityModel.Tokens.Jwt;

@@ -1,54 +1,77 @@
 import { getPerfumeTrackerApiAddress } from "./conf-service";
+import axios from "axios";
 
-interface LoginRequest {
+export interface LoginResponse {
   email: string;
-  password: string;
-}
-
-interface LoginResponse {
   token: string;
-  email: string;
 }
 
-export const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
-  const apiUrl = await getPerfumeTrackerApiAddress();
-  const response = await fetch(`${apiUrl}/identity/account/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(credentials),
-    credentials: 'include', // This is important for handling cookies
-  });
+export interface UserResponse {
+  userName: string;
+  email: string;
+  id: string;
+  roles: string[];
+}
 
-  if (!response.ok) {
-    throw new Error('Login failed');
-  }
+// Create axios instance with default config
+const api = axios.create({
+  withCredentials: true, // This is crucial for cookies
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  // Ensure cookies are sent with cross-origin requests
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
+});
 
-  return response.json();
-};
-
-export const logout = async (): Promise<void> => {
-  const apiUrl = await getPerfumeTrackerApiAddress(); //TODO implement this in the backend
-  await fetch(`${apiUrl}/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  });
-};
-
-export const getCurrentUser = async (): Promise<{ email: string } | null> => {
-  const apiUrl = await getPerfumeTrackerApiAddress();
-  try { //TODO implement this in the backend
-    const response = await fetch(`${apiUrl}/auth/me`, {
-      credentials: 'include',
-    });
-    
-    if (!response.ok) {
-      return null;
+// Add response interceptor to handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized error
+      console.error('Authentication error:', error);
     }
+    return Promise.reject(error);
+  }
+);
 
-    return response.json();
-  } catch {
+export async function login(email: string, password: string): Promise<LoginResponse> {
+  const apiUrl = await getPerfumeTrackerApiAddress();
+  console.log('Attempting login to:', apiUrl);
+  
+  const response = await api.post<LoginResponse>(`${apiUrl}/identity/account/login`, {
+    email,
+    password,
+  });
+
+  console.log('Login successful for:', response.data.email);
+  return response.data;
+}
+
+export async function logout(): Promise<void> {
+  const apiUrl = await getPerfumeTrackerApiAddress();
+  console.log('Attempting logout from:', apiUrl);
+  
+  await api.post(`${apiUrl}/identity/account/logout`);
+  console.log('Logout successful');
+}
+
+export async function getCurrentUser(): Promise<UserResponse | null> {
+  const apiUrl = await getPerfumeTrackerApiAddress();
+  console.log('Checking current user from:', apiUrl);
+  
+  try {
+    const response = await api.get<UserResponse>(`${apiUrl}/identity/account/me`);
+    console.log('Current user found:', response.data.email);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error checking current user:', error.response?.status, error.response?.data);
+    } else {
+      console.error('Error checking current user:', error);
+    }
     return null;
   }
-}; 
+} 
