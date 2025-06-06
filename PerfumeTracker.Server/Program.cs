@@ -1,6 +1,8 @@
 using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
@@ -13,6 +15,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using System;
+using System.Diagnostics;
 using System.Text;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
@@ -78,6 +81,27 @@ builder.Services.ConfigureApplicationCookie(options => {
 	options.SlidingExpiration = true;
 });
 
+builder.Services.AddAuthorization(options => {
+	options.AddPolicy(Policies.READ, p => p.RequireRole(Roles.ADMIN, Roles.DEMO, Roles.USER));
+	options.AddPolicy(Policies.WRITE, p => p.RequireRole(Roles.ADMIN, Roles.USER));
+	options.AddPolicy(Policies.ADMIN, p => p.RequireRole(Roles.ADMIN));
+});
+
+builder.Services.AddAuthentication(options => {
+	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options => {
+	options.TokenValidationParameters = new TokenValidationParameters {
+		ValidateIssuer = true,
+		ValidateAudience = true,
+		ValidateLifetime = true,
+		ValidateIssuerSigningKey = true,
+		ValidIssuer = builder.Configuration["Jwt:Issuer"],
+		ValidAudience = builder.Configuration["Jwt:Audience"],
+		IssuerSigningKey = new SymmetricSecurityKey(
+			Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+	};
+});
 
 var assembly = typeof(Program).Assembly;
 builder.Services.AddMediatR(config => {
@@ -85,6 +109,7 @@ builder.Services.AddMediatR(config => {
 	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddCarter();
@@ -127,6 +152,9 @@ app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthCh
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();
 

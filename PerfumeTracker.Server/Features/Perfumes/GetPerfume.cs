@@ -6,7 +6,8 @@ public class GetPerfumeEndpoint : ICarterModule {
 			return await sender.Send(new GetPerfumeQuery(id));
 		})
 			.WithTags("Perfumes")
-			.WithName("GetPerfume");
+			.WithName("GetPerfume")
+			.RequireAuthorization(Policies.READ);
 	}
 }
 public class GetPerfumeHandler(PerfumeTrackerContext context, ISender sender)

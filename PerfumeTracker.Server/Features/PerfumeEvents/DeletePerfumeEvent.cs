@@ -7,7 +7,8 @@ public class DeletePerfumeEventEndpoint : ICarterModule {
 			await sender.Send(new DeletePerfumeEventCommand(id));
 			return Results.NoContent();
 		}).WithTags("PerfumeWorns")
-		.WithName("DeletePerfumeWorn");
+		.WithName("DeletePerfumeWorn")
+		.RequireAuthorization(Policies.WRITE);
 	}
 }
 

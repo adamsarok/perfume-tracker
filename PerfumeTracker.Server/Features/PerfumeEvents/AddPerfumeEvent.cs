@@ -8,7 +8,8 @@ public class AddPerfumeEventEndpoint : ICarterModule {
 			var result = await sender.Send(new AddPerfumeEventCommand(dto));
 			return Results.CreatedAtRoute("GetPerfumeEvent", new { id = result.Id }, result);
 		}).WithTags("PerfumeWorns")
-			.WithName("PostPerfumeWorn");
+			.WithName("PostPerfumeWorn")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISender sender) : ICommandHandler<AddPerfumeEventCommand, PerfumeEventDownloadDto> {

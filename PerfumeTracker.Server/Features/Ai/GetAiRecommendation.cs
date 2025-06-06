@@ -9,7 +9,8 @@ public class GetAiRecommendationEndpoint : ICarterModule {
 			return Results.Ok(result);
 		})
 			.WithTags("Ai")
-			.WithName("GetAiRecommendation");
+			.WithName("GetAiRecommendation")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 

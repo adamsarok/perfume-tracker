@@ -27,6 +27,8 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<UserMission> UserMissions { get; set; }
 	public virtual DbSet<LogEntry> LogEntries { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
+		base.OnModelCreating(modelBuilder);
+
 		modelBuilder.Entity<OutboxMessage>(entity => {
 			entity.HasKey(e => e.Id).HasName("OutboxMessage_pkey");
 			entity.ToTable("OutboxMessage");
@@ -183,6 +185,10 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.Property(x => x.Timestamp).HasColumnName("timestamp");
 		});
 
-		base.OnModelCreating(modelBuilder);
+		//modelBuilder.Entity<IdentityUserRole<Guid>>(entity => {
+		//	entity.HasMany<PerfumeIdentityUser>()
+		//		.WithOne()
+		//		.HasForeignKey(ur => ur.UserId).IsRequired();
+		//}
 	}
 }

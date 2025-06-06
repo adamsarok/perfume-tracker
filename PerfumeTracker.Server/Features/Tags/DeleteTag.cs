@@ -7,7 +7,8 @@ public class DeleteTagEndpoint : ICarterModule {
 			await sender.Send(new DeleteTagCommand(id));
 			return Results.NoContent();
 		}).WithTags("Tags")
-		   .WithName("DeleteTag");
+		   .WithName("DeleteTag")
+		   .RequireAuthorization(Policies.WRITE);
 	}
 }
 public class DeleteTagHandler(PerfumeTrackerContext context) : ICommandHandler<DeleteTagCommand, Unit> {

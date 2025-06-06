@@ -6,7 +6,8 @@ public class AddTagEndpoint : ICarterModule {
 			var result = await sender.Send(new AddTagCommand(dto));
 			return Results.CreatedAtRoute("GetTag", new { id = result.Id }, result);
 		}).WithTags("Tags")
-	   .WithName("AddTag");
+	   .WithName("AddTag")
+	   .RequireAuthorization(Policies.WRITE);
 	}
 }
 
