@@ -1,8 +1,6 @@
-"use server";
-
 import { RecommendationDownloadDTO } from "@/dto/RecommendationDownloadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
-import { env } from "process";
+import { get, post } from "./axios-service";
 
 export interface TagWithCount {
   id: string;
@@ -25,14 +23,9 @@ export interface UserPreferences {
 export async function getAlreadyRecommended(): Promise<
   RecommendationDownloadDTO[]
 > {
-  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const qry = `${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/recommendations/`;
-  const response = await fetch(qry);
-  if (!response.ok) {
-    throw new Error("Failed to fetch previous recommendations");
-  }
-  const r: RecommendationDownloadDTO[] = await response.json();
-  return r;
+  const qry = `/recommendations/`;
+  const response = await get<RecommendationDownloadDTO[]>(qry);
+  return response.data;
 }
 
 // export async function addRecommendation(
@@ -76,20 +69,7 @@ export default async function getAiRecommendations(
 }
 
 async function getOpenAIResponse(query: string) {
-  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const qry = `${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/ai`;
-  console.log(qry);
-  const response = await fetch(qry, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query }),
-  });
-  console.log(response);
-  if (!response.ok) {
-    throw new Error("Failed to fetch ai recommendations");
-  }
-  const text = await response.text();
-  return text.replace(/\\n/g, '\n').substring(1, text.length - 2);
+  const qry = `/ai`;
+  const response = (await post<string>(qry, query)).data;
+  return response.replace(/\\n/g, '\n').substring(1, response.length - 2);
 }

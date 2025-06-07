@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import ChipClouds from "./chip-clouds";
 import { ChipProp } from "./color-chip";
 import MessageBox from "./message-box";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import UploadComponent from "./upload-component";
 import SprayOnComponent from "./spray-on";
 import { getImageUrl } from "./r2-image";
@@ -27,6 +27,7 @@ import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import {
   addPerfume,
   deletePerfume,
+  getPerfume,
   updateImageGuid,
   updatePerfume,
 } from "@/services/perfume-service";
@@ -37,12 +38,11 @@ import { Label } from "./ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2 } from "lucide-react";
+import { getTags } from "@/services/tag-service";
+import { getR2ApiAddress } from "@/services/conf-service";
 
 interface PerfumeEditFormProps {
-  readonly perfumeWithWornStats: PerfumeWithWornStatsDTO | null;
-  readonly allTags: TagDTO[];
-  readonly perfumesTags: TagDTO[];
-  readonly r2_api_address: string | undefined;
+  readonly perfumeId: string;
   readonly isRandomPerfume: boolean;
 }
 
@@ -66,26 +66,55 @@ const formSchema = z.object({
 });
 
 export default function PerfumeEditForm({
-  perfumeWithWornStats,
-  perfumesTags,
-  allTags,
-  r2_api_address,
+  perfumeId,
   isRandomPerfume,
 }: PerfumeEditFormProps) {
-  const perfume = perfumeWithWornStats?.perfume;
+  const [allTags, setAllTags] = useState<TagDTO[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [perfume, setPerfume] = useState<PerfumeWithWornStatsDTO | null>(null);
+  const [r2_api_address, setR2ApiAddress] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const loadedTags = await getTags();
+        setAllTags(loadedTags);
+      } catch (error) {
+        console.error('Failed to load tags:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const loadPerfume = async () => {
+      if (!perfumeId) return;
+      try {
+        const perfume = await getPerfume(perfumeId);
+        setPerfume(perfume);
+      } catch (error) {
+        console.log("Failed to fetch perfume", error);
+      }
+      if (!perfume) return notFound();
+    }
+
+    loadTags();
+    loadPerfume();
+    getR2ApiAddress().then(address => setR2ApiAddress(address));
+  }, []);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: perfume ? {
-      house: perfume.house,
-      perfume: perfume.perfumeName,
-      rating: perfume.rating,
-      amount: perfume.ml,
-      mlLeft: perfume.mlLeft,
-      notes: perfume.notes,
-      winter: perfume.winter,
-      summer: perfume.summer,
-      autumn: perfume.autumn,
-      spring: perfume.spring,
+      house: perfume.perfume.house,
+      perfume: perfume.perfume.perfumeName,
+      rating: perfume.perfume.rating,
+      amount: perfume.perfume.ml,
+      mlLeft: perfume.perfume.mlLeft,
+      notes: perfume.perfume.notes,
+      winter: perfume.perfume.winter,
+      summer: perfume.perfume.summer,
+      autumn: perfume.perfume.autumn,
+      spring: perfume.perfume.spring,
     } : {
       house: "",
       perfume: "",
@@ -99,13 +128,12 @@ export default function PerfumeEditForm({
       spring: true,
     },
   });
-  let id = perfume ? perfume.id : "";
+
   const router = useRouter();
-  const [tags, setTags] = useState(perfumesTags);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const perf: PerfumeUploadDTO = {
-      id: id,
+      id: perfumeId,
       house: values.house,
       perfumeName: values.perfume,
       rating: values.rating,
@@ -117,19 +145,14 @@ export default function PerfumeEditForm({
       winter: values.winter,
       autumn: values.autumn,
       spring: values.spring,
-      tags: tags.map((tag) => ({
-        id: tag.id,
-        tagName: tag.tagName,
-        color: tag.color,
-      })),
+      tags: perfume?.perfume.tags ?? [],
     };
     let result: ActionResult;
-    if (!id) result = await addPerfume(perf);
+    if (!perfumeId) result = await addPerfume(perf);
     else result = await updatePerfume(perf);
     if (result.ok && result.id) {
-      id = result.id;
       showSuccess("Update successful");
-      reload(id);
+      reload(result.id);
     } else showError("Update failed:", result.error ?? "unknown error");
   }
 
@@ -143,7 +166,7 @@ export default function PerfumeEditForm({
   const topChipProps: ChipProp[] = [];
   const bottomChipProps: ChipProp[] = [];
   allTags.forEach((allTag) => {
-    if (!tags.some((tag) => tag.tagName === allTag.tagName)) {
+    if (!perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)) {
       bottomChipProps.push({
         name: allTag.tagName,
         color: allTag.color,
@@ -152,7 +175,7 @@ export default function PerfumeEditForm({
       });
     }
   });
-  tags.forEach((x) => {
+  perfume?.perfume.tags.forEach((x) => {
     topChipProps.push({
       name: x.tagName,
       color: x.color,
@@ -162,10 +185,10 @@ export default function PerfumeEditForm({
   });
   const selectChip = (chip: string) => {
     const tag = allTags.find((x) => x.tagName === chip);
-    if (tag) setTags([...tags, tag]);
+    if (tag) setPerfume({ ...perfume, perfume: { ...perfume?.perfume, tags: [...(perfume?.perfume.tags ?? []), tag] } } as unknown as PerfumeWithWornStatsDTO);
   };
   const unSelectChip = (chip: string) => {
-    setTags((tags: TagDTO[]) => tags.filter((x) => x.tagName != chip));
+    setPerfume({ ...perfume, perfume: { ...perfume?.perfume, tags: (perfume?.perfume.tags ?? []).filter((x) => x.tagName != chip) } } as unknown as PerfumeWithWornStatsDTO);
   };
   const onDelete = async (id: string | undefined) => {
     if (id) {
@@ -179,26 +202,30 @@ export default function PerfumeEditForm({
   };
   const [showUploadButtons, setShowUploadButtons] = useState<boolean>(false);
   const [imageObjectKey, setImageObjectKey] = useState<string>(
-    perfume ? perfume.imageObjectKey : ""
+    perfume ? perfume.perfume.imageObjectKey : ""
   );
   const [imageUrl, setImageUrl] = useState<string | null>(
-    perfume ? perfume.imagerUrl : ""
+    perfume ? perfume.perfume.imagerUrl : ""
   );
   const onUpload = async (guid: string | undefined) => {
-    if (perfume?.id && guid) {
+    if (perfume?.perfume.id && guid) {
       setImageObjectKey(guid);
       setImageUrl(getImageUrl(guid, r2_api_address));
-      const result = await updateImageGuid(perfume.id, guid);
+      const result = await updateImageGuid(perfume.perfume.id, guid);
       if (result.ok) showSuccess("Image upload successful");
       else showError("Image upload failed", result.error ?? "unknown error");
     }
   };
   const amount = form.watch("amount");
   useEffect(() => {
-    if (!perfume?.id) {
-       form.setValue("mlLeft", amount);
+    if (!perfume?.perfume.id) {
+      form.setValue("mlLeft", amount);
     }
   }, [amount]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -222,10 +249,7 @@ export default function PerfumeEditForm({
                 />
               </div>
               {showUploadButtons && (
-                <UploadComponent
-                  onUpload={onUpload}
-                  r2_api_address={r2_api_address}
-                />
+                <UploadComponent onUpload={onUpload} />
               )}
             </div>
             <div className="text-center">
@@ -398,7 +422,7 @@ export default function PerfumeEditForm({
                   modalButtonText="Delete"
                   message="Are you sure you want to delete this Perfume?"
                   onButton1={() => {
-                    onDelete(perfume?.id);
+                    onDelete(perfume?.perfume.id);
                   }}
                   button1text="Delete"
                   onButton2={null}
@@ -407,26 +431,25 @@ export default function PerfumeEditForm({
               </div>
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2">
-                <Label>{`Last worn: ${
-                  perfumeWithWornStats?.lastWorn
+                <Label>{`Last worn: ${perfume?.lastWorn
                     ? format(
-                        new Date(perfumeWithWornStats.lastWorn),
-                        "yyyy.MM.dd"
-                      )
+                      new Date(perfume?.lastWorn),
+                      "yyyy.MM.dd"
+                    )
                     : ""
-                }`}</Label>
+                  }`}</Label>
                 <Separator orientation="vertical" className="h-6" />
-                <Label>{`Worn ${perfumeWithWornStats?.wornTimes} times`}</Label>
+                <Label>{`Worn ${perfume?.wornTimes} times`}</Label>
               </div>
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2">
-                <Label>Usage: {perfumeWithWornStats?.burnRatePerYearMl?.toFixed(1)} ml/year</Label>
+                <Label>Usage: {perfume?.burnRatePerYearMl?.toFixed(1)} ml/year</Label>
                 <Separator orientation="vertical" className="h-6" />
-                <Label>{perfumeWithWornStats?.yearsLeft?.toFixed(1)} years left</Label>
+                <Label>{perfume?.yearsLeft?.toFixed(1)} years left</Label>
               </div>
               <Separator className="mb-2"></Separator>
               <SprayOnComponent
-                perfumeId={perfume?.id}
+                perfumeId={perfume?.perfume.id}
                 onSuccess={null}
                 className=""
                 isRandomPerfume={isRandomPerfume}

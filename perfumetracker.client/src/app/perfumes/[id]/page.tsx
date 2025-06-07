@@ -1,10 +1,4 @@
 import PerfumeEditForm from "@/components/perfume-edit-form";
-import { notFound } from "next/navigation";
-import { getPerfume } from "@/services/perfume-service";
-import { TagDTO } from "@/dto/TagDTO";
-import { getTags } from "@/services/tag-service";
-import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
-import { env } from "process";
 
 export const dynamic = 'force-dynamic'
 
@@ -16,21 +10,5 @@ interface EditPerfumePageProps {
 
 export default async function EditPerfumePage(props: EditPerfumePageProps) {
     const params = await props.params;
-    let perfume: PerfumeWithWornStatsDTO | null = null;
-    try {
-        perfume = await getPerfume(params.id);
-    } catch (error) {
-      console.log("Failed to fetch perfume", error);
-    }
-    if (!perfume) return notFound();
-    const allTags = await getTags();
-    const tags: TagDTO[] = [];
-    perfume.perfume.tags.forEach(x => {
-        tags.push({
-            id: x.id,
-            tagName: x.tagName,
-            color: x.color
-        })
-    });
-    return <PerfumeEditForm perfumeWithWornStats={perfume} perfumesTags={tags} allTags={allTags} r2_api_address={env.NEXT_PUBLIC_R2_API_ADDRESS} isRandomPerfume={false}></PerfumeEditForm>
+    return <PerfumeEditForm perfumeId={params.id} isRandomPerfume={false}></PerfumeEditForm>
 }

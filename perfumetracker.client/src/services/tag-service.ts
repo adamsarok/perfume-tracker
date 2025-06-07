@@ -1,35 +1,29 @@
 import { TagDTO } from "@/dto/TagDTO";
 import { TagStatDTO } from "@/dto/TagStatDTO";
 import { ActionResult } from "@/dto/ActionResult";
-import { getPerfumeTrackerApiAddress } from "./conf-service";
-import { api } from "./auth-service";
+import { del, get, post, put } from "./axios-service";
 
 export async function getTagStats(): Promise<TagStatDTO[]> {
-  const apiUrl = await getPerfumeTrackerApiAddress();
-  const response = await api.get<TagStatDTO[]>(`${apiUrl}/tags/stats`);
+  const response = await get<TagStatDTO[]>('/tags/stats');
   return response.data;
 }
 
 export async function getTags(): Promise<TagDTO[]> {
-  const apiUrl = await getPerfumeTrackerApiAddress();
-  const response = await api.get<TagDTO[]>(`${apiUrl}/tags`);
+  const response = await get<TagDTO[]>(`/tags`);
   return response.data;
 }
 
 export async function addTag(tag: TagDTO): Promise<ActionResult> {
-  const apiUrl = await getPerfumeTrackerApiAddress();
-  const response = await api.post<TagDTO>(`${apiUrl}/tags`, tag);
+  const response = await post<TagDTO>('/tags', tag);
   return { ok: true, id: response.data.id };
 }
 
 export async function updateTag(tag: TagDTO): Promise<ActionResult> {
-  const apiUrl = await getPerfumeTrackerApiAddress();
-  const response = await api.put<TagDTO>(`${apiUrl}/tags/${tag.id}`, tag);
+  const response = await put<TagDTO>(`/tags/${tag.id}`, tag);
   return { ok: true, id: response.data.id };
 }
 
 export async function deleteTag(id: string): Promise<ActionResult> {
-  const apiUrl = await getPerfumeTrackerApiAddress();
-  const response = await api.delete<TagDTO>(`${apiUrl}/tags/${id}`);
+  const response = await del<TagDTO>(`/tags/${id}`);
   return { ok: true, id: response.data.id };
 }

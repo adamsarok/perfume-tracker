@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getCurrentUser, logout } from "@/services/auth-service";
+import { getCurrentUser, logout } from "@/services/axios-service";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react";
@@ -14,17 +14,28 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<{ email: string } | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted) return;
+
     console.log('Layout effect running, pathname:', pathname);
-    
+
     const checkAuth = async () => {
+      if (!hasMounted) return;
+
       console.log('Checking auth status...');
       try {
         const currentUser = await getCurrentUser();
+        if (!hasMounted) return;
+
         console.log('Auth check result:', currentUser ? 'authenticated' : 'not authenticated');
         setUser(currentUser);
-        
+
         // Only redirect if we're not on the login page and there's no user
         if (!currentUser && pathname !== '/login') {
           console.log('No user found, redirecting to login');
@@ -34,6 +45,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           router.push('/');
         }
       } catch (error) {
+        if (!hasMounted) return;
+
         console.error('Auth check failed:', error);
         // Don't redirect on error if we're already on the login page
         if (pathname !== '/login') {
@@ -41,7 +54,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           router.push('/login');
         }
       } finally {
-        setIsLoading(false);
+        if (hasMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -53,9 +68,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     }
 
     checkAuth();
-  }, [pathname, router]);
+  }, [pathname, hasMounted]);
 
   const handleLogout = async () => {
+    if (!hasMounted) return;
     console.log('Logout initiated');
     try {
       await logout();

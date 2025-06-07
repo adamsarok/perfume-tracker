@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/services/auth-service";
+import { login } from "@/services/axios-service";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,7 +18,7 @@ export default function LoginPage() {
       await login(email, password);
       router.push("/"); // Redirect to home page after successful login
     } catch (err) {
-      setError("Invalid email or password");
+      setError("Invalid email or password:" + err);
     }
   };
 
