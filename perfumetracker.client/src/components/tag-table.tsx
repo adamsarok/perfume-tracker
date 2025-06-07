@@ -38,7 +38,7 @@ export default function TagTable() {
       setTags(tags.filter((x) => x.id != id));
       showSuccess(`Tag ${tag} deleted`);
     } else {
-      showError("Tag add failed", result.error);
+      showError("Tag delete failed", result.error);
     }
   };
   const onUpdate = async (id: string, tag: string) => {

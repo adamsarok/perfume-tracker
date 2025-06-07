@@ -2,17 +2,20 @@
 
 namespace PerfumeTracker.Server.Features.Auth;
 public static class SeedAdmin {
+	public const string USERNAME = "admin";
+	public const string PASSWORD = "admin";
+	public const string EMAIL = "admin@example.com";
 	public static async Task SeedAdminAsync(IServiceProvider serviceProvider) {
 		var userManager = serviceProvider.GetRequiredService<UserManager<PerfumeIdentityUser>>();
-		var user = await userManager.FindByNameAsync("admin");
+		var user = await userManager.FindByNameAsync(USERNAME);
 
 		if (user == null) {
 			user = new PerfumeIdentityUser {
-				UserName = "admin",
-				Email = "admin@example.com",
+				UserName = USERNAME,
+				Email = EMAIL,
 				EmailConfirmed = true
 			};
-			var result = await userManager.CreateAsync(user, "admin");
+			var result = await userManager.CreateAsync(user, PASSWORD);
 			if (!result.Succeeded) {
 				throw new InvalidOperationException("Failed to create admin user: " + string.Join(", ", result.Errors));
 			}
