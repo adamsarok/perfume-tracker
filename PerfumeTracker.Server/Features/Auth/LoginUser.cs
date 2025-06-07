@@ -24,6 +24,7 @@ public class LoginEndpoint : ICarterModule {
 
 			  context.Response.Cookies.Append("jwt", token, cookieOptions);
 			  context.Response.Cookies.Append("X-Username", user.UserName ?? string.Empty, cookieOptions);
+			  context.Response.Cookies.Append("X-User-Id", user.Id.ToString(), cookieOptions);
 
 			  return Results.Ok(new { message = "Logged in successfully" });
 		  }).WithTags("Auth")

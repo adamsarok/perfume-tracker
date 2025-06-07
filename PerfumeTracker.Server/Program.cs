@@ -67,8 +67,7 @@ builder.Services.Configure<IdentityOptions>(options => {
 	options.Lockout.MaxFailedAccessAttempts = 5;
 	options.Lockout.AllowedForNewUsers = true;
 
-	options.User.AllowedUserNameCharacters =
-	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+	options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
 	options.User.RequireUniqueEmail = false;
 });
 
@@ -115,6 +114,8 @@ builder.Services.AddMediatR(config => {
 	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
@@ -142,10 +143,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
     await dbContext.Database.MigrateAsync();
-    await SeedUserProfiles.SeedUserProfilesAsync(dbContext);
 	await SeedAchievements.SeedAchievementsAsync(dbContext);
 	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
-	await SeedAdmin.SeedAdminAsync(scope.ServiceProvider);
+	await SeedAdmin.SeedAdminAsync(scope.ServiceProvider, dbContext);
 }
 
 app.UseExceptionHandler();

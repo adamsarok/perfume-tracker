@@ -1,6 +1,6 @@
 ﻿namespace PerfumeTracker.Server.Models;
 
-public partial class Perfume : Entity {
+public partial class Perfume : UserEntity {
 	public string House { get; set; } = null!;
 	public string PerfumeName { get; set; } = null!;
 	public double Rating { get; set; }
