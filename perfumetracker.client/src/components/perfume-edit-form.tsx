@@ -47,18 +47,27 @@ interface PerfumeEditFormProps {
 }
 
 const formSchema = z.object({
-  house: z.string().min(1, {
-    message: "House must be at least 1 characters.",
-  }).trim(),
-  perfume: z.string().min(1, {
-    message: "Perfume must be at least 1 characters.",
-  }).trim(),
+  house: z
+    .string()
+    .min(1, {
+      message: "House must be at least 1 characters.",
+    })
+    .trim(),
+  perfume: z
+    .string()
+    .min(1, {
+      message: "Perfume must be at least 1 characters.",
+    })
+    .trim(),
   rating: z.coerce.number().min(0).max(10),
   amount: z.coerce.number().min(0).max(200),
   mlLeft: z.coerce.number().min(0).max(200),
-  notes: z.string().min(1, {
-    message: "Notes must be at least 1 characters.",
-  }).trim(),
+  notes: z
+    .string()
+    .min(1, {
+      message: "Notes must be at least 1 characters.",
+    })
+    .trim(),
   winter: z.boolean(),
   summer: z.boolean(),
   autumn: z.boolean(),
@@ -72,50 +81,61 @@ export default function PerfumeEditForm({
   const [allTags, setAllTags] = useState<TagDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [perfume, setPerfume] = useState<PerfumeWithWornStatsDTO | null>(null);
-  const [r2_api_address, setR2ApiAddress] = useState<string | undefined>(undefined);
+  const [r2_api_address, setR2ApiAddress] = useState<string | undefined>(
+    undefined
+  );
+  const [topChipProps, setTopChipProps] = useState<ChipProp[]>([]);
+  const [bottomChipProps, setBottomChipProps] = useState<ChipProp[]>([]);
 
   useEffect(() => {
-    const loadTags = async () => {
+    const load = async () => {
       try {
         const loadedTags = await getTags();
+        if (perfumeId) {
+          const perfume = await getPerfume(perfumeId);
+          setPerfume(perfume);
+        }
         setAllTags(loadedTags);
+
+        const topChips: ChipProp[] = [];
+        const bottomChips: ChipProp[] = [];
+        loadedTags.forEach((allTag) => {
+          if (
+            !perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)
+          ) {
+            bottomChips.push({
+              name: allTag.tagName,
+              color: allTag.color,
+              className: "",
+              onChipClick: null,
+            });
+          }
+        });
+        perfume?.perfume.tags.forEach((x) => {
+          topChips.push({
+            name: x.tagName,
+            color: x.color,
+            className: "",
+            onChipClick: null,
+          });
+        });
+        setTopChipProps(topChips);
+        setBottomChipProps(bottomChips);
+        if (!perfume) return notFound();
       } catch (error) {
-        console.error('Failed to load tags:', error);
+        console.error("Failed to load perfume/tags:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    const loadPerfume = async () => {
-      if (!perfumeId) return;
-      try {
-        const perfume = await getPerfume(perfumeId);
-        setPerfume(perfume);
-      } catch (error) {
-        console.log("Failed to fetch perfume", error);
-      }
-      if (!perfume) return notFound();
-    }
-
-    loadTags();
-    loadPerfume();
-    getR2ApiAddress().then(address => setR2ApiAddress(address));
+    load();
+    getR2ApiAddress().then((address) => setR2ApiAddress(address));
   }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: perfume ? {
-      house: perfume.perfume.house,
-      perfume: perfume.perfume.perfumeName,
-      rating: perfume.perfume.rating,
-      amount: perfume.perfume.ml,
-      mlLeft: perfume.perfume.mlLeft,
-      notes: perfume.perfume.notes,
-      winter: perfume.perfume.winter,
-      summer: perfume.perfume.summer,
-      autumn: perfume.perfume.autumn,
-      spring: perfume.perfume.spring,
-    } : {
+    defaultValues: {
       house: "",
       perfume: "",
       rating: 0,
@@ -128,6 +148,23 @@ export default function PerfumeEditForm({
       spring: true,
     },
   });
+
+  useEffect(() => {
+    if (perfume) {
+      form.reset({
+        house: perfume.perfume.house,
+        perfume: perfume.perfume.perfumeName,
+        rating: perfume.perfume.rating,
+        amount: perfume.perfume.ml,
+        mlLeft: perfume.perfume.mlLeft,
+        notes: perfume.perfume.notes,
+        winter: perfume.perfume.winter,
+        summer: perfume.perfume.summer,
+        autumn: perfume.perfume.autumn,
+        spring: perfume.perfume.spring,
+      });
+    }
+  }, [perfume, form]);
 
   const router = useRouter();
 
@@ -163,32 +200,28 @@ export default function PerfumeEditForm({
     [router]
   );
 
-  const topChipProps: ChipProp[] = [];
-  const bottomChipProps: ChipProp[] = [];
-  allTags.forEach((allTag) => {
-    if (!perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)) {
-      bottomChipProps.push({
-        name: allTag.tagName,
-        color: allTag.color,
-        className: "",
-        onChipClick: null,
-      });
-    }
-  });
-  perfume?.perfume.tags.forEach((x) => {
-    topChipProps.push({
-      name: x.tagName,
-      color: x.color,
-      className: "",
-      onChipClick: null,
-    });
-  });
   const selectChip = (chip: string) => {
     const tag = allTags.find((x) => x.tagName === chip);
-    if (tag) setPerfume({ ...perfume, perfume: { ...perfume?.perfume, tags: [...(perfume?.perfume.tags ?? []), tag] } } as unknown as PerfumeWithWornStatsDTO);
+    if (tag && perfume) {
+      setPerfume({
+        ...perfume,
+        perfume: {
+          ...perfume.perfume,
+          tags: [...perfume.perfume.tags, tag],
+        },
+      } as PerfumeWithWornStatsDTO);
+    }
   };
   const unSelectChip = (chip: string) => {
-    setPerfume({ ...perfume, perfume: { ...perfume?.perfume, tags: (perfume?.perfume.tags ?? []).filter((x) => x.tagName != chip) } } as unknown as PerfumeWithWornStatsDTO);
+    if (perfume) {
+      setPerfume({
+        ...perfume,
+        perfume: {
+          ...perfume.perfume,
+          tags: [...perfume.perfume.tags.filter((x) => x.tagName != chip)],
+        },
+      } as PerfumeWithWornStatsDTO);
+    }
   };
   const onDelete = async (id: string | undefined) => {
     if (id) {
@@ -248,9 +281,7 @@ export default function PerfumeEditForm({
                   src={imageUrl || "/perfume-icon.svg"}
                 />
               </div>
-              {showUploadButtons && (
-                <UploadComponent onUpload={onUpload} />
-              )}
+              {showUploadButtons && <UploadComponent onUpload={onUpload} />}
             </div>
             <div className="text-center">
               <FormField
@@ -431,19 +462,19 @@ export default function PerfumeEditForm({
               </div>
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2">
-                <Label>{`Last worn: ${perfume?.lastWorn
-                    ? format(
-                      new Date(perfume?.lastWorn),
-                      "yyyy.MM.dd"
-                    )
+                <Label>{`Last worn: ${
+                  perfume?.lastWorn
+                    ? format(new Date(perfume?.lastWorn), "yyyy.MM.dd")
                     : ""
-                  }`}</Label>
+                }`}</Label>
                 <Separator orientation="vertical" className="h-6" />
                 <Label>{`Worn ${perfume?.wornTimes} times`}</Label>
               </div>
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2">
-                <Label>Usage: {perfume?.burnRatePerYearMl?.toFixed(1)} ml/year</Label>
+                <Label>
+                  Usage: {perfume?.burnRatePerYearMl?.toFixed(1)} ml/year
+                </Label>
                 <Separator orientation="vertical" className="h-6" />
                 <Label>{perfume?.yearsLeft?.toFixed(1)} years left</Label>
               </div>
