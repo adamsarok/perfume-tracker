@@ -11,8 +11,8 @@ public class UpdatePerfumeEndpoint : ICarterModule {
 		app.MapPut("/api/perfumes/{id}", async (Guid id, PerfumeDto dto, ISender sender) =>
 			await sender.Send(new UpdatePerfumeCommand(id, dto)))
 			.WithTags("Perfumes")
-			.WithName("UpdatePerfume");
-
+			.WithName("UpdatePerfume")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 public record class PerfumeUpdatedNotification(Guid PerfumeId) : INotification;

@@ -7,7 +7,8 @@ public class GetWornPerfumeIdsEndpoint : ICarterModule {
 		app.MapGet("/api/perfume-events/worn-perfumes/{daysBefore}", async (int daysBefore, ISender sender) =>
 			await sender.Send(new GetWornPerfumeIdsQuery(daysBefore)))
 			.WithTags("PerfumeWorns")
-			.WithName("GetPerfumesBefore");
+			.WithName("GetPerfumesBefore")
+			.RequireAuthorization(Policies.READ);
 	}
 }
 public class GetWornPerfumeIdsHandler(PerfumeTrackerContext context)

@@ -1,9 +1,9 @@
 import { showError } from "@/services/toasty-service";
 import FileSelector from "./file-selector";
+import { getR2ApiAddress } from "@/services/conf-service";
 
 interface UploadComponentProps {
   onUpload: (guid: string | undefined) => void;
-  r2_api_address: string | undefined;
 }
 
 /*
@@ -14,9 +14,11 @@ Error Handling: Handle potential errors and edge cases, such as file upload fail
 */
 
 
-export default function UploadComponent({ onUpload, r2_api_address }: UploadComponentProps) {
+export default function UploadComponent({ onUpload }: UploadComponentProps) {
   const handleUpload = async (file: File) => {
     try {
+      const r2_api_address = await getR2ApiAddress();
+
       if (!r2_api_address) {
         showError("Error uploading file: R2 API address is not configured");
         return;

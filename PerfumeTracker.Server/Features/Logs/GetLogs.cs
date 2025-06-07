@@ -19,6 +19,7 @@ public class GetLogsEndpoint : ICarterModule {
 				return Results.Ok(new PaginatedResult<LogEntry>(page, pageSize, totalCount, logs));
 			})
 		.WithTags("Logs")
-		.WithName("GetLogs");
+		.WithName("GetLogs")
+		.RequireAuthorization(Policies.ADMIN);
 	}
 }

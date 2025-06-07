@@ -5,7 +5,8 @@ public class UpdateTagEndpoint : ICarterModule {
 		app.MapPut("/api/tags/{id}", async (Guid id, TagDto dto, ISender sender) =>
 			await sender.Send(new UpdateTagCommand(id, dto)))
 			.WithTags("Tags")
-			.WithName("UpdateTag");
+			.WithName("UpdateTag")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 

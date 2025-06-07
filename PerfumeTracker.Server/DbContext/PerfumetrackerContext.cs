@@ -1,6 +1,9 @@
-﻿namespace PerfumeTracker.Server.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-public partial class PerfumeTrackerContext : DbContext {
+namespace PerfumeTracker.Server.Models;
+
+public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUser, PerfumeIdentityRole, Guid> {
 	public static readonly Guid DefaultUserID = new Guid("dc972e5e-1cd9-4105-92e9-f37bb9958dd9");
 	private Guid currentUserID = DefaultUserID;
 	public PerfumeTrackerContext() {
@@ -24,6 +27,8 @@ public partial class PerfumeTrackerContext : DbContext {
 	public virtual DbSet<UserMission> UserMissions { get; set; }
 	public virtual DbSet<LogEntry> LogEntries { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
+		base.OnModelCreating(modelBuilder);
+
 		modelBuilder.Entity<OutboxMessage>(entity => {
 			entity.HasKey(e => e.Id).HasName("OutboxMessage_pkey");
 			entity.ToTable("OutboxMessage");
@@ -170,7 +175,7 @@ public partial class PerfumeTrackerContext : DbContext {
 			entity.HasQueryFilter(x => !x.IsDeleted && x.UserId == currentUserID);
 		});
 
-		modelBuilder.Entity<LogEntry>(entity => { 
+		modelBuilder.Entity<LogEntry>(entity => {
 			entity.ToTable("log")
 				.HasNoKey();
 			entity.Property(x => x.Message).HasColumnName("message");
@@ -180,8 +185,10 @@ public partial class PerfumeTrackerContext : DbContext {
 			entity.Property(x => x.Timestamp).HasColumnName("timestamp");
 		});
 
-		OnModelCreatingPartial(modelBuilder);
+		//modelBuilder.Entity<IdentityUserRole<Guid>>(entity => {
+		//	entity.HasMany<PerfumeIdentityUser>()
+		//		.WithOne()
+		//		.HasForeignKey(ur => ur.UserId).IsRequired();
+		//}
 	}
-
-	partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

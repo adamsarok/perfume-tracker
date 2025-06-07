@@ -1,12 +1,35 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using PerfumeTracker.Server.Features.Auth;
 using System.Net;
 using System.Net.Http.Json;
 
 namespace PerfumeTracker.xTests;
-public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
+public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
+	private readonly WebApplicationFactory<Program> factory;
+	private readonly HttpClient authenticatedClient;
 	static bool dbUp = false;
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+	public TagTests(WebApplicationFactory<Program> factory) {
+		this.factory = factory;
+		this.authenticatedClient = CreateAuthenticatedClient().Result;
+	}
+
+	private async Task<HttpClient> CreateAuthenticatedClient() {
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions {
+			AllowAutoRedirect = false,
+			HandleCookies = true
+		});
+		var loginRequest = new LoginRequest {
+			Email = SeedAdmin.EMAIL,
+			Password = SeedAdmin.PASSWORD
+		};
+		var response = await client.PostAsJsonAsync("/api/identity/account/login", loginRequest);
+		response.EnsureSuccessStatusCode();
+		return client;
+	}
+
 	private async Task PrepareData() {          //fixtures don't have DI
 		await semaphore.WaitAsync();
 		try {
@@ -40,8 +63,7 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 	public async Task GetTag() {
 		await PrepareData();
 		var tag = await GetFirst();
-		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/tags/{tag.Id}");
+		var response = await authenticatedClient.GetAsync($"/api/tags/{tag.Id}");
 		response.EnsureSuccessStatusCode();
 
 		var tags = await response.Content.ReadFromJsonAsync<TagDto>();

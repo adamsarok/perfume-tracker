@@ -12,7 +12,8 @@ public class AddPerfumeEndpoint : ICarterModule {
 			var result = await sender.Send(new AddPerfumeCommand(perfume));
 			return Results.CreatedAtRoute("GetPerfume", new { id = result.Id }, result);
 		}).WithTags("Perfumes")
-			.WithName("PostPerfume");
+			.WithName("PostPerfume")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 public record class PerfumeAddedNotification(Guid PerfumeId) : INotification;

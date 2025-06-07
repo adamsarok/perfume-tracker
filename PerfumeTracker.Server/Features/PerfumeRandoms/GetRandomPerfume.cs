@@ -13,7 +13,8 @@ public class GetRandomPerfumeEndpoint : ICarterModule {
 			return result.PerfumeId;
 		})
 			.WithTags("PerfumeRandoms")
-			.WithName("GetPerfumeSuggestion");
+			.WithName("GetPerfumeSuggestion")
+			.RequireAuthorization(Policies.READ);
 	}
 }
 public record class RandomPerfumeAddedEvent(Guid PerfumeId) : INotification;

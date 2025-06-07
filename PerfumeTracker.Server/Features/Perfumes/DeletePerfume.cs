@@ -7,7 +7,8 @@ public class DeletePerfumeEndpoint : ICarterModule {
 			var result = await sender.Send(new DeletePerfumeCommand(id));
 			return Results.NoContent();
 		}).WithTags("Perfumes")
-			.WithName("DeletePerfume");
+			.WithName("DeletePerfume")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 public class DeletePerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<DeletePerfumeCommand>  {

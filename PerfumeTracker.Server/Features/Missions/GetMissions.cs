@@ -16,7 +16,8 @@ public class GetActiveMissionsEndpoint : ICarterModule {
 			return await sender.Send(new GetActiveMissionsQuery());
 		})
 			.WithTags("Missions")
-			.WithName("GetActiveMissions");
+			.WithName("GetActiveMissions")
+			.RequireAuthorization(Policies.READ);
 	}
 }
 public class GetActiveMissionsHandler(PerfumeTrackerContext context)

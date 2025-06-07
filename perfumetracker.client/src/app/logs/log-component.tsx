@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { get } from "@/services/axios-service";
+import { PaginatedResult } from "@/dto/PaginatedResult";
 
 interface LogEntry {
   message: string;
@@ -17,11 +19,7 @@ interface LogEntry {
   properties?: string;
 }
 
-interface LogsComponentProps {
-    readonly apiUrl: string;
-}
-
-export default function LogsComponent({ apiUrl }: LogsComponentProps) {
+export default function LogsComponent() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [minLevel, setMinLevel] = useState(4);
@@ -36,10 +34,9 @@ export default function LogsComponent({ apiUrl }: LogsComponentProps) {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await fetch(`${apiUrl}/logs?minLevel=${minLevel}&page=${currentPage}&pageSize=${pageSize}`);
-        const data = await response.json();
-        setLogs(data.items);
-        setTotalPages(Math.ceil(data.totalCount / pageSize));
+        const response = await get<PaginatedResult<LogEntry>>(`/logs?minLevel=${minLevel}&page=${currentPage}&pageSize=${pageSize}`);
+        setLogs(response.data.items);
+        setTotalPages(Math.ceil(response.data.totalCount / pageSize));
       } catch (error) {
         console.error("Failed to fetch logs:", error);
       } finally {

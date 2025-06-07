@@ -1,7 +1,7 @@
 ﻿namespace PerfumeTracker.Server.Features.Achievements;
 
 public static class SeedAchievements{
-	public static async Task DoSeed(PerfumeTrackerContext context) {
+	public static async Task SeedAchievementsAsync(PerfumeTrackerContext context) {
 		if (!await context.Achievements.AnyAsync()) {
 			await context.Achievements.AddRangeAsync(
 				perfumesAdded

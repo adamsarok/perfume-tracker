@@ -7,7 +7,8 @@ public class UpsertUserProfilesModule : ICarterModule {
 		app.MapPut("/api/user-profiles", async (UserProfile userProfile, ISender sender) =>
 			await sender.Send(new UpsertUserProfileCommand(userProfile)))
 			.WithTags("UserProfiles")
-			.WithName("UpsertUserProfile");
+			.WithName("UpsertUserProfile")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 

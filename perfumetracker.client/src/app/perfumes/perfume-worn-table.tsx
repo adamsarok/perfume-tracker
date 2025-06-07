@@ -150,10 +150,6 @@ export default function PerfumeWornTable({
     };
   }, [list.items]);
 
-  // const totalPerfumesOwned = useMemo(() => {
-  //   return list.items.filter(x => x.ml > 0).length;
-  // }, [list.items]);
-
   return (
     <div>
       <Label htmlFor="filtering">Filtering</Label>

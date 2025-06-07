@@ -7,7 +7,8 @@ public class GetTagStatsEndpoint : ICarterModule {
 		app.MapGet("/api/tags/stats", async (ISender sender) =>
 				await sender.Send(new GetTagsQuery()))
 				.WithTags("Tags")
-				.WithName("GetTagStats");
+				.WithName("GetTagStats")
+				.RequireAuthorization(Policies.READ);
 	}
 }
 public class GetTagStatsHandler(PerfumeTrackerContext context) : IQueryHandler<GetTagStatsQuery, List<TagStatDto>> {

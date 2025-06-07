@@ -11,7 +11,8 @@ public class GetWornPerfumesEndpoint : ICarterModule {
 			return await sender.Send(new GetWornPerfumesQuery(null, pageSize));
 		})
 		.WithTags("PerfumeWorns")
-		.WithName("GetPerfumeWorns");
+		.WithName("GetPerfumeWorns")
+		.RequireAuthorization(Policies.READ);
 	}
 }
 public class GetWornPerfumesHandler(PerfumeTrackerContext context)

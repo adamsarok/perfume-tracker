@@ -1,16 +1,23 @@
 using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
+using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Server.Helpers;
-using System.Text;
-using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
+using System;
+using System.Diagnostics;
+using System.Text;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,12 +51,71 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
+builder.Services.AddIdentity<PerfumeIdentityUser, PerfumeIdentityRole>()
+	.AddEntityFrameworkStores<PerfumeTrackerContext>()
+	.AddDefaultTokenProviders();
+
+builder.Services.Configure<IdentityOptions>(options => {
+	options.Password.RequireDigit = false;
+	options.Password.RequireLowercase = false;
+	options.Password.RequireNonAlphanumeric = false;
+	options.Password.RequireUppercase = false;
+	options.Password.RequiredLength = 5;
+	options.Password.RequiredUniqueChars = 1;
+
+	options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+	options.Lockout.MaxFailedAccessAttempts = 5;
+	options.Lockout.AllowedForNewUsers = true;
+
+	options.User.AllowedUserNameCharacters =
+	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+	options.User.RequireUniqueEmail = false;
+});
+
+builder.Services.ConfigureApplicationCookie(options => {
+	options.Cookie.HttpOnly = true;
+	options.ExpireTimeSpan = TimeSpan.FromHours(24);
+
+	options.LoginPath = "/api/identity/account/login";
+	options.AccessDeniedPath = "/api/identity/account/access-denied";
+	options.SlidingExpiration = true;
+});
+
+builder.Services.AddAuthorization(options => {
+	options.AddPolicy(Policies.READ, p => p.RequireRole(Roles.ADMIN, Roles.DEMO, Roles.USER));
+	options.AddPolicy(Policies.WRITE, p => p.RequireRole(Roles.ADMIN, Roles.USER));
+	options.AddPolicy(Policies.ADMIN, p => p.RequireRole(Roles.ADMIN));
+});
+
+builder.Services.AddAuthentication(options => {
+	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options => {
+	options.TokenValidationParameters = new TokenValidationParameters {
+		ValidateIssuer = true,
+		ValidateAudience = true,
+		ValidateLifetime = true,
+		ValidateIssuerSigningKey = true,
+		ValidIssuer = builder.Configuration["Jwt:Issuer"],
+		ValidAudience = builder.Configuration["Jwt:Audience"],
+		IssuerSigningKey = new SymmetricSecurityKey(
+			Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+	};
+	options.Events = new JwtBearerEvents {
+		OnMessageReceived = context => {
+			context.Token = context.Request.Cookies["jwt"];
+			return Task.CompletedTask;
+		}
+	};
+});
+
 var assembly = typeof(Program).Assembly;
 builder.Services.AddMediatR(config => {
 	config.RegisterServicesFromAssembly(assembly);
 	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddCarter();
@@ -76,8 +142,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
     await dbContext.Database.MigrateAsync();
-    await SeedUserProfiles.DoSeed(dbContext);
-	await SeedAchievements.DoSeed(dbContext);
+    await SeedUserProfiles.SeedUserProfilesAsync(dbContext);
+	await SeedAchievements.SeedAchievementsAsync(dbContext);
+	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
+	await SeedAdmin.SeedAdminAsync(scope.ServiceProvider);
 }
 
 app.UseExceptionHandler();
@@ -90,6 +158,9 @@ app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthCh
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();
 

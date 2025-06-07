@@ -9,8 +9,9 @@ public class AcceptRandomPerfumeEndpoint : ICarterModule {
 			await sender.Send(new AcceptRandomPerfumeCommand(randomsId));
 			return Results.Created();
 		})
-				.WithTags("PerfumeRandoms")
-				.WithName("AcceptPerfumeSuggestion");
+			.WithTags("PerfumeRandoms")
+			.WithName("AcceptPerfumeSuggestion")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 public record class RandomsAcceptedNotification() : INotification;

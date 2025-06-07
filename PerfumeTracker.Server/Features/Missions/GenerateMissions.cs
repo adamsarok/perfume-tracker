@@ -7,7 +7,8 @@ public class GenerateMissionsEndpoint : ICarterModule {
 			return await sender.Send(new GenerateMissionCommand());
 		})
 			.WithTags("Missions")
-			.WithName("GenerateMissions");
+			.WithName("GenerateMissions")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 public class GenerateMissions(PerfumeTrackerContext context) : ICommandHandler<GenerateMissionCommand> {
