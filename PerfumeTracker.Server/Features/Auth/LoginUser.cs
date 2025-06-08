@@ -4,7 +4,8 @@ public class LoginEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/login", async ([FromBody] LoginRequest request,
 		  HttpContext httpContext, ISender sender) => {
-			  return await sender.Send(new LoginUserCommand(request.Email, request.Password, httpContext));
+			  var result = await sender.Send(new LoginUserCommand(request.Email, request.Password, httpContext));
+			  return result.Result;
 		  }).WithTags("Auth")
 			.WithName("LoginUser")
 			.AllowAnonymous();

@@ -2,8 +2,7 @@
 using System.Threading.RateLimiting;
 
 namespace PerfumeTracker.Server.Startup;
-
-public static class SetupRateLimiter {
+public static partial class Startup {
 	public static void SetupRateLimiting(IServiceCollection services) {
 		services.AddRateLimiter(options => {
 			options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext => {

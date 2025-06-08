@@ -54,66 +54,8 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
-SetupRateLimiter.SetupRateLimiting(builder.Services);
-
-builder.Services.AddIdentity<PerfumeIdentityUser, PerfumeIdentityRole>()
-	.AddEntityFrameworkStores<PerfumeTrackerContext>()
-	.AddDefaultTokenProviders();
-
-var jwtConfig = new JwtConfiguration(builder.Configuration);
-
-builder.Services.Configure<IdentityOptions>(options => {
-	options.Password.RequireDigit = true;
-	options.Password.RequireLowercase = true;
-	options.Password.RequireNonAlphanumeric = false;
-	options.Password.RequireUppercase = true;
-	options.Password.RequiredLength = 12;
-	options.Password.RequiredUniqueChars = 5;
-
-	options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
-	options.Lockout.MaxFailedAccessAttempts = 5;
-	options.Lockout.AllowedForNewUsers = true;
-
-	options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
-	options.User.RequireUniqueEmail = true;
-});
-
-
-builder.Services.ConfigureApplicationCookie(options => {
-	options.Cookie.HttpOnly = true;
-	options.ExpireTimeSpan = TimeSpan.FromHours(jwtConfig.ExpirationHours);
-
-	options.LoginPath = "/api/identity/account/login";
-	options.AccessDeniedPath = "/api/identity/account/access-denied";
-	options.SlidingExpiration = true;
-});
-
-builder.Services.AddAuthorization(options => {
-	options.AddPolicy(Policies.READ, p => p.RequireRole(Roles.ADMIN, Roles.DEMO, Roles.USER));
-	options.AddPolicy(Policies.WRITE, p => p.RequireRole(Roles.ADMIN, Roles.USER));
-	options.AddPolicy(Policies.ADMIN, p => p.RequireRole(Roles.ADMIN));
-});
-
-builder.Services.AddAuthentication(options => {
-	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options => {
-	options.TokenValidationParameters = new TokenValidationParameters {
-		ValidateIssuer = true,
-		ValidateAudience = true,
-		ValidateLifetime = true,
-		ValidateIssuerSigningKey = true,
-		ValidIssuer = jwtConfig.Issuer,
-		ValidAudience = jwtConfig.Audience,
-		IssuerSigningKey = jwtConfig.Key
-	};
-	options.Events = new JwtBearerEvents {
-		OnMessageReceived = context => {
-			context.Token = context.Request.Cookies["jwt"];
-			return Task.CompletedTask;
-		}
-	};
-});
+Startup.SetupRateLimiting(builder.Services);
+Startup.SetupAuthorizations(builder.Services, builder.Configuration);
 
 var assembly = typeof(Program).Assembly;
 builder.Services.AddMediatR(config => {
@@ -159,6 +101,7 @@ using (var scope = app.Services.CreateScope()) {
 	await seedUsers.SeedDemoUserAsync();
 }
 
+app.UseRateLimiter();
 app.UseExceptionHandler();
 app.MapCarter();
 app.UseCors(x => x.AllowAnyHeader()
