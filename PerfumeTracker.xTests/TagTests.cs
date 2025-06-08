@@ -22,8 +22,8 @@ public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
 			HandleCookies = true
 		});
 		var loginRequest = new LoginRequest {
-			Email = SeedAdmin.EMAIL,
-			Password = SeedAdmin.PASSWORD
+			Email = "TODO",
+			Password = "TODO"
 		};
 		var response = await client.PostAsJsonAsync("/api/identity/account/login", loginRequest);
 		response.EnsureSuccessStatusCode();

@@ -1,15 +1,12 @@
-﻿namespace PerfumeTracker.Server.Features.Auth;
-
-using System.IdentityModel.Tokens.Jwt;
+﻿using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
+
+namespace PerfumeTracker.Server.Features.Auth;
 
 public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, IConfiguration config) : IJwtTokenGenerator {
 	public async Task<string> GenerateToken(PerfumeIdentityUser user) {
+		var jwtConfiguration = new JwtConfiguration(config);
 		var claims = new List<Claim>
 		{
 			new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -21,21 +18,35 @@ public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, ICo
 			claims.Add(new Claim(ClaimTypes.Role, role));
 		}
 
-		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]));
-		var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+		var creds = new SigningCredentials(jwtConfiguration.Key, SecurityAlgorithms.HmacSha256);
 
 		var token = new JwtSecurityToken(
-			issuer: config["Jwt:Issuer"],
-			audience: config["Jwt:Audience"],
+			jwtConfiguration.Issuer,
+			jwtConfiguration.Audience,
 			claims: claims,
-			expires: DateTime.UtcNow.AddHours(1),
+			expires: DateTime.UtcNow.AddHours(jwtConfiguration.ExpirationHours),
 			signingCredentials: creds
 		);
 
 		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
+	public async Task WriteToken(PerfumeIdentityUser user, HttpContext context) {
+		var token = await GenerateToken(user);
+
+		var cookieOptions = new CookieOptions {
+			HttpOnly = true,
+			Secure = true,
+			SameSite = SameSiteMode.Strict,
+			Expires = DateTime.UtcNow.AddHours(24)
+		};
+
+		context.Response.Cookies.Append("jwt", token, cookieOptions);
+		context.Response.Cookies.Append("X-Username", user.UserName ?? string.Empty, cookieOptions);
+		context.Response.Cookies.Append("X-User-Id", user.Id.ToString(), cookieOptions);
+	}
 }
 
 public interface IJwtTokenGenerator {
 	Task<string> GenerateToken(PerfumeIdentityUser user);
+	Task WriteToken(PerfumeIdentityUser user, HttpContext context);
 }

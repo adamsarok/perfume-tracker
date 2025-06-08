@@ -22,35 +22,21 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hasMounted) return;
-
-    console.log('Layout effect running, pathname:', pathname);
-
     const checkAuth = async () => {
       if (!hasMounted) return;
-
-      console.log('Checking auth status...');
       try {
         const currentUser = await getCurrentUser();
         if (!hasMounted) return;
-
-        console.log('Auth check result:', currentUser ? 'authenticated' : 'not authenticated');
         setUser(currentUser);
-
-        // Only redirect if we're not on the login page and there's no user
         if (!currentUser && pathname !== '/login') {
-          console.log('No user found, redirecting to login');
           router.push('/login');
         } else if (currentUser && pathname === '/login') {
-          console.log('User found on login page, redirecting to home');
           router.push('/');
         }
       } catch (error) {
         if (!hasMounted) return;
-
         console.error('Auth check failed:', error);
-        // Don't redirect on error if we're already on the login page
         if (pathname !== '/login') {
-          console.log('Auth check error, redirecting to login');
           router.push('/login');
         }
       } finally {
@@ -60,9 +46,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Don't check auth on the login page
     if (pathname === '/login') {
-      console.log('On login page, skipping auth check');
       setIsLoading(false);
       return;
     }
@@ -72,20 +56,16 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     if (!hasMounted) return;
-    console.log('Logout initiated');
     try {
       await logout();
       setUser(null);
-      console.log('Logout successful, redirecting to login');
       router.push('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
-  // Don't show loading state on login page
   if (isLoading && pathname !== '/login') {
-    console.log('Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
@@ -93,13 +73,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Don't show navigation on login page
   if (pathname === '/login') {
-    console.log('On login page, showing login form');
     return <>{children}</>;
   }
 
-  console.log('Rendering main layout, user:', user?.email);
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
@@ -184,7 +161,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Toaster />
         <LayoutContent>{children}</LayoutContent>
       </body>
     </html>

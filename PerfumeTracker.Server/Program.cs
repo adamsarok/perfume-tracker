@@ -15,6 +15,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using System;
+using System.Data;
 using System.Diagnostics;
 using System.Text;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
@@ -55,6 +56,8 @@ builder.Services.AddIdentity<PerfumeIdentityUser, PerfumeIdentityRole>()
 	.AddEntityFrameworkStores<PerfumeTrackerContext>()
 	.AddDefaultTokenProviders();
 
+var jwtConfig = new JwtConfiguration(builder.Configuration);
+
 builder.Services.Configure<IdentityOptions>(options => {
 	options.Password.RequireDigit = false;
 	options.Password.RequireLowercase = false;
@@ -71,9 +74,11 @@ builder.Services.Configure<IdentityOptions>(options => {
 	options.User.RequireUniqueEmail = false;
 });
 
+
+
 builder.Services.ConfigureApplicationCookie(options => {
 	options.Cookie.HttpOnly = true;
-	options.ExpireTimeSpan = TimeSpan.FromHours(24);
+	options.ExpireTimeSpan = TimeSpan.FromHours(jwtConfig.ExpirationHours);
 
 	options.LoginPath = "/api/identity/account/login";
 	options.AccessDeniedPath = "/api/identity/account/access-denied";
@@ -95,10 +100,9 @@ builder.Services.AddAuthentication(options => {
 		ValidateAudience = true,
 		ValidateLifetime = true,
 		ValidateIssuerSigningKey = true,
-		ValidIssuer = builder.Configuration["Jwt:Issuer"],
-		ValidAudience = builder.Configuration["Jwt:Audience"],
-		IssuerSigningKey = new SymmetricSecurityKey(
-			Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+		ValidIssuer = jwtConfig.Issuer,
+		ValidAudience = jwtConfig.Audience,
+		IssuerSigningKey = jwtConfig.Key
 	};
 	options.Events = new JwtBearerEvents {
 		OnMessageReceived = context => {
@@ -119,6 +123,8 @@ builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
+builder.Services.AddScoped<ICreateUser, CreateUser>();
+builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
@@ -142,10 +148,12 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-    await dbContext.Database.MigrateAsync();
+	var seedUsers = scope.ServiceProvider.GetRequiredService<ISeedUsers>();
+	await dbContext.Database.MigrateAsync();
 	await SeedAchievements.SeedAchievementsAsync(dbContext);
 	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
-	await SeedAdmin.SeedAdminAsync(scope.ServiceProvider, dbContext);
+	await seedUsers.SeedAdminAsync();
+	await seedUsers.SeedDemoUserAsync();
 }
 
 app.UseExceptionHandler();

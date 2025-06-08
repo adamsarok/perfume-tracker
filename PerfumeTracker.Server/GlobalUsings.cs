@@ -10,3 +10,6 @@ global using System.Text.Json;
 global using FluentValidation;
 global using PerfumeTracker.Server.Features.Auth;
 global using System.IdentityModel.Tokens.Jwt;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Identity.Data;
+global using Microsoft.AspNetCore.Mvc;

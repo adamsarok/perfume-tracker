@@ -16,7 +16,6 @@ export async function getPerfumesFulltext(
 
 export async function getPerfume(id: string): Promise<PerfumeWithWornStatsDTO> {
   const qry = `/perfumes/${encodeURIComponent(id)}`;
-  console.log(qry);
   const response = await get<PerfumeWithWornStatsDTO>(qry);
   const r2ApiUrl = await getR2ApiUrl();
   response.data.perfume.imagerUrl = getImageUrl(response.data.perfume.imageObjectKey, r2ApiUrl);

@@ -1,34 +1,49 @@
-﻿
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
-
-namespace PerfumeTracker.Server.Features.Auth;
+﻿namespace PerfumeTracker.Server.Features.Auth;
 
 public class LoginEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/login", async ([FromBody] LoginRequest request,
-		  UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator, HttpContext context) => {
-			  var user = await userManager.FindByEmailAsync(request.Email);
-			  if (user == null || !await userManager.CheckPasswordAsync(user, request.Password)) {
-				  return Results.Unauthorized();
-			  }
-			  var token = await jwtTokenGenerator.GenerateToken(user);
-
-			  var cookieOptions = new CookieOptions {
-				  HttpOnly = true,
-				  Secure = true,
-				  SameSite = SameSiteMode.Strict,
-				  Expires = DateTime.UtcNow.AddHours(24)
-			  };
-
-			  context.Response.Cookies.Append("jwt", token, cookieOptions);
-			  context.Response.Cookies.Append("X-Username", user.UserName ?? string.Empty, cookieOptions);
-			  context.Response.Cookies.Append("X-User-Id", user.Id.ToString(), cookieOptions);
-
-			  return Results.Ok(new { message = "Logged in successfully" });
+		  HttpContext httpContext, ISender sender) => {
+			  return await sender.Send(new LoginUserCommand(request.Email, request.Password, httpContext));
 		  }).WithTags("Auth")
-			.WithName("Login")
+			.WithName("LoginUser")
 			.AllowAnonymous();
+		app.MapPost("/api/identity/account/login/demo", async (ISender sender, HttpContext httpContext) => {
+			return await sender.Send(new LoginDemoUserCommand(httpContext));
+		}).WithTags("Auth")
+			.WithName("LoginDemoUser")
+			.AllowAnonymous();
+	}
+}
+
+public record LoginUserCommand(string Email, string Password, HttpContext HttpContext) : ICommand<LoginResult>;
+public record LoginDemoUserCommand(HttpContext HttpContext) : ICommand<LoginResult>;
+public record LoginResult(IResult Result);
+public class LoginUserHandler(UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator)
+	: ICommandHandler<LoginUserCommand, LoginResult> {
+	public async Task<LoginResult> Handle(LoginUserCommand command, CancellationToken cancellationToken) {
+		var user = await userManager.FindByEmailAsync(command.Email);
+		if (user == null || !await userManager.CheckPasswordAsync(user, command.Password)) {
+			return new LoginResult(Results.Unauthorized());
+		}
+		await jwtTokenGenerator.WriteToken(user, command.HttpContext);
+		return new LoginResult(Results.Ok(new { message = "Logged in successfully" }));
+	}
+}
+
+public class LoginDemoUserHandler(UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator
+	, IConfiguration configuration, ILogger<LoginDemoUserHandler> logger) : ICommandHandler<LoginDemoUserCommand, LoginResult> {
+	public async Task<LoginResult> Handle(LoginDemoUserCommand command, CancellationToken cancellationToken) {
+		var email = configuration["Users:DemoEmail"];
+		if (string.IsNullOrWhiteSpace(email)) return new LoginResult(Results.NotFound("Demo user not configured"));
+		var user = await userManager.FindByEmailAsync(email);
+		if (user == null) return new LoginResult(Results.NotFound("Demo user not configured"));
+		var roles = await userManager.GetRolesAsync(user);
+		if (roles.Any(x => x != Roles.DEMO)) {
+			logger.Log(LogLevel.Error, "Demo user has incorrect role setup: {Roles}", string.Join(", ", roles));
+			return (new LoginResult(Results.Unauthorized()));
+		}
+		await jwtTokenGenerator.WriteToken(user, command.HttpContext);
+		return new LoginResult(Results.Ok(new { message = "Logged in successfully" }));
 	}
 }

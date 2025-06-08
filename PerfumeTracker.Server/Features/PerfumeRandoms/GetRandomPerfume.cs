@@ -20,7 +20,7 @@ public class GetRandomPerfumeEndpoint : ICarterModule {
 public record class RandomPerfumeAddedEvent(Guid PerfumeId) : INotification;
 public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISender sender) : IQueryHandler<GetRandomPerfumeQuery, GetRandomPerfumeResponse> {
 	public async Task<GetRandomPerfumeResponse> Handle(GetRandomPerfumeQuery request, CancellationToken cancellationToken) {
-		var settings = await sender.Send(new GetUserProfileQuery(), cancellationToken);
+		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		var alreadySug = await GetAlreadySuggestedRandomPerfumeIds(settings.DayFilter);
 		var worn = await sender.Send(new GetWornPerfumeIdsQuery(settings.DayFilter));
 		var season = Season;

@@ -55,7 +55,6 @@ export default async function getAiRecommendations(
   query: string
 ): Promise<string> {
   query = RemoveDiacritics(query);
-  console.log(query);
   return await getOpenAIResponse(query);
   // if (recommendations) {
   //   const dto: RecommendationUploadDTO = {

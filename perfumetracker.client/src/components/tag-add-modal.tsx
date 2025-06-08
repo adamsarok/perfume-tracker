@@ -63,7 +63,6 @@ export default function TagAddModal({
       showSuccess("Tag add successful");
       tagAdded(tag);
     } else showError(`Tag add failed: ${result.error ?? "unknown error"}`);
-    console.log(values);
   }
 
   return (

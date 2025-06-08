@@ -31,9 +31,9 @@ initializeApiUrl().catch(error => {
 let cachedR2ApiUrl: string | null = null;
 const initializeR2ApiUrl = async () => {
   if (!cachedR2ApiUrl) {
-    const apiUrl = await getR2ApiAddress();
-    if (!apiUrl) throw new Error('API address not configured');
-    cachedR2ApiUrl = apiUrl;
+    const r2apiUrl = await getR2ApiAddress();
+    if (!r2apiUrl) throw new Error('API address not configured');
+    cachedR2ApiUrl = r2apiUrl;
   }
   return cachedApiUrl;
 };
@@ -91,15 +91,11 @@ api.interceptors.response.use(
 );
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  const apiUrl = await initializeApiUrl();
-  console.log('Attempting login to:', apiUrl);
-  
+  const apiUrl = await initializeApiUrl();  
   const response = await api.post<LoginResponse>(`${apiUrl}/identity/account/login`, {
     email,
     password,
   });
-
-  console.log('Login successful for:', response.data.email);
   return response.data;
 }
 
@@ -116,7 +112,6 @@ export async function getCurrentUser(): Promise<UserResponse | null> {
   const apiUrl = await initializeApiUrl();
   try {
     const response = await api.get<UserResponse>(`${apiUrl}/identity/account/me`);
-    console.log('Current user found:', response.data.email);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
