@@ -5,15 +5,14 @@ using PerfumeTracker.Server.Features.Auth;
 namespace PerfumeTracker.Server.Models;
 
 public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUser, PerfumeIdentityRole, Guid> {
-	private readonly ITenantProvider _tenantProvider;
-	public ITenantProvider TenantProvider => _tenantProvider;
+	public ITenantProvider TenantProvider { get; set; }
 	public PerfumeTrackerContext(ITenantProvider tenantProvider) {
-		_tenantProvider = tenantProvider;
+		TenantProvider = tenantProvider;
 	}
 
 	public PerfumeTrackerContext(DbContextOptions<PerfumeTrackerContext> options, ITenantProvider tenantProvider)
 		: base(options) {
-		_tenantProvider = tenantProvider;
+		TenantProvider = tenantProvider;
 	}
 
 	public virtual DbSet<Perfume> Perfumes { get; set; }

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using PerfumeTracker.Server.Features.Perfumes;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -81,12 +83,9 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	[Fact]
 	public async Task GetPerfumes() {
 		await PrepareData();
-		var client = factory.CreateClient();
-
-		var response = await client.GetAsync("/api/perfumes");
-		response.EnsureSuccessStatusCode();
-
-		var perfumes = await response.Content.ReadFromJsonAsync<IEnumerable<PerfumeWithWornStatsDto>>();
+		using var scope = factory.Services.CreateScope();
+		var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+		var perfumes = await sender.Send(new GetPerfumesWithWornQuery());
 		Assert.NotNull(perfumes);
 		Assert.NotEmpty(perfumes);
 	}

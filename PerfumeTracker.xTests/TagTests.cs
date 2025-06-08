@@ -1,47 +1,30 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Tags;
 using System.Net;
 using System.Net.Http.Json;
 
 namespace PerfumeTracker.xTests;
-public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
-	private readonly WebApplicationFactory<Program> factory;
-	private readonly HttpClient authenticatedClient;
-	static bool dbUp = false;
+public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
+	public TagTests(WebApplicationFactory<Program> factory) : base(factory) { }
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-	public TagTests(WebApplicationFactory<Program> factory) {
-		this.factory = factory;
-		this.authenticatedClient = CreateAuthenticatedClient().Result;
-	}
-
-	private async Task<HttpClient> CreateAuthenticatedClient() {
-		var client = factory.CreateClient(new WebApplicationFactoryClientOptions {
-			AllowAutoRedirect = false,
-			HandleCookies = true
-		});
-		var loginRequest = new LoginRequest {
-			Email = "TODO",
-			Password = "TODO"
-		};
-		var response = await client.PostAsJsonAsync("/api/identity/account/login", loginRequest);
-		response.EnsureSuccessStatusCode();
-		return client;
-	}
-
 	private async Task PrepareData() {          //fixtures don't have DI
 		await semaphore.WaitAsync();
 		try {
-			if (!dbUp) {
-				using var scope = factory.Services.CreateScope();
-				using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
+			if (!DbUp) {
+				await PrepareUser();
+				using var scope = Factory.Services.CreateScope();
+				using var context = GetTestContext();
 				var sql = "truncate table \"public\".\"Tag\" cascade";
 				await context.Database.ExecuteSqlRawAsync(sql);
 				context.Tags.AddRange(tagSeed);
 				await context.SaveChangesAsync();
-				dbUp = true;
+				DbUp = true;
 			}
 		} finally {
 			semaphore.Release();
@@ -53,27 +36,23 @@ public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
 			new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" }
 		};
 
-	private async Task<Tag> GetFirst() {
-		using var scope = factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		return await context.Tags.FirstAsync();
-	}
+
 
 	[Fact]
 	public async Task GetTag() {
 		await PrepareData();
-		var tag = await GetFirst();
-		var response = await authenticatedClient.GetAsync($"/api/tags/{tag.Id}");
-		response.EnsureSuccessStatusCode();
-
-		var tags = await response.Content.ReadFromJsonAsync<TagDto>();
-		Assert.NotNull(tags);
+		using var context = GetTestContext();
+		var getTagHandler = new GetTagHandler(context);
+		var tag = context.Tags.First();
+		var result = await getTagHandler.Handle(new GetTagQuery(tag.Id), new CancellationToken());
+		Assert.NotNull(result);
+		Assert.Equal(tag.Id, result.Id);
 	}
 
 	[Fact]
 	public async Task GetTag_NotFound() {
 		await PrepareData();
-		var client = factory.CreateClient();
+		var client = Factory.CreateClient();
 		var response = await client.GetAsync($"/api/tags/{Guid.NewGuid()}");
 		Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 	}
@@ -81,7 +60,7 @@ public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
 	[Fact]
 	public async Task GetTags() {
 		await PrepareData();
-		var client = factory.CreateClient();
+		var client = Factory.CreateClient();
 
 		var response = await client.GetAsync("/api/tags");
 		response.EnsureSuccessStatusCode();
@@ -94,8 +73,9 @@ public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
 	[Fact]
 	public async Task UpdateTag() {
 		await PrepareData();
-		var client = factory.CreateClient();
-		var tag = await GetFirst();
+		using var context = GetTestContext();
+		var client = Factory.CreateClient();
+		var tag = context.Tags.First();
 		var dto = tag.Adapt<TagDto>();
 		var content = JsonContent.Create(dto);
 		var response = await client.PutAsync($"/api/tags/{dto.Id}", content);
@@ -108,8 +88,9 @@ public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
 	[Fact]
 	public async Task DeleteTag() {
 		await PrepareData();
-		var tag = await GetFirst();
-		var client = factory.CreateClient();
+		using var context = GetTestContext();
+		var tag = context.Tags.First();
+		var client = Factory.CreateClient();
 		var response = await client.DeleteAsync($"/api/tags/{tag.Id}");
 		response.EnsureSuccessStatusCode();
 		Assert.True(true);
@@ -118,7 +99,7 @@ public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
 	[Fact]
 	public async Task AddTag() {
 		await PrepareData();
-		var client = factory.CreateClient();
+		var client = Factory.CreateClient();
 		var dto = new TagAddDto("Purple", "#630330");
 		var content = JsonContent.Create(dto);
 		var response = await client.PostAsync($"/api/tags", content);
@@ -131,7 +112,7 @@ public class TagTests : IClassFixture<WebApplicationFactory<Program>> {
 	[Fact]
 	public async Task GetStats() {
 		await PrepareData();
-		var client = factory.CreateClient();
+		var client = Factory.CreateClient();
 
 		var response = await client.GetAsync("/api/tags/stats");
 		response.EnsureSuccessStatusCode();
