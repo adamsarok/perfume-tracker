@@ -11,6 +11,7 @@ using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Server.Helpers;
+using PerfumeTracker.Server.Startup;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
@@ -18,6 +19,7 @@ using System;
 using System.Data;
 using System.Diagnostics;
 using System.Text;
+using System.Threading.RateLimiting;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +54,8 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
+SetupRateLimiter.SetupRateLimiting(builder.Services);
+
 builder.Services.AddIdentity<PerfumeIdentityUser, PerfumeIdentityRole>()
 	.AddEntityFrameworkStores<PerfumeTrackerContext>()
 	.AddDefaultTokenProviders();
@@ -59,21 +63,20 @@ builder.Services.AddIdentity<PerfumeIdentityUser, PerfumeIdentityRole>()
 var jwtConfig = new JwtConfiguration(builder.Configuration);
 
 builder.Services.Configure<IdentityOptions>(options => {
-	options.Password.RequireDigit = false;
-	options.Password.RequireLowercase = false;
+	options.Password.RequireDigit = true;
+	options.Password.RequireLowercase = true;
 	options.Password.RequireNonAlphanumeric = false;
-	options.Password.RequireUppercase = false;
-	options.Password.RequiredLength = 5;
-	options.Password.RequiredUniqueChars = 1;
+	options.Password.RequireUppercase = true;
+	options.Password.RequiredLength = 12;
+	options.Password.RequiredUniqueChars = 5;
 
-	options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+	options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
 	options.Lockout.MaxFailedAccessAttempts = 5;
 	options.Lockout.AllowedForNewUsers = true;
 
 	options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
-	options.User.RequireUniqueEmail = false;
+	options.User.RequireUniqueEmail = true;
 });
-
 
 
 builder.Services.ConfigureApplicationCookie(options => {
