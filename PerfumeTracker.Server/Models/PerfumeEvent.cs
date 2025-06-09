@@ -11,4 +11,5 @@ public partial class PerfumeEvent : UserEntity {
 	}
 	public PerfumeEventType Type { get; set; } = PerfumeEventType.Added;
 	public decimal AmountMl { get; set; } = 0;
+	public int SequenceNumber { get; set; }
 }

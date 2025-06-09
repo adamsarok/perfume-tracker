@@ -27,16 +27,16 @@ let cachedR2ApiUrl: string | null = null;
 const initializeR2ApiUrl = async () => {
   if (!cachedR2ApiUrl) {
     const r2apiUrl = await getR2ApiAddress();
-    if (!r2apiUrl) throw new Error('API address not configured');
+    if (!r2apiUrl) throw new Error('R2 API address not configured');
     cachedR2ApiUrl = r2apiUrl;
   }
-  return cachedApiUrl;
+  return cachedR2ApiUrl;
 };
 
 export async function getR2ApiUrl(): Promise<string> {
-  const apiUrl = await initializeR2ApiUrl();
-  if (!apiUrl) throw new Error('R2 API address not configured');
-  return apiUrl;
+  const r2ApiUrl = await initializeR2ApiUrl();
+  if (!r2ApiUrl) throw new Error('R2 API address not configured');
+  return r2ApiUrl;
 }
 
 export async function get<T>(url: string) {
@@ -100,9 +100,6 @@ export async function logout(): Promise<void> {
   try {
     const apiUrl = await initializeApiUrl();
     await api.post(`${apiUrl}/identity/account/logout`);
-    // Clear any cached data
-    cachedApiUrl = null;
-    cachedR2ApiUrl = null;
   } catch (error) {
     console.error('Logout error:', error);
     throw error;

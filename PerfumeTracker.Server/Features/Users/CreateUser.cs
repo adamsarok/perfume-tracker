@@ -2,10 +2,10 @@
 
 namespace PerfumeTracker.Server.Features.Users;
 public interface ICreateUser {
-	Task<PerfumeIdentityUser?> Create(string? userName, string? password, string? role, string? email, bool isEmailConfirmed = false);
+	Task<PerfumeIdentityUser?> Create(string userName, string password, string role, string email, bool isEmailConfirmed = false);
 }
 public class CreateUser(ILogger<CreateUser> logger, UserManager<PerfumeIdentityUser> userManager, PerfumeTrackerContext context) : ICreateUser {
-	public async Task<PerfumeIdentityUser?> Create(string? userName, string? password, string? role, string? email, bool isEmailConfirmed = false) {
+	public async Task<PerfumeIdentityUser?> Create(string userName, string password, string role, string email, bool isEmailConfirmed = false) {
 		if (string.IsNullOrWhiteSpace(userName)) throw new ArgumentNullException(nameof(userName));
 		if (string.IsNullOrWhiteSpace(password)) throw new ArgumentNullException(nameof(password));
 		if (string.IsNullOrWhiteSpace(role)) throw new ArgumentNullException(nameof(role));

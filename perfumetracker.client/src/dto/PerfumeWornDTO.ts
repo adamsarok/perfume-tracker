@@ -8,5 +8,6 @@ export interface PerfumeWornDTO {
     perfumeHouse: string,
     perfumeName: string,
     perfumeTags: TagDTO[],
-    wornOn: Date,
+    eventDate: Date,
+    sequenceNumber: number
 }

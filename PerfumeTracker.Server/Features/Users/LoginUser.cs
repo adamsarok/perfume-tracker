@@ -38,7 +38,7 @@ public class LoginDemoUserHandler(UserManager<PerfumeIdentityUser> userManager, 
 		var user = await userManager.FindByEmailAsync(email);
 		if (user == null) return new LoginResult(Results.NotFound("Demo user not configured"));
 		var roles = await userManager.GetRolesAsync(user);
-		if (roles.Any(x => x != Roles.DEMO)) {
+		if (roles.Count != 1 || !roles.Contains(Roles.DEMO)) {
 			logger.Log(LogLevel.Error, "Demo user has incorrect role setup: {Roles}", string.Join(", ", roles));
 			return new LoginResult(Results.Unauthorized());
 		}

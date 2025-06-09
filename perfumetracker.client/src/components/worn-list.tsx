@@ -8,27 +8,17 @@ import { getWornBeforeID } from "@/services/perfume-worn-service";
 
 export default function WornList() {
   const [worns, setWorns] = useState<PerfumeWornDTO[]>([]);
-  const [cursor, setCursor] = useState<Date | null>(null);
+  const [cursor, setCursor] = useState<number | null>(null);
   const { ref, inView } = useInView();
   const cardsPerPage = 10;
 
   const loadMoreCards = async () => {
-    const cursor =
-      worns && worns.length > 0
-        ? new Date(Math.min(...worns.map((x) => x.wornOn.getTime())))
-        : null;
-    setCursor(cursor);
     const newWorns = await getWornBeforeID(cursor, cardsPerPage);
-    const parsedWorns = newWorns.map((worn) => ({
-      ...worn,
-      wornOn: new Date(worn.wornOn),
-    }));
-    setWorns([
-      ...worns,
-      ...parsedWorns.toSorted((a, b) => {
-        return b.wornOn.getTime() - a.wornOn.getTime();
-      }),
-    ]);
+    if (newWorns.length > 0) {
+      const lastWorn = newWorns[newWorns.length - 1];
+      setCursor(lastWorn.sequenceNumber);
+      setWorns([...worns, ...newWorns]);
+    }
   };
 
   useEffect(() => {
@@ -46,7 +36,7 @@ export default function WornList() {
           <PerfumeCard key={worn.id} worn={worn}></PerfumeCard>
         ))}
       </div>
-      {(!cursor) && (
+      {cursor !== null && (
         <div ref={ref} className="text-center py-4">
           Loading...
         </div>

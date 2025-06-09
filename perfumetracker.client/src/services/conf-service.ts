@@ -7,5 +7,6 @@ export async function getPerfumeTrackerApiAddress(): Promise<string | undefined>
 }
 
 export async function getR2ApiAddress(): Promise<string | undefined> {
+    console.log(env.NEXT_PUBLIC_R2_API_ADDRESS);
     return env.NEXT_PUBLIC_R2_API_ADDRESS;
 }

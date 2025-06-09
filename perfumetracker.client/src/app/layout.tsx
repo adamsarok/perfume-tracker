@@ -28,15 +28,15 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         const currentUser = await getCurrentUser();
         if (!hasMounted) return;
         setUser(currentUser);
-        if (!currentUser && pathname !== '/login') {
+        if (!currentUser && (pathname !== '/login' && pathname !== '/register')) {
           router.push('/login');
-        } else if (currentUser && pathname === '/login') {
+        } else if (currentUser && (pathname === '/login' || pathname === '/register')) {
           router.push('/');
         }
       } catch (error) {
         if (!hasMounted) return;
         console.error('Auth check failed:', error);
-        if (pathname !== '/login') {
+        if ((pathname !== '/login' && pathname !== '/register')) {
           router.push('/login');
         }
       } finally {
@@ -46,7 +46,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
       }
     };
 
-    if (pathname === '/login') {
+    if ((pathname === '/login' || pathname === '/register')) {
       setIsLoading(false);
       return;
     }
@@ -65,7 +65,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     }
   };
 
-  if (isLoading && pathname !== '/login') {
+  if (isLoading && (pathname !== '/login' && pathname !== '/register')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
@@ -73,7 +73,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     );
   }
 
-  if (pathname === '/login') {
+  if ((pathname === '/login' || pathname === '/register')) {
     return <>{children}</>;
   }
 

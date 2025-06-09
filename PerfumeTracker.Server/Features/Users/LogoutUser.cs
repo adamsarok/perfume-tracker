@@ -1,5 +1,5 @@
 ﻿namespace PerfumeTracker.Server.Features.Auth;
-public class LoginEndpoint : ICarterModule {
+public class LogoutEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/logout", async (HttpContext httpContext) => {
 			httpContext.Response.Cookies.Delete("jwt");

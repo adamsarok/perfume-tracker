@@ -61,7 +61,7 @@ export default function PerfumeCard({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="mt-2 text-small tracking-tight text-default-400">
-                        {`Worn on: ${worn.wornOn.toDateString()}`}
+                        {`Worn on: ${worn.eventDate?.toDateString()}`}
                       </p>
                     </TooltipTrigger>
                     <TooltipContent>
