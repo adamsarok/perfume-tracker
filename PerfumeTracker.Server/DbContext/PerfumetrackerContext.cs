@@ -10,12 +10,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 		TenantProvider = tenantProvider;
 	}
 
-	[ActivatorUtilitiesConstructor]
-	public PerfumeTrackerContext()
-		: base() {
-		TenantProvider = null;
-	}
-
 	public PerfumeTrackerContext(DbContextOptions<PerfumeTrackerContext> options, ITenantProvider tenantProvider)
 		: base(options) {
 		TenantProvider = tenantProvider;
