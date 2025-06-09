@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using PerfumeTracker.Server.Features.Auth;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace PerfumeTracker.Server.Models;
+namespace PerfumeTracker.Server.DbContext;
 
 public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUser, PerfumeIdentityRole, Guid> {
 	public ITenantProvider TenantProvider { get; set; }
+	
 	public PerfumeTrackerContext(ITenantProvider tenantProvider) {
 		TenantProvider = tenantProvider;
 	}
 
+	[ActivatorUtilitiesConstructor]
 	public PerfumeTrackerContext(DbContextOptions<PerfumeTrackerContext> options, ITenantProvider tenantProvider)
 		: base(options) {
 		TenantProvider = tenantProvider;

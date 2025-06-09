@@ -1,12 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.Auth;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace PerfumeTracker.xTests;
 public class TestScope : IDisposable {
 	private bool _disposed;
