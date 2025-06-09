@@ -7,43 +7,25 @@ using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Users;
 
 namespace PerfumeTracker.xTests;
-public class TestBase(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
-	protected WebApplicationFactory<Program> Factory => factory;
+public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
+	protected WebApplicationFactory<Program> Factory;
 	protected static bool DbUp = false;
 	protected static bool UserUp = false;
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 	protected static MockTenantProvider TenantProvider = new MockTenantProvider();
-	protected async Task PrepareUser() {
-		await semaphore.WaitAsync();
-		try {
-			if (!UserUp) {
-				using var scope = factory.Services.CreateScope();
-				using var context = GetTestContext();
-				var logger = Mock.Of<ILogger<CreateUser>>();
-				using var userManager = scope.ServiceProvider.GetRequiredService<UserManager<PerfumeIdentityUser>>();
-				const string testMail = "test@example.com";
-				var user = await userManager.FindByEmailAsync(testMail);
-				if (user == null) {
-					var createUserHandler = new CreateUser(logger, userManager, context);
-					user = await createUserHandler.Create("test", "abcd1234ABCDxyz59697", Roles.USER, "test@example.com", false);
-				}
-				TenantProvider.MockTenantId = user.Id;
-				UserUp = true;
-			}
-		} finally {
-			semaphore.Release();
+	public TestBase(WebApplicationFactory<Program> factory) {
+		this.Factory = factory;
+		using var scope = GetTestScope();
+		var logger = Mock.Of<ILogger<CreateUser>>();
+		using var userManager = scope.ServiceScope.ServiceProvider.GetRequiredService<UserManager<PerfumeIdentityUser>>();
+		const string testMail = "test@example.com";
+		var user = userManager.FindByEmailAsync(testMail).GetAwaiter().GetResult();
+		if (user == null) {
+			var createUserHandler = new CreateUser(logger, userManager, scope.PerfumeTrackerContext);
+			user = createUserHandler.Create("test", "abcd1234ABCDxyz59697", Roles.USER, "test@example.com", false).GetAwaiter().GetResult();
 		}
+		TenantProvider.MockTenantId = user.Id;
+		UserUp = true;
 	}
-
-	protected PerfumeTrackerContext GetTestContext() {
-		var scope = factory.Services.CreateScope();
-		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) {
-			context.Dispose();
-			scope.Dispose();
-			throw new Exception("Live database connected!");
-		}
-		context.TenantProvider = TenantProvider;
-		return context;
-	}
+	protected TestScope GetTestScope() => new TestScope(Factory, TenantProvider);
 }

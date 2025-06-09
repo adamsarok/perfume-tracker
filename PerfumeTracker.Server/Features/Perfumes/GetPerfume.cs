@@ -10,7 +10,7 @@ public class GetPerfumeEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.READ);
 	}
 }
-public class GetPerfumeHandler(PerfumeTrackerContext context, ISender sender)
+public class GetPerfumeHandler(PerfumeTrackerContext context)
 		: IQueryHandler<GetPerfumeQuery, PerfumeWithWornStatsDto> {
 	public async Task<PerfumeWithWornStatsDto> Handle(GetPerfumeQuery request, CancellationToken cancellationToken) {
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);

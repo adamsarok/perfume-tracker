@@ -2,30 +2,30 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.Perfumes;
+using PerfumeTracker.Server.Models;
 using System.Net;
 using System.Net.Http.Json;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace PerfumeTracker.xTests;
 
-public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
+public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
+	public PerfumeTests(WebApplicationFactory<Program> factory) : base(factory) { }
 	static bool dbUp = false;
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 	private async Task PrepareData() {          //fixtures don't have DI
 		await semaphore.WaitAsync();
 		try {
 			if (!dbUp) {
-				using var scope = factory.Services.CreateScope();
-				using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
+				using var scope = GetTestScope();
 				var sql = "truncate table \"public\".\"Perfume\" cascade; " +
 					"truncate table \"public\".\"Tag\" cascade; " +
 					"truncate table \"public\".\"PerfumeTag\" cascade";
-				await context.Database.ExecuteSqlRawAsync(sql);
-				context.Tags.AddRange(tagSeed);
-				context.Perfumes.AddRange(perfumeSeed);
-				context.PerfumeTags.AddRange(perfumeTagSeed);
-				await context.SaveChangesAsync();
+				await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
+				scope.PerfumeTrackerContext.Tags.AddRange(tagSeed);
+				scope.PerfumeTrackerContext.Perfumes.AddRange(perfumeSeed);
+				scope.PerfumeTrackerContext.PerfumeTags.AddRange(perfumeTagSeed);
+				await scope.PerfumeTrackerContext.SaveChangesAsync();
 				dbUp = true;
 			}
 		} finally {
@@ -53,39 +53,30 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 			new PerfumeTag { Id = Guid.NewGuid(), Perfume = perfumeSeed[1], Tag = tagSeed[1] }
 		};
 
-
-	private async Task<Perfume> GetFirst() {
-		using var scope = factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		return await context.Perfumes.FirstAsync();
-	}
-
 	[Fact]
 	public async Task GetPerfume() {
 		await PrepareData();
-		var perfume = await GetFirst();
-		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/perfumes/{perfume.Id}");
-		response.EnsureSuccessStatusCode();
-
-		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeWithWornStatsDto>();
-		Assert.NotNull(perfumes);
+		using var scope = GetTestScope();
+		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
+		var handler = new GetPerfumeHandler(scope.PerfumeTrackerContext);
+		var response = await handler.Handle(new GetPerfumeQuery(perfume.Id), new CancellationToken());
+		Assert.NotNull(response);
 	}
 
 	[Fact]
 	public async Task GetPerfume_NotFound() {
 		await PrepareData();
-		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/perfumes/{Guid.NewGuid()}");
-		Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+		using var scope = GetTestScope();
+		var handler = new GetPerfumeHandler(scope.PerfumeTrackerContext);
+		await Assert.ThrowsAsync<NotFoundException>(async () => await handler.Handle(new GetPerfumeQuery(Guid.NewGuid()), new CancellationToken()));
 	}
 
 	[Fact]
 	public async Task GetPerfumes() {
 		await PrepareData();
-		using var scope = factory.Services.CreateScope();
-		var sender = scope.ServiceProvider.GetRequiredService<ISender>();
-		var perfumes = await sender.Send(new GetPerfumesWithWornQuery());
+		using var scope = GetTestScope();
+		var handler = new GetPerfumesWithWornHandler(scope.PerfumeTrackerContext);
+		var perfumes = await handler.Handle(new GetPerfumesWithWornQuery(), new CancellationToken());
 		Assert.NotNull(perfumes);
 		Assert.NotEmpty(perfumes);
 	}
@@ -93,53 +84,56 @@ public class PerfumeTests(WebApplicationFactory<Program> factory) : IClassFixtur
 	[Fact]
 	public async Task UpdatePerfume() {
 		await PrepareData();
-		var client = factory.CreateClient();
-		var perfume = await GetFirst();
-		perfume.PerfumeTags.Add(new PerfumeTag() { Perfume = perfume, Tag = tagSeed[2] });
-		var dto = perfume.Adapt<PerfumeDto>();
-		var content = JsonContent.Create(dto);
-		var response = await client.PutAsync($"/api/perfumes/{dto.Id}", content);
-		response.EnsureSuccessStatusCode();
-
-		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeDto>();
-		Assert.NotNull(perfumes);
+		using var scope = GetTestScope();
+		var handler = new UpdatePerfumeHandler(scope.PerfumeTrackerContext);
+		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
+		var dto = new PerfumeDto(perfume.Id,
+			perfume.House,
+			perfume.PerfumeName,
+			perfume.Rating,
+			perfume.Notes,
+			perfume.Ml,
+			perfume.MlLeft,
+			perfume.ImageObjectKey,
+			perfume.Autumn,
+			perfume.Spring,
+			perfume.Summer,
+			perfume.Winter,
+			new List<TagDto>() { tagSeed[2].Adapt<TagDto>() });
+		var response = await handler.Handle(new UpdatePerfumeCommand(perfume.Id, dto), new CancellationToken());
+		Assert.NotNull(response);
 	}
 
 	[Fact]
 	public async Task UpdatePerfumeGuid() {
 		await PrepareData();
-		var client = factory.CreateClient();
-		var perfume = await GetFirst();
+		using var scope = GetTestScope();
+		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
 		var dto = new ImageGuidDto(perfume.Id, Guid.NewGuid().ToString());
-		var content = JsonContent.Create(dto);
-		var response = await client.PutAsync($"/api/perfumes/imageguid", content);
-		response.EnsureSuccessStatusCode();
-
-		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeDto>();
-		Assert.NotNull(perfumes);
+		var handler = new UpdatePerfumeImageGuidHandler(scope.PerfumeTrackerContext);
+		var result = await handler.Handle(new UpdatePerfumeGuidCommand(dto), new CancellationToken());
+		Assert.NotNull(result);
 	}
 
 	[Fact]
 	public async Task DeletePerfume() {
 		await PrepareData();
-		var perfume = await GetFirst();
-		var client = factory.CreateClient();
-		var response = await client.DeleteAsync($"/api/perfumes/{perfume.Id}");
-		response.EnsureSuccessStatusCode();
-		Assert.True(true);
+		using var scope = GetTestScope();
+		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
+		var handler = new DeletePerfumeHandler(scope.PerfumeTrackerContext);
+		await handler.Handle(new DeletePerfumeCommand(perfume.Id), new CancellationToken());
+		using var scope2 = GetTestScope();
+		Assert.Null(await scope2.PerfumeTrackerContext.Perfumes.FirstOrDefaultAsync(x => x.Id == perfume.Id));
 	}
 
 	[Fact]
 	public async Task AddPerfume() {
 		await PrepareData();
-		var client = factory.CreateClient();
+		using var scope = GetTestScope();
 		var dto = new PerfumeDto(Guid.NewGuid(), "House3", "Perfume3", 5, "Notes", 50, 50, "", true, true, false, false, new());
-		var content = JsonContent.Create(dto);
-		var response = await client.PostAsync($"/api/perfumes", content);
-		response.EnsureSuccessStatusCode();
-
-		var perfumes = await response.Content.ReadFromJsonAsync<PerfumeDto>();
-		Assert.NotNull(perfumes);
+		var handler = new AddPerfumeHandler(scope.PerfumeTrackerContext);
+		var response = await handler.Handle(new AddPerfumeCommand(dto), new CancellationToken());
+		Assert.NotNull(response);
 	}
 
 	//[Fact] TODO: test is flaky - runs in dev but not in github actions

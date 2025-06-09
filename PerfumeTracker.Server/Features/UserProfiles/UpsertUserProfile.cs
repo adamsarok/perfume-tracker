@@ -12,7 +12,7 @@ public class UpsertUserProfilesModule : ICarterModule {
 	}
 }
 
-public class UpsertUserProfile(PerfumeTrackerContext context) : ICommandHandler<UpsertUserProfileCommand, UserProfile> {
+public class UpsertUserProfileHandler(PerfumeTrackerContext context) : ICommandHandler<UpsertUserProfileCommand, UserProfile> {
 	public async Task<UserProfile> Handle(UpsertUserProfileCommand request, CancellationToken cancellationToken) {
 		var found = await context.UserProfiles.FirstOrDefaultAsync();
 		if (found != null) {

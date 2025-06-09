@@ -66,7 +66,6 @@ builder.Services.AddMediatR(config => {
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-builder.Services.AddScoped<UpsertUserProfile>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();

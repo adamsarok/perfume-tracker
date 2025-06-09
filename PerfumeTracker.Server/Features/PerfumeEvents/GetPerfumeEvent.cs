@@ -10,7 +10,7 @@ public class GetPerfumeEventEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.READ);
 	}
 }
-public class GetPerfumeEventHandler(PerfumeTrackerContext context, ISender sender)
+public class GetPerfumeEventHandler(PerfumeTrackerContext context)
 		: IQueryHandler<GetPerfumeEventQuery, PerfumeEvent> {
 	public async Task<PerfumeEvent> Handle(GetPerfumeEventQuery request, CancellationToken cancellationToken) {
 		return await context.PerfumeEvents.FindAsync(request.Id);

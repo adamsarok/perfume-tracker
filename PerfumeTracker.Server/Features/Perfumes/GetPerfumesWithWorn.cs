@@ -18,7 +18,7 @@ public class GetPerfumesWithWornEndpoint : ICarterModule {
 	}
 }
 
-public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, ISender sender) 
+public class GetPerfumesWithWornHandler(PerfumeTrackerContext context) 
 	: IQueryHandler<GetPerfumesWithWornQuery, List<PerfumeWithWornStatsDto>> {
 	public async Task<List<PerfumeWithWornStatsDto>> Handle(GetPerfumesWithWornQuery request, CancellationToken cancellationToken) {
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
