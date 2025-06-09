@@ -8,18 +8,20 @@ public class GetPerfumesWithWornEndpoint : ICarterModule {
 		app.MapGet("/api/perfumes/fulltext/{fulltext}", async (string fulltext, ISender sender) =>
 			await sender.Send(new GetPerfumesWithWornQuery(fulltext)))
 			.WithTags("Perfumes")
-			.WithName("GetPerfumesFulltext");
+			.WithName("GetPerfumesFulltext")
+			.RequireAuthorization(Policies.READ);
 		app.MapGet("/api/perfumes", async (ISender sender) =>
 			await sender.Send(new GetPerfumesWithWornQuery()))
 			.WithTags("Perfumes")
-			.WithName("GetPerfumes");
+			.WithName("GetPerfumes")
+			.RequireAuthorization(Policies.READ);
 	}
 }
 
-public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, ISender sender) 
+public class GetPerfumesWithWornHandler(PerfumeTrackerContext context) 
 	: IQueryHandler<GetPerfumesWithWornQuery, List<PerfumeWithWornStatsDto>> {
 	public async Task<List<PerfumeWithWornStatsDto>> Handle(GetPerfumesWithWornQuery request, CancellationToken cancellationToken) {
-		var settings = await sender.Send(new GetUserProfileQuery());
+		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		return await context
 			.Perfumes
 			.Include(x => x.PerfumeEvents)

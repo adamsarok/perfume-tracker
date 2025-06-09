@@ -4,19 +4,21 @@ namespace PerfumeTracker.Server.Helpers;
 
 public class EntityInterceptor : SaveChangesInterceptor {
 	public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result) {
-		UpdateEntities(eventData.Context);
+		if (eventData.Context is PerfumeTrackerContext context) UpdateEntities(context);
 		return base.SavingChanges(eventData, result);
 	}
 	public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default) {
-		UpdateEntities(eventData.Context);
+		if (eventData.Context is PerfumeTrackerContext context) UpdateEntities(context);
 		return base.SavingChangesAsync(eventData, result, cancellationToken);
 	}
-	private void UpdateEntities(DbContext? context) {
+	private void UpdateEntities(PerfumeTrackerContext? context) {
 		if (context == null) return;
 		foreach (var entry in context.ChangeTracker.Entries<IEntity>()) {
 			if (entry.State == EntityState.Added) {
 				entry.Entity.CreatedAt = DateTime.UtcNow;
-				entry.Entity.UserId = PerfumeTrackerContext.DefaultUserID;
+				if (entry.Entity is IUserEntity userEntity) {
+					userEntity.UserId = context.TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("Tenant/userID not set");
+				}
 			}
 			if (entry.State == EntityState.Added || entry.State == EntityState.Modified) {
 				entry.Entity.UpdatedAt = DateTime.UtcNow;

@@ -13,8 +13,7 @@ public class CompleteAchievements {
 					.ToListAsync();
 				if (achievements.Any()) {
 					context.UserAchievements.AddRange(achievements.Select(x => new UserAchievement() {
-						AchievementId = x.Id,
-						UserId = PerfumeTrackerContext.DefaultUserID
+						AchievementId = x.Id
 					}));
 				}
 				await context.SaveChangesAsync(cancellationToken);

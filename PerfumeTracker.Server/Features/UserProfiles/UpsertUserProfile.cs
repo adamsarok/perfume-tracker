@@ -7,11 +7,12 @@ public class UpsertUserProfilesModule : ICarterModule {
 		app.MapPut("/api/user-profiles", async (UserProfile userProfile, ISender sender) =>
 			await sender.Send(new UpsertUserProfileCommand(userProfile)))
 			.WithTags("UserProfiles")
-			.WithName("UpsertUserProfile");
+			.WithName("UpsertUserProfile")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 
-public class UpsertUserProfile(PerfumeTrackerContext context) : ICommandHandler<UpsertUserProfileCommand, UserProfile> {
+public class UpsertUserProfileHandler(PerfumeTrackerContext context) : ICommandHandler<UpsertUserProfileCommand, UserProfile> {
 	public async Task<UserProfile> Handle(UpsertUserProfileCommand request, CancellationToken cancellationToken) {
 		var found = await context.UserProfiles.FirstOrDefaultAsync();
 		if (found != null) {

@@ -1,16 +1,26 @@
 using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
+using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Server.Helpers;
-using System.Text;
-using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
+using PerfumeTracker.Server.Startup;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
+using System;
+using System.Data;
+using System.Diagnostics;
+using System.Text;
+using System.Threading.RateLimiting;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,14 +54,21 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
+Startup.SetupRateLimiting(builder.Services);
+Startup.SetupAuthorizations(builder.Services, builder.Configuration);
+
 var assembly = typeof(Program).Assembly;
 builder.Services.AddMediatR(config => {
 	config.RegisterServicesFromAssembly(assembly);
 	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
-builder.Services.AddScoped<UpsertUserProfile>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
+builder.Services.AddScoped<ICreateUser, CreateUser>();
+builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
@@ -63,9 +80,11 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.AllowAnyOrigin() //TODO!!! set up CORS
-                          .AllowAnyHeader()
-                          .AllowAnyMethod());
+        builder => builder
+            .WithOrigins("http://localhost:3000", "https://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
 
 builder.Services.AddHostedService<OutboxService>();
@@ -75,21 +94,25 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-    await dbContext.Database.MigrateAsync();
-    await SeedUserProfiles.DoSeed(dbContext);
-	await SeedAchievements.DoSeed(dbContext);
+	var seedUsers = scope.ServiceProvider.GetRequiredService<ISeedUsers>();
+	await dbContext.Database.MigrateAsync();
+	await SeedAchievements.SeedAchievementsAsync(dbContext);
+	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
+	await seedUsers.SeedAdminAsync();
+	await seedUsers.SeedDemoUserAsync();
 }
 
+app.UseRateLimiter();
 app.UseExceptionHandler();
 app.MapCarter();
-app.UseCors(x => x.AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowCredentials()
-    .WithOrigins("http://localhost", "http://192.168.1.79:3000", "https://192.168.1.79:3000", "https://localhost:3000", "http://localhost:3000"));
+app.UseCors("AllowSpecificOrigin");
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();
 

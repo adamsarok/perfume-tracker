@@ -1,7 +1,5 @@
-"use server";
-
 import { ActionResult } from "@/dto/ActionResult";
-import { env } from "process";
+import { get, put } from "./axios-service";
 
 export interface UserProfile {
   minimumRating: number;
@@ -14,32 +12,14 @@ export interface UserProfile {
 }
 
 export async function getUserProfile(): Promise<UserProfile> {
-  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const qry = `${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/user-profiles`;
-  const response = await fetch(qry);
-  if (!response.ok) {
-    throw new Error("Failed to fetch user profile");
-  }
-  const perfume: UserProfile = await response.json();
-  return perfume;
+  const qry = `/user-profiles`;
+  const response = await get<UserProfile>(qry);
+  return response.data;
 }
 
 export async function updateUserProfile(
   userProfile: UserProfile
 ): Promise<ActionResult> {
-  if (!env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS) throw new Error("PerfumeAPI address not set");
-  const response = await fetch(`${env.NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS}/user-profiles`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(userProfile),
-  });
-
-  if (!response.ok)
-    return { ok: false, error: `Error updating user profile: ${response.status}` };
-
-  const result = await response.json();
-  console.log(result);
+  await put(`/user-profiles`, userProfile);
   return { ok: true };
 }

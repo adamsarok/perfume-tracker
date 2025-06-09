@@ -6,7 +6,8 @@ public class UpdatePerfumeImageGuidEndpoint : ICarterModule {
 		app.MapPut("/api/perfumes/imageguid", async (ImageGuidDto dto, ISender sender) =>
 			await sender.Send(new UpdatePerfumeGuidCommand(dto)))
 			.WithTags("Perfumes")
-			.WithName("UpdatePerfumeImageGuid");
+			.WithName("UpdatePerfumeImageGuid")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 public class UpdatePerfumeImageGuidHandler(PerfumeTrackerContext context) 

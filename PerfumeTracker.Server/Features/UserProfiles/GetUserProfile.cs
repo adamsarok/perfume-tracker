@@ -7,7 +7,8 @@ public class GetUserProfilesEndpoint : ICarterModule {
 		app.MapGet("/api/user-profiles", async (ISender sender) =>
 			await sender.Send(new GetUserProfileQuery()))
 			.WithTags("UserProfiles")
-			.WithName("GetUserProfile");
+			.WithName("GetUserProfile")
+			.RequireAuthorization(Policies.READ);
 	}
 }
 

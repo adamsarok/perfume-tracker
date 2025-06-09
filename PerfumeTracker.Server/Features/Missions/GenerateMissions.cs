@@ -7,7 +7,8 @@ public class GenerateMissionsEndpoint : ICarterModule {
 			return await sender.Send(new GenerateMissionCommand());
 		})
 			.WithTags("Missions")
-			.WithName("GenerateMissions");
+			.WithName("GenerateMissions")
+			.RequireAuthorization(Policies.WRITE);
 	}
 }
 public class GenerateMissions(PerfumeTrackerContext context) : ICommandHandler<GenerateMissionCommand> {
@@ -23,7 +24,6 @@ public class GenerateMissions(PerfumeTrackerContext context) : ICommandHandler<G
 
 			if (userMission == null) {
 				userMission = new UserMission {
-					UserId = PerfumeTrackerContext.DefaultUserID,
 					MissionId = mission.Id,
 					Progress = 0,
 					IsCompleted = false

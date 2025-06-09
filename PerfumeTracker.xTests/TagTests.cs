@@ -1,24 +1,29 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
+using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Tags;
+using PerfumeTracker.Server.Models;
 using System.Net;
 using System.Net.Http.Json;
 
 namespace PerfumeTracker.xTests;
-public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
-	static bool dbUp = false;
+public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
+	public TagTests(WebApplicationFactory<Program> factory) : base(factory) { }
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 	private async Task PrepareData() {          //fixtures don't have DI
 		await semaphore.WaitAsync();
 		try {
-			if (!dbUp) {
-				using var scope = factory.Services.CreateScope();
-				using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-				if (!context.Database.GetDbConnection().Database.ToLower().Contains("test")) throw new Exception("Live database connected!");
+			if (!DbUp) {
+				using var scope = GetTestScope();
 				var sql = "truncate table \"public\".\"Tag\" cascade";
-				await context.Database.ExecuteSqlRawAsync(sql);
-				context.Tags.AddRange(tagSeed);
-				await context.SaveChangesAsync();
-				dbUp = true;
+				await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
+				scope.PerfumeTrackerContext.Tags.AddRange(tagSeed);
+				await scope.PerfumeTrackerContext.SaveChangesAsync();
+				DbUp = true;
 			}
 		} finally {
 			semaphore.Release();
@@ -30,41 +35,34 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 			new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" }
 		};
 
-	private async Task<Tag> GetFirst() {
-		using var scope = factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		return await context.Tags.FirstAsync();
-	}
+
 
 	[Fact]
 	public async Task GetTag() {
 		await PrepareData();
-		var tag = await GetFirst();
-		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/tags/{tag.Id}");
-		response.EnsureSuccessStatusCode();
-
-		var tags = await response.Content.ReadFromJsonAsync<TagDto>();
-		Assert.NotNull(tags);
+		using var scope = GetTestScope();
+		var getTagHandler = new GetTagHandler(scope.PerfumeTrackerContext);
+		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
+		var result = await getTagHandler.Handle(new GetTagQuery(tag.Id), new CancellationToken());
+		Assert.NotNull(result);
+		Assert.Equal(tag.Id, result.Id);
 	}
 
 	[Fact]
 	public async Task GetTag_NotFound() {
 		await PrepareData();
-		var client = factory.CreateClient();
-		var response = await client.GetAsync($"/api/tags/{Guid.NewGuid()}");
-		Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+		using var scope = GetTestScope();
+		var getTagHandler = new GetTagHandler(scope.PerfumeTrackerContext);
+		await Assert.ThrowsAsync<NotFoundException>(async () => 
+			await getTagHandler.Handle(new GetTagQuery(Guid.NewGuid()), new CancellationToken()));
 	}
 
 	[Fact]
 	public async Task GetTags() {
 		await PrepareData();
-		var client = factory.CreateClient();
-
-		var response = await client.GetAsync("/api/tags");
-		response.EnsureSuccessStatusCode();
-
-		var tags = await response.Content.ReadFromJsonAsync<IEnumerable<TagDto>>();
+		using var scope = GetTestScope();
+		var getTagsHandler = new GetTagsHandler(scope.PerfumeTrackerContext);
+		var tags = await getTagsHandler.Handle(new GetTagsQuery(), new CancellationToken());
 		Assert.NotNull(tags);
 		Assert.NotEmpty(tags);
 	}
@@ -72,49 +70,42 @@ public class TagTests(WebApplicationFactory<Program> factory) : IClassFixture<We
 	[Fact]
 	public async Task UpdateTag() {
 		await PrepareData();
-		var client = factory.CreateClient();
-		var tag = await GetFirst();
+		using var scope = GetTestScope();
+		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
+		tag.TagName = Guid.NewGuid().ToString();
 		var dto = tag.Adapt<TagDto>();
-		var content = JsonContent.Create(dto);
-		var response = await client.PutAsync($"/api/tags/{dto.Id}", content);
-		response.EnsureSuccessStatusCode();
-
-		var tags = await response.Content.ReadFromJsonAsync<TagDto>();
-		Assert.NotNull(tags);
+		var updateTagHandler = new UpdateTagHandler(scope.PerfumeTrackerContext);
+		var tagResult = await updateTagHandler.Handle(new UpdateTagCommand(tag.Id, dto), new CancellationToken());
+		Assert.Equal(tag.TagName, tagResult.TagName);
 	}
 
 	[Fact]
 	public async Task DeleteTag() {
 		await PrepareData();
-		var tag = await GetFirst();
-		var client = factory.CreateClient();
-		var response = await client.DeleteAsync($"/api/tags/{tag.Id}");
-		response.EnsureSuccessStatusCode();
-		Assert.True(true);
+		using var scope = GetTestScope();
+		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
+		var deleteTagHandler = new DeleteTagHandler(scope.PerfumeTrackerContext);
+		var result = await deleteTagHandler.Handle(new DeleteTagCommand(tag.Id), new CancellationToken());
+		Assert.True(result.IsDeleted);
 	}
 
 	[Fact]
 	public async Task AddTag() {
 		await PrepareData();
-		var client = factory.CreateClient();
+		using var scope = GetTestScope();
 		var dto = new TagAddDto("Purple", "#630330");
-		var content = JsonContent.Create(dto);
-		var response = await client.PostAsync($"/api/tags", content);
-		response.EnsureSuccessStatusCode();
-
-		var tags = await response.Content.ReadFromJsonAsync<TagDto>();
-		Assert.NotNull(tags);
+		var addTagHandler = new AddTagHandler(scope.PerfumeTrackerContext);
+		var result = await addTagHandler.Handle(new AddTagCommand(dto), new CancellationToken());
+		Assert.NotNull(await scope.PerfumeTrackerContext.Tags.FindAsync(result.Id));
 	}
 
 	[Fact]
 	public async Task GetStats() {
 		await PrepareData();
-		var client = factory.CreateClient();
-
-		var response = await client.GetAsync("/api/tags/stats");
-		response.EnsureSuccessStatusCode();
-
-		var tags = await response.Content.ReadFromJsonAsync<IEnumerable<TagStatDto>>();
+		using var scope = GetTestScope();
+		var getTagStatsHandler = new GetTagStatsHandler(scope.PerfumeTrackerContext);
+		var tags = await getTagStatsHandler.Handle(new GetTagStatsQuery(), new CancellationToken());
 		Assert.NotNull(tags);
+		Assert.NotEmpty(tags);
 	}
 }

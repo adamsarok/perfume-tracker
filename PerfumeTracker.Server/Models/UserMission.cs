@@ -2,7 +2,7 @@ using System;
 
 namespace PerfumeTracker.Server.Models;
 
-public class UserMission : Entity {
+public class UserMission : UserEntity {
     public Guid MissionId { get; set; }
     public int Progress { get; set; }
     public bool IsCompleted { get; set; }

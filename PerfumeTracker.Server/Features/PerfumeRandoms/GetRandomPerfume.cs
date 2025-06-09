@@ -13,15 +13,21 @@ public class GetRandomPerfumeEndpoint : ICarterModule {
 			return result.PerfumeId;
 		})
 			.WithTags("PerfumeRandoms")
-			.WithName("GetPerfumeSuggestion");
+			.WithName("GetPerfumeSuggestion")
+			.RequireAuthorization(Policies.READ);
 	}
 }
 public record class RandomPerfumeAddedEvent(Guid PerfumeId) : INotification;
-public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISender sender) : IQueryHandler<GetRandomPerfumeQuery, GetRandomPerfumeResponse> {
+public class GetRandomPerfumeHandler(PerfumeTrackerContext context) : IQueryHandler<GetRandomPerfumeQuery, GetRandomPerfumeResponse> {
 	public async Task<GetRandomPerfumeResponse> Handle(GetRandomPerfumeQuery request, CancellationToken cancellationToken) {
-		var settings = await sender.Send(new GetUserProfileQuery(), cancellationToken);
+		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		var alreadySug = await GetAlreadySuggestedRandomPerfumeIds(settings.DayFilter);
-		var worn = await sender.Send(new GetWornPerfumeIdsQuery(settings.DayFilter));
+		var worn = await context
+			.PerfumeEvents
+			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-settings.DayFilter))
+			.Select(x => x.PerfumeId)
+			.Distinct()
+			.ToListAsync();
 		var season = Season;
 		var all = await context
 			.Perfumes

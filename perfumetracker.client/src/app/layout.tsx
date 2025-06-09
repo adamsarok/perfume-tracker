@@ -1,68 +1,108 @@
 "use client";
 
-import { Inter } from "next/font/google";
 import "./globals.css";
-import { Button } from "@/components/ui/button";
-import { Brain, Cake, House, List, Plus, Settings, Tag, ListChecks } from "lucide-react";
+import { Toaster } from "sonner";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getCurrentUser, logout } from "@/services/axios-service";
 import Link from "next/link";
-import { Toaster } from "@/components/ui/sonner"
-import { toast } from "sonner";
-import { useEffect } from "react";
-import * as signalR from "@microsoft/signalr";
-import { UserMissionDto } from "@/dto/MissionDto";
-import { getPerfumeTrackerApiAddress } from "@/services/conf-service";
+import { Button } from "@/components/ui/button";
+import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react";
 
-const inter = Inter({ subsets: ["latin"] });
+function LayoutContent({ children }: { readonly children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
 
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
   useEffect(() => {
-    const initSignalR = async () => {
-      const apiUrl = await getPerfumeTrackerApiAddress();
-      console.log("apiUrl", apiUrl);
-      if (!apiUrl) {
-        console.error("API URL not configured");
-        return;
-      }
-
-      const connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${apiUrl}/hubs/mission-progress`)
-        .withAutomaticReconnect()
-        .build();
-
-      connection.on("ReceiveMissionProgress", (mission: UserMissionDto) => {
-        console.log("received missions", mission);
-        if (mission.isCompleted) {
-          toast.success(`Mission Completed: ${mission.name}`, {
-            description: mission.description,
-          });
-        } else {
-          toast.info(`Mission Updated: ${mission.name}`, {
-            description: `Progress: ${mission.progress}%`,
-          });
-        }
-      });
-
-      connection.start()
-        .then(() => console.log("SignalR Connected"))
-        .catch(err => console.error("SignalR Connection Error: ", err));
-
-      return () => {
-        connection.stop();
-      };
-    };
-
-    initSignalR();
+    setHasMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!hasMounted) return;
+    const checkAuth = async () => {
+      if (!hasMounted) return;
+      try {
+        const currentUser = await getCurrentUser();
+        if (!hasMounted) return;
+        setUser(currentUser);
+        if (!currentUser && (pathname !== '/login' && pathname !== '/register')) {
+          router.push('/login');
+        } else if (currentUser && (pathname === '/login' || pathname === '/register')) {
+          router.push('/');
+        }
+      } catch (error) {
+        if (!hasMounted) return;
+        console.error('Auth check failed:', error);
+        if ((pathname !== '/login' && pathname !== '/register')) {
+          router.push('/login');
+        }
+      } finally {
+        if (hasMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if ((pathname === '/login' || pathname === '/register')) {
+      setIsLoading(false);
+      return;
+    }
+
+    checkAuth();
+  }, [pathname, hasMounted]);
+
+  const handleLogout = async () => {
+    if (!hasMounted) return;
+    try {
+      await logout();
+      setUser(null);
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  if (isLoading && (pathname !== '/login' && pathname !== '/register')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if ((pathname === '/login' || pathname === '/register')) {
+    return <>{children}</>;
+  }
+
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="max-w-lg mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <div className="flex-shrink-0 flex items-center">
+                <span className="text-xl font-bold text-gray-900">Perfume Tracker</span>
+              </div>
+            </div>
+            {user && (
+              <div className="flex items-center">
+                <span className="text-gray-700 mr-4">{user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-gray-700 hover:text-gray-900"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="max-w-lg mx-auto px-4 py-8">
           <div className="flex items-center justify-center space-x-2">
             <Link href="/" passHref>
               <Button variant="outline" size="icon" title="Home" aria-label="Home">
@@ -108,6 +148,20 @@ export default function RootLayout({
           {children}
           <Toaster />
         </div>
+      </main>
+    </div>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body>
+        <LayoutContent>{children}</LayoutContent>
       </body>
     </html>
   );
