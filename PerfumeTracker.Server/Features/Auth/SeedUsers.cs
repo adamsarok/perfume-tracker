@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Auth;
+﻿using PerfumeTracker.Server.Features.Users;
+
+namespace PerfumeTracker.Server.Features.Auth;
 public interface ISeedUsers {
 	Task SeedAdminAsync();
 	Task SeedDemoUserAsync();

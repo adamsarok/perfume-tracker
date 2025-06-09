@@ -1,4 +1,4 @@
-﻿namespace PerfumeTracker.Server.Features.Auth;
+﻿namespace PerfumeTracker.Server.Features.Users;
 
 public class LoginEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
@@ -24,9 +24,7 @@ public class LoginUserHandler(UserManager<PerfumeIdentityUser> userManager, IJwt
 	: ICommandHandler<LoginUserCommand, LoginResult> {
 	public async Task<LoginResult> Handle(LoginUserCommand command, CancellationToken cancellationToken) {
 		var user = await userManager.FindByEmailAsync(command.Email);
-		if (user == null || !await userManager.CheckPasswordAsync(user, command.Password)) {
-			return new LoginResult(Results.Unauthorized());
-		}
+		if (user == null || !await userManager.CheckPasswordAsync(user, command.Password)) 			return new LoginResult(Results.Unauthorized());
 		await jwtTokenGenerator.WriteToken(user, command.HttpContext);
 		return new LoginResult(Results.Ok(new { message = "Logged in successfully" }));
 	}
@@ -42,7 +40,7 @@ public class LoginDemoUserHandler(UserManager<PerfumeIdentityUser> userManager, 
 		var roles = await userManager.GetRolesAsync(user);
 		if (roles.Any(x => x != Roles.DEMO)) {
 			logger.Log(LogLevel.Error, "Demo user has incorrect role setup: {Roles}", string.Join(", ", roles));
-			return (new LoginResult(Results.Unauthorized()));
+			return new LoginResult(Results.Unauthorized());
 		}
 		await jwtTokenGenerator.WriteToken(user, command.HttpContext);
 		return new LoginResult(Results.Ok(new { message = "Logged in successfully" }));

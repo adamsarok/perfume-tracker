@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace PerfumeTracker.Server.Features.Auth;
+namespace PerfumeTracker.Server.Features.Users;
 public record UserResponse(string UserName, string Email, string Id, IEnumerable<string> Roles);
 public class GetCurrentUser : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

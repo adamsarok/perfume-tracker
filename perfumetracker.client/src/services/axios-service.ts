@@ -23,11 +23,6 @@ const initializeApiUrl = async () => {
   return cachedApiUrl;
 };
 
-initializeApiUrl().catch(error => {
-  console.error('Failed to initialize API URL:', error);
-});
-
-
 let cachedR2ApiUrl: string | null = null;
 const initializeR2ApiUrl = async () => {
   if (!cachedR2ApiUrl) {
@@ -37,10 +32,6 @@ const initializeR2ApiUrl = async () => {
   }
   return cachedApiUrl;
 };
-
-initializeR2ApiUrl().catch(error => {
-  console.error('Failed to initialize R2 API URL:', error);
-});
 
 export async function getR2ApiUrl(): Promise<string> {
   const apiUrl = await initializeR2ApiUrl();
@@ -109,8 +100,12 @@ export async function logout(): Promise<void> {
   try {
     const apiUrl = await initializeApiUrl();
     await api.post(`${apiUrl}/identity/account/logout`);
+    // Clear any cached data
+    cachedApiUrl = null;
+    cachedR2ApiUrl = null;
   } catch (error) {
     console.error('Logout error:', error);
+    throw error;
   }
 }
 

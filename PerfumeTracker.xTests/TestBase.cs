@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Users;
 
 namespace PerfumeTracker.xTests;
 public class TestBase(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {

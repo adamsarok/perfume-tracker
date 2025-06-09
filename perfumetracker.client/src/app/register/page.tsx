@@ -36,7 +36,11 @@ export default function RegisterPage() {
       await register(email, password, userName);
       router.push("/"); // Redirect to home page after successful registration
     } catch (err) {
-      setError("Registration failed: " + err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Registration failed.");
+      }
     }
   };
 
@@ -50,9 +54,9 @@ export default function RegisterPage() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
-          <div>
+            <div>
               <Label htmlFor="userName" className="sr-only">
-                Email address
+                User Name
               </Label>
               <Input
                 id="userName"

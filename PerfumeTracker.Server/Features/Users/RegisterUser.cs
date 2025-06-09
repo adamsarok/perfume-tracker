@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
-namespace PerfumeTracker.Server.Features.Auth;
+namespace PerfumeTracker.Server.Features.Users;
 public record RegisterUserCommand(string UserName, string Email, string Password) : ICommand<Unit>;
 public class RegisterUserEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

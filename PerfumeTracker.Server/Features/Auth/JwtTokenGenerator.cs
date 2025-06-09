@@ -42,7 +42,7 @@ public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, ICo
 
 		context.Response.Cookies.Append("jwt", token, cookieOptions);
 		context.Response.Cookies.Append("X-Username", user.UserName ?? string.Empty, cookieOptions);
-		context.Response.Cookies.Append("X-User-Id", user.Id.ToString(), cookieOptions);
+		//context.Response.Cookies.Append("X-User-Id", user.Id.ToString(), cookieOptions);
 	}
 }
 
