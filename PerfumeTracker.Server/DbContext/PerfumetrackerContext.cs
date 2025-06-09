@@ -11,8 +11,8 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	}
 
 	[ActivatorUtilitiesConstructor]
-	public PerfumeTrackerContext(DbContextOptions<PerfumeTrackerContext> options)
-		: base(options) {
+	public PerfumeTrackerContext()
+		: base() {
 		TenantProvider = null;
 	}
 
