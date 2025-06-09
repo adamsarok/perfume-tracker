@@ -32,7 +32,8 @@ public class GetWornPerfumesHandler(PerfumeTrackerContext context)
 				x.Perfume.House,
 				x.Perfume.PerfumeName,
 				x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList(),
-				x.SequenceNumber
+				x.SequenceNumber,
+				x.IsDeleted
 			))
 			.ToListAsync();
 	}

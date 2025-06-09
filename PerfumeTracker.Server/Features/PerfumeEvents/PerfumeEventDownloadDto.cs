@@ -9,5 +9,6 @@ public record PerfumeEventDownloadDto(
     string PerfumeHouse,
     string PerfumeName,
     List<TagDto> PerfumeTags,
-    int SequenceNumber
+    int SequenceNumber,
+	bool IsDeleted
 ); 

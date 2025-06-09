@@ -85,9 +85,8 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		using var scope = GetTestScope();
 		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
 		var deleteTagHandler = new DeleteTagHandler(scope.PerfumeTrackerContext);
-		await deleteTagHandler.Handle(new DeleteTagCommand(tag.Id), new CancellationToken());
-		using var scope2 = GetTestScope();
-		Assert.Null(await scope2.PerfumeTrackerContext.Tags.FindAsync(tag.Id));
+		var result = await deleteTagHandler.Handle(new DeleteTagCommand(tag.Id), new CancellationToken());
+		Assert.True(result.IsDeleted);
 	}
 
 	[Fact]
