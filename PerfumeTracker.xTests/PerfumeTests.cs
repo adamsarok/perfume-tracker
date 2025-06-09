@@ -122,7 +122,8 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
 		var handler = new DeletePerfumeHandler(scope.PerfumeTrackerContext);
 		await handler.Handle(new DeletePerfumeCommand(perfume.Id), new CancellationToken());
-		Assert.Null(await scope.PerfumeTrackerContext.Perfumes.FirstOrDefaultAsync(x => x.Id == perfume.Id));
+		using var scope2 = GetTestScope();
+		Assert.Null(await scope2.PerfumeTrackerContext.Perfumes.FirstOrDefaultAsync(x => x.Id == perfume.Id));
 	}
 
 	[Fact]
