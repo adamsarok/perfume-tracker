@@ -6,6 +6,7 @@ public class GetWornPerfumesEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/perfume-events/worn-perfumes", async (string cursor, int pageSize, ISender sender) => {
 			if (!string.IsNullOrWhiteSpace(cursor) && DateTime.TryParse(cursor, out DateTime date)) {
+				date = DateTime.SpecifyKind(date, DateTimeKind.Utc);
 				return await sender.Send(new GetWornPerfumesQuery(date, pageSize));
 			}
 			return await sender.Send(new GetWornPerfumesQuery(null, pageSize));

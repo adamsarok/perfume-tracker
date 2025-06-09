@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/services/axios-service";
+import { login, loginDemo } from "@/services/axios-service";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,7 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -25,6 +26,19 @@ export default function LoginPage() {
     }
   };
 
+  const handleLoginDemo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      await loginDemo();
+      router.push("/"); // Redirect to home page after successful login
+    } catch (err) {
+      setError("Invalid email or password:" + err);
+    }
+  };
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -33,7 +47,7 @@ export default function LoginPage() {
             Sign in to your account
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <Label htmlFor="email-address" className="sr-only">
@@ -73,13 +87,28 @@ export default function LoginPage() {
             <div className="text-red-500 text-sm text-center">{error}</div>
           )}
 
-          <div>
+          <div className="flex justify-evenly">
             <Button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Sign in
             </Button>
+            <Link href="/register" passHref>
+              <Button variant="outline"
+                type="button"
+              >
+                Register
+              </Button>
+            </Link>
+            <Button variant="secondary"
+              type="button"
+              onClick={handleLoginDemo}
+            >
+              Demo
+            </Button>
+          </div>
+          <div>
+            
           </div>
         </form>
       </div>

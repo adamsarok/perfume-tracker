@@ -18,7 +18,7 @@ public static partial class Startup {
 				return RateLimitPartition.GetFixedWindowLimiter(
 					partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 					factory: _ => new FixedWindowRateLimiterOptions {
-						PermitLimit = 100,
+						PermitLimit = 250,
 						Window = TimeSpan.FromMinutes(1)
 					});
 			});

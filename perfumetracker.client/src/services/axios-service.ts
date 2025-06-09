@@ -91,11 +91,17 @@ api.interceptors.response.use(
 );
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  const apiUrl = await initializeApiUrl();  
+  const apiUrl = await initializeApiUrl();
   const response = await api.post<LoginResponse>(`${apiUrl}/identity/account/login`, {
     email,
     password,
   });
+  return response.data;
+}
+
+export async function loginDemo(): Promise<LoginResponse> {
+  const apiUrl = await initializeApiUrl();
+  const response = await api.post<LoginResponse>(`${apiUrl}/identity/account/login/demo`, {});
   return response.data;
 }
 
@@ -121,4 +127,14 @@ export async function getCurrentUser(): Promise<UserResponse | null> {
     }
     return null;
   }
+}
+
+export async function register(email: string, password: string, userName: string): Promise<LoginResponse> {
+  const apiUrl = await initializeApiUrl();
+  const response = await api.post<LoginResponse>(`${apiUrl}/identity/account/register`, {
+    email,
+    password,
+    userName
+  });
+  return response.data;
 } 

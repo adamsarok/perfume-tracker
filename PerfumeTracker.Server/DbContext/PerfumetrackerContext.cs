@@ -63,7 +63,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 		modelBuilder.Entity<UserProfile>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserProfile_pkey");
 			entity.ToTable("UserProfile");
-			entity.HasQueryFilter(x => !x.IsDeleted && x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && x.Id == TenantProvider.GetCurrentUserId());
 		});
 
 		modelBuilder.Entity<Perfume>(entity => {
