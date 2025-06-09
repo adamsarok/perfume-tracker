@@ -68,7 +68,6 @@ public class PerfumeWornTests : TestBase, IClassFixture<WebApplicationFactory<Pr
 		var worn = await scope.PerfumeTrackerContext.PerfumeEvents.FirstAsync();
 		var handler = new DeletePerfumeEventHandler(scope.PerfumeTrackerContext);
 		await handler.Handle(new DeletePerfumeEventCommand(worn.Id), new CancellationToken());
-		using var scope2 = GetTestScope();
 		var worn2 = await scope.PerfumeTrackerContext.PerfumeEvents.FirstOrDefaultAsync(x => x.Id == worn.Id);
 		Assert.Null(worn2);
 	}
