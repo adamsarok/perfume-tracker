@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react";
 
-function LayoutContent({ children }: { children: React.ReactNode }) {
+function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);

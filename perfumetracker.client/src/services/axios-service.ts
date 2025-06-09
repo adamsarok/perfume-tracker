@@ -100,8 +100,8 @@ export async function login(email: string, password: string): Promise<LoginRespo
 }
 
 export async function logout(): Promise<void> {
-  const apiUrl = await initializeApiUrl();
   try {
+    const apiUrl = await initializeApiUrl();
     await api.post(`${apiUrl}/identity/account/logout`);
   } catch (error) {
     console.error('Logout error:', error);
@@ -109,8 +109,8 @@ export async function logout(): Promise<void> {
 }
 
 export async function getCurrentUser(): Promise<UserResponse | null> {
-  const apiUrl = await initializeApiUrl();
   try {
+    const apiUrl = await initializeApiUrl();
     const response = await api.get<UserResponse>(`${apiUrl}/identity/account/me`);
     return response.data;
   } catch (error) {

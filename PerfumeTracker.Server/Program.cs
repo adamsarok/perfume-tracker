@@ -81,9 +81,11 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.AllowAnyOrigin() //TODO!!! set up CORS
-                          .AllowAnyHeader()
-                          .AllowAnyMethod());
+        builder => builder
+            .WithOrigins("http://localhost:3000", "https://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
 
 builder.Services.AddHostedService<OutboxService>();
@@ -104,10 +106,7 @@ using (var scope = app.Services.CreateScope()) {
 app.UseRateLimiter();
 app.UseExceptionHandler();
 app.MapCarter();
-app.UseCors(x => x.AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowCredentials()
-    .WithOrigins("http://localhost", "http://192.168.1.79:3000", "https://192.168.1.79:3000", "https://localhost:3000", "http://localhost:3000"));
+app.UseCors("AllowSpecificOrigin");
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });

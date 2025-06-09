@@ -7,7 +7,7 @@ public static partial class Startup {
 		services.AddRateLimiter(options => {
 			options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext => {
 				string path = httpContext.Request.Path.ToString();
-				if (path.StartsWith("/api/identity")) {
+				if (path.StartsWith("/api/identity/account/login") || path.StartsWith("/api/identity/account/register")) {
 					return RateLimitPartition.GetFixedWindowLimiter(
 						partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 						factory: _ => new FixedWindowRateLimiterOptions {

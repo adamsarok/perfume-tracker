@@ -10,8 +10,8 @@ public class TenantProvider : ITenantProvider {
 	private readonly Guid? _userId;
 
 	public TenantProvider(IHttpContextAccessor accessor) {
-		var userIdValue = accessor.HttpContext?.User.FindFirstValue("X-User-Id");
-		_userId = Guid.TryParse(userIdValue, out var guid) ? guid : null;
+		var userIdClaim = accessor.HttpContext?.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+		if (userIdClaim != null) _userId = Guid.TryParse(userIdClaim.Value, out var guid) ? guid : null;
 	}
 
 	public Guid? GetCurrentUserId() => _userId;
