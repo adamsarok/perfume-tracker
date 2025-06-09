@@ -70,6 +70,12 @@ jobs:
         Jwt__Issuer: DUMMY
         Jwt__Audience: DUMMY
         Jwt__ExpirationHours: 24
+        Users__AdminUserName: DummyAdmin
+        Users__AdminEmail: admin@example.com
+        Users__AdminPassword: 123DummyAdminPass123
+        Users__DemoUserName: DummyDemo
+        Users__DemoEmail: demo@example.com
+        Users__DemoPassword: 123DummyDemoPass123
       run: dotnet build
 
     - name: Install EF Core CLI tools
@@ -83,6 +89,12 @@ jobs:
        Jwt__Issuer: DUMMY
        Jwt__Audience: DUMMY
        Jwt__ExpirationHours: 24
+       Users__AdminUserName: DummyAdmin
+       Users__AdminEmail: admin@example.com
+       Users__AdminPassword: 123DummyAdminPass123
+       Users__DemoUserName: DummyDemo
+       Users__DemoEmail: demo@example.com
+       Users__DemoPassword: 123DummyDemoPass123
       run: dotnet ef database update
 
     - name: Run tests with coverage
@@ -93,6 +105,12 @@ jobs:
        Jwt__Issuer: DUMMY
        Jwt__Audience: DUMMY
        Jwt__ExpirationHours: 24
+       Users__AdminUserName: DummyAdmin
+       Users__AdminEmail: admin@example.com
+       Users__AdminPassword: 123DummyAdminPass123
+       Users__DemoUserName: DummyDemo
+       Users__DemoEmail: demo@example.com
+       Users__DemoPassword: 123DummyDemoPass123
       run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings
 
     - name: Upload coverage reports to Codecov
