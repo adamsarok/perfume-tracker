@@ -7,7 +7,6 @@ import MessageBox from "./message-box";
 import { notFound, useRouter } from "next/navigation";
 import UploadComponent from "./upload-component";
 import SprayOnComponent from "./spray-on";
-import { getImageUrl } from "./r2-image";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -39,7 +38,7 @@ import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2 } from "lucide-react";
 import { getTags } from "@/services/tag-service";
-import { getR2ApiAddress } from "@/services/conf-service";
+import { get } from "@/services/axios-service";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -81,9 +80,6 @@ export default function PerfumeEditForm({
   const [allTags, setAllTags] = useState<TagDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [perfume, setPerfume] = useState<PerfumeWithWornStatsDTO | null>(null);
-  const [r2_api_address, setR2ApiAddress] = useState<string | undefined>(
-    undefined
-  );
   const [topChipProps, setTopChipProps] = useState<ChipProp[]>([]);
   const [bottomChipProps, setBottomChipProps] = useState<ChipProp[]>([]);
 
@@ -130,7 +126,6 @@ export default function PerfumeEditForm({
     };
 
     load();
-    getR2ApiAddress().then((address) => setR2ApiAddress(address));
   }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -238,17 +233,32 @@ export default function PerfumeEditForm({
     perfume ? perfume.perfume.imageObjectKey : ""
   );
   const [imageUrl, setImageUrl] = useState<string | null>(
-    perfume ? perfume.perfume.imagerUrl : ""
+    perfume ? perfume.perfume.imageUrl : ""
   );
+
+  useEffect(() => {
+    if (perfume?.perfume.imageObjectKey) {
+      const loadImageUrl = async () => {
+        const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(perfume.perfume.imageObjectKey)}`;
+        const presignedUrl = (await get<string>(qryPresigned)).data;
+        setImageUrl(presignedUrl);
+      };
+      loadImageUrl();
+    }
+  }, [perfume]);
+
   const onUpload = async (guid: string | undefined) => {
     if (perfume?.perfume.id && guid) {
       setImageObjectKey(guid);
-      setImageUrl(getImageUrl(guid, r2_api_address));
+      const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(guid)}`;
+      const presignedUrl = (await get<string>(qryPresigned)).data;
+      setImageUrl(presignedUrl);
       const result = await updateImageGuid(perfume.perfume.id, guid);
       if (result.ok) showSuccess("Image upload successful");
       else showError("Image upload failed", result.error ?? "unknown error");
     }
   };
+
   const amount = form.watch("amount");
   useEffect(() => {
     if (!perfume?.perfume.id) {
@@ -259,6 +269,8 @@ export default function PerfumeEditForm({
   if (isLoading) {
     return <div>Loading...</div>;
   }
+  
+  console.log(perfume?.perfume.imageUrl);
 
   return (
     <div>

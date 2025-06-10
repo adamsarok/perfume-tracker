@@ -11,16 +11,16 @@ public static partial class Startup {
 					return RateLimitPartition.GetFixedWindowLimiter(
 						partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 						factory: _ => new FixedWindowRateLimiterOptions {
-							PermitLimit = 25,
+							PermitLimit = 1000, //TODO: generating lot of presigned urls can cause a problem already
 							Window = TimeSpan.FromMinutes(1)
 						});
 				}
 				return RateLimitPartition.GetFixedWindowLimiter(
 					partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 					factory: _ => new FixedWindowRateLimiterOptions {
-						PermitLimit = 250,
+						PermitLimit = 1000, //TODO: generating lot of presigned urls can cause a problem already
 						Window = TimeSpan.FromMinutes(1)
-					});
+				});
 			});
 			options.OnRejected = (context, cancellationToken) => {
 				var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();

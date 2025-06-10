@@ -106,13 +106,12 @@ app.UseRateLimiter();
 app.UseExceptionHandler();
 app.MapCarter();
 app.UseCors("AllowSpecificOrigin");
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.Run();
 

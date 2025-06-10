@@ -1,4 +1,4 @@
-import { getPerfumeTrackerApiAddress, getR2ApiAddress } from "./conf-service";
+import { getPerfumeTrackerApiAddress } from "./conf-service";
 import axios from "axios";
 
 export interface LoginResponse {
@@ -22,22 +22,6 @@ const initializeApiUrl = async () => {
   }
   return cachedApiUrl;
 };
-
-let cachedR2ApiUrl: string | null = null;
-const initializeR2ApiUrl = async () => {
-  if (!cachedR2ApiUrl) {
-    const r2apiUrl = await getR2ApiAddress();
-    if (!r2apiUrl) throw new Error('R2 API address not configured');
-    cachedR2ApiUrl = r2apiUrl;
-  }
-  return cachedR2ApiUrl;
-};
-
-export async function getR2ApiUrl(): Promise<string> {
-  const r2ApiUrl = await initializeR2ApiUrl();
-  if (!r2ApiUrl) throw new Error('R2 API address not configured');
-  return r2ApiUrl;
-}
 
 export async function get<T>(url: string) {
   const apiUrl = await initializeApiUrl();

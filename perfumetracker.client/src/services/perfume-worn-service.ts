@@ -1,18 +1,19 @@
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { PerfumeWornUploadDTO } from "@/dto/PerfumeWornUploadDTO";
 import { ActionResult } from "@/dto/ActionResult";
-import { getImageUrl } from "@/components/r2-image";
-import { del, get, getR2ApiUrl, post } from "./axios-service";
+import { del, get, post } from "./axios-service";
 
 export async function getWornBeforeID(cursor: number | null, pageSize: number) : Promise<PerfumeWornDTO[]> {
     const qry = `/perfume-events/worn-perfumes?cursor=${encodeURIComponent(cursor ?? 0)}&pageSize=${encodeURIComponent(pageSize)}`;
-    const r2ApiUrl = await getR2ApiUrl();
     const response = (await get<PerfumeWornDTO[]>(qry)).data;
-    console.log(r2ApiUrl);
-    response.forEach(x => {
-        x.perfumeImageUrl = getImageUrl(x.perfumeImageObjectKey, r2ApiUrl);
+    await Promise.all(response.map(async x => {
+        if (x.perfumeImageObjectKey) {
+          const qry = `/images/get-presigned-url/${encodeURIComponent(x.perfumeImageObjectKey)}`;
+          const presignedUrl = (await get<string>(qry)).data;
+          x.perfumeImageUrl = presignedUrl;
+        }
         x.eventDate = new Date(x.eventDate);
-    });
+    }));
     return response;
 }
 

@@ -2,8 +2,7 @@ import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
 import { ActionResult } from "@/dto/ActionResult";
-import { getImageUrl } from "@/components/r2-image";
-import { del, get, getR2ApiUrl, post, put } from "./axios-service";
+import { del, get, post, put } from "./axios-service";
 
 export async function getPerfumesFulltext(
   fulltext: string
@@ -17,16 +16,22 @@ export async function getPerfumesFulltext(
 export async function getPerfume(id: string): Promise<PerfumeWithWornStatsDTO> {
   const qry = `/perfumes/${encodeURIComponent(id)}`;
   const response = await get<PerfumeWithWornStatsDTO>(qry);
-  const r2ApiUrl = await getR2ApiUrl();
-  response.data.perfume.imagerUrl = getImageUrl(response.data.perfume.imageObjectKey, r2ApiUrl);
+  const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(response.data.perfume.imageObjectKey)}`;
+  const presignedUrl = (await get<string>(qryPresigned)).data;
+  response.data.perfume.imageUrl = presignedUrl;
   return response.data;
 }
 
 export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {
   const qry = `/perfumes/`;
   const response = await get<PerfumeWithWornStatsDTO[]>(qry);
-  const r2ApiUrl = await getR2ApiUrl();
-  response.data.forEach(x => x.perfume.imagerUrl = getImageUrl(x.perfume.imageObjectKey, r2ApiUrl));
+  await Promise.all(response.data.map(async x => {
+    if (x.perfume.imageObjectKey) {
+      const qry = `/images/get-presigned-url/${encodeURIComponent(x.perfume.imageObjectKey)}`;
+      const presignedUrl = (await get<string>(qry)).data;
+      x.perfume.imageUrl = presignedUrl;
+    }
+  }));
   return response.data;
 }
 
