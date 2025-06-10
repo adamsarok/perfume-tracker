@@ -134,6 +134,10 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 
 			entity.ToTable("PerfumeEvent");
 
+			entity.Property(e => e.SequenceNumber)
+				.HasDefaultValueSql("nextval('\"PerfumeEventSequence\"')")
+				.ValueGeneratedOnAdd();
+
 			entity.HasOne(d => d.Perfume)
 				.WithMany(p => p.PerfumeEvents)
 				.HasForeignKey(d => d.PerfumeId)
