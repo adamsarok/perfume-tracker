@@ -55,7 +55,7 @@ public class PerfumeWornTests : TestBase, IClassFixture<WebApplicationFactory<Pr
 	public async Task GetPerfumeWorns() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var handler = new GetWornPerfumesHandler(scope.PerfumeTrackerContext);
+		var handler = new GetWornPerfumesHandler(scope.PerfumeTrackerContext, new MockPresignedUrlService());
 		var result = await handler.Handle(new GetWornPerfumesQuery(0, 20), new CancellationToken());
 		Assert.NotNull(result);
 		Assert.NotEmpty(result);

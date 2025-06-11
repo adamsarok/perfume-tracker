@@ -1,6 +1,8 @@
-﻿using MediatR;
+﻿using Amazon.S3;
+using MediatR;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Models;
 using System.Net;
@@ -58,7 +60,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		await PrepareData();
 		using var scope = GetTestScope();
 		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
-		var handler = new GetPerfumeHandler(scope.PerfumeTrackerContext);
+		var handler = new GetPerfumeHandler(scope.PerfumeTrackerContext, new MockPresignedUrlService());
 		var response = await handler.Handle(new GetPerfumeQuery(perfume.Id), new CancellationToken());
 		Assert.NotNull(response);
 	}
@@ -67,7 +69,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task GetPerfume_NotFound() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var handler = new GetPerfumeHandler(scope.PerfumeTrackerContext);
+		var handler = new GetPerfumeHandler(scope.PerfumeTrackerContext, new MockPresignedUrlService());
 		await Assert.ThrowsAsync<NotFoundException>(async () => await handler.Handle(new GetPerfumeQuery(Guid.NewGuid()), new CancellationToken()));
 	}
 
@@ -75,7 +77,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task GetPerfumes() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var handler = new GetPerfumesWithWornHandler(scope.PerfumeTrackerContext);
+		var handler = new GetPerfumesWithWornHandler(scope.PerfumeTrackerContext, new MockPresignedUrlService());
 		var perfumes = await handler.Handle(new GetPerfumesWithWornQuery(), new CancellationToken());
 		Assert.NotNull(perfumes);
 		Assert.NotEmpty(perfumes);
@@ -95,6 +97,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 			perfume.Ml,
 			perfume.MlLeft,
 			perfume.ImageObjectKey,
+			"",
 			perfume.Autumn,
 			perfume.Spring,
 			perfume.Summer,
@@ -130,7 +133,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task AddPerfume() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var dto = new PerfumeDto(Guid.NewGuid(), "House3", "Perfume3", 5, "Notes", 50, 50, "", true, true, false, false, new(), false);
+		var dto = new PerfumeDto(Guid.NewGuid(), "House3", "Perfume3", 5, "Notes", 50, 50, "", "", true, true, false, false, new(), false);
 		var handler = new AddPerfumeHandler(scope.PerfumeTrackerContext);
 		var response = await handler.Handle(new AddPerfumeCommand(dto), new CancellationToken());
 		Assert.NotNull(response);
