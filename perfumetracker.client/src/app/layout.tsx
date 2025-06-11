@@ -81,28 +81,22 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <span className="text-xl font-bold text-gray-900">Perfume Tracker</span>
-              </div>
-            </div>
+          <div className="flex justify-center h-16">
             {user && (
               <div className="flex items-center">
                 <span className="text-gray-700 mr-4">{user.email}</span>
-                <button
+                <Button
                   onClick={handleLogout}
-                  className="text-gray-700 hover:text-gray-900"
                 >
                   Logout
-                </button>
+                </Button>
               </div>
             )}
           </div>
         </div>
       </nav>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="max-w-lg mx-auto px-4 py-8">
+      <div className="max-w-lg mx-auto px-4">
           <div className="flex items-center justify-center space-x-2">
             <Link href="/" passHref>
               <Button variant="outline" size="icon" title="Home" aria-label="Home">
