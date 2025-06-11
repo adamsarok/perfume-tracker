@@ -1,4 +1,5 @@
-﻿using PerfumeTracker.Server.Features.UserProfiles;
+﻿using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
@@ -18,7 +19,7 @@ public class GetPerfumesWithWornEndpoint : ICarterModule {
 	}
 }
 
-public class GetPerfumesWithWornHandler(PerfumeTrackerContext context) 
+public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, IPresignedUrlService presignedUrlService) 
 	: IQueryHandler<GetPerfumesWithWornQuery, List<PerfumeWithWornStatsDto>> {
 	public async Task<List<PerfumeWithWornStatsDto>> Handle(GetPerfumesWithWornQuery request, CancellationToken cancellationToken) {
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
@@ -31,7 +32,7 @@ public class GetPerfumesWithWornHandler(PerfumeTrackerContext context)
 				|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{request.FullText}:*"))
 				|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, request.FullText))
 				)
-			.Select(p => p.ToPerfumeWithWornStatsDto(settings))
+			.Select(p => p.ToPerfumeWithWornStatsDto(settings, presignedUrlService))
 			.AsSplitQuery()
 			.AsNoTracking()
 			.ToListAsync();

@@ -1,6 +1,6 @@
 import { showError } from "@/services/toasty-service";
 import FileSelector from "./file-selector";
-import { getR2ApiAddress } from "@/services/conf-service";
+import { get } from "@/services/axios-service";
 
 interface UploadComponentProps {
   onUpload: (guid: string | undefined) => void;
@@ -13,17 +13,14 @@ Size Limits: Implement checks to ensure files are within acceptable size limits 
 Error Handling: Handle potential errors and edge cases, such as file upload failures or issues with the microservice communication.
 */
 
+interface PresignedResponse {
+  guid: string,
+  presignedUrl: string,
+}
 
 export default function UploadComponent({ onUpload }: UploadComponentProps) {
   const handleUpload = async (file: File) => {
     try {
-      const r2_api_address = await getR2ApiAddress();
-
-      if (!r2_api_address) {
-        showError("Error uploading file: R2 API address is not configured");
-        return;
-      }
-
       if (!file) {
         showError("File is empty");
         return;
@@ -41,22 +38,21 @@ export default function UploadComponent({ onUpload }: UploadComponentProps) {
         reader.readAsArrayBuffer(file);
       });
 
-      const microserviceUrl = `${r2_api_address}/upload-image?fileName=${encodeURIComponent(
-        file.name
-      )}`;
-      const response = await fetch(microserviceUrl, {
+      const qry = `/images/get-presigned-url`;
+      const presignedResponse = (await get<PresignedResponse>(qry)).data;
+
+      const response = await fetch(presignedResponse.presignedUrl, {
         method: "PUT",
         body: fileBuffer,
         headers: {
-          "Content-Type": "image/jpeg",
+          "Content-Type": file.type,
         },
       });
-      const json = await response.json();
       if (!response.ok) {
         showError('Error uploading file:');
         return;
       }
-      onUpload(json.guid);
+      onUpload(presignedResponse.guid);
     } catch (error) {
       showError('Error uploading file:', error);
     }

@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Perfumes;
+﻿using PerfumeTracker.Server.Features.Common;
+
+namespace PerfumeTracker.Server.Features.Perfumes;
 public record GetPerfumeQuery(Guid Id) : IQuery<PerfumeWithWornStatsDto>;
 public class GetPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
@@ -10,7 +12,7 @@ public class GetPerfumeEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.READ);
 	}
 }
-public class GetPerfumeHandler(PerfumeTrackerContext context)
+public class GetPerfumeHandler(PerfumeTrackerContext context, IPresignedUrlService presignedUrlService)
 		: IQueryHandler<GetPerfumeQuery, PerfumeWithWornStatsDto> {
 	public async Task<PerfumeWithWornStatsDto> Handle(GetPerfumeQuery request, CancellationToken cancellationToken) {
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
@@ -20,7 +22,7 @@ public class GetPerfumeHandler(PerfumeTrackerContext context)
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Where(p => p.Id == request.Id)
-			.Select(p => p.ToPerfumeWithWornStatsDto(settings))
+			.Select(p => p.ToPerfumeWithWornStatsDto(settings, presignedUrlService))
 			.AsSplitQuery()
 			.AsNoTracking()
 			.FirstOrDefaultAsync();

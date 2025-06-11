@@ -7,7 +7,6 @@ import MessageBox from "./message-box";
 import { notFound, useRouter } from "next/navigation";
 import UploadComponent from "./upload-component";
 import SprayOnComponent from "./spray-on";
-import { getImageUrl } from "./r2-image";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -39,7 +38,7 @@ import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2 } from "lucide-react";
 import { getTags } from "@/services/tag-service";
-import { getR2ApiAddress } from "@/services/conf-service";
+import { get } from "@/services/axios-service";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -72,6 +71,8 @@ const formSchema = z.object({
   summer: z.boolean(),
   autumn: z.boolean(),
   spring: z.boolean(),
+  imageObjectKey: z.string(),
+  imageUrl: z.string(),
 });
 
 export default function PerfumeEditForm({
@@ -81,9 +82,6 @@ export default function PerfumeEditForm({
   const [allTags, setAllTags] = useState<TagDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [perfume, setPerfume] = useState<PerfumeWithWornStatsDTO | null>(null);
-  const [r2_api_address, setR2ApiAddress] = useState<string | undefined>(
-    undefined
-  );
   const [topChipProps, setTopChipProps] = useState<ChipProp[]>([]);
   const [bottomChipProps, setBottomChipProps] = useState<ChipProp[]>([]);
 
@@ -94,6 +92,7 @@ export default function PerfumeEditForm({
         if (perfumeId) {
           const perfume = await getPerfume(perfumeId);
           setPerfume(perfume);
+          //setImageObjectKey(perfume.perfume.imageObjectKey);
         }
         setAllTags(loadedTags);
 
@@ -130,7 +129,6 @@ export default function PerfumeEditForm({
     };
 
     load();
-    getR2ApiAddress().then((address) => setR2ApiAddress(address));
   }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -146,6 +144,8 @@ export default function PerfumeEditForm({
       summer: true,
       autumn: true,
       spring: true,
+      imageObjectKey: "",
+      imageUrl: "",
     },
   });
 
@@ -162,6 +162,8 @@ export default function PerfumeEditForm({
         summer: perfume.perfume.summer,
         autumn: perfume.perfume.autumn,
         spring: perfume.perfume.spring,
+        imageObjectKey: perfume.perfume.imageObjectKey,
+        imageUrl: perfume.perfume.imageUrl,
       });
     }
   }, [perfume, form]);
@@ -177,7 +179,7 @@ export default function PerfumeEditForm({
       notes: values.notes,
       ml: values.amount,
       mlLeft: values.mlLeft,
-      imageObjectKey: imageObjectKey,
+      imageObjectKey: values.imageObjectKey,
       summer: values.summer,
       winter: values.winter,
       autumn: values.autumn,
@@ -234,21 +236,19 @@ export default function PerfumeEditForm({
     }
   };
   const [showUploadButtons, setShowUploadButtons] = useState<boolean>(false);
-  const [imageObjectKey, setImageObjectKey] = useState<string>(
-    perfume ? perfume.perfume.imageObjectKey : ""
-  );
-  const [imageUrl, setImageUrl] = useState<string | null>(
-    perfume ? perfume.perfume.imagerUrl : ""
-  );
+
   const onUpload = async (guid: string | undefined) => {
     if (perfume?.perfume.id && guid) {
-      setImageObjectKey(guid);
-      setImageUrl(getImageUrl(guid, r2_api_address));
+      perfume.perfume.imageObjectKey = guid;
+      const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(guid)}`;
+      const presignedUrl = (await get<string>(qryPresigned)).data;
+      perfume.perfume.imageUrl = presignedUrl;
       const result = await updateImageGuid(perfume.perfume.id, guid);
       if (result.ok) showSuccess("Image upload successful");
       else showError("Image upload failed", result.error ?? "unknown error");
     }
   };
+
   const amount = form.watch("amount");
   useEffect(() => {
     if (!perfume?.perfume.id) {
@@ -259,6 +259,7 @@ export default function PerfumeEditForm({
   if (isLoading) {
     return <div>Loading...</div>;
   }
+
 
   return (
     <div>
@@ -273,12 +274,12 @@ export default function PerfumeEditForm({
                 <img
                   onClick={() => setShowUploadButtons(!showUploadButtons)}
                   alt={
-                    imageUrl
+                    perfume?.perfume.imageUrl
                       ? "Image of a perfume"
                       : "Placeholder icon for a perfume"
                   }
                   className="max-w-[150px] object-contain"
-                  src={imageUrl || "/perfume-icon.svg"}
+                  src={perfume?.perfume.imageUrl || "/perfume-icon.svg"}
                 />
               </div>
               {showUploadButtons && <UploadComponent onUpload={onUpload} />}
