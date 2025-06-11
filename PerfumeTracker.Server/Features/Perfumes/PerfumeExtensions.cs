@@ -1,7 +1,9 @@
-﻿namespace PerfumeTracker.Server.Features.Perfumes;
+﻿using PerfumeTracker.Server.Features.Common;
+
+namespace PerfumeTracker.Server.Features.Perfumes;
 
 public static class PerfumeExtensions {
-	public static PerfumeWithWornStatsDto ToPerfumeWithWornStatsDto(this Perfume p, UserProfile userProfile) {
+	public static PerfumeWithWornStatsDto ToPerfumeWithWornStatsDto(this Perfume p, UserProfile userProfile, IPresignedUrlService presignedUrlService) {
 		decimal burnRatePerYearMl = 0;
 		decimal yearsLeft = 0;
 		p.MlLeft = Math.Max(0, p.PerfumeEvents.Sum(e => e.AmountMl));
@@ -28,6 +30,7 @@ public static class PerfumeExtensions {
 					p.Ml,
 					p.MlLeft,
 					p.ImageObjectKey,
+					presignedUrlService.GetUrl(p.ImageObjectKey, Amazon.S3.HttpVerb.GET), 
 					p.Autumn,
 					p.Spring,
 					p.Summer,

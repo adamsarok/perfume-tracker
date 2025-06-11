@@ -16,12 +16,12 @@ public class EntityInterceptor : SaveChangesInterceptor {
 		foreach (var entry in context.ChangeTracker.Entries<IEntity>()) {
 			if (entry.State == EntityState.Added) {
 				entry.Entity.CreatedAt = DateTime.UtcNow;
-				if (entry.Entity is IUserEntity userEntity) {
-					userEntity.UserId = context.TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("Tenant/userID not set");
-				}
 			}
 			if (entry.State == EntityState.Added || entry.State == EntityState.Modified) {
 				entry.Entity.UpdatedAt = DateTime.UtcNow;
+				if (entry.Entity is IUserEntity userEntity) {
+					userEntity.UserId = context.TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("Tenant/userID not set");
+				}
 			}
 		}
 	}

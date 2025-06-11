@@ -71,6 +71,8 @@ const formSchema = z.object({
   summer: z.boolean(),
   autumn: z.boolean(),
   spring: z.boolean(),
+  imageObjectKey: z.string(),
+  imageUrl: z.string(),
 });
 
 export default function PerfumeEditForm({
@@ -90,6 +92,7 @@ export default function PerfumeEditForm({
         if (perfumeId) {
           const perfume = await getPerfume(perfumeId);
           setPerfume(perfume);
+          //setImageObjectKey(perfume.perfume.imageObjectKey);
         }
         setAllTags(loadedTags);
 
@@ -141,6 +144,8 @@ export default function PerfumeEditForm({
       summer: true,
       autumn: true,
       spring: true,
+      imageObjectKey: "",
+      imageUrl: "",
     },
   });
 
@@ -157,6 +162,8 @@ export default function PerfumeEditForm({
         summer: perfume.perfume.summer,
         autumn: perfume.perfume.autumn,
         spring: perfume.perfume.spring,
+        imageObjectKey: perfume.perfume.imageObjectKey,
+        imageUrl: perfume.perfume.imageUrl,
       });
     }
   }, [perfume, form]);
@@ -172,7 +179,7 @@ export default function PerfumeEditForm({
       notes: values.notes,
       ml: values.amount,
       mlLeft: values.mlLeft,
-      imageObjectKey: imageObjectKey,
+      imageObjectKey: values.imageObjectKey,
       summer: values.summer,
       winter: values.winter,
       autumn: values.autumn,
@@ -229,30 +236,13 @@ export default function PerfumeEditForm({
     }
   };
   const [showUploadButtons, setShowUploadButtons] = useState<boolean>(false);
-  const [imageObjectKey, setImageObjectKey] = useState<string>(
-    perfume ? perfume.perfume.imageObjectKey : ""
-  );
-  const [imageUrl, setImageUrl] = useState<string | null>(
-    perfume ? perfume.perfume.imageUrl : ""
-  );
-
-  useEffect(() => {
-    if (perfume?.perfume.imageObjectKey) {
-      const loadImageUrl = async () => {
-        const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(perfume.perfume.imageObjectKey)}`;
-        const presignedUrl = (await get<string>(qryPresigned)).data;
-        setImageUrl(presignedUrl);
-      };
-      loadImageUrl();
-    }
-  }, [perfume]);
 
   const onUpload = async (guid: string | undefined) => {
     if (perfume?.perfume.id && guid) {
-      setImageObjectKey(guid);
+      perfume.perfume.imageObjectKey = guid;
       const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(guid)}`;
       const presignedUrl = (await get<string>(qryPresigned)).data;
-      setImageUrl(presignedUrl);
+      perfume.perfume.imageUrl = presignedUrl;
       const result = await updateImageGuid(perfume.perfume.id, guid);
       if (result.ok) showSuccess("Image upload successful");
       else showError("Image upload failed", result.error ?? "unknown error");
@@ -269,8 +259,7 @@ export default function PerfumeEditForm({
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  
-  console.log(perfume?.perfume.imageUrl);
+
 
   return (
     <div>
@@ -285,12 +274,12 @@ export default function PerfumeEditForm({
                 <img
                   onClick={() => setShowUploadButtons(!showUploadButtons)}
                   alt={
-                    imageUrl
+                    perfume?.perfume.imageUrl
                       ? "Image of a perfume"
                       : "Placeholder icon for a perfume"
                   }
                   className="max-w-[150px] object-contain"
-                  src={imageUrl || "/perfume-icon.svg"}
+                  src={perfume?.perfume.imageUrl || "/perfume-icon.svg"}
                 />
               </div>
               {showUploadButtons && <UploadComponent onUpload={onUpload} />}

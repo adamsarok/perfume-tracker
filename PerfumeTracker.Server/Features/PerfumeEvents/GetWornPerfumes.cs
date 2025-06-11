@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.PerfumeEvents;
+﻿using PerfumeTracker.Server.Features.Common;
+
+namespace PerfumeTracker.Server.Features.PerfumeEvents;
 
 public record GetWornPerfumesQuery(int? Cursor, int PageSize) : IQuery<List<PerfumeEventDownloadDto>>;
 public class GetWornPerfumesEndpoint : ICarterModule {
@@ -11,7 +13,7 @@ public class GetWornPerfumesEndpoint : ICarterModule {
 		.RequireAuthorization(Policies.READ);
 	}
 }
-public class GetWornPerfumesHandler(PerfumeTrackerContext context)
+public class GetWornPerfumesHandler(PerfumeTrackerContext context, IPresignedUrlService presignedUrlService)
 	: IQueryHandler<GetWornPerfumesQuery, List<PerfumeEventDownloadDto>> {
 	public async Task<List<PerfumeEventDownloadDto>> Handle(GetWornPerfumesQuery request, CancellationToken cancellationToken) {
 		var query = context.PerfumeEvents.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn);
@@ -28,7 +30,7 @@ public class GetWornPerfumesHandler(PerfumeTrackerContext context)
 				x.EventDate,
 				x.Perfume.Id,
 				x.Perfume.ImageObjectKey,
-				"",
+				presignedUrlService.GetUrl(x.Perfume.ImageObjectKey, Amazon.S3.HttpVerb.GET),
 				x.Perfume.House,
 				x.Perfume.PerfumeName,
 				x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList(),

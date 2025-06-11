@@ -6,14 +6,7 @@ import { del, get, post } from "./axios-service";
 export async function getWornBeforeID(cursor: number | null, pageSize: number) : Promise<PerfumeWornDTO[]> {
     const qry = `/perfume-events/worn-perfumes?cursor=${encodeURIComponent(cursor ?? 0)}&pageSize=${encodeURIComponent(pageSize)}`;
     const response = (await get<PerfumeWornDTO[]>(qry)).data;
-    await Promise.all(response.map(async x => {
-        if (x.perfumeImageObjectKey) {
-          const qry = `/images/get-presigned-url/${encodeURIComponent(x.perfumeImageObjectKey)}`;
-          const presignedUrl = (await get<string>(qry)).data;
-          x.perfumeImageUrl = presignedUrl;
-        }
-        x.eventDate = new Date(x.eventDate);
-    }));
+    response.forEach(x => x.eventDate = new Date(x.eventDate));
     return response;
 }
 

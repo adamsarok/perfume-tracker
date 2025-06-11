@@ -45,7 +45,7 @@ export default function UploadComponent({ onUpload }: UploadComponentProps) {
         method: "PUT",
         body: fileBuffer,
         headers: {
-          "Content-Type": "image/jpeg",
+          "Content-Type": file.type,
         },
       });
       if (!response.ok) {
