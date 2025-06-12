@@ -1,4 +1,4 @@
-import PerfumeEditForm from "@/components/perfume-edit-form";
+import PerfumeEditForm from "@/app/perfumes/perfume-edit-form";
 
 export const dynamic = 'force-dynamic'
 

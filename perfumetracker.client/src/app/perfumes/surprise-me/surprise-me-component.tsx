@@ -1,6 +1,6 @@
 "use client";
 
-import PerfumeEditForm from "@/components/perfume-edit-form";
+import PerfumeEditForm from "@/app/perfumes/perfume-edit-form";
 import { getPerfumeRandom } from "@/services/random-perfume-service";
 import { useEffect, useState } from "react";
 

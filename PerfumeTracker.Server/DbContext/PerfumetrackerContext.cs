@@ -35,8 +35,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.ToTable("OutboxMessage");
 			entity.HasIndex(o => new { o.ProcessedAt, o.CreatedAt })
 				.HasDatabaseName("IX_Outbox_ProcessedAt_CreatedAt");
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 		modelBuilder.Entity<Achievement>(entity => {
 			entity.HasKey(e => e.Id).HasName("Achievement_pkey");
@@ -58,15 +57,13 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("UserAchievement_UserId_fkey");
 
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		modelBuilder.Entity<UserProfile>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserProfile_pkey");
 			entity.ToTable("UserProfile");
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.Id == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.Id == TenantProvider.GetCurrentUserId()));
 		});
 
 		modelBuilder.Entity<Perfume>(entity => {
@@ -95,8 +92,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasMethod("GIN");
 			entity
 				.HasIndex(p => new { p.House, p.PerfumeName }).IsUnique();
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		modelBuilder.Entity<PerfumeRandoms>(entity => {
@@ -108,8 +104,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.WithMany(p => p.PerfumeRandoms)
 				.HasForeignKey(d => d.PerfumeId)
 				.HasConstraintName("PerfumeRandom_perfumeId_fkey");
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		modelBuilder.Entity<PerfumeTag>(entity => {
@@ -125,8 +120,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasForeignKey(d => d.TagId)
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("PerfumeTag_tagId_fkey");
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		modelBuilder.Entity<PerfumeEvent>(entity => {
@@ -142,8 +136,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.WithMany(p => p.PerfumeEvents)
 				.HasForeignKey(d => d.PerfumeId)
 				.HasConstraintName("PerfumeEvent_perfumeId_fkey");
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		modelBuilder.Entity<Recommendation>(entity => {
@@ -153,8 +146,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 
 			entity.Property(e => e.CreatedAt)
 				.HasDefaultValueSql("CURRENT_TIMESTAMP");
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		modelBuilder.Entity<Tag>(entity => {
@@ -163,8 +155,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.ToTable("Tag");
 
 			entity.HasIndex(e => e.TagName, "Tag_tag_key").IsUnique();
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		modelBuilder.Entity<Mission>(entity => {
@@ -186,8 +177,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.WithMany(e => e.UserMissions)
 				.HasForeignKey(e => e.MissionId)
 				.HasConstraintName("UserMission_MissionId_fkey");
-			entity.HasQueryFilter(x => !x.IsDeleted);
-			if (TenantProvider != null) entity.HasQueryFilter(x => x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		base.OnModelCreating(modelBuilder);

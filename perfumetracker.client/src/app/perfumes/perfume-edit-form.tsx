@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import ChipClouds from "./chip-clouds";
-import { ChipProp } from "./color-chip";
-import MessageBox from "./message-box";
+import ChipClouds from "../../components/chip-clouds";
+import { ChipProp } from "../../components/color-chip";
+import MessageBox from "../../components/message-box";
 import { notFound, useRouter } from "next/navigation";
-import UploadComponent from "./upload-component";
-import SprayOnComponent from "./spray-on";
-import { Button } from "./ui/button";
+import UploadComponent from "../../components/upload-component";
+import SprayOnComponent from "../../components/spray-on";
+import { Button } from "../../components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,13 +15,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
+} from "../../components/ui/form";
+import { Input } from "../../components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Checkbox } from "./ui/checkbox";
-import { Separator } from "./ui/separator";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Separator } from "../../components/ui/separator";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import {
   addPerfume,
@@ -33,7 +33,7 @@ import {
 import { TagDTO } from "@/dto/TagDTO";
 import { ActionResult } from "@/dto/ActionResult";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
-import { Label } from "./ui/label";
+import { Label } from "../../components/ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2 } from "lucide-react";
@@ -89,35 +89,44 @@ export default function PerfumeEditForm({
     const load = async () => {
       try {
         const loadedTags = await getTags();
+        const topChips: ChipProp[] = [];
+        const bottomChips: ChipProp[] = [];
         if (perfumeId) {
           const perfume = await getPerfume(perfumeId);
           setPerfume(perfume);
-          //setImageObjectKey(perfume.perfume.imageObjectKey);
-        }
-        setAllTags(loadedTags);
-
-        const topChips: ChipProp[] = [];
-        const bottomChips: ChipProp[] = [];
-        loadedTags.forEach((allTag) => {
-          if (
-            !perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)
-          ) {
-            bottomChips.push({
-              name: allTag.tagName,
-              color: allTag.color,
+          console.log(loadedTags);
+          console.log(perfume?.perfume);
+          loadedTags.forEach((allTag) => {
+            if (
+              !perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)
+            ) {
+              bottomChips.push({
+                name: allTag.tagName,
+                color: allTag.color,
+                className: "",
+                onChipClick: null,
+              });
+            }
+          });
+          perfume?.perfume.tags.forEach((x) => {
+            topChips.push({
+              name: x.tagName,
+              color: x.color,
               className: "",
               onChipClick: null,
             });
-          }
-        });
-        perfume?.perfume.tags.forEach((x) => {
-          topChips.push({
-            name: x.tagName,
-            color: x.color,
-            className: "",
-            onChipClick: null,
           });
-        });
+        } else {
+          loadedTags.forEach((allTag) => {
+              bottomChips.push({
+                name: allTag.tagName,
+                color: allTag.color,
+                className: "",
+                onChipClick: null,
+              });
+          });
+        }
+        setAllTags(loadedTags);
         setTopChipProps(topChips);
         setBottomChipProps(bottomChips);
         if (!perfume) return notFound();
