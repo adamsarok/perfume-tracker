@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using PerfumeTracker.Server.Config;
 using System.Security.Claims;
 using System.Text;
 

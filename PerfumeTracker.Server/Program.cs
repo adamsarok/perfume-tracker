@@ -1,7 +1,6 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
@@ -12,16 +11,11 @@ using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Helpers;
+using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Server.Helpers;
 using PerfumeTracker.Server.Startup;
 using Serilog;
-using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
-using System;
-using System.Data;
-using System.Diagnostics;
-using System.Text;
-using System.Threading.RateLimiting;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,7 +50,7 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
-Startup.SetupRateLimiting(builder.Services);
+Startup.SetupRateLimiting(builder.Services, builder.Configuration);
 Startup.SetupAuthorizations(builder.Services, builder.Configuration);
 
 var assembly = typeof(Program).Assembly;
@@ -82,10 +76,11 @@ builder.Services.AddHealthChecks()
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+var corsConfig = new CorsConfiguration(builder.Configuration);
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowSpecificOrigin",
         builder => builder
-            .WithOrigins("http://localhost:3000", "https://localhost:3000", "http://192.168.1.79:3000", "https://192.168.1.79:3000")
+            .WithOrigins(corsConfig.AllowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
@@ -108,10 +103,11 @@ using (var scope = app.Services.CreateScope()) {
 
 app.UseRateLimiter();
 app.UseExceptionHandler();
-app.MapCarter();
 app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSecurityHeaders();
+app.MapCarter();
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
