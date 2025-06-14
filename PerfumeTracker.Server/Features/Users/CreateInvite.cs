@@ -6,9 +6,9 @@ public class CreateInviteEndpoint : ICarterModule {
 		  ISender sender) => {
 			  var response = await sender.Send(command);
 			  return Results.Ok(response.InviteCode);
-		  }).WithTags("Auth")
+		  }).WithTags("Users")
 			.WithName("CreateInvite")
-			.AllowAnonymous();
+			.RequireAuthorization(Roles.ADMIN);
 	}
 }
 public record CreateInviteResponse(string Email, Guid InviteCode);

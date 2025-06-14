@@ -6,12 +6,12 @@ public class LoginEndpoint : ICarterModule {
 		  HttpContext httpContext, ISender sender) => {
 			  var result = await sender.Send(new LoginUserCommand(request.Email.Trim(), request.Password, httpContext));
 			  return result.Result;
-		  }).WithTags("Auth")
+		  }).WithTags("Users")
 			.WithName("LoginUser")
 			.AllowAnonymous();
 		app.MapPost("/api/identity/account/login/demo", async (ISender sender, HttpContext httpContext) => {
 			return await sender.Send(new LoginDemoUserCommand(httpContext));
-		}).WithTags("Auth")
+		}).WithTags("Users")
 			.WithName("LoginDemoUser")
 			.AllowAnonymous();
 	}

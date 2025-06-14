@@ -22,8 +22,7 @@ export async function post<T>(url: string, data: unknown) {
   return api.post<T>(`${apiUrl}${url}`, data);
 }
 
-export async function put<T>(url: string, data: unknown, config: AxiosRequestConfig | undefined) {
-  console.log(config);
+export async function put<T>(url: string, data: unknown, config: AxiosRequestConfig = {}) {
   const apiUrl = await initializeApiUrl();
   return api.put<T>(`${apiUrl}${url}`, data, config);
 }

@@ -1,19 +1,23 @@
-﻿using PerfumeTracker.Server.Features.Common;
-using SixLabors.ImageSharp;
-using Amazon.S3;
+﻿using Amazon.S3;
+using ImageMagick;
 using Microsoft.AspNetCore.Http;
+using PerfumeTracker.Server.Features.Common;
+using SixLabors.ImageSharp;
+using System;
+using System.Net.Http;
 
 namespace PerfumeTracker.Server.Features.R2;
 
 public record UploadResponse(Guid Guid);
 public class UploadImageEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/images/upload/{perfumeId}", async (Guid perfumeId,
+		app.MapPut("/api/images/upload/{perfumeId}", async (Guid perfumeId,
 			IFormFile file,
 			IPresignedUrlService presignedUrlService,
 			ILogger<UploadImageEndpoint> logger,
 			R2Configuration configuration,
-			PerfumeTrackerContext perfumeTrackerContext) => {
+			PerfumeTrackerContext perfumeTrackerContext,
+			IHttpClientFactory httpClientFactory) => {
 				var perfume = await perfumeTrackerContext.Perfumes.FindAsync(perfumeId);
 				if (perfume == null) return Results.BadRequest("Perfume Id not found");
 				if (file == null || file.Length == 0) return Results.BadRequest("No file uploaded");
@@ -26,7 +30,7 @@ public class UploadImageEndpoint : ICarterModule {
 				var guid = Guid.NewGuid();
 				var presignedUrl = presignedUrlService.GetUrl(guid, HttpVerb.PUT);
 
-				using var httpClient = new HttpClient();
+				var httpClient = httpClientFactory.CreateClient();
 				var response = await httpClient.PutAsync(presignedUrl, new StreamContent(stream));
 				if (!response.IsSuccessStatusCode) {
 					logger.LogError("Failed to upload image to R2: {StatusCode}", response.StatusCode);
@@ -35,15 +39,17 @@ public class UploadImageEndpoint : ICarterModule {
 				perfume.ImageObjectKey = guid.ToString();
 				await perfumeTrackerContext.SaveChangesAsync();
 				return Results.Ok(new UploadResponse(guid));
+				//return Results.Ok(new UploadResponse(Guid.NewGuid()));
 			})
 		.WithTags("Images")
 		.WithName("UploadImage")
-		.RequireAuthorization(Policies.WRITE);
+		.RequireAuthorization(Policies.WRITE)
+		.DisableAntiforgery();
 	}
 
 	private async Task<bool> IsValidImageFile(Stream stream, ILogger<UploadImageEndpoint> logger) {
 		try {
-			using var image = await Image.LoadAsync(stream);
+			using var image = new MagickImage(stream);
 			stream.Position = 0;
 			return true;
 		} catch (Exception ex) {

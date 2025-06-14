@@ -58,10 +58,11 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     if (!hasMounted) return;
     try {
       await logoutUser();
-      setUser(null);
-      router.push('/login');
     } catch (error) {
       console.error('Logout failed:', error);
+    } finally {
+      setUser(null);
+      router.push('/login');
     }
   };
 

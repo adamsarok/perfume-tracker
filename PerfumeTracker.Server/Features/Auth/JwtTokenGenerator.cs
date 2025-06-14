@@ -4,7 +4,8 @@ using System.Text;
 
 namespace PerfumeTracker.Server.Features.Auth;
 
-public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, IConfiguration config) : IJwtTokenGenerator {
+public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, IConfiguration config, 
+	ILogger<JwtTokenGenerator> logger) : IJwtTokenGenerator {
 	public async Task<string> GenerateToken(PerfumeIdentityUser user) {
 		var jwtConfiguration = new JwtConfiguration(config);
 		var claims = new List<Claim>
@@ -32,10 +33,13 @@ public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, ICo
 	}
 	public async Task WriteToken(PerfumeIdentityUser user, HttpContext context) {
 		var token = await GenerateToken(user);
-
+		bool isSecure = context.Request.IsHttps || 
+				string.Equals(context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase);
+		logger.Log(LogLevel.Information, "Secure cookies: {isSecure}", isSecure);
 		var cookieOptions = new CookieOptions {
 			HttpOnly = true,
-			Secure = context.Request.IsHttps,
+			Secure = context.Request.IsHttps || 
+				string.Equals(context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase),
 			SameSite = SameSiteMode.Strict,
 			Expires = DateTime.UtcNow.AddHours(24)
 		};

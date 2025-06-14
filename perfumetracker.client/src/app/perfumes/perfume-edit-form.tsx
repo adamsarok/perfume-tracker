@@ -37,6 +37,7 @@ import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2 } from "lucide-react";
 import { getTags } from "@/services/tag-service";
+import { get } from "@/services/axios-service";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -82,6 +83,7 @@ export default function PerfumeEditForm({
   const [perfume, setPerfume] = useState<PerfumeWithWornStatsDTO | null>(null);
   const [topChipProps, setTopChipProps] = useState<ChipProp[]>([]);
   const [bottomChipProps, setBottomChipProps] = useState<ChipProp[]>([]);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -92,8 +94,7 @@ export default function PerfumeEditForm({
         if (perfumeId) {
           const perfume = await getPerfume(perfumeId);
           setPerfume(perfume);
-          console.log(loadedTags);
-          console.log(perfume?.perfume);
+          setImageUrl(perfume.perfume.imageUrl);
           loadedTags.forEach((allTag) => {
             if (
               !perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)
@@ -186,7 +187,6 @@ export default function PerfumeEditForm({
       notes: values.notes,
       ml: values.amount,
       mlLeft: values.mlLeft,
-      imageObjectKey: values.imageObjectKey,
       summer: values.summer,
       winter: values.winter,
       autumn: values.autumn,
@@ -251,6 +251,15 @@ export default function PerfumeEditForm({
     }
   }, [amount]);
 
+  const onUpload = async (guid: string | undefined) => {
+    if (perfume?.perfume.id && guid) {
+      const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(guid)}`;
+      const presignedUrl = (await get<string>(qryPresigned)).data;
+      perfume.perfume.imageUrl = presignedUrl;
+      setImageUrl(perfume.perfume.imageUrl);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -269,15 +278,15 @@ export default function PerfumeEditForm({
                 <img
                   onClick={() => setShowUploadButtons(!showUploadButtons)}
                   alt={
-                    perfume?.perfume.imageUrl
+                    imageUrl
                       ? "Image of a perfume"
                       : "Placeholder icon for a perfume"
                   }
                   className="max-w-[150px] object-contain"
-                  src={perfume?.perfume.imageUrl || "/perfume-icon.svg"}
+                  src={imageUrl || "/perfume-icon.svg"}
                 />
               </div>
-              {showUploadButtons && <UploadComponent perfumeId={perfume?.perfume.id} />}
+              {showUploadButtons && <UploadComponent perfumeId={perfume?.perfume.id} onUpload={onUpload} />}
             </div>
             <div className="text-center">
               <FormField

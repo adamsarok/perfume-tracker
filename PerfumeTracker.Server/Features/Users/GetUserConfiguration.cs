@@ -1,15 +1,13 @@
-﻿using PerfumeTracker.Server.Features.Users;
-using System.Security.Claims;
-
-namespace PrfumeTracker.Server.Features.Users;
-
+﻿namespace PerfumeTracker.Server.Features.Users;
 public record GetUserConfigurationQuery() : IQuery<GetUserConfigurationResponse>;
 public class GetUserConfiguration : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/identity/user-configuration", async (ISender sender) => {
+		app.MapGet("/api/identity/configuration", async (ISender sender) => {
 			return await sender.Send(new GetUserConfigurationQuery());
-		});
-	}
+		}).WithTags("Users")
+			.WithName("GetConfiguration")
+			.AllowAnonymous();
+}
 }
 public record GetUserConfigurationResponse(bool InviteOnlyRegistration);
 public class GetUserConfigurationHandler(IConfiguration configuration) : IQueryHandler<GetUserConfigurationQuery, GetUserConfigurationResponse> {

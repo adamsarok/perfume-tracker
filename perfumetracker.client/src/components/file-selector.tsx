@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 
 export interface FileSelectorProps {
-  handleUpload: (file: File) => Promise<string | undefined>;
+  handleUpload: (file: File) => void;
 }
 
 export default function FileSelector({ handleUpload }: FileSelectorProps) {

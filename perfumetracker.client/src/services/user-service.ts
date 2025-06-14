@@ -39,7 +39,7 @@ export async function getCurrentUser(): Promise<UserResponse | null> {
 }
 
 export async function getUserConfiguration(): Promise<UserConfiguration | null> {
-    const response = await get<UserConfiguration>(`/identity/user-configuration`);
+    const response = await get<UserConfiguration>(`/identity/configuration`);
     return response.data;
 }
 

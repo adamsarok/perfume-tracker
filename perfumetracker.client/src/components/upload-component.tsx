@@ -3,49 +3,46 @@ import FileSelector from "./file-selector";
 import { put } from "@/services/axios-service";
 interface UploadComponentProps {
   perfumeId: string | undefined;
+  onUpload: (guid: string | undefined) => void;
 }
 interface UploadResponse {
-  guid: string;
+  guid: string;  
 }
 
-export default function UploadComponent({ perfumeId }: UploadComponentProps) {
-  const handleUpload = async (file: File) : Promise<string> => {
+export default function UploadComponent({ perfumeId, onUpload }: UploadComponentProps) {
+  const handleUpload = async (file: File) => {
     try {
       if (!perfumeId) {
-        showError("Perfum is not saved");
-        return "";
+        showError("Perfume is not saved");
+        return;
       }
       if (!file) {
         showError("File is empty");
-        return "";
+        return;
       }
 
       if (!file.name) {
         showError("Filename is required");
-        return "";
+        return;
       }
 
-      const fileBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as ArrayBuffer);
-        reader.onerror = reject;
-        reader.readAsArrayBuffer(file);
-      });
+      const formData = new FormData();
+      formData.append('file', file);
 
       const qry = `/images/upload/${encodeURIComponent(perfumeId)}`;
-      const response = await put<UploadResponse>(qry, fileBuffer, {
+      const response = await put<UploadResponse>(qry, formData, {
         headers: {
-          "Content-Type": file.type,
+          'Content-Type': 'multipart/form-data',
         },
       });
+      console.log(response);
       if (!response.data.guid) {
         showError('Error uploading file:');
-        return "";
+        return;
       }
-      return response.data.guid;
+      onUpload(response.data.guid);
     } catch (error) {
       showError('Error uploading file:', error);
-      return "";
     }
   };
 
