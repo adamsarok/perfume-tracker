@@ -1,4 +1,4 @@
-﻿namespace PerfumeTracker.Server.Features.R2;
+﻿namespace PerfumeTracker.Server.Config;
 
 public class R2Configuration {
 	public string AccessKey { get; init; }

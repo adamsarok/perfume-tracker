@@ -1,7 +1,7 @@
 ﻿using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
-using PerfumeTracker.Server.Features.R2;
+using PerfumeTracker.Server.Config;
 
 namespace PerfumeTracker.Server.Features.Common;
 public interface IPresignedUrlService {

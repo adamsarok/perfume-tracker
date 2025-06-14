@@ -12,3 +12,4 @@ global using System.IdentityModel.Tokens.Jwt;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Identity.Data;
 global using Microsoft.AspNetCore.Mvc;
+global using PerfumeTracker.Server.Config;

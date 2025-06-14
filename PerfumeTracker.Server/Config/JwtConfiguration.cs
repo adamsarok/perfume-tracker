@@ -1,7 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace PerfumeTracker.Server.Features.Auth;
+namespace PerfumeTracker.Server.Config;
 
 public class JwtConfiguration {
 	public string Issuer { get; init; }
