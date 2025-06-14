@@ -1,5 +1,5 @@
 import { getPerfumeTrackerApiAddress } from "./conf-service";
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
 
 let cachedApiUrl: string | null = null;
@@ -22,9 +22,10 @@ export async function post<T>(url: string, data: unknown) {
   return api.post<T>(`${apiUrl}${url}`, data);
 }
 
-export async function put<T>(url: string, data: unknown) {
+export async function put<T>(url: string, data: unknown, config: AxiosRequestConfig | undefined) {
+  console.log(config);
   const apiUrl = await initializeApiUrl();
-  return api.put<T>(`${apiUrl}${url}`, data);
+  return api.put<T>(`${apiUrl}${url}`, data, config);
 }
 
 export async function del<T>(url: string) {

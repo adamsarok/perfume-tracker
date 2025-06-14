@@ -1,34 +1,28 @@
 import { showError } from "@/services/toasty-service";
 import FileSelector from "./file-selector";
-import { get } from "@/services/axios-service";
-
+import { put } from "@/services/axios-service";
 interface UploadComponentProps {
-  onUpload: (guid: string | undefined) => void;
+  perfumeId: string | undefined;
+}
+interface UploadResponse {
+  guid: string;
 }
 
-/*
-4. Security Considerations
-Validation: Ensure you validate the fileName to prevent path traversal vulnerabilities.
-Size Limits: Implement checks to ensure files are within acceptable size limits to avoid Denial of Service (DoS) attacks.
-Error Handling: Handle potential errors and edge cases, such as file upload failures or issues with the microservice communication.
-*/
-
-interface PresignedResponse {
-  guid: string,
-  presignedUrl: string,
-}
-
-export default function UploadComponent({ onUpload }: UploadComponentProps) {
-  const handleUpload = async (file: File) => {
+export default function UploadComponent({ perfumeId }: UploadComponentProps) {
+  const handleUpload = async (file: File) : Promise<string> => {
     try {
+      if (!perfumeId) {
+        showError("Perfum is not saved");
+        return "";
+      }
       if (!file) {
         showError("File is empty");
-        return;
+        return "";
       }
 
       if (!file.name) {
         showError("Filename is required");
-        return;
+        return "";
       }
 
       const fileBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
@@ -38,23 +32,20 @@ export default function UploadComponent({ onUpload }: UploadComponentProps) {
         reader.readAsArrayBuffer(file);
       });
 
-      const qry = `/images/get-presigned-url`;
-      const presignedResponse = (await get<PresignedResponse>(qry)).data;
-
-      const response = await fetch(presignedResponse.presignedUrl, {
-        method: "PUT",
-        body: fileBuffer,
+      const qry = `/images/upload/${encodeURIComponent(perfumeId)}`;
+      const response = await put<UploadResponse>(qry, fileBuffer, {
         headers: {
           "Content-Type": file.type,
         },
       });
-      if (!response.ok) {
+      if (!response.data.guid) {
         showError('Error uploading file:');
-        return;
+        return "";
       }
-      onUpload(presignedResponse.guid);
+      return response.data.guid;
     } catch (error) {
       showError('Error uploading file:', error);
+      return "";
     }
   };
 

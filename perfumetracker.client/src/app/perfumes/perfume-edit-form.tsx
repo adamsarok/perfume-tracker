@@ -27,7 +27,6 @@ import {
   addPerfume,
   deletePerfume,
   getPerfume,
-  updateImageGuid,
   updatePerfume,
 } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
@@ -38,7 +37,6 @@ import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2 } from "lucide-react";
 import { getTags } from "@/services/tag-service";
-import { get } from "@/services/axios-service";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -246,18 +244,6 @@ export default function PerfumeEditForm({
   };
   const [showUploadButtons, setShowUploadButtons] = useState<boolean>(false);
 
-  const onUpload = async (guid: string | undefined) => {
-    if (perfume?.perfume.id && guid) {
-      perfume.perfume.imageObjectKey = guid;
-      const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(guid)}`;
-      const presignedUrl = (await get<string>(qryPresigned)).data;
-      perfume.perfume.imageUrl = presignedUrl;
-      const result = await updateImageGuid(perfume.perfume.id, guid);
-      if (result.ok) showSuccess("Image upload successful");
-      else showError("Image upload failed", result.error ?? "unknown error");
-    }
-  };
-
   const amount = form.watch("amount");
   useEffect(() => {
     if (!perfume?.perfume.id) {
@@ -291,7 +277,7 @@ export default function PerfumeEditForm({
                   src={perfume?.perfume.imageUrl || "/perfume-icon.svg"}
                 />
               </div>
-              {showUploadButtons && <UploadComponent onUpload={onUpload} />}
+              {showUploadButtons && <UploadComponent perfumeId={perfume?.perfume.id} />}
             </div>
             <div className="text-center">
               <FormField

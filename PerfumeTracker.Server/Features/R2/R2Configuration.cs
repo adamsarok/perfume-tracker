@@ -6,13 +6,13 @@ public class R2Configuration {
 	public string AccountId { get; init; }
 	public string BucketName { get; init; }
 	public int ExpirationHours { get; init; }
+	public int MaxFileSizeKb { get; init; }
 	public R2Configuration(IConfiguration configuration) {
 		AccessKey = configuration["R2:AccessKey"] ?? throw new InvalidOperationException("R2 AccessKey is not configured");
 		SecretKey = configuration["R2:SecretKey"] ?? throw new InvalidOperationException("R2 SecretKey is not configured");
 		AccountId = configuration["R2:AccountId"] ?? throw new InvalidOperationException("R2 AccountId is not configured");
 		BucketName = configuration["R2:BucketName"] ?? throw new InvalidOperationException("R2 BucketName is not configured");
-		var expirationHoursStr = configuration["R2:ExpirationHours"] ?? throw new InvalidOperationException("R2 ExpirationHours is not configured");
-		if (!int.TryParse(expirationHoursStr, out int expirationHours)) throw new InvalidOperationException("R2 ExpirationHours is invalid");
-		ExpirationHours = expirationHours;
+		ExpirationHours = configuration.GetValue<int?>("R2:ExpirationHours") ?? throw new InvalidOperationException("R2 ExpirationHours is not configured");
+		MaxFileSizeKb = configuration.GetValue<int?>("R2:MaxFileSizeKb") ?? throw new InvalidOperationException("R2 MaxFileSizeKb is not configured");
 	}
 }
