@@ -79,6 +79,7 @@ jobs:
         RateLimits__General: 250
         RateLimits__Auth: 20
         RateLimits__Upload: 10
+        CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
       run: dotnet build
 
     - name: Install EF Core CLI tools
@@ -101,6 +102,7 @@ jobs:
        RateLimits__General: 250
        RateLimits__Auth: 20
        RateLimits__Upload: 10
+       CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
       run: dotnet ef database update
 
     - name: Run tests with coverage
@@ -120,6 +122,7 @@ jobs:
        RateLimits__General: 250
        RateLimits__Auth: 20
        RateLimits__Upload: 10
+       CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
       run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings
 
     - name: Upload coverage reports to Codecov
