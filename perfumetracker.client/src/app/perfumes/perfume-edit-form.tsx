@@ -128,7 +128,6 @@ export default function PerfumeEditForm({
         setAllTags(loadedTags);
         setTopChipProps(topChips);
         setBottomChipProps(bottomChips);
-        if (!perfume) return notFound();
       } catch (error) {
         console.error("Failed to load perfume/tags:", error);
       } finally {
