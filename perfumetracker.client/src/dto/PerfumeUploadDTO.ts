@@ -8,7 +8,6 @@ export interface PerfumeUploadDTO {
     notes: string;
     ml: number;
     mlLeft: number;
-    imageObjectKey: string;
     autumn: boolean;
     spring: boolean;
     summer: boolean;

@@ -6,7 +6,7 @@ public class LogoutEndpoint : ICarterModule {
 			httpContext.Response.Cookies.Delete("X-Username");
 			httpContext.Response.Cookies.Delete("X-User-Id");
 			return Results.Ok(new { message = "Logged out successfully" });
-		}).WithTags("Auth")
+		}).WithTags("Users")
 			.WithName("Logout")
 			.AllowAnonymous();
 	}

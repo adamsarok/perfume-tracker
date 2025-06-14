@@ -1,17 +1,6 @@
 import { getPerfumeTrackerApiAddress } from "./conf-service";
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
-export interface LoginResponse {
-  email: string;
-  token: string;
-}
-
-export interface UserResponse {
-  userName: string;
-  email: string;
-  id: string;
-  roles: string[];
-}
 
 let cachedApiUrl: string | null = null;
 const initializeApiUrl = async () => {
@@ -33,9 +22,9 @@ export async function post<T>(url: string, data: unknown) {
   return api.post<T>(`${apiUrl}${url}`, data);
 }
 
-export async function put<T>(url: string, data: unknown) {
+export async function put<T>(url: string, data: unknown, config: AxiosRequestConfig = {}) {
   const apiUrl = await initializeApiUrl();
-  return api.put<T>(`${apiUrl}${url}`, data);
+  return api.put<T>(`${apiUrl}${url}`, data, config);
 }
 
 export async function del<T>(url: string) {
@@ -65,52 +54,15 @@ api.interceptors.response.use(
   }
 );
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
-  const apiUrl = await initializeApiUrl();
-  const response = await api.post<LoginResponse>(`${apiUrl}/identity/account/login`, {
-    email,
-    password,
-  });
-  return response.data;
-}
-
-export async function loginDemo(): Promise<LoginResponse> {
-  const apiUrl = await initializeApiUrl();
-  const response = await api.post<LoginResponse>(`${apiUrl}/identity/account/login/demo`, {});
-  return response.data;
-}
-
-export async function logout(): Promise<void> {
-  try {
-    const apiUrl = await initializeApiUrl();
-    await api.post(`${apiUrl}/identity/account/logout`);
-  } catch (error) {
-    console.error('Logout error:', error);
-    throw error;
-  }
-}
-
-export async function getCurrentUser(): Promise<UserResponse | null> {
-  try {
-    const apiUrl = await initializeApiUrl();
-    const response = await api.get<UserResponse>(`${apiUrl}/identity/account/me`);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Error checking current user:', error.response?.status, error.response?.data);
-    } else {
-      console.error('Error checking current user:', error);
+/*
+  TODO: centralized error handling
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Error checking current user:', error.response?.status, error.response?.data);
+      } else {
+        console.error('Error checking current user:', error);
+      }
+      return null;
     }
-    return null;
-  }
-}
 
-export async function register(email: string, password: string, userName: string): Promise<LoginResponse> {
-  const apiUrl = await initializeApiUrl();
-  const response = await api.post<LoginResponse>(`${apiUrl}/identity/account/register`, {
-    email,
-    password,
-    userName
-  });
-  return response.data;
-} 
+*/

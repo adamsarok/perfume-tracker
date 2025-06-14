@@ -19,6 +19,8 @@ public class GetCurrentUser : ICarterModule {
 				Roles: user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value)
 			));
 		})
-	   .RequireAuthorization(Policies.READ);
+			.WithTags("Users")
+			.WithName("GetCurrentUser")
+			.RequireAuthorization(Policies.READ);
 	}
 }

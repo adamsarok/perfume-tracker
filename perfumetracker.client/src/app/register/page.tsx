@@ -2,20 +2,30 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { register } from "@/services/axios-service";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getUserConfiguration, registerUser } from "@/services/user-service";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordAgain, setPasswordAgain] = useState("");
   const [userName, setUserName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState("");
   const [passwordsMatch, setPasswordsMatch] = useState(true);
+  const [inviteOnlyRegistration, setInviteOnlyRegistration] = useState<boolean | undefined>(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const config = await getUserConfiguration();
+      setInviteOnlyRegistration(config?.inviteOnlyRegistration);
+    };
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     if (password && passwordAgain) {
@@ -33,7 +43,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await register(email, password, userName);
+      await registerUser(email.trim(), password, userName.trim(), inviteCode.trim());
       router.push("/"); // Redirect to home page after successful registration
     } catch (err) {
       if (err instanceof Error) {
@@ -52,24 +62,8 @@ export default function RegisterPage() {
             Register new account
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} autoComplete="on">
           <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <Label htmlFor="userName" className="sr-only">
-                User Name
-              </Label>
-              <Input
-                id="userName"
-                name="userName"
-                type="text"
-                autoComplete="name"
-                required
-                placeholder="Name"
-                value={userName}
-                className="mt-2"
-                onChange={(e) => setUserName(e.target.value)}
-              />
-            </div>
             <div>
               <Label htmlFor="email-address" className="sr-only">
                 Email address
@@ -83,9 +77,41 @@ export default function RegisterPage() {
                 placeholder="Email address"
                 value={email}
                 className="mt-2"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.trimStart())}
               />
             </div>
+            <div>
+              <Label htmlFor="userName" className="sr-only">
+                User Name
+              </Label>
+              <Input
+                id="userName"
+                name="userName"
+                type="text"
+                autoComplete="username"
+                required
+                placeholder="User name"
+                value={userName}
+                className="mt-2"
+                onChange={(e) => setUserName(e.target.value.trimStart())}
+              />
+            </div>
+            {inviteOnlyRegistration && <div>
+              <Label htmlFor="inviteCode" className="sr-only">
+                Invite Code
+              </Label>
+              <Input
+                id="inviteCode"
+                name="inviteCode"
+                type="text"
+                autoComplete="off"
+                required
+                placeholder="Invite Code"
+                value={inviteCode}
+                className="mt-2"
+                onChange={(e) => setInviteCode(e.target.value.trimStart())}
+              />
+            </div>}
             <div>
               <Label htmlFor="password" className="sr-only">
                 Password

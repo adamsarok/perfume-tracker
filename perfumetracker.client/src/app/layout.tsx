@@ -4,10 +4,10 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getCurrentUser, logout } from "@/services/axios-service";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react";
+import { getCurrentUser, logoutUser } from "@/services/user-service";
 
 function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
@@ -57,11 +57,12 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const handleLogout = async () => {
     if (!hasMounted) return;
     try {
-      await logout();
-      setUser(null);
-      router.push('/login');
+      await logoutUser();
     } catch (error) {
       console.error('Logout failed:', error);
+    } finally {
+      setUser(null);
+      router.push('/login');
     }
   };
 

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login, loginDemo } from "@/services/axios-service";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { loginDemoUser, loginUser } from "@/services/user-service";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await login(email, password);
+      await loginUser(email.trim(), password);
       router.push("/"); // Redirect to home page after successful login
     } catch (err) {
       setError("Invalid email or password:" + err);
@@ -31,7 +31,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await loginDemo();
+      await loginDemoUser();
       router.push("/"); // Redirect to home page after successful login
     } catch (err) {
       setError("Invalid email or password:" + err);
@@ -56,13 +56,13 @@ export default function LoginPage() {
               <Input
                 id="email-address"
                 name="email"
-                type="email"
-                autoComplete="email"
+                type="text"
+                autoComplete="username"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder="Email or UserName"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.trimStart())}
               />
             </div>
             <div>

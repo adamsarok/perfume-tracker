@@ -94,6 +94,8 @@ builder.Services.AddCors(options => {
 builder.Services.AddHostedService<OutboxService>();
 builder.Services.AddHostedService<MissionService>();
 
+builder.Services.AddHttpClient<UploadImageEndpoint>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope()) {

@@ -16,7 +16,12 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
 			//	exception.GetType().Name,
 			//	context.Response.StatusCode = StatusCodes.Status400BadRequest
 			//),
-			MappingException => (
+			UnauthorizedException => (
+				exception.Message,
+				exception.GetType().Name,
+				StatusCodes.Status401Unauthorized
+			),
+			BadRequestException => (
 				exception.Message,
 				exception.GetType().Name,
 				StatusCodes.Status400BadRequest
