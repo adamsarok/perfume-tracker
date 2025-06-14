@@ -9,7 +9,7 @@ public static partial class Startup {
 		services.AddRateLimiter(options => {
 			options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext => {
 				string path = httpContext.Request.Path.ToString();
-				if (path.Contains("/api/identity/account/login") || path.Contains("/api/identity/account/register")) {
+				if (httpContext.Request.Path.StartsWithSegments("/api/identity/account/login") || httpContext.Request.Path.StartsWithSegments("/api/identity/account/register")) {
 					return RateLimitPartition.GetFixedWindowLimiter(
 						partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 						factory: _ => new FixedWindowRateLimiterOptions {
@@ -17,7 +17,7 @@ public static partial class Startup {
 							Window = TimeSpan.FromMinutes(1)
 						});
 				}
-				if (path.Contains("/api/images/upload")) {
+				if (httpContext.Request.Path.StartsWithSegments("/api/images/upload")) {
 					return RateLimitPartition.GetFixedWindowLimiter(
 						partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 						factory: _ => new FixedWindowRateLimiterOptions {

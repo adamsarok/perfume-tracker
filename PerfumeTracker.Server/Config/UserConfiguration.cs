@@ -1,12 +1,12 @@
 ﻿namespace PerfumeTracker.Server.Config;
 public class UserConfiguration {
-	public string AdminUserName { get; set; }
-	public string AdminPassword { get; set; }
-	public string AdminEmail { get; set; }
-	public string? DemoUserName { get; set; }
-	public string? DemoPassword { get; set; }
-	public string? DemoEmail { get; set; }
-	public bool InviteOnlyRegistration { get; set; }
+	public string AdminUserName { get; init; }
+	public string AdminPassword { get; init; }
+	public string AdminEmail { get; init; }
+	public string? DemoUserName { get; init; }
+	public string? DemoPassword { get; init; }
+	public string? DemoEmail { get; init; }
+	public bool InviteOnlyRegistration { get; init; }
 
 	public UserConfiguration(IConfiguration configuration) {
 		AdminUserName = configuration["Users:AdminUserName"] ?? throw new ConfigEmptyException("Users:AdminUserName is not configured");

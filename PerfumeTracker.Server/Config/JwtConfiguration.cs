@@ -14,5 +14,6 @@ public class JwtConfiguration {
 		Issuer = configuration["Jwt:Issuer"] ?? throw new ConfigEmptyException("JWT Issuer is not configured");
 		Audience = configuration["Jwt:Audience"] ?? throw new ConfigEmptyException("JWT Audience is not configured");
 		ExpirationHours = configuration.GetValue<int?>("Jwt:ExpirationHours") ?? throw new ConfigEmptyException("JWT ExpirationHours is not configured");
+		if (ExpirationHours <= 0) throw new ConfigEmptyException("Expiration value must be positive integers");
 	}
 }
