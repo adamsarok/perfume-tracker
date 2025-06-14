@@ -12,13 +12,11 @@ public class UpdateTagEndpoint : ICarterModule {
 
 public class UpdateTagHandler(PerfumeTrackerContext context) : ICommandHandler<UpdateTagCommand, TagDto> {
 	public async Task<TagDto> Handle(UpdateTagCommand request, CancellationToken cancellationToken) {
-		var tag = request.TagDto.Adapt<Tag>();
-		if (tag == null) throw new MappingException();
 		var find = await context
 			.Tags
 			.FindAsync(request.TagId);
 		if (find == null) throw new NotFoundException();
-		context.Entry(find).CurrentValues.SetValues(tag);
+		context.Entry(find).CurrentValues.SetValues(request.TagDto);
 		await context.SaveChangesAsync();
 		return find.Adapt<TagDto>();
 	}

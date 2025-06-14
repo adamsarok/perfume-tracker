@@ -89,34 +89,19 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		using var scope = GetTestScope();
 		var handler = new UpdatePerfumeHandler(scope.PerfumeTrackerContext);
 		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
-		var dto = new PerfumeDto(perfume.Id,
-			perfume.House,
+		var dto = new PerfumeUploadDto(perfume.House,
 			perfume.PerfumeName,
 			perfume.Rating,
 			perfume.Notes,
 			perfume.Ml,
 			perfume.MlLeft,
-			perfume.ImageObjectKey,
-			"",
 			perfume.Autumn,
 			perfume.Spring,
 			perfume.Summer,
 			perfume.Winter,
-			new List<TagDto>() { tagSeed[2].Adapt<TagDto>() },
-			perfume.IsDeleted);
+			new List<TagDto>() { tagSeed[2].Adapt<TagDto>() });
 		var response = await handler.Handle(new UpdatePerfumeCommand(perfume.Id, dto), new CancellationToken());
 		Assert.NotNull(response);
-	}
-
-	[Fact]
-	public async Task UpdatePerfumeGuid() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
-		var dto = new ImageGuidDto(perfume.Id, Guid.NewGuid().ToString());
-		var handler = new UpdatePerfumeImageGuidHandler(scope.PerfumeTrackerContext);
-		var result = await handler.Handle(new UpdatePerfumeGuidCommand(dto), new CancellationToken());
-		Assert.NotNull(result);
 	}
 
 	[Fact]
@@ -133,7 +118,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task AddPerfume() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var dto = new PerfumeDto(Guid.NewGuid(), "House3", "Perfume3", 5, "Notes", 50, 50, "", "", true, true, false, false, new(), false);
+		var dto = new PerfumeUploadDto("House3", "Perfume3", 5, "Notes", 50, 50, true, true, false, false, new());
 		var handler = new AddPerfumeHandler(scope.PerfumeTrackerContext);
 		var response = await handler.Handle(new AddPerfumeCommand(dto), new CancellationToken());
 		Assert.NotNull(response);

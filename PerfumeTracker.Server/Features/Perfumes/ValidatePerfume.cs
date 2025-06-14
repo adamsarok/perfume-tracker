@@ -1,7 +1,6 @@
 ﻿namespace PerfumeTracker.Server.Features.Perfumes;
-
-public class PerfumeValidator : AbstractValidator<PerfumeDto> {
-	public PerfumeValidator() {
+public class PerfumeUploadValidator : AbstractValidator<PerfumeUploadDto> {
+	public PerfumeUploadValidator() {
 		RuleFor(x => x.House).Length(1, 250);
 		RuleFor(x => x.PerfumeName).Length(1, 250);
 		RuleFor(x => x.Ml).GreaterThan(0.1m);
