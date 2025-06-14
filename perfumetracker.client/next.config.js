@@ -1,4 +1,36 @@
 /** @type {import('next').NextConfig} */
-module.exports = {
-    output: "standalone",
-  };
+const nextConfig = {
+  output: "standalone",
+  async headers() {
+    return [
+      {
+        // Apply to all routes
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: `
+              default-src 'none';
+              base-uri 'self';
+              form-action 'self';
+              frame-ancestors 'none';
+              img-src 'self' https://*.r2.cloudflarestorage.com;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval';
+              style-src 'self' 'unsafe-inline';
+              font-src 'self' data:;
+              connect-src 'self' http://localhost:* https://localhost:* https://*.r2.cloudflarestorage.com;
+              object-src 'none';
+              media-src 'none';
+              worker-src 'none';
+              manifest-src 'self';
+              upgrade-insecure-requests;
+              block-all-mixed-content;
+            `.replace(/\s{2,}/g, ' ').trim() // Minimize whitespace
+          }
+        ]
+      }
+    ]
+  }
+}
+
+module.exports = nextConfig;

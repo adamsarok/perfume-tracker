@@ -1,26 +1,36 @@
-﻿using System.Globalization;
+﻿using PerfumeTracker.Server.Config;
+using System.Globalization;
 using System.Threading.RateLimiting;
 
 namespace PerfumeTracker.Server.Startup;
 public static partial class Startup {
-	public static void SetupRateLimiting(IServiceCollection services) {
+	public static void SetupRateLimiting(IServiceCollection services, IConfiguration config) {
+		var rateLimiterConfig = new RateLimitConfiguration(config);
 		services.AddRateLimiter(options => {
 			options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext => {
 				string path = httpContext.Request.Path.ToString();
-				if (path.StartsWith("/api/identity/account/login") || path.StartsWith("/api/identity/account/register")) {
+				if (httpContext.Request.Path.StartsWithSegments("/api/identity/account/login") || httpContext.Request.Path.StartsWithSegments("/api/identity/account/register")) {
 					return RateLimitPartition.GetFixedWindowLimiter(
 						partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 						factory: _ => new FixedWindowRateLimiterOptions {
-							PermitLimit = 1000, //TODO: generating lot of presigned urls can cause a problem already
+							PermitLimit = rateLimiterConfig.Auth,
+							Window = TimeSpan.FromMinutes(1)
+						});
+				}
+				if (httpContext.Request.Path.StartsWithSegments("/api/images/upload")) {
+					return RateLimitPartition.GetFixedWindowLimiter(
+						partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+						factory: _ => new FixedWindowRateLimiterOptions {
+							PermitLimit = rateLimiterConfig.Upload,
 							Window = TimeSpan.FromMinutes(1)
 						});
 				}
 				return RateLimitPartition.GetFixedWindowLimiter(
 					partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 					factory: _ => new FixedWindowRateLimiterOptions {
-						PermitLimit = 1000, //TODO: generating lot of presigned urls can cause a problem already
+						PermitLimit = rateLimiterConfig.General,
 						Window = TimeSpan.FromMinutes(1)
-				});
+					});
 			});
 			options.OnRejected = (context, cancellationToken) => {
 				var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
@@ -35,11 +45,6 @@ public static partial class Startup {
 					context.HttpContext.Connection.RemoteIpAddress,
 					context.HttpContext.Request.Path,
 					retryAfter.TotalSeconds);
-
-				//context.HttpContext.RequestServices.GetService<ILoggerFactory>()?
-				//	.CreateLogger("Microsoft.AspNetCore.RateLimitingMiddleware")
-				//	.LogWarning("OnRejected: {GetUserEndPoint}", GetUserEndPoint(context.HttpContext));
-
 				return new ValueTask();
 			};
 		});
