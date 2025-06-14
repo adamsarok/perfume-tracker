@@ -8,6 +8,6 @@ public class LogoutEndpoint : ICarterModule {
 			return Results.Ok(new { message = "Logged out successfully" });
 		}).WithTags("Users")
 			.WithName("Logout")
-			.RequireAuthorization(Policies.READ);
+			.AllowAnonymous();
 	}
 }
