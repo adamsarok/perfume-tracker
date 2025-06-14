@@ -9,12 +9,10 @@ public class JwtConfiguration {
 	public SymmetricSecurityKey Key { get; init; }
 	public int ExpirationHours { get; init; }
 	public JwtConfiguration(IConfiguration configuration) {
-		var keyStr = configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured");
+		var keyStr = configuration["Jwt:Key"] ?? throw new ConfigEmptyException("JWT Key is not configured");
 		Key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyStr));
-		Issuer = configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer is not configured");
-		Audience = configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience is not configured");
-		var expirationHoursStr = configuration["Jwt:ExpirationHours"] ?? throw new InvalidOperationException("JWT ExpirationHours is not configured");
-		if (!int.TryParse(expirationHoursStr, out int expirationHours)) throw new InvalidOperationException("JWT ExpirationHours is invalid");
-		ExpirationHours = expirationHours;
+		Issuer = configuration["Jwt:Issuer"] ?? throw new ConfigEmptyException("JWT Issuer is not configured");
+		Audience = configuration["Jwt:Audience"] ?? throw new ConfigEmptyException("JWT Audience is not configured");
+		ExpirationHours = configuration.GetValue<int?>("Jwt:ExpirationHours") ?? throw new ConfigEmptyException("JWT ExpirationHours is not configured");
 	}
 }

@@ -35,14 +35,13 @@ public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, ICo
 
 		var cookieOptions = new CookieOptions {
 			HttpOnly = true,
-			Secure = true,
+			Secure = context.Request.IsHttps,
 			SameSite = SameSiteMode.Strict,
 			Expires = DateTime.UtcNow.AddHours(24)
 		};
 
 		context.Response.Cookies.Append("jwt", token, cookieOptions);
 		context.Response.Cookies.Append("X-Username", user.UserName ?? string.Empty, cookieOptions);
-		//context.Response.Cookies.Append("X-User-Id", user.Id.ToString(), cookieOptions);
 	}
 }
 

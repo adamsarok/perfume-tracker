@@ -1,3 +1,3 @@
 ﻿namespace PerfumeTracker.Server.Exceptions {
-	public class MappingException : Exception;
+	public class MappingException : BadRequestException;
 }

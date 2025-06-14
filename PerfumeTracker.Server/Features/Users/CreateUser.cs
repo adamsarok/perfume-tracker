@@ -18,7 +18,7 @@ public class CreateUser(ILogger<CreateUser> logger, UserManager<PerfumeIdentityU
 				EmailConfirmed = isEmailConfirmed
 			};
 			var result = await userManager.CreateAsync(user, password);
-			if (!result.Succeeded) 				throw new InvalidOperationException($"Failed to create {role} user: " + string.Join(", ", result.Errors.Select(x => x.Description)));
+			if (!result.Succeeded) throw new InvalidOperationException($"Failed to create {role} user: " + string.Join(", ", result.Errors.Select(x => x.Description)));
 			await userManager.AddToRoleAsync(user, role);
 			context.UserProfiles.Add(new UserProfile(user.Id, userName, email));
 			await context.SaveChangesAsync();

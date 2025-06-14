@@ -28,6 +28,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<Mission> Missions { get; set; }
 	public virtual DbSet<UserMission> UserMissions { get; set; }
 	public virtual DbSet<LogEntry> LogEntries { get; set; }
+	public virtual DbSet<Invite> Invites { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 
 		modelBuilder.Entity<OutboxMessage>(entity => {
@@ -178,6 +179,12 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasForeignKey(e => e.MissionId)
 				.HasConstraintName("UserMission_MissionId_fkey");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
+
+		modelBuilder.Entity<Invite>(entity => {
+			entity.HasKey(e => e.Id).HasName("Invite_pkey");
+			entity.ToTable("Invite");
+			entity.HasQueryFilter(x => !x.IsDeleted && !x.IsUsed);
 		});
 
 		base.OnModelCreating(modelBuilder);

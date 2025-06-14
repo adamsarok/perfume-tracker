@@ -4,7 +4,7 @@ public class LoginEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/login", async ([FromBody] LoginRequest request,
 		  HttpContext httpContext, ISender sender) => {
-			  var result = await sender.Send(new LoginUserCommand(request.Email, request.Password, httpContext));
+			  var result = await sender.Send(new LoginUserCommand(request.Email.Trim(), request.Password, httpContext));
 			  return result.Result;
 		  }).WithTags("Auth")
 			.WithName("LoginUser")
@@ -17,14 +17,15 @@ public class LoginEndpoint : ICarterModule {
 	}
 }
 
-public record LoginUserCommand(string Email, string Password, HttpContext HttpContext) : ICommand<LoginResult>;
+public record LoginUserCommand(string EmailOrUserName, string Password, HttpContext HttpContext) : ICommand<LoginResult>;
 public record LoginDemoUserCommand(HttpContext HttpContext) : ICommand<LoginResult>;
 public record LoginResult(IResult Result);
 public class LoginUserHandler(UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator)
 	: ICommandHandler<LoginUserCommand, LoginResult> {
 	public async Task<LoginResult> Handle(LoginUserCommand command, CancellationToken cancellationToken) {
-		var user = await userManager.FindByEmailAsync(command.Email);
-		if (user == null || !await userManager.CheckPasswordAsync(user, command.Password)) 			return new LoginResult(Results.Unauthorized());
+		var user = await userManager.FindByEmailAsync(command.EmailOrUserName);
+		if (user == null) user = await userManager.FindByNameAsync(command.EmailOrUserName);
+		if (user == null || !await userManager.CheckPasswordAsync(user, command.Password)) return new LoginResult(Results.Unauthorized());
 		await jwtTokenGenerator.WriteToken(user, command.HttpContext);
 		return new LoginResult(Results.Ok(new { message = "Logged in successfully" }));
 	}
