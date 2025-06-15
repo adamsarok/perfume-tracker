@@ -70,11 +70,6 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
-builder.WebHost.UseKestrel(options => {
-	options.ListenAnyIP(8080);
-	options.ListenAnyIP(8081, listenOptions => { listenOptions.UseHttps(); });
-});
-
 Startup.SetupRateLimiting(builder.Services, builder.Configuration);
 Startup.SetupAuthorizations(builder.Services, builder.Configuration);
 
