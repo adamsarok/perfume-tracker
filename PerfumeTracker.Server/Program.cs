@@ -28,9 +28,18 @@ using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
-string? conn = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
+string? conn;
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrWhiteSpace(databaseUrl)) {
+	var uri = new Uri(databaseUrl);
+	var username = uri.UserInfo.Split(':')[0];
+	var password = uri.UserInfo.Split(':')[1];
+	conn = $"Host={uri.Host};Database={uri.AbsolutePath.Substring(1)};Username={username};Password={password};Port={uri.Port};SSL Mode=Require"; 
+	// ; Trust Server Certificate=true;";
+} else {
+	conn = builder.Configuration.GetConnectionString("DefaultConnection");
+	if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
+}
 
 var loggerConfig = new LoggerConfiguration()
     .WriteTo.Console()
