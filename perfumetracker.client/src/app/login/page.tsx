@@ -100,12 +100,12 @@ export default function LoginPage() {
                 Register
               </Button>
             </Link>
-            <Button variant="secondary"
+       {/*      <Button variant="secondary"
               type="button"
               onClick={handleLoginDemo}
             >
               Demo
-            </Button>
+            </Button> */}
           </div>
           <div>
             

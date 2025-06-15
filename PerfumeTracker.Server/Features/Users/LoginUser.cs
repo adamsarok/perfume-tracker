@@ -9,11 +9,11 @@ public class LoginEndpoint : ICarterModule {
 		  }).WithTags("Users")
 			.WithName("LoginUser")
 			.AllowAnonymous();
-		app.MapPost("/api/identity/account/login/demo", async (ISender sender, HttpContext httpContext) => {
-			return await sender.Send(new LoginDemoUserCommand(httpContext));
-		}).WithTags("Users")
-			.WithName("LoginDemoUser")
-			.AllowAnonymous();
+		// app.MapPost("/api/identity/account/login/demo", async (ISender sender, HttpContext httpContext) => {
+		// 	return await sender.Send(new LoginDemoUserCommand(httpContext));
+		// }).WithTags("Users")
+		// 	.WithName("LoginDemoUser")
+		// 	.AllowAnonymous();
 	}
 }
 
