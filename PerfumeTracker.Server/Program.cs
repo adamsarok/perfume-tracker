@@ -17,6 +17,7 @@ using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Server.Helpers;
 using PerfumeTracker.Server.Startup;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using System;
@@ -35,7 +36,6 @@ if (!string.IsNullOrWhiteSpace(databaseUrl)) {
 	var username = uri.UserInfo.Split(':')[0];
 	var password = uri.UserInfo.Split(':')[1];
 	conn = $"Host={uri.Host};Database={uri.AbsolutePath.Substring(1)};Username={username};Password={password};Port={uri.Port};SSL Mode=Require"; 
-	// ; Trust Server Certificate=true;";
 } else {
 	conn = builder.Configuration.GetConnectionString("DefaultConnection");
 	if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
@@ -57,8 +57,11 @@ var loggerConfig = new LoggerConfiguration()
         },
         needAutoCreateTable: true)
     .Enrich.FromLogContext();
-    
-if (!builder.Environment.IsDevelopment()) loggerConfig.MinimumLevel.Error();
+
+var defaultLogLevel = builder.Configuration.GetValue<string>("Logging:LogLevel:Default") ?? "Information";
+loggerConfig.MinimumLevel.ControlledBy(new LoggingLevelSwitch(
+	(LogEventLevel)Enum.Parse(typeof(LogEventLevel), defaultLogLevel)));
+
 Log.Logger = loggerConfig.CreateLogger();
 builder.Host.UseSerilog();
 
