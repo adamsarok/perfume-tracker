@@ -8,7 +8,7 @@ const nextConfig = {
         source: '/(.*)',
         headers: [
           {
-            key: 'Content-Security-Policy',
+            key: 'Content-Security-Policy-Report-Only',
             value: `
               default-src 'none';
               base-uri 'self';
@@ -18,7 +18,7 @@ const nextConfig = {
               script-src 'self' 'unsafe-inline' 'unsafe-eval';
               style-src 'self' 'unsafe-inline';
               font-src 'self' data:;
-              connect-src 'self' https://www.perfume-tracker.com https://perfume-tracker.com http://localhost:* https://localhost:* https://*.r2.cloudflarestorage.com;
+              connect-src 'self' https://perfume-tracker-235ug.ondigitalocean.app https://www.perfume-tracker.com https://perfume-tracker.com http://localhost:* https://localhost:* https://*.r2.cloudflarestorage.com;
               object-src 'none';
               media-src 'none';
               worker-src 'none';
