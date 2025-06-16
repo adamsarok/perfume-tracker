@@ -8,7 +8,7 @@ const nextConfig = {
         source: '/(.*)',
         headers: [
           {
-            key: 'Content-Security-Policy-Report-Only',
+            key: 'Content-Security-Policy',
             value: `
               default-src 'none';
               base-uri 'self';
