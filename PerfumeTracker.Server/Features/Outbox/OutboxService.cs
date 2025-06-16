@@ -12,6 +12,7 @@ public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger) :
 				var messages = await context.OutboxMessages
 					.Where(m => m.ProcessedAt == null && m.TryCount < 5)
 					.OrderBy(m => m.CreatedAt)
+					.IgnoreQueryFilters() //processor runs for all users in the background
 					.Take(10)
 					.ToListAsync();
 

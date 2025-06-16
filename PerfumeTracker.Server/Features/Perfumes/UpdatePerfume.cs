@@ -16,7 +16,7 @@ public class UpdatePerfumeEndpoint : ICarterModule {
 	}
 }
 public record class PerfumeUpdatedNotification(Guid PerfumeId) : INotification;
-public record class PerfumeTagsAddedNotification(List<Guid> PerfumeTagIds) : INotification;
+public record class PerfumeTagsAddedNotification(List<Guid> PerfumeTagIds, Guid UserId) : INotification;
 public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<UpdatePerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(UpdatePerfumeCommand request, CancellationToken cancellationToken) {
 		var find = await context
@@ -61,9 +61,11 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandl
 				});
 			}
 		}
+		var userId = context.TenantProvider?.GetCurrentUserId();
+		if (userId == null) throw new BadRequestException("Tenant not set");
 		if (tagsToAdd.Any()) {
 			context.PerfumeTags.AddRange(tagsToAdd);
-			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification(tagsToAdd.Select(x => x.Id).ToList())));
+			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification(tagsToAdd.Select(x => x.Id).ToList(), userId.Value)));
 		}
 	}
 }
