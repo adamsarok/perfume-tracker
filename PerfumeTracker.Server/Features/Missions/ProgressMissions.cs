@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Features.PerfumeEvents;
+using PerfumeTracker.Server.Features.PerfumeRandoms;
 
 namespace PerfumeTracker.Server.Features.Missions;
 
@@ -62,6 +63,12 @@ public class ProgressMissions {
 	public class PerfumeRandomAcceptedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeRandomAcceptedNotification> {
 		public async Task Handle(PerfumeRandomAcceptedNotification notification, CancellationToken cancellationToken) {
 			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.AcceptRandoms, cancellationToken, notification.UserId);
+		}
+	}
+
+	public class RandomPerfumeAddedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<RandomPerfumeAddedNotification> {
+		public async Task Handle(RandomPerfumeAddedNotification notification, CancellationToken cancellationToken) {
+			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.GetRandoms, cancellationToken, notification.UserId);
 		}
 	}
 

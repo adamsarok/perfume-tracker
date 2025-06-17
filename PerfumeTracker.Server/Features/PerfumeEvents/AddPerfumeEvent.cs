@@ -14,6 +14,7 @@ public class AddPerfumeEventEndpoint : ICarterModule {
 }
 public class AddPerfumeEventHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeEventCommand, PerfumeEventDownloadDto> {
 	public async Task<PerfumeEventDownloadDto> Handle(AddPerfumeEventCommand request, CancellationToken cancellationToken) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var evt = request.Dto.Adapt<PerfumeEvent>();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		context.PerfumeEvents.Add(evt);
@@ -21,11 +22,9 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context) : ICommandHan
 		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
 		if (evt.AmountMl == 0 && evt.Type == PerfumeEvent.PerfumeEventType.Worn) evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		var result = evt.Adapt<PerfumeEventDownloadDto>();
-		var userId = context.TenantProvider?.GetCurrentUserId();
-		if (userId == null) throw new BadRequestException("Tenant not set");
 		if (evt.Type == PerfumeEvent.PerfumeEventType.Worn) {
-			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId.Value)));
-			if (request.Dto.IsRandomPerfume) context.OutboxMessages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(result.PerfumeId, userId.Value)));
+			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId)));
+			if (request.Dto.IsRandomPerfume) context.OutboxMessages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(result.PerfumeId, userId)));
 		}
 		await context.SaveChangesAsync();
 		return result;

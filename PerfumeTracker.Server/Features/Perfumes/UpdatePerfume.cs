@@ -44,6 +44,7 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandl
 		return find.Adapt<PerfumeDto>();
 	}
 	private async Task UpdateTags(PerfumeUploadDto Dto, Perfume? find) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		if (find == null) return;
 		var tagsInDB = find.PerfumeTags
 			.Select(x => x.Tag)
@@ -61,11 +62,9 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandl
 				});
 			}
 		}
-		var userId = context.TenantProvider?.GetCurrentUserId();
-		if (userId == null) throw new BadRequestException("Tenant not set");
 		if (tagsToAdd.Any()) {
 			context.PerfumeTags.AddRange(tagsToAdd);
-			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification(tagsToAdd.Select(x => x.Id).ToList(), userId.Value)));
+			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification(tagsToAdd.Select(x => x.Id).ToList(), userId)));
 		}
 	}
 }

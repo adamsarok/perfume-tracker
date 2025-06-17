@@ -17,9 +17,10 @@ public class GetRandomPerfumeEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.READ);
 	}
 }
-public record class RandomPerfumeAddedEvent(Guid PerfumeId) : INotification;
+public record class RandomPerfumeAddedNotification(Guid PerfumeId, Guid UserId) : INotification;
 public class GetRandomPerfumeHandler(PerfumeTrackerContext context) : IQueryHandler<GetRandomPerfumeQuery, GetRandomPerfumeResponse> {
 	public async Task<GetRandomPerfumeResponse> Handle(GetRandomPerfumeQuery request, CancellationToken cancellationToken) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		var alreadySug = await GetAlreadySuggestedRandomPerfumeIds(settings.DayFilter);
 		var worn = await context
@@ -46,16 +47,16 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context) : IQueryHand
 		if (!filtered.Any()) filtered = all;
 		int index = _random.Next(filtered.Count());
 		var result = filtered.ToArray()[index];
-		if (!alreadySug.Contains(result)) await AddRandomPerfume(result);
+		if (!alreadySug.Contains(result)) await AddRandomPerfume(result, userId);
 		return new GetRandomPerfumeResponse(result);
 	}
-	private async Task AddRandomPerfume(Guid perfumeId) {
+	private async Task AddRandomPerfume(Guid perfumeId, Guid userId) {
 		var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId);
 		if (p == null) throw new NotFoundException();
 		var s = new Models.PerfumeRandoms() {
 			PerfumeId = perfumeId,
 		};
-		context.OutboxMessages.Add(OutboxMessage.From(new RandomPerfumeAddedEvent(perfumeId)));
+		context.OutboxMessages.Add(OutboxMessage.From(new RandomPerfumeAddedNotification(perfumeId, userId)));
 		context.PerfumeRandoms.Add(s);
 		await context.SaveChangesAsync();
 	}
