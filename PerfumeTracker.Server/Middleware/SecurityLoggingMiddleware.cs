@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Serilog;
 
 namespace PerfumeTracker.Server.Middleware;
@@ -12,7 +13,7 @@ public class SecurityLoggingMiddleware {
 			&& !context.Request.Path.StartsWithSegments("/api/identity/account/me")) {
 			Log.Warning(
 				"Failed authentication attempt from {IP} to {Path}. Status: {StatusCode}",
-				context.Connection.RemoteIpAddress,
+				context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
 				context.Request.Path,
 				context.Response.StatusCode);
 		}
