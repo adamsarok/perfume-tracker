@@ -126,6 +126,7 @@ using (var scope = app.Services.CreateScope()) {
 app.UseRateLimiter();
 app.UseExceptionHandler();
 app.UseCors("AllowSpecificOrigin");
+app.UseSecurityLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSecurityHeaders();
