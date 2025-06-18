@@ -29,13 +29,16 @@ public class ProgressMissions {
 
 			var uniquePerfumesWorn = await context.PerfumeEvents
 				.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn &&
-						   x.EventDate >= DateTime.UtcNow.AddDays(-7))
+						   x.EventDate >= DateTime.UtcNow.AddDays(-7) &&
+						   x.UserId == notification.UserId
+						   )
+				.IgnoreQueryFilters()
 				.Select(x => x.PerfumeId)
 				.Distinct()
 				.CountAsync();
 
-			if (uniquePerfumesWorn > 1) {
-				await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearDifferentPerfumes, cancellationToken, notification.UserId);
+			if (uniquePerfumesWorn > 0) {
+				await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearDifferentPerfumes, cancellationToken, notification.UserId, uniquePerfumesWorn);
 			}
 
 			var activeNoteMission = await context.Missions
@@ -74,7 +77,7 @@ public class ProgressMissions {
 
 	public class UpdateMissionProgressHandler(PerfumeTrackerContext context, IHubContext<MissionProgressHub> missionProgressHub) {
 		//TODO refactor
-		public async Task UpdateMissionProgress(MissionType type, CancellationToken cancellationToken, Guid userId, int progress = 1) {
+		public async Task UpdateMissionProgress(MissionType type, CancellationToken cancellationToken, Guid userId, int? setExact = null) {
 			if (userId == Guid.Empty) return;
 			var now = DateTime.UtcNow;
 			var activeMissions = await context.Missions
@@ -97,7 +100,7 @@ public class ProgressMissions {
 				} //TODO check if this was really needed?
 
 				if (userMission != null && !userMission.IsCompleted) {
-					userMission.Progress += progress;
+					userMission.Progress = setExact ?? userMission.Progress + 1;
 
 					if (userMission.Progress >= mission.RequiredCount) {
 						userMission.IsCompleted = true;

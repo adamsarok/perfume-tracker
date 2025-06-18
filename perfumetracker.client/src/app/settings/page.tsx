@@ -184,11 +184,6 @@ export default function SettingsPage() {
         <Button variant="secondary" onClick={() => setLocalSettings(settings)}>
           <CircleX /> Cancel
         </Button>
-        <Link href="/logs" passHref>
-          <Button variant="outline" size="default" title="Logs" aria-label="Logs">
-            <FileText /> Logs
-          </Button>
-        </Link>
       </div>
     </div>
   );

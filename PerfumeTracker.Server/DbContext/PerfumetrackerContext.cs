@@ -27,7 +27,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 	public virtual DbSet<Mission> Missions { get; set; }
 	public virtual DbSet<UserMission> UserMissions { get; set; }
-	public virtual DbSet<LogEntry> LogEntries { get; set; }
 	public virtual DbSet<Invite> Invites { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 

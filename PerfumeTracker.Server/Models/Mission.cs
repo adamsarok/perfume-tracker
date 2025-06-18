@@ -9,7 +9,7 @@ public class Mission : Entity {
     public DateTime EndDate { get; set; }
     public int XP { get; set; }
     public MissionType Type { get; set; }
-    public int? RequiredCount { get; set; }
+    public int RequiredCount { get; set; }
     public Guid? RequiredId { get; set; }
     public bool IsActive { get; set; }
 	public virtual ICollection<UserMission> UserMissions { get; set; } = new List<UserMission>();
