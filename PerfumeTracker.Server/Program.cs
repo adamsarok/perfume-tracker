@@ -1,18 +1,14 @@
+using Hangfire;
+using Hangfire.SqlServer;
 using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
-using PerfumeTracker.Server.Config;
 using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
-using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Server.Helpers;
 using PerfumeTracker.Server.Startup;
@@ -20,11 +16,6 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
-using System;
-using System.Data;
-using System.Diagnostics;
-using System.Text;
-using System.Threading.RateLimiting;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -111,6 +102,23 @@ builder.Services.AddHostedService<MissionService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
 
+builder.Services.AddHangfire(config =>
+	config
+	  .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+	  .UseSimpleAssemblyNameTypeSerializer()
+	  .UseRecommendedSerializerSettings()
+	  .UseSqlServerStorage(
+		  builder.Configuration.GetConnectionString("HangfireConnection"),
+		  new SqlServerStorageOptions {
+			  CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+			  SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+			  QueuePollInterval = TimeSpan.Zero,
+			  UseRecommendedIsolationLevel = true,
+			  DisableGlobalLocks = true
+		  })
+);
+builder.Services.AddHangfireServer();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope()) {
@@ -123,6 +131,7 @@ using (var scope = app.Services.CreateScope()) {
 	await seedUsers.SeedDemoUserAsync();
 }
 
+app.UseHangfireDashboard();
 app.UseRateLimiter();
 app.UseExceptionHandler();
 app.UseCors("AllowSpecificOrigin");
