@@ -109,7 +109,7 @@ public class ProgressMissions {
 					await missionProgressHub.Clients.All.SendAsync("ReceiveMissionProgress",
 						new UserMissionDto(
 							Id: mission.Id,
-							Progress: userMission.Progress,
+							Progress: (int)((float)userMission.Progress / (float)mission.RequiredCount * 100),
 							IsCompleted: userMission.IsCompleted,
 							Description: mission.Description,
 							EndDate: mission.EndDate,

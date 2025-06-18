@@ -3,7 +3,7 @@ import axios, { AxiosRequestConfig } from "axios";
 
 
 let cachedApiUrl: string | null = null;
-const initializeApiUrl = async () => {
+export const initializeApiUrl = async () => {
   if (!cachedApiUrl) {
     const apiUrl = await getPerfumeTrackerApiAddress();
     if (!apiUrl) throw new Error('API address not configured');

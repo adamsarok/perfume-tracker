@@ -8,6 +8,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react";
 import { getCurrentUser, logoutUser } from "@/services/user-service";
+import { UserMissionDto } from "@/dto/MissionDto";
+import * as signalR from "@microsoft/signalr";
+import { toast } from "sonner";
+import { initializeApiUrl } from "@/services/axios-service";
 
 function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
@@ -18,6 +22,44 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
 
   useEffect(() => {
     setHasMounted(true);
+
+    const connectToSignalR = async () => {
+
+      const apiUrl = await initializeApiUrl();
+      console.log("apiUrl", apiUrl);
+      if (!apiUrl) {
+        console.error("API URL not configured");
+        return;
+      }
+
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${apiUrl}/hubs/mission-progress`)
+        .withAutomaticReconnect()
+        .build();
+
+      connection.on("ReceiveMissionProgress", (mission: UserMissionDto) => {
+        console.log("received missions", mission);
+        if (mission.isCompleted) {
+          toast.success(`Mission Completed: ${mission.name}`, {
+            description: mission.description,
+          });
+        } else {
+          toast.info(`Mission Updated: ${mission.name}`, {
+            description: `Progress: ${mission.progress}%`,
+          });
+        }
+      }
+      );
+
+      connection.start()
+        .then(() => console.log("SignalR Connected"))
+        .catch(err => console.error("SignalR Connection Error: ", err));
+
+      return () => {
+        connection.stop();
+      };
+    }
+    connectToSignalR();
   }, []);
 
   useEffect(() => {
@@ -97,7 +139,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         </div>
       </nav>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="max-w-lg mx-auto px-4">
+        <div className="max-w-lg mx-auto px-4">
           <div className="flex items-center justify-center space-x-2">
             <Link href="/" passHref>
               <Button variant="outline" size="icon" title="Home" aria-label="Home">

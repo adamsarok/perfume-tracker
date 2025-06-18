@@ -18,7 +18,7 @@ const nextConfig = {
               script-src 'self' 'unsafe-inline' 'unsafe-eval';
               style-src 'self' 'unsafe-inline';
               font-src 'self' data:;
-              connect-src 'self' https://perfume-tracker-235ug.ondigitalocean.app https://www.perfume-tracker.com https://perfume-tracker.com http://localhost:* https://localhost:* https://*.r2.cloudflarestorage.com;
+              connect-src 'self' https://perfume-tracker-235ug.ondigitalocean.app ws://perfume-tracker-235ug.ondigitalocean.app https://www.perfume-tracker.com ws://www.perfume-tracker.com https://perfume-tracker.com ws://perfume-tracker.com https://*.r2.cloudflarestorage.com http://localhost:* https://localhost:* ws://localhost:*;
               object-src 'none';
               media-src 'none';
               worker-src 'none';
