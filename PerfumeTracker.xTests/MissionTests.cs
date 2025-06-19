@@ -122,4 +122,4 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		}
 		throw new Exception("Correct mission type not found in update args");
 	}
-} 
+}
