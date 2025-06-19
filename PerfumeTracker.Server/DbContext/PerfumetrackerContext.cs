@@ -86,7 +86,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasDefaultValue(true);
 			entity.HasGeneratedTsVectorColumn(
 				p => p.FullText,
-				"english",
+				"simple",
 				p => new { p.PerfumeName, p.House, p.Notes, p.Rating })
 				.HasIndex(p => p.FullText)
 				.HasMethod("GIN");
