@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Users;
-using Microsoft.AspNetCore.SignalR;
+using System;
+using Xunit.Sdk;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 namespace PerfumeTracker.xTests;
@@ -15,6 +17,9 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 	protected static MockTenantProvider TenantProvider = new MockTenantProvider();
 	protected static Mock<IHubContext<MissionProgressHub>> MockHubContext = default!;
+	protected static Mock<IClientProxy> MockClientProxy = default!;
+	protected static string HubSentMethod = default!;
+	protected static object[] HubSentArgs = default!;
 	public TestBase(WebApplicationFactory<Program> factory) {
 		semaphore.Wait();
 		try {
@@ -31,14 +36,18 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 			TenantProvider.MockTenantId = user.Id;
 
 			var mockClients = new Mock<IHubClients>();
-			var mockClientProxy = new Mock<IClientProxy>();
-			mockClients.Setup(clients => clients.All).Returns(mockClientProxy.Object);
-			mockClientProxy
+			MockClientProxy = new Mock<IClientProxy>();
+			mockClients.Setup(clients => clients.All).Returns(MockClientProxy.Object);
+			MockClientProxy
 				.Setup(proxy => proxy.SendCoreAsync(
-					It.IsAny<string>(), 
-					It.IsAny<object[]>(), 
+					It.IsAny<string>(),
+					It.IsAny<object[]>(),
 					It.IsAny<CancellationToken>()))
-				.Returns(Task.CompletedTask);
+				.Returns(Task.CompletedTask)
+				.Callback<string, object[], CancellationToken>((method, args, token) => {
+					HubSentMethod = method;
+					HubSentArgs = args;
+				});
 
 			MockHubContext = new Mock<IHubContext<MissionProgressHub>>();
 			MockHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
