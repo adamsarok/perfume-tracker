@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Users;
+using Microsoft.AspNetCore.SignalR;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 
 namespace PerfumeTracker.xTests;
 public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
@@ -12,6 +14,7 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 	protected static bool DbUp = false;
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 	protected static MockTenantProvider TenantProvider = new MockTenantProvider();
+	protected static Mock<IHubContext<MissionProgressHub>> MockHubContext = default!;
 	public TestBase(WebApplicationFactory<Program> factory) {
 		semaphore.Wait();
 		try {
@@ -26,6 +29,19 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 				user = createUserHandler.Create("test", "abcd1234ABCDxyz59697", Roles.USER, "test@example.com", false).GetAwaiter().GetResult();
 			}
 			TenantProvider.MockTenantId = user.Id;
+
+			var mockClients = new Mock<IHubClients>();
+			var mockClientProxy = new Mock<IClientProxy>();
+			mockClients.Setup(clients => clients.All).Returns(mockClientProxy.Object);
+			mockClientProxy
+				.Setup(proxy => proxy.SendCoreAsync(
+					It.IsAny<string>(), 
+					It.IsAny<object[]>(), 
+					It.IsAny<CancellationToken>()))
+				.Returns(Task.CompletedTask);
+
+			MockHubContext = new Mock<IHubContext<MissionProgressHub>>();
+			MockHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
 		} finally {
 			semaphore.Release();
 		}
