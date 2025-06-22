@@ -109,15 +109,17 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	}
 
 	void AssertProgress(MissionType type) {
-		Assert.NotNull(HubSentArgs);
-		Assert.NotEmpty(HubSentArgs);
-		foreach (var s in HubSentArgs) {
-			var mission = s as UserMissionDto;
-			if (mission.MissionType == type) {
-				Assert.NotNull(mission);
-				Assert.True(mission.Progress > 0);
-				HubSentArgs = new object[] { };
-				return;
+		Assert.NotNull(HubMessages);
+		Assert.NotEmpty(HubMessages);
+		foreach (var m in HubMessages) {
+			foreach (var s in m.HubSentArgs) {
+				var mission = s as UserMissionDto;
+				if (mission.MissionType == type) {
+					Assert.NotNull(mission);
+					Assert.True(mission.Progress > 0);
+					HubMessages.Clear();
+					return;
+				}
 			}
 		}
 		throw new Exception("Correct mission type not found in update args");

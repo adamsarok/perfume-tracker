@@ -13,13 +13,13 @@ using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 namespace PerfumeTracker.xTests;
 public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 	protected WebApplicationFactory<Program> Factory;
-	protected static bool DbUp = false;
+	protected bool DbUp = false;
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-	protected static MockTenantProvider TenantProvider = new MockTenantProvider();
-	protected static Mock<IHubContext<MissionProgressHub>> MockHubContext = default!;
-	protected static Mock<IClientProxy> MockClientProxy = default!;
-	protected static string HubSentMethod = default!;
-	protected static object[] HubSentArgs = default!;
+	protected MockTenantProvider TenantProvider = new MockTenantProvider();
+	protected Mock<IHubContext<MissionProgressHub>> MockHubContext = default!;
+	protected Mock<IClientProxy> MockClientProxy = default!;
+	protected List<HubMessage> HubMessages = new List<HubMessage>();
+	public record HubMessage(string HubSentMethod, object[] HubSentArgs);
 	public TestBase(WebApplicationFactory<Program> factory) {
 		semaphore.Wait();
 		try {
@@ -45,8 +45,7 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 					It.IsAny<CancellationToken>()))
 				.Returns(Task.CompletedTask)
 				.Callback<string, object[], CancellationToken>((method, args, token) => {
-					HubSentMethod = method;
-					HubSentArgs = args;
+					HubMessages.Add(new HubMessage(method, args));
 				});
 
 			MockHubContext = new Mock<IHubContext<MissionProgressHub>>();
