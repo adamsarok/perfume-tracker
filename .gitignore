@@ -246,7 +246,6 @@ sysinfo.txt
 *.apk
 *.unitypackage
 /.metadata/
-DatingApp/DatingApp.API/appsettings.json
 
 # coverage
 coverage.json
@@ -259,7 +258,6 @@ datingapp.db
 *.db-wal
 *.pem
 #*.png
-appsettings.json
 appsettings.Development.json
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
