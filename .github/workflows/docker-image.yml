@@ -133,7 +133,7 @@ jobs:
     - name: Build and push API Docker image
       uses: docker/build-push-action@v6
       env:
-        ConnectionStrings__DefaultConnection: "postgresql://localhost:9999/placeholder"
+        ConnectionStrings__PerfumeTracker: "postgresql://localhost:9999/placeholder"
       with:
         context: ./PerfumeTracker.Server
         file: ./PerfumeTracker.Server/Dockerfile
