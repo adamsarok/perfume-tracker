@@ -10,15 +10,20 @@ public class ProgressMissions {
 			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearPerfumes, cancellationToken, notification.UserId);
 
 			var samePerfumeWornCount = await context.PerfumeEvents
-				.CountAsync(x => x.PerfumeId ==  notification.PerfumeId &&
-								x.Type == PerfumeEvent.PerfumeEventType.Worn &&
-								x.EventDate >= DateTime.UtcNow.AddDays(-7));
+				.IgnoreQueryFilters()
+				.CountAsync(x => x.UserId == notification.UserId &&
+					x.PerfumeId == notification.PerfumeId &&
+					x.Type == PerfumeEvent.PerfumeEventType.Worn &&
+					x.EventDate >= DateTime.UtcNow.AddDays(-7));
 			if (samePerfumeWornCount > 1) {
 				await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearSamePerfume, cancellationToken, notification.UserId);
 			}
 
 			var lastWorn = await context.PerfumeEvents
-				.Where(x => x.PerfumeId == notification.PerfumeId && x.Type == PerfumeEvent.PerfumeEventType.Worn)
+				.IgnoreQueryFilters()
+				.Where(x => x.UserId == notification.UserId &&
+					x.PerfumeId == notification.PerfumeId && 
+					x.Type == PerfumeEvent.PerfumeEventType.Worn)
 				.OrderByDescending(x => x.EventDate)
 				.Skip(1)
 				.FirstOrDefaultAsync();
@@ -30,8 +35,7 @@ public class ProgressMissions {
 			var uniquePerfumesWorn = await context.PerfumeEvents
 				.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn &&
 						   x.EventDate >= DateTime.UtcNow.AddDays(-7) &&
-						   x.UserId == notification.UserId
-						   )
+						   x.UserId == notification.UserId)
 				.IgnoreQueryFilters()
 				.Select(x => x.PerfumeId)
 				.Distinct()
@@ -46,7 +50,9 @@ public class ProgressMissions {
 
 			if (activeNoteMission != null) {
 				var perfumeTags = await context.PerfumeTags
-					.Where(pt => pt.PerfumeId == notification.PerfumeId)
+					.IgnoreQueryFilters()
+					.Where(pt => pt.UserId == notification.UserId && 
+						pt.PerfumeId == notification.PerfumeId)
 					.Select(pt => pt.Tag.TagName)
 					.ToListAsync();
 
