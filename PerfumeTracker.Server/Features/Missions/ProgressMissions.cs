@@ -1,63 +1,81 @@
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
+using PerfumeTracker.Server.Models;
 
 namespace PerfumeTracker.Server.Features.Missions;
 
 public class ProgressMissions {
 	public class PerfumeEventNotificationHandler(PerfumeTrackerContext context, UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeEventAddedNotification> {
 		public async Task Handle(PerfumeEventAddedNotification notification, CancellationToken cancellationToken) {
-			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearPerfumes, cancellationToken, notification.UserId);
-
-			var samePerfumeWornCount = await context.PerfumeEvents
-				.IgnoreQueryFilters()
-				.CountAsync(x => x.UserId == notification.UserId &&
-					x.PerfumeId == notification.PerfumeId &&
-					x.Type == PerfumeEvent.PerfumeEventType.Worn &&
-					x.EventDate >= DateTime.UtcNow.AddDays(-7));
-			if (samePerfumeWornCount > 1) {
-				await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearSamePerfume, cancellationToken, notification.UserId);
-			}
-
-			var lastWorn = await context.PerfumeEvents
-				.IgnoreQueryFilters()
-				.Where(x => x.UserId == notification.UserId &&
-					x.PerfumeId == notification.PerfumeId && 
-					x.Type == PerfumeEvent.PerfumeEventType.Worn)
-				.OrderByDescending(x => x.EventDate)
-				.Skip(1)
-				.FirstOrDefaultAsync();
-
-			if (lastWorn != null && (DateTime.UtcNow - lastWorn.EventDate).TotalDays >= 30) {
-				await updateMissionProgressHandler.UpdateMissionProgress(MissionType.UseUnusedPerfumes, cancellationToken, notification.UserId);
-			}
-
-			var uniquePerfumesWorn = await context.PerfumeEvents
-				.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn &&
-						   x.EventDate >= DateTime.UtcNow.AddDays(-7) &&
-						   x.UserId == notification.UserId)
-				.IgnoreQueryFilters()
-				.Select(x => x.PerfumeId)
-				.Distinct()
-				.CountAsync();
-
-			if (uniquePerfumesWorn > 0) {
-				await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearDifferentPerfumes, cancellationToken, notification.UserId, uniquePerfumesWorn);
-			}
-
-			var activeNoteMission = await context.Missions
-				.FirstOrDefaultAsync(m => m.Type == MissionType.WearNote && m.IsActive);
-
-			if (activeNoteMission != null) {
-				var perfumeTags = await context.PerfumeTags
+			var now = DateTime.UtcNow;
+			var userMissions = await context.UserMissions
+					.Include(x => x.Mission)
 					.IgnoreQueryFilters()
-					.Where(pt => pt.UserId == notification.UserId && 
-						pt.PerfumeId == notification.PerfumeId)
-					.Select(pt => pt.Tag.TagName)
-					.ToListAsync();
+				.Where(um => um.UserId == notification.UserId &&
+					!um.IsDeleted &&
+					!um.IsCompleted &&
+					um.Mission.IsActive &&
+					!um.Mission.IsDeleted &&
+					um.Mission.StartDate <= now && 
+					um.Mission.EndDate > now)
+					.ToListAsync(cancellationToken);
 
-				if (perfumeTags.Any()) {
-					await updateMissionProgressHandler.UpdateMissionProgress(MissionType.WearNote, cancellationToken, notification.UserId);
+			foreach (var m in userMissions) {
+				switch (m.Mission.Type) {
+					case MissionType.WearPerfumes:
+						await updateMissionProgressHandler.UpdateMissionProgress(cancellationToken, m, m.Mission);
+						break;
+					case MissionType.WearSamePerfume:
+						var samePerfumeWornCount = await context.PerfumeEvents
+						.IgnoreQueryFilters()
+						.CountAsync(x => x.UserId == notification.UserId &&
+							x.PerfumeId == notification.PerfumeId &&
+							x.Type == PerfumeEvent.PerfumeEventType.Worn &&
+							x.EventDate >= m.Mission.StartDate);
+						if (samePerfumeWornCount > 1) {
+							await updateMissionProgressHandler.UpdateMissionProgress(cancellationToken, m, m.Mission);
+						}
+						break;
+					case MissionType.UseUnusedPerfumes:
+						var lastWorn = await context.PerfumeEvents
+							.IgnoreQueryFilters()
+							.Where(x => x.UserId == notification.UserId &&
+								x.PerfumeId == notification.PerfumeId &&
+								x.Type == PerfumeEvent.PerfumeEventType.Worn)
+							.OrderByDescending(x => x.EventDate)
+							.Skip(1)
+							.FirstOrDefaultAsync();
+						if (lastWorn != null && (DateTime.UtcNow - lastWorn.EventDate).TotalDays >= 30) {
+							await updateMissionProgressHandler.UpdateMissionProgress(cancellationToken, m, m.Mission);
+						}
+						break;
+					case MissionType.WearDifferentPerfumes:
+						var uniquePerfumesWorn = await context.PerfumeEvents
+							.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn &&
+									   x.EventDate >= m.Mission.StartDate &&
+									   x.UserId == notification.UserId)
+							.IgnoreQueryFilters()
+							.Select(x => x.PerfumeId)
+							.Distinct()
+							.CountAsync();
+						if (uniquePerfumesWorn > 0) {
+							await updateMissionProgressHandler.UpdateMissionProgress(cancellationToken, m, m.Mission);
+						}
+						break;
+					case MissionType.WearNote:
+						var perfumeTags = await context.PerfumeTags
+							.IgnoreQueryFilters()
+							.Where(pt => pt.UserId == notification.UserId &&
+								pt.PerfumeId == notification.PerfumeId)
+							.Select(pt => pt.Tag.TagName)
+							.ToListAsync();
+
+						if (perfumeTags.Any()) {
+							await updateMissionProgressHandler.UpdateMissionProgress(cancellationToken, m, m.Mission);
+						}
+						break;
 				}
 			}
 		}
@@ -82,53 +100,47 @@ public class ProgressMissions {
 	}
 
 	public class UpdateMissionProgressHandler(PerfumeTrackerContext context, IHubContext<MissionProgressHub> missionProgressHub) {
-		//TODO refactor
 		public async Task UpdateMissionProgress(MissionType type, CancellationToken cancellationToken, Guid userId, int? setExact = null) {
-			if (userId == Guid.Empty) return;
 			var now = DateTime.UtcNow;
-			var activeMissions = await context.Missions
-				.Where(m => m.IsActive && m.Type == type && m.StartDate <= now && m.EndDate > now)
-				.ToListAsync(cancellationToken);
-
-			foreach (var mission in activeMissions) {
-				var userMission = await context.UserMissions
-					.IgnoreQueryFilters()
-					.FirstOrDefaultAsync(um => um.MissionId == mission.Id && um.UserId == userId, cancellationToken);
-
-				if (userMission == null) {
-					userMission = new UserMission {
-						MissionId = mission.Id,
-						Progress = 0,
-						IsCompleted = false,
-						UserId = userId,
-					};
-					context.UserMissions.Add(userMission);
-				} //TODO check if this was really needed?
-
-				if (userMission != null && !userMission.IsCompleted) {
-					userMission.Progress = setExact ?? userMission.Progress + 1;
-
-					if (userMission.Progress >= mission.RequiredCount) {
-						userMission.IsCompleted = true;
-						userMission.CompletedAt = now;
-					}
-					await missionProgressHub.Clients.All.SendAsync("ReceiveMissionProgress",
-						new UserMissionDto(
-							Id: mission.Id,
-							Progress: (int)((float)userMission.Progress / (float)mission.RequiredCount * 100),
-							IsCompleted: userMission.IsCompleted,
-							Description: mission.Description,
-							EndDate: mission.EndDate,
-							MissionType: mission.Type,
-							Name: mission.Name,
-							RequiredCount: mission.RequiredCount,
-							StartDate: mission.StartDate,
-							XP: mission.XP
-					));
-				}
-			}
-			await context.SaveChangesAsync(cancellationToken);
+			var userMission = await context.UserMissions
+				.Include(x => x.Mission)
+				.IgnoreQueryFilters()
+				.Where(um => um.UserId == userId &&
+					um.Mission.Type == type &&
+					!um.IsDeleted &&
+					!um.IsCompleted &&
+					!um.Mission.IsDeleted &&
+					um.Mission.IsActive &&
+					um.Mission.StartDate <= now && um.Mission.EndDate > now)
+				.FirstOrDefaultAsync(cancellationToken);
+			if (userMission != null) await UpdateMissionProgress(cancellationToken, userMission, userMission.Mission, setExact);
 		}
+		public async Task UpdateMissionProgress(CancellationToken cancellationToken, UserMission userMission, Mission mission, int? setExact = null) {
+			var now = DateTime.UtcNow;
+			if (userMission != null && !userMission.IsCompleted) {
+				userMission.Progress = setExact ?? userMission.Progress + 1;
+
+				if (userMission.Progress >= mission.RequiredCount) {
+					userMission.IsCompleted = true;
+					userMission.CompletedAt = now;
+				}
+				await missionProgressHub.Clients.All.SendAsync("ReceiveMissionProgress",
+					new UserMissionDto(
+						Id: mission.Id,
+						Progress: (int)((float)userMission.Progress / (float)mission.RequiredCount * 100),
+						IsCompleted: userMission.IsCompleted,
+						Description: mission.Description,
+						EndDate: mission.EndDate,
+						MissionType: mission.Type,
+						Name: mission.Name,
+						RequiredCount: mission.RequiredCount,
+						StartDate: mission.StartDate,
+						XP: mission.XP
+				));
+				await context.SaveChangesAsync(cancellationToken);
+			}
+		}
+
 	}
 	public class MissionProgressHub : Hub;
 }
