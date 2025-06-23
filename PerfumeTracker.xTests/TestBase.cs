@@ -50,6 +50,15 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 
 			MockHubContext = new Mock<IHubContext<MissionProgressHub>>();
 			MockHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
+
+			var userProxies = new Dictionary<string, Mock<IClientProxy>>();
+			mockClients.Setup(clients => clients.User(It.IsAny<string>()))
+				.Returns((string userId) => {
+					if (!userProxies.ContainsKey(userId)) {
+						userProxies[userId] = MockClientProxy;
+					}
+					return userProxies[userId].Object;
+				});
 		} finally {
 			semaphore.Release();
 		}
