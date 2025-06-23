@@ -124,7 +124,7 @@ public class ProgressMissions {
 					userMission.IsCompleted = true;
 					userMission.CompletedAt = now;
 				}
-				await missionProgressHub.Clients.All.SendAsync("ReceiveMissionProgress",
+				await missionProgressHub.Clients.User(userMission.UserId.ToString()).SendAsync("ReceiveMissionProgress",
 					new UserMissionDto(
 						Id: mission.Id,
 						Progress: (int)((float)userMission.Progress / (float)mission.RequiredCount * 100),
