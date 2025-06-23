@@ -47,7 +47,7 @@ public class ProgressMissions {
 							.OrderByDescending(x => x.EventDate)
 							.Skip(1)
 							.FirstOrDefaultAsync();
-						if (lastWorn != null && (DateTime.UtcNow - lastWorn.EventDate).TotalDays >= 30) {
+						if (lastWorn != null && (now - lastWorn.EventDate).TotalDays >= 30) {
 							await updateMissionProgressHandler.UpdateMissionProgress(cancellationToken, m, m.Mission);
 						}
 						break;
