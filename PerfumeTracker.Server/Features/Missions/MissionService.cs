@@ -23,6 +23,9 @@ public class MissionService(IServiceProvider serviceProvider, ILogger<MissionSer
 	}
 
 	private async Task CreateWeeklyMissionsAsync(PerfumeTrackerContext context) {
+		var conf = serviceProvider.GetRequiredService<IConfiguration>();
+		var neededCount = conf.GetValue<int>("Missions:WeeklyCreateCount");
+		if (neededCount <= 0) return;
 		var now = DateTime.UtcNow;
 		var startDate = now.Date.AddDays(-((int)now.DayOfWeek == 0 ? 6 : (int)now.DayOfWeek - 1));
 		var endDate = startDate.AddDays(7);
@@ -31,8 +34,10 @@ public class MissionService(IServiceProvider serviceProvider, ILogger<MissionSer
 			.Where(m => m.EndDate < now)
 			.ExecuteUpdateAsync(s => s.SetProperty(m => m.IsActive, false));
 
-		if (!await context.Missions.AnyAsync(m => m.StartDate == startDate && m.IsActive)) {
-			var missions = await GenerateRandomMissions(3, context);
+		var existingCount = await context.Missions.Where(m => m.StartDate == startDate && m.IsActive).CountAsync();
+
+		if (existingCount < neededCount) {
+			var missions = await GenerateRandomMissions(neededCount - existingCount, context);
 
 			foreach (var mission in missions) {
 				mission.StartDate = startDate;
