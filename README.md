@@ -18,7 +18,7 @@ Perfume Tracker is a NextJS app which lets you track, review, and analyze your p
 - Frontend: Next.js 15 (Zustand, ShadCN)
 - Backend: ASP.NET Core 9
 - Database: PostgreSQL
-- CDN/Storage: Go & Cloudflare R2
+- Storage: Cloudflare R2
 
 ## Quick Start
 Example docker-compose:
@@ -31,7 +31,7 @@ services:
           - 3000:3000
         environment:
           - NEXT_PUBLIC_R2_API_ADDRESS=http://localhost:9088
-          - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080/api
+          - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080
         restart: unless-stopped
 
     perfume-tracker-api:
@@ -56,23 +56,6 @@ services:
         POSTGRES_DB: perfumetracker 
       ports:
         - 5432:5432
-
-    r2-api-go:
-        image: adamsarok/r2-api-go
-        ports:
-          - 9088:8080
-        environment:
-          - R2_ENDPOINT=${R2_ENDPOINT}
-          - R2_BUCKET=test
-          - R2_REGION=auto
-          - R2_ACCESS_KEY=${R2_ACCESS_KEY}
-          - R2_SECRET_KEY=${R2_SECRET_KEY}
-          - R2_UPLOAD_EXPIRY_MINUTES=30m
-          - R2_DOWNLOAD_EXPIRY_MINUTES=30m
-          - CACHE_DIR=/config
-        volumes:
-          - ./r2-api-go/cache:/config
-        restart: unless-stopped
 ```
 
 ## Badges
