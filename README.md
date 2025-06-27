@@ -30,7 +30,7 @@ services:
         ports:
           - 3000:3000
         environment:
-          - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=${SERVER_ADDRESS}
+          - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080
         restart: unless-stopped
 
     perfume-tracker-api:
