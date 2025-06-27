@@ -15,7 +15,7 @@ Perfume Tracker is a NextJS app which lets you track, review, and analyze your p
 ✅ Random Picks → Get a random perfume choice, find that one bottle that you forget to wear.
 
 ## Tech Stack
-- Frontend: Next.js 15 (Zustand, ShadCN)
+- Frontend: Next.js 15
 - Backend: ASP.NET Core 9
 - Database: PostgreSQL
 - Storage: Cloudflare R2
@@ -30,8 +30,7 @@ services:
         ports:
           - 3000:3000
         environment:
-          - NEXT_PUBLIC_R2_API_ADDRESS=http://localhost:9088
-          - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080
+          - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=${SERVER_ADDRESS}
         restart: unless-stopped
 
     perfume-tracker-api:
@@ -42,6 +41,26 @@ services:
         environment:
           - ConnectionStrings__DefaultConnection=Server=db; Port=5432; User Id=postgres; Password=postgres; Database=perfumetracker
           - OpenAi__ApiKey=${OPENAI_API_KEY}
+          - Jwt__Key=${JWT_KEY}
+          - Jwt__Issuer=PerfumeTrackerServer
+          - Jwt__Audience=PerfumeTrackerClient
+          - Jwt__ExpirationHours=24
+          - Users__AdminUserName=admin
+          - Users__AdminEmail=admin@example.com
+          - Users__AdminPassword=${ADMIN_PASSWORD}
+          - Users__DemoUserName=demo
+          - Users__DemoEmail=demo@example.com
+          - Users__DemoPassword=${DEMO_PASSWORD}
+          - R2__AccessKey=${R2_ACCESS_KEY}
+          - R2__SecretKey=${R2_SECRET_KEY}
+          - R2__AccountId=${R2_ACCOUNT_ID}
+          - R2__BucketName=${R2_BUCKET_NAME}
+          - R2__ExpirationHours=24
+          - R2__MaxFileSizeKb=256
+          - RateLimits__General=250
+          - RateLimits__Auth=20
+          - RateLimits__Upload=10
+          - CORS__AllowedOrigins=${SERVER_ADDRESS}
         restart: unless-stopped
 
     db:
@@ -67,5 +86,3 @@ services:
 Client: [![Docker Hub](https://img.shields.io/docker/pulls/adamsarok/perfume-tracker.svg)](https://hub.docker.com/r/adamsarok/perfume-tracker)
 
 API: [![Docker Hub](https://img.shields.io/docker/pulls/adamsarok/perfume-tracker-api.svg)](https://hub.docker.com/r/adamsarok/perfume-tracker-api)
-
-CDN: [![Docker Hub](https://img.shields.io/docker/pulls/adamsarok/r2-api-go.svg)](https://hub.docker.com/r/adamsarok/r2-api-go)
