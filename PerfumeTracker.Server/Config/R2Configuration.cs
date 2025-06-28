@@ -16,11 +16,9 @@ public class R2Configuration {
 		ExpirationHours = configuration.GetValue<int?>("R2:ExpirationHours") ?? 1;
 		MaxFileSizeKb = configuration.GetValue<int?>("R2:MaxFileSizeKb") ?? 256;
 		if (ExpirationHours <= 0 || MaxFileSizeKb <= 0) throw new InvalidOperationException("Expiration and file size limit values must be positive integers");
-		if (string.IsNullOrWhiteSpace(AccessKey) 
-			|| string.IsNullOrWhiteSpace(SecretKey) 
-			|| string.IsNullOrWhiteSpace(AccountId) 
-			|| string.IsNullOrWhiteSpace(BucketName)) {
-				IsEnabled = false;
-		}
+		IsEnabled = !string.IsNullOrWhiteSpace(AccessKey) 
+			&& !string.IsNullOrWhiteSpace(SecretKey) 
+			&& !string.IsNullOrWhiteSpace(AccountId) 
+			&& !string.IsNullOrWhiteSpace(BucketName);
 	}
 }
