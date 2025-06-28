@@ -8,6 +8,5 @@ using System.Threading.Tasks;
 
 namespace PerfumeTracker.xTests;
 public class MockPresignedUrlService : IPresignedUrlService {
-	public string GetUrl(Guid guid, HttpVerb httpVerb) => "";
-	public string GetUrl(string guid, HttpVerb httpVerb) => "";
+	public string GetUrl(Guid? guid, HttpVerb httpVerb) => "";
 }

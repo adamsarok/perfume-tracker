@@ -8,6 +8,7 @@ using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Config;
 using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Features.Demo;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.R2;
@@ -87,6 +88,7 @@ builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
 builder.Services.AddScoped<R2Configuration>();
+builder.Services.AddScoped<UploadImageHandler>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
@@ -116,11 +118,15 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 	var seedUsers = scope.ServiceProvider.GetRequiredService<ISeedUsers>();
+	var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 	await dbContext.Database.MigrateAsync();
 	await SeedAchievements.SeedAchievementsAsync(dbContext);
 	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
 	await seedUsers.SeedAdminAsync();
-	await seedUsers.SeedDemoUserAsync();
+	var demoUserId = await seedUsers.SeedDemoUserAsync();
+	var uploadHandler = scope.ServiceProvider.GetRequiredService<UploadImageHandler>();
+	var demoImages = await SeedDemoImages.SeedDemoImagesAsync(uploadHandler);
+	if (demoUserId != null) await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value, demoImages);
 }
 
 app.UseRateLimiter();

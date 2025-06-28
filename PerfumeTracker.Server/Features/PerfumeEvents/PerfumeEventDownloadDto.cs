@@ -4,7 +4,7 @@ public record PerfumeEventDownloadDto(
     Guid Id,
     DateTime EventDate,
     Guid PerfumeId,
-    string PerfumeImageObjectKey,
+    Guid? PerfumeImageObjectKey,
     string PerfumeImageUrl,
     string PerfumeHouse,
     string PerfumeName,

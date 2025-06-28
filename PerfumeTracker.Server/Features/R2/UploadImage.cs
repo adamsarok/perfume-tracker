@@ -1,10 +1,13 @@
-﻿using Amazon.S3;
+﻿using Amazon.Runtime;
+using Amazon.S3;
 using ImageMagick;
 using Microsoft.AspNetCore.Http;
 using PerfumeTracker.Server.Features.Common;
 using SixLabors.ImageSharp;
 using System;
+using System.Configuration;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 
 namespace PerfumeTracker.Server.Features.R2;
 
@@ -20,41 +23,37 @@ public class UploadImageEndpoint : ICarterModule {
 			IHttpClientFactory httpClientFactory) => {
 				var perfume = await perfumeTrackerContext.Perfumes.FindAsync(perfumeId);
 				if (perfume == null) return Results.BadRequest("Perfume Id not found");
-				if (file == null || file.Length == 0) return Results.BadRequest("No file uploaded");
+				var handler = new UploadImageHandler(configuration, presignedUrlService, httpClientFactory);
+				if (file == null || file.Length == 0) throw new BadRequestException("No file uploaded");
 				if (file.Length > configuration.MaxFileSizeKb * 1024) {
-					return Results.BadRequest($"File size exceeds the maximum limit of {configuration.MaxFileSizeKb}kb");
+					throw new BadRequestException($"File size exceeds the maximum limit of {configuration.MaxFileSizeKb}kb");
 				}
 				using var stream = file.OpenReadStream();
-				if (!await IsValidImageFile(stream, logger)) return Results.BadRequest("Invalid image file");
-
-				var guid = Guid.NewGuid();
-				var presignedUrl = presignedUrlService.GetUrl(guid, HttpVerb.PUT);
-
-				var httpClient = httpClientFactory.CreateClient();
-				var response = await httpClient.PutAsync(presignedUrl, new StreamContent(stream));
-				if (!response.IsSuccessStatusCode) {
-					logger.LogError("Failed to upload image to R2: {StatusCode}", response.StatusCode);
-					return Results.Problem("Failed to upload image");
-				}
-				perfume.ImageObjectKey = guid.ToString();
+				perfume.ImageObjectKeyNew = await handler.UploadImage(stream);
 				await perfumeTrackerContext.SaveChangesAsync();
-				return Results.Ok(new UploadResponse(guid));
-				//return Results.Ok(new UploadResponse(Guid.NewGuid()));
+				return Results.Ok(new UploadResponse(perfume.ImageObjectKeyNew.Value));
 			})
 		.WithTags("Images")
 		.WithName("UploadImage")
 		.RequireAuthorization(Policies.WRITE)
 		.DisableAntiforgery();
 	}
-
-	private async Task<bool> IsValidImageFile(Stream stream, ILogger<UploadImageEndpoint> logger) {
+}
+public class UploadImageHandler(R2Configuration configuration, IPresignedUrlService presignedUrlService, IHttpClientFactory httpClientFactory) { 
+	public async Task<Guid> UploadImage(Stream stream) {
 		try {
 			using var image = new MagickImage(stream);
 			stream.Position = 0;
-			return true;
 		} catch (Exception ex) {
-			logger.Log(LogLevel.Error, ex, "Upload is not a valid image file");
-			return false;
+			throw new BadRequestException($"Invalid image file: {ex.Message}");
 		}
+		var guid = Guid.NewGuid();
+		var presignedUrl = presignedUrlService.GetUrl(guid, HttpVerb.PUT);
+		var httpClient = httpClientFactory.CreateClient();
+		var response = await httpClient.PutAsync(presignedUrl, new StreamContent(stream));
+		if (!response.IsSuccessStatusCode) {
+			throw new InvalidOperationException($"Failed to upload image to R2: {response.StatusCode}");
+		}
+		return guid;
 	}
 }

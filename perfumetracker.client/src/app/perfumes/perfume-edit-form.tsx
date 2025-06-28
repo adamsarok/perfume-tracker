@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import ChipClouds from "../../components/chip-clouds";
 import { ChipProp } from "../../components/color-chip";
 import MessageBox from "../../components/message-box";
-import { notFound, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import UploadComponent from "../../components/upload-component";
 import SprayOnComponent from "../../components/spray-on";
 import { Button } from "../../components/ui/button";
@@ -38,6 +38,7 @@ import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2 } from "lucide-react";
 import { getTags } from "@/services/tag-service";
 import { get } from "@/services/axios-service";
+import { useAuth } from "@/hooks/use-auth";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -84,6 +85,9 @@ export default function PerfumeEditForm({
   const [topChipProps, setTopChipProps] = useState<ChipProp[]>([]);
   const [bottomChipProps, setBottomChipProps] = useState<ChipProp[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [showUploadButtons, setShowUploadButtons] = useState(false);
+
+  const auth = useAuth();
 
   useEffect(() => {
     const load = async () => {
@@ -241,14 +245,6 @@ export default function PerfumeEditForm({
       }
     }
   };
-  const [showUploadButtons, setShowUploadButtons] = useState<boolean>(false);
-
-  const amount = form.watch("amount");
-  useEffect(() => {
-    if (!perfume?.perfume.id) {
-      form.setValue("mlLeft", amount);
-    }
-  }, [amount]);
 
   const onUpload = async (guid: string | undefined) => {
     if (perfume?.perfume.id && guid) {
@@ -263,6 +259,8 @@ export default function PerfumeEditForm({
     return <div>Loading...</div>;
   }
 
+  // Disable form if user is not authenticated
+  const isFormDisabled = !auth.isAuthenticated || auth.isLoading;
 
   return (
     <div>
@@ -275,13 +273,13 @@ export default function PerfumeEditForm({
             <div className="w-full max-w-[250px]">
               <div className="flex items-center justify-center space-x-2 mb-2">
                 <img
-                  onClick={() => setShowUploadButtons(!showUploadButtons)}
+                  onClick={() => !isFormDisabled && setShowUploadButtons(!showUploadButtons)}
                   alt={
                     imageUrl
                       ? "Image of a perfume"
                       : "Placeholder icon for a perfume"
                   }
-                  className="max-w-[150px] object-contain"
+                  className={`max-w-[150px] object-contain ${isFormDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   src={imageUrl || "/perfume-icon.svg"}
                 />
               </div>
@@ -295,7 +293,7 @@ export default function PerfumeEditForm({
                   <FormItem>
                     <FormLabel>House</FormLabel>
                     <FormControl>
-                      <Input placeholder="House" {...field} />
+                      <Input placeholder="House" {...field} disabled={isFormDisabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -308,7 +306,7 @@ export default function PerfumeEditForm({
                   <FormItem>
                     <FormLabel>Perfume</FormLabel>
                     <FormControl>
-                      <Input placeholder="Perfume" {...field} />
+                      <Input placeholder="Perfume" {...field} disabled={isFormDisabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -323,7 +321,7 @@ export default function PerfumeEditForm({
                     <FormItem>
                       <FormLabel>Rating</FormLabel>
                       <FormControl>
-                        <Input placeholder="Rating" {...field} />
+                        <Input placeholder="Rating" {...field} disabled={isFormDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -336,7 +334,7 @@ export default function PerfumeEditForm({
                     <FormItem>
                       <FormLabel>Bottle (ml)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ml" {...field} />
+                        <Input placeholder="Ml" {...field} disabled={isFormDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -349,7 +347,7 @@ export default function PerfumeEditForm({
                     <FormItem>
                       <FormLabel>Remaining (ml)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ml left" {...field} />
+                        <Input placeholder="Ml left" {...field} disabled={isFormDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -363,7 +361,7 @@ export default function PerfumeEditForm({
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Input placeholder="Notes" {...field} />
+                      <Input placeholder="Notes" {...field} disabled={isFormDisabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -390,6 +388,7 @@ export default function PerfumeEditForm({
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={isFormDisabled}
                         />
                       </FormControl>
                       <FormMessage />
@@ -406,6 +405,7 @@ export default function PerfumeEditForm({
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={isFormDisabled}
                         />
                       </FormControl>
                       <FormMessage />
@@ -422,6 +422,7 @@ export default function PerfumeEditForm({
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={isFormDisabled}
                         />
                       </FormControl>
                       <FormMessage />
@@ -438,6 +439,7 @@ export default function PerfumeEditForm({
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={isFormDisabled}
                         />
                       </FormControl>
                       <FormMessage />
@@ -447,7 +449,7 @@ export default function PerfumeEditForm({
               </div>
               <div></div>
               <div className="flex mt-4 mb-2">
-                <Button color="primary" className="mr-4 flex-1" type="submit">
+                <Button color="primary" className="mr-4 flex-1" type="submit" disabled={isFormDisabled}>
                   <Save /> {perfume ? "Update" : "Insert"}
                 </Button>
                 <MessageBox
