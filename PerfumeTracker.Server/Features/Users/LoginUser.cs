@@ -44,6 +44,7 @@ public class LoginDemoUserHandler(UserManager<PerfumeIdentityUser> userManager, 
 			return new LoginResult(Results.Unauthorized());
 		}
 		await jwtTokenGenerator.WriteToken(user, command.HttpContext);
+		logger.Log(LogLevel.Warning, "Demo user logged in");
 		return new LoginResult(Results.Ok(new { message = "Logged in successfully" }));
 	}
 }
