@@ -4,9 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react";
 import { getCurrentUser, logoutUser } from "@/services/user-service";
 import { UserMissionDto } from "@/dto/MissionDto";
 import * as signalR from "@microsoft/signalr";
@@ -14,6 +12,8 @@ import { toast } from "sonner";
 import { initializeApiUrl } from "@/services/axios-service";
 import { useUserStore } from "@/stores/user-store";
 import { generateMissions } from "@/services/mission-service";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar";
 
 function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
@@ -125,71 +125,30 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center h-16">
+    <div className="flex h-screen">
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <span className="text-lg font-semibold">Perfume Tracker</span>
+          </div>
+          <div className="ml-auto flex items-center gap-2 px-4">
             {user && (
-              <div className="flex items-center">
-                <span className="text-gray-700 mr-4">{user.email}</span>
-                <Button
-                  onClick={handleLogout}
-                >
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">{user.email}</span>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
                   Logout
                 </Button>
               </div>
             )}
           </div>
-        </div>
-      </nav>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="max-w-lg mx-auto px-4">
-          <div className="flex items-center justify-center space-x-2">
-            <Link href="/" passHref>
-              <Button variant="outline" size="icon" title="Home" aria-label="Home">
-                <House />
-              </Button>
-            </Link>
-            <Link href="/perfumes/surprise-me" passHref>
-              <Button variant="outline" size="icon" title="Surprise Me!" aria-label="Surprise Me!">
-                <Cake />
-              </Button>
-            </Link>
-            <Link href="/perfumes/new-perfume" passHref>
-              <Button variant="outline" size="icon" title="New Perfume" aria-label="New Perfume">
-                <Plus />
-              </Button>
-            </Link>
-            <Link href="/perfumes" passHref>
-              <Button variant="outline" size="icon" title="Perfume Finder" aria-label="Perfume Finder">
-                <List />
-              </Button>
-            </Link>
-            <Link href="/tags" passHref>
-              <Button variant="outline" size="icon" title="Tags" aria-label="Tags">
-                <Tag />
-              </Button>
-            </Link>
-            <Link href="/progress" passHref>
-              <Button variant="outline" size="icon" title="Missions & Achievements" aria-label="Missions & Achievements">
-                <ListChecks />
-              </Button>
-            </Link>
-            <Link href="/ai" passHref>
-              <Button variant="outline" size="icon" title="Ai Recommendations" aria-label="Ai Recommendations">
-                <Brain />
-              </Button>
-            </Link>
-            <Link href="/settings" passHref>
-              <Button variant="outline" size="icon" title="Settings" aria-label="Settings">
-                <Settings />
-              </Button>
-            </Link>
-          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {children}
-          <Toaster />
         </div>
-      </main>
+      </SidebarInset>
+      <Toaster />
     </div>
   );
 }
@@ -202,7 +161,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LayoutContent>{children}</LayoutContent>
+        <SidebarProvider>
+          <LayoutContent>{children}</LayoutContent>
+        </SidebarProvider>
       </body>
     </html>
   );
