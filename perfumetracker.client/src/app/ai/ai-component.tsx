@@ -13,7 +13,7 @@ import { PerfumeSelectDto } from "./perfume-select-columns";
 import { Input } from "@/components/ui/input";
 import getAiRecommendations from "@/services/ai-service";
 import { Textarea } from "@/components/ui/textarea";
-import { getUserProfile, UserProfile } from "@/services/user-profiles-service";
+import { getUserProfile } from "@/services/user-profiles-service";
 import { getTagStats } from "@/services/tag-service";
 import { getPerfumes } from "@/services/perfume-service";
 import { useAuth } from "@/hooks/use-auth";
