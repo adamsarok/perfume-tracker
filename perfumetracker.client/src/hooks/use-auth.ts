@@ -1,13 +1,26 @@
+import { showError } from '@/services/toasty-service';
 import { useUserStore } from '@/stores/user-store';
 
 export const useAuth = () => {
   const { user, isAuthenticated, isLoading } = useUserStore();
 
+  const guardAction = () => {
+    if (isLoading) {
+      showError('User is loading.');
+      return true;
+    }
+    if (user?.roles?.includes("Demo")) { 
+      showError('Demo mode: changes are not saved.');
+      return true;
+    }
+    return false;
+  }
+
   return {
     user,
     isAuthenticated,
     isLoading,
-    hasRole: (role: string) => user?.roles?.includes(role) ?? false,
-    hasAnyRole: (roles: string[]) => user?.roles?.some(role => roles.includes(role)) ?? false,
+    isDemo: user?.roles?.includes("Demo") ?? false,
+    guardAction,
   };
 }; 

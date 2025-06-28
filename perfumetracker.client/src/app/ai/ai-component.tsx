@@ -1,7 +1,7 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,17 +13,36 @@ import { PerfumeSelectDto } from "./perfume-select-columns";
 import { Input } from "@/components/ui/input";
 import getAiRecommendations from "@/services/ai-service";
 import { Textarea } from "@/components/ui/textarea";
-import { UserProfile } from "@/services/user-profiles-service";
+import { getUserProfile, UserProfile } from "@/services/user-profiles-service";
+import { getTagStats } from "@/services/tag-service";
+import { getPerfumes } from "@/services/perfume-service";
+import { useAuth } from "@/hooks/use-auth";
 
 export const dynamic = "force-dynamic";
 
-export interface AiComponentProps {
-  readonly tags: TagStatDTO[];
-  readonly perfumes: PerfumeSelectDto[];
-  readonly userProfile: UserProfile;
-}
 
-export default function AiComponent({ tags, perfumes, userProfile }: AiComponentProps) {
+export default function AiComponent() {
+  const auth = useAuth();
+  const [tags, setTags] = useState<TagStatDTO[]>([]);
+  const [perfumes, setPerfumes] = useState<PerfumeSelectDto[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  useEffect(() => {
+    const load = async () => {
+      setTags(await getTagStats()); //TODO: these should be filtered and paginated
+      setPerfumes((await getPerfumes()).map(x => ({
+        house: x.perfume.house,
+        perfume: x.perfume.perfumeName,
+        ml: x.perfume.ml,
+        wornTimes: x.wornTimes
+      })));
+      setUserProfile(await getUserProfile());
+      if (userProfile?.showFemalePerfumes) genderFilter.push('female');
+      if (userProfile?.showMalePerfumes) genderFilter.push('male');
+      if (userProfile?.showUnisexPerfumes) genderFilter.push('unisex');
+    }
+    load();
+  }, []);
+
   const [recommendations, setRecommendations] = useState<string | null>(null);
   const [selectedPerfumes, setSelectedPerfumes] = useState<PerfumeSelectDto[]>(
     []
@@ -33,9 +52,7 @@ export default function AiComponent({ tags, perfumes, userProfile }: AiComponent
   const perfumesCountSuggest = 3; //TODO
   const genderFilter: string[] = [];
   const [query, setQuery] = useState<string>('');
-  if (userProfile.showFemalePerfumes) genderFilter.push('female');
-  if (userProfile.showMalePerfumes) genderFilter.push('male');
-  if (userProfile.showUnisexPerfumes) genderFilter.push('unisex');
+
 
   const getQuery = () => {
     let query = `Suggest ${perfumesCountSuggest} perfumes `;
@@ -60,6 +77,7 @@ export default function AiComponent({ tags, perfumes, userProfile }: AiComponent
 
   const getRecommendations = async () => {
     try {
+      if (auth.guardAction()) return;
       //TODO fill query
       const queryLocal = getQuery();
       setQuery(queryLocal);

@@ -1,6 +1,6 @@
 "use client";
 
-import { generateMissions, getActiveMissions } from "@/services/mission-service";
+import { getActiveMissions } from "@/services/mission-service";
 import ProgressComponent from "./progress-component";
 import { UserMissionDto } from "@/dto/MissionDto";
 import { useEffect, useState } from "react";
@@ -11,7 +11,6 @@ export default function ProgressPage() {
     const [missions, setMissions] = useState<UserMissionDto[]>([]);
     useEffect(() => {
         const fetchData = async () => {
-            await generateMissions();
             const activeMissions = await getActiveMissions();
             setMissions(activeMissions);
         }

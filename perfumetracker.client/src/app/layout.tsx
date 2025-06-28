@@ -13,6 +13,7 @@ import * as signalR from "@microsoft/signalr";
 import { toast } from "sonner";
 import { initializeApiUrl } from "@/services/axios-service";
 import { useUserStore } from "@/stores/user-store";
+import { generateMissions } from "@/services/mission-service";
 
 function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
@@ -74,6 +75,9 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
           router.push('/login');
         } else if (currentUser && (pathname === '/login' || pathname === '/register')) {
           router.push('/');
+        }
+        if (currentUser) { 
+          await generateMissions();
         }
       } catch (error) {
         if (!hasMounted) return;

@@ -8,12 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {getUserProfile, updateUserProfile, UserProfile } from "@/services/user-profiles-service";
 import { showError, showSuccess } from "@/services/toasty-service";
-import Link from "next/link";
-import { CircleX, FileText, SaveIcon } from "lucide-react";
+import { CircleX, SaveIcon } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const dynamic = "force-dynamic";
 
 export default function SettingsPage() {
+  const auth = useAuth();
   const [localSettings, setLocalSettings] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<UserProfile | null>(null);
 
@@ -174,6 +175,7 @@ export default function SettingsPage() {
       <div className="mt-6 space-x-4">
         <Button
           onClick={async () => {
+            if (auth.guardAction()) return;
             const result = await updateUserProfile(localSettings);
             if (result.error) showError("Settings set failed", result.error);
             else showSuccess("Settings set");
