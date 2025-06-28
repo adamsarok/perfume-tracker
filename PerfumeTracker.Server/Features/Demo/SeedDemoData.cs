@@ -177,7 +177,6 @@ public static class SeedDemoData {
 				EventDate = perfume.CreatedAt,
 				Type = PerfumeEvent.PerfumeEventType.Added,
 				AmountMl = 0,
-				SequenceNumber = 1
 			});
 			var wearCount = random.Next(1, 8);
 			for (int i = 0; i < wearCount; i++) {
@@ -191,7 +190,6 @@ public static class SeedDemoData {
 					EventDate = wearDate,
 					Type = PerfumeEvent.PerfumeEventType.Worn,
 					AmountMl = amountMl,
-					SequenceNumber = i + 2
 				});
 			}
 		}
