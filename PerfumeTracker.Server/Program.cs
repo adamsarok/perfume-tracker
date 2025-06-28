@@ -125,7 +125,12 @@ using (var scope = app.Services.CreateScope()) {
 	await seedUsers.SeedAdminAsync();
 	var demoUserId = await seedUsers.SeedDemoUserAsync();
 	var uploadHandler = scope.ServiceProvider.GetRequiredService<UploadImageHandler>();
-	var demoImages = await SeedDemoImages.SeedDemoImagesAsync(uploadHandler);
+	var demoImages = new List<Guid>();
+	try {
+		demoImages = await SeedDemoImages.SeedDemoImagesAsync(uploadHandler);
+	} catch (Exception ex) {
+		Log.Error(ex, "Failed to seed demo images");
+	}
 	if (demoUserId != null) await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value, demoImages);
 }
 

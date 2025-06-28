@@ -25,7 +25,7 @@ export default function AiComponent() {
   const auth = useAuth();
   const [tags, setTags] = useState<TagStatDTO[]>([]);
   const [perfumes, setPerfumes] = useState<PerfumeSelectDto[]>([]);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [genderFilters, setGenderFilters] = useState<string[]>([]);
   useEffect(() => {
     const load = async () => {
       setTags(await getTagStats()); //TODO: these should be filtered and paginated
@@ -35,10 +35,12 @@ export default function AiComponent() {
         ml: x.perfume.ml,
         wornTimes: x.wornTimes
       })));
-      setUserProfile(await getUserProfile());
-      if (userProfile?.showFemalePerfumes) genderFilter.push('female');
-      if (userProfile?.showMalePerfumes) genderFilter.push('male');
-      if (userProfile?.showUnisexPerfumes) genderFilter.push('unisex');
+      const profile = await getUserProfile();
+      const genderFilter: string[] = [];
+      if (profile?.showFemalePerfumes) genderFilter.push('female');
+      if (profile?.showMalePerfumes) genderFilter.push('male');
+      if (profile?.showUnisexPerfumes) genderFilter.push('unisex');
+      setGenderFilters(genderFilter);
     }
     load();
   }, []);
@@ -50,7 +52,6 @@ export default function AiComponent() {
   const [selectedTags, setSelectedTags] = useState<TagStatDTO[]>([]);
   const [freeText, setFreeText] = useState<string>("");
   const perfumesCountSuggest = 3; //TODO
-  const genderFilter: string[] = [];
   const [query, setQuery] = useState<string>('');
 
 
@@ -69,8 +70,8 @@ export default function AiComponent() {
     if (freeText.length > 0) {
       query += freeText;
     }
-    if (genderFilter.length != 0 && genderFilter.length != 3) {
-      query += `only ${genderFilter.join(' or ')}`;
+    if (genderFilters.length != 0 && genderFilters.length != 3) {
+      query += `only ${genderFilters.join(' or ')}`;
     }
     return query;
   };

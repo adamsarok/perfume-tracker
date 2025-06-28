@@ -23,6 +23,7 @@ export interface PerfumeCardProps {
 export default function PerfumeCard({
   worn
 }: PerfumeCardProps) {
+  const auth = useAuth();
   if (!worn) return <div></div>;
   const avatar =
     worn.perfumeName.split(" ").length > 1
@@ -33,7 +34,6 @@ export default function PerfumeCard({
         .join("")
       : worn.perfumeName.slice(0, 2).toUpperCase();
 
-  const auth = useAuth();
   const handlePressStart = async (id: string) => {
     if (auth.guardAction()) return;
     const result = await deleteWear(id);

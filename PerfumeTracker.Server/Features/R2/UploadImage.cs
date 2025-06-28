@@ -19,11 +19,12 @@ public class UploadImageEndpoint : ICarterModule {
 			R2Configuration configuration,
 			PerfumeTrackerContext perfumeTrackerContext,
 			UploadImageHandler uploadImageHandler) => {
+				if (!configuration.IsEnabled) return Results.InternalServerError("R2 not configured");
 				var perfume = await perfumeTrackerContext.Perfumes.FindAsync(perfumeId);
 				if (perfume == null) return Results.BadRequest("Perfume Id not found");
-				if (file == null || file.Length == 0) throw new BadRequestException("No file uploaded");
+				if (file == null || file.Length == 0) return Results.BadRequest("No file uploaded");
 				if (file.Length > configuration.MaxFileSizeKb * 1024) {
-					throw new BadRequestException($"File size exceeds the maximum limit of {configuration.MaxFileSizeKb}kb");
+					return Results.BadRequest($"File size exceeds the maximum limit of {configuration.MaxFileSizeKb}kb");
 				}
 				using var stream = file.OpenReadStream();
 				perfume.ImageObjectKeyNew = await uploadImageHandler.UploadImage(stream);
@@ -36,8 +37,12 @@ public class UploadImageEndpoint : ICarterModule {
 		.DisableAntiforgery();
 	}
 }
-public class UploadImageHandler(R2Configuration configuration, IPresignedUrlService presignedUrlService, IHttpClientFactory httpClientFactory) { 
+public class UploadImageHandler(R2Configuration configuration, 
+	IPresignedUrlService presignedUrlService,
+	IHttpClientFactory httpClientFactory,
+	ILogger<UploadImageHandler> logger) { 
 	public async Task<Guid> UploadImage(Stream stream) {
+		if (!configuration.IsEnabled) throw new ConfigEmptyException("R2 not configured");
 		try {
 			using var image = new MagickImage(stream);
 			stream.Position = 0;
