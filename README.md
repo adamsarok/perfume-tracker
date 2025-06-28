@@ -1,7 +1,7 @@
 ## What is Perfume Tracker?
 
 Perfume Tracker is a NextJS app which lets you track, review, and analyze your perfume collection with AI-powered recommendations.
-
+![screenshot](https://raw.githubusercontent.com/adamsarok/perfume-tracker/refs/heads/main/screenshot.jpg)
 ## Features
 
 ✅ Track Your Collection → Track and review your perfumes.
@@ -21,7 +21,9 @@ Perfume Tracker is a NextJS app which lets you track, review, and analyze your p
 - Storage: Cloudflare R2
 
 ## Quick Start
-Example docker-compose:
+Demo: https://perfume-tracker.com/
+
+Docker-compose:
 
 ```
 services:
