@@ -9,11 +9,11 @@ public class LoginEndpoint : ICarterModule {
 		  }).WithTags("Users")
 			.WithName("LoginUser")
 			.AllowAnonymous();
-		// app.MapPost("/api/identity/account/login/demo", async (ISender sender, HttpContext httpContext) => {
-		// 	return await sender.Send(new LoginDemoUserCommand(httpContext));
-		// }).WithTags("Users")
-		// 	.WithName("LoginDemoUser")
-		// 	.AllowAnonymous();
+		app.MapPost("/api/identity/account/login/demo", async (ISender sender, HttpContext httpContext) => {
+			return await sender.Send(new LoginDemoUserCommand(httpContext));
+		}).WithTags("Users")
+			.WithName("LoginDemoUser")
+			.AllowAnonymous();
 	}
 }
 
@@ -44,6 +44,7 @@ public class LoginDemoUserHandler(UserManager<PerfumeIdentityUser> userManager, 
 			return new LoginResult(Results.Unauthorized());
 		}
 		await jwtTokenGenerator.WriteToken(user, command.HttpContext);
+		logger.Log(LogLevel.Warning, "Demo user logged in");
 		return new LoginResult(Results.Ok(new { message = "Logged in successfully" }));
 	}
 }

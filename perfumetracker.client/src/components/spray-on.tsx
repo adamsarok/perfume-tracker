@@ -5,6 +5,7 @@ import { Label } from "./ui/label";
 import { wearPerfume } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { WandSparkles } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface SprayOnProps {
   readonly perfumeId: string | undefined;
@@ -26,7 +27,10 @@ export default function SprayOnComponent({
     setDateStr(event.target.value);
   };
 
+  const auth = useAuth();
+
   const onSprayOn = async () => {
+    if (auth.guardAction()) return;
     if (perfumeId) {
       let date: Date;
       if (dateStr < yymmdd) {

@@ -14,10 +14,12 @@ import { Button } from "./ui/button";
 import { TagDTO } from "@/dto/TagDTO";
 import { deleteTag, getTags, updateTag } from "@/services/tag-service";
 import { showError, showSuccess } from "@/services/toasty-service";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function TagTable() {
   const [tags, setTags] = useState<TagDTO[]>([]);
   const [tagColors, setTagColors] = useState<Record<string, string>>({});
+  const auth = useAuth();
   useEffect(() => {
     const fetchData = async () => {
       const fetchedTags = await getTags();
@@ -33,6 +35,7 @@ export default function TagTable() {
   }, []);
 
   const onDelete = async (id: string, tag: string) => {
+    if (auth.guardAction()) return;
     const result = await deleteTag(id);
     if (result.ok) {
       setTags(tags.filter((x) => x.id != id));
@@ -42,6 +45,7 @@ export default function TagTable() {
     }
   };
   const onUpdate = async (id: string, tag: string) => {
+    if (auth.guardAction()) return;
     const dto: TagDTO = {
       id,
       tagName: tag,

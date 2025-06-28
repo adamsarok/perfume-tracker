@@ -12,13 +12,14 @@ import { UserMissionDto } from "@/dto/MissionDto";
 import * as signalR from "@microsoft/signalr";
 import { toast } from "sonner";
 import { initializeApiUrl } from "@/services/axios-service";
+import { useUserStore } from "@/stores/user-store";
+import { generateMissions } from "@/services/mission-service";
 
 function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<{ email: string } | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
+  const { user, isLoading, setUser, setLoading, clearUser } = useUserStore();
 
   useEffect(() => {
     setHasMounted(true);
@@ -75,6 +76,9 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         } else if (currentUser && (pathname === '/login' || pathname === '/register')) {
           router.push('/');
         }
+        if (currentUser) { 
+          await generateMissions();
+        }
       } catch (error) {
         if (!hasMounted) return;
         console.error('Auth check failed:', error);
@@ -83,18 +87,18 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         }
       } finally {
         if (hasMounted) {
-          setIsLoading(false);
+          setLoading(false);
         }
       }
     };
 
     if ((pathname === '/login' || pathname === '/register')) {
-      setIsLoading(false);
+      setLoading(false);
       return;
     }
 
     checkAuth();
-  }, [pathname, hasMounted]);
+  }, [pathname, hasMounted, setUser, setLoading]);
 
   const handleLogout = async () => {
     if (!hasMounted) return;
@@ -103,7 +107,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
-      setUser(null);
+      clearUser();
       router.push('/login');
     }
   };

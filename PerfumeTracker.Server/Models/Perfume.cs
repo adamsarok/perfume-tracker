@@ -8,7 +8,7 @@ public partial class Perfume : UserEntity {
 	public decimal Ml { get; set; }
 	[NotMapped]
 	public decimal MlLeft { get; set; }
-	public string ImageObjectKey { get; set; } = null!;
+	public Guid? ImageObjectKeyNew { get; set; } = null!;
 	public bool Autumn { get; set; }
 	public bool Spring { get; set; }
 	public bool Summer { get; set; }

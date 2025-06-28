@@ -8,7 +8,7 @@ public class GenerateMissionsEndpoint : ICarterModule {
 		})
 			.WithTags("Missions")
 			.WithName("GenerateMissions")
-			.RequireAuthorization(Policies.WRITE);
+			.RequireAuthorization(Policies.READ); //should work for demo/read user
 	}
 }
 public class GenerateMissions(PerfumeTrackerContext context) : ICommandHandler<GenerateMissionCommand> {

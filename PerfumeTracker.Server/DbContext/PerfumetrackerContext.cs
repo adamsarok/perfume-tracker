@@ -72,8 +72,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.ToTable("Perfume");
 			entity.Property(e => e.Autumn)
 				.HasDefaultValue(true);
-			entity.Property(e => e.ImageObjectKey)
-				.HasDefaultValueSql("''::text");
+			entity.Property(e => e.ImageObjectKeyNew);
 			entity.Property(e => e.Ml)
 				.HasDefaultValue(2);
 			entity.Property(e => e.Notes)
@@ -154,7 +153,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 
 			entity.ToTable("Tag");
 
-			entity.HasIndex(e => e.TagName, "Tag_tag_key").IsUnique();
+			entity.HasIndex(e => new { e.UserId, e.TagName }, "Tag_tag_key").IsUnique();
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 

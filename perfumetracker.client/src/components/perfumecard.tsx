@@ -14,6 +14,7 @@ import {
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { deleteWear } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface PerfumeCardProps {
   readonly worn: PerfumeWornDTO;
@@ -22,17 +23,19 @@ export interface PerfumeCardProps {
 export default function PerfumeCard({
   worn
 }: PerfumeCardProps) {
+  const auth = useAuth();
   if (!worn) return <div></div>;
   const avatar =
     worn.perfumeName.split(" ").length > 1
       ? worn.perfumeName
-          .split(" ")
-          .map((x) => x[0])
-          .slice(0, 2)
-          .join("")
+        .split(" ")
+        .map((x) => x[0])
+        .slice(0, 2)
+        .join("")
       : worn.perfumeName.slice(0, 2).toUpperCase();
 
   const handlePressStart = async (id: string) => {
+    if (auth.guardAction()) return;
     const result = await deleteWear(id);
     if (result.ok) showSuccess("Worn deleted");
     else showError(`Worn delete failed: ${result.error ?? "unknown error"}`);
