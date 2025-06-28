@@ -4,9 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react";
 import { getCurrentUser, logoutUser } from "@/services/user-service";
 import { UserMissionDto } from "@/dto/MissionDto";
 import * as signalR from "@microsoft/signalr";
@@ -14,6 +12,9 @@ import { toast } from "sonner";
 import { initializeApiUrl } from "@/services/axios-service";
 import { useUserStore } from "@/stores/user-store";
 import { generateMissions } from "@/services/mission-service";
+import AppNavigationMenu from "@/components/app-navigation-menu";
+import { LogOut } from "lucide-react";
+
 
 function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
@@ -76,7 +77,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         } else if (currentUser && (pathname === '/login' || pathname === '/register')) {
           router.push('/');
         }
-        if (currentUser) { 
+        if (currentUser) {
           await generateMissions();
         }
       } catch (error) {
@@ -128,15 +129,18 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center h-16">
+          <div className="flex h-16">
             {user && (
-              <div className="flex items-center">
-                <span className="text-gray-700 mr-4">{user.email}</span>
-                <Button
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Button>
+              <div className="flex items-center justify-between w-full">
+                <AppNavigationMenu></AppNavigationMenu>
+                <div className="flex items-center gap-4">
+                  <span className="text-gray-700 text-sm">{user.email}</span>
+                  <Button size="icon"
+                    onClick={handleLogout}
+                  >
+                    <LogOut />
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -144,48 +148,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
       </nav>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="max-w-lg mx-auto px-4">
-          <div className="flex items-center justify-center space-x-2">
-            <Link href="/" passHref>
-              <Button variant="outline" size="icon" title="Home" aria-label="Home">
-                <House />
-              </Button>
-            </Link>
-            <Link href="/perfumes/surprise-me" passHref>
-              <Button variant="outline" size="icon" title="Surprise Me!" aria-label="Surprise Me!">
-                <Cake />
-              </Button>
-            </Link>
-            <Link href="/perfumes/new-perfume" passHref>
-              <Button variant="outline" size="icon" title="New Perfume" aria-label="New Perfume">
-                <Plus />
-              </Button>
-            </Link>
-            <Link href="/perfumes" passHref>
-              <Button variant="outline" size="icon" title="Perfume Finder" aria-label="Perfume Finder">
-                <List />
-              </Button>
-            </Link>
-            <Link href="/tags" passHref>
-              <Button variant="outline" size="icon" title="Tags" aria-label="Tags">
-                <Tag />
-              </Button>
-            </Link>
-            <Link href="/progress" passHref>
-              <Button variant="outline" size="icon" title="Missions & Achievements" aria-label="Missions & Achievements">
-                <ListChecks />
-              </Button>
-            </Link>
-            <Link href="/ai" passHref>
-              <Button variant="outline" size="icon" title="Ai Recommendations" aria-label="Ai Recommendations">
-                <Brain />
-              </Button>
-            </Link>
-            <Link href="/settings" passHref>
-              <Button variant="outline" size="icon" title="Settings" aria-label="Settings">
-                <Settings />
-              </Button>
-            </Link>
-          </div>
+
           {children}
           <Toaster />
         </div>
