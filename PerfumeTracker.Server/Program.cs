@@ -38,7 +38,7 @@ if (!string.IsNullOrWhiteSpace(databaseUrl)) {
 	var password = uri.UserInfo.Split(':')[1];
 	conn = $"Host={uri.Host};Database={uri.AbsolutePath.Substring(1)};Username={username};Password={password};Port={uri.Port};SSL Mode=Require"; 
 } else {
-	conn = builder.Configuration.GetConnectionString("PerfumeTrackerTest");
+	conn = builder.Configuration.GetConnectionString("PerfumeTracker");
 	if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 }
 
