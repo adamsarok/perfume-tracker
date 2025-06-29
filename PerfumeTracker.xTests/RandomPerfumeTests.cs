@@ -55,7 +55,7 @@ public class RandomPerfumeTests : TestBase, IClassFixture<WebApplicationFactory<
 	public async Task GetPerfumeSuggestion() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var handler = new GetRandomPerfumeHandler(scope.PerfumeTrackerContext);
+		var handler = new GetRandomPerfumeHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
 		var response = await handler.Handle(new GetRandomPerfumeQuery(), new CancellationToken());
 		Assert.NotNull(response);
 	}

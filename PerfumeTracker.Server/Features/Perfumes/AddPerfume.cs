@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Perfumes;
+﻿using PerfumeTracker.Server.Features.Outbox;
+
+namespace PerfumeTracker.Server.Features.Perfumes;
 public record AddPerfumeCommand(PerfumeUploadDto Dto) : ICommand<PerfumeDto>;
 public class AddPerfumeCommandValidator : AbstractValidator<AddPerfumeCommand> {
 	public AddPerfumeCommandValidator() {
@@ -17,7 +19,7 @@ public class AddPerfumeEndpoint : ICarterModule {
 	}
 }
 public record class PerfumeAddedNotification(Guid PerfumeId) : INotification;
-public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeCommand, PerfumeDto> {
+public class AddPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AddPerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(AddPerfumeCommand request, CancellationToken cancellationToken) {
 		//TODO: unique constraint on perfume name should be a soft constraint - eg if soft deleted, enable duplications 
 		using var transaction = await context.Database.BeginTransactionAsync(cancellationToken); //TODO change to GUID, remove double savechanges
@@ -41,9 +43,11 @@ public class AddPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<
 				UpdatedAt = DateTime.UtcNow
 			});
 		}
-		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeAddedNotification(perfume.Id)));
+		var message = OutboxMessage.From(new PerfumeAddedNotification(perfume.Id));
+		context.OutboxMessages.Add(message);
 		await context.SaveChangesAsync();
 		await transaction.CommitAsync(cancellationToken);
+		queue.Enqueue(message);
 		return perfume.Adapt<PerfumeDto>();
 	}
 }

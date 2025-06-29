@@ -1,5 +1,6 @@
 ﻿
 
+using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.UserProfiles;
 
@@ -18,7 +19,7 @@ public class GetRandomPerfumeEndpoint : ICarterModule {
 	}
 }
 public record class RandomPerfumeAddedNotification(Guid PerfumeId, Guid UserId) : INotification;
-public class GetRandomPerfumeHandler(PerfumeTrackerContext context) : IQueryHandler<GetRandomPerfumeQuery, GetRandomPerfumeResponse> {
+public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : IQueryHandler<GetRandomPerfumeQuery, GetRandomPerfumeResponse> {
 	public async Task<GetRandomPerfumeResponse> Handle(GetRandomPerfumeQuery request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
@@ -56,9 +57,11 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context) : IQueryHand
 		var s = new Models.PerfumeRandoms() {
 			PerfumeId = perfumeId,
 		};
-		context.OutboxMessages.Add(OutboxMessage.From(new RandomPerfumeAddedNotification(perfumeId, userId)));
+		var message = OutboxMessage.From(new RandomPerfumeAddedNotification(perfumeId, userId));
+		context.OutboxMessages.Add(message);
 		context.PerfumeRandoms.Add(s);
 		await context.SaveChangesAsync();
+		queue.Enqueue(message);
 	}
 	private async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter) {
 		return await context

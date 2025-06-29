@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.PerfumeEvents;
+﻿using PerfumeTracker.Server.Features.Outbox;
+
+namespace PerfumeTracker.Server.Features.PerfumeEvents;
 public record AddPerfumeEventCommand(PerfumeEventUploadDto Dto) : ICommand<PerfumeEventDownloadDto>;
 public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId, Guid UserId) : INotification;
 public record PerfumeRandomAcceptedNotification(Guid PerfumeId, Guid UserId) : INotification;
@@ -12,7 +14,7 @@ public class AddPerfumeEventEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.WRITE);
 	}
 }
-public class AddPerfumeEventHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeEventCommand, PerfumeEventDownloadDto> {
+public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AddPerfumeEventCommand, PerfumeEventDownloadDto> {
 	public async Task<PerfumeEventDownloadDto> Handle(AddPerfumeEventCommand request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var evt = request.Dto.Adapt<PerfumeEvent>();
@@ -22,11 +24,16 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context) : ICommandHan
 		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
 		if (evt.AmountMl == 0 && evt.Type == PerfumeEvent.PerfumeEventType.Worn) evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		var result = evt.Adapt<PerfumeEventDownloadDto>();
+		List<OutboxMessage> messages = new List<OutboxMessage>();
 		if (evt.Type == PerfumeEvent.PerfumeEventType.Worn) {
-			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId)));
-			if (request.Dto.IsRandomPerfume) context.OutboxMessages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(result.PerfumeId, userId)));
+			messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId)));
+			if (request.Dto.IsRandomPerfume) messages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(result.PerfumeId, userId)));
 		}
+		await context.OutboxMessages.AddRangeAsync(messages);
 		await context.SaveChangesAsync();
+		foreach (var message in messages) {
+			queue.Enqueue(message);
+		}
 		return result;
 	}
 }

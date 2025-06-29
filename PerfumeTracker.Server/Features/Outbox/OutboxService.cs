@@ -1,38 +1,23 @@
 ﻿
 namespace PerfumeTracker.Server.Features.Outbox;
 
-public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger) : BackgroundService {
+public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger, ISideEffectQueue queue) : BackgroundService {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 		while (!stoppingToken.IsCancellationRequested) {
 			try {
 				using var scope = sp.CreateScope();
 				var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-				var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-
 				var messages = await context.OutboxMessages
 					.Where(m => m.ProcessedAt == null && m.TryCount < 5)
 					.OrderBy(m => m.CreatedAt)
 					.IgnoreQueryFilters() //processor runs for all users in the background
-					.Take(10)
+					.Take(1000)
 					.ToListAsync();
 
-				foreach (var message in messages) {
-					try {
-						var eventType = Type.GetType(message.EventType);
-						if (eventType == null) throw new InvalidOperationException($"Unknown event type: {message.EventType}");
-						var evt = JsonSerializer.Deserialize(message.Payload, eventType);
-						await mediator.Publish(evt);
-						message.ProcessedAt = DateTime.UtcNow;
-					} catch (Exception ex) {
-						logger.LogError(ex, "Failed to process outbox message {MessageId}", message.Id);
-						message.TryCount++;
-						message.LastError = ex.Message;
-						message.FailedAt = DateTime.UtcNow;
-					}
+				foreach (var msg in messages) {
+					queue.Enqueue(msg);
 				}
-
-				await context.SaveChangesAsync();
-				await Task.Delay(messages.Any() ? 1000 : 5000, stoppingToken);
+				await Task.Delay(1000 * 60 * 60, stoppingToken);
 			} catch (Exception ex) {
 				logger.LogError(ex, "OutboxService failed");
 			}
