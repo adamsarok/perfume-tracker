@@ -2,8 +2,8 @@
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
 public record AddPerfumeEventCommand(PerfumeEventUploadDto Dto) : ICommand<PerfumeEventDownloadDto>;
-public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId, Guid UserId) : INotification;
-public record PerfumeRandomAcceptedNotification(Guid PerfumeId, Guid UserId) : INotification;
+public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId, Guid UserId) : IUserNotification;
+public record PerfumeRandomAcceptedNotification(Guid PerfumeId, Guid UserId) : IUserNotification;
 public class AddPerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, ISender sender) => {

@@ -17,8 +17,8 @@ public class UpdatePerfumeEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.WRITE);
 	}
 }
-public record class PerfumeUpdatedNotification(Guid PerfumeId, Guid UserId) : INotification;
-public record class PerfumeTagsAddedNotification(List<Guid> PerfumeTagIds, Guid UserId) : INotification;
+public record class PerfumeUpdatedNotification(Guid PerfumeId, Guid UserId) : IUserNotification;
+public record class PerfumeTagsAddedNotification(List<Guid> PerfumeTagIds, Guid UserId) : IUserNotification;
 public class UpdatePerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<UpdatePerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(UpdatePerfumeCommand request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();

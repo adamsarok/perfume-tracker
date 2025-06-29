@@ -16,12 +16,13 @@ public class AcceptRandomPerfumeEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.WRITE);
 	}
 }
-public record class RandomsAcceptedNotification() : INotification;
+public record class RandomsAcceptedNotification(Guid UserId) : IUserNotification;
 public class AcceptRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AcceptRandomPerfumeCommand, Unit> {
 	public async Task<Unit> Handle(AcceptRandomPerfumeCommand request, CancellationToken cancellationToken) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var perfumeRandom = await context.PerfumeRandoms.FindAsync(request.RandomsId);
 		perfumeRandom.IsAccepted = true;
-		var message = OutboxMessage.From(new RandomsAcceptedNotification());
+		var message = OutboxMessage.From(new RandomsAcceptedNotification(userId));
 		context.OutboxMessages.Add(message);
 		await context.SaveChangesAsync();
 		queue.Enqueue(message);

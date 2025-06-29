@@ -18,9 +18,10 @@ public class AddPerfumeEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.WRITE);
 	}
 }
-public record class PerfumeAddedNotification(Guid PerfumeId) : INotification;
+public record class PerfumeAddedNotification(Guid PerfumeId, Guid UserId) : IUserNotification;
 public class AddPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AddPerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(AddPerfumeCommand request, CancellationToken cancellationToken) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		//TODO: unique constraint on perfume name should be a soft constraint - eg if soft deleted, enable duplications 
 		using var transaction = await context.Database.BeginTransactionAsync(cancellationToken); //TODO change to GUID, remove double savechanges
 		var perfume = request.Dto.Adapt<Perfume>();
@@ -43,7 +44,7 @@ public class AddPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue q
 				UpdatedAt = DateTime.UtcNow
 			});
 		}
-		var message = OutboxMessage.From(new PerfumeAddedNotification(perfume.Id));
+		var message = OutboxMessage.From(new PerfumeAddedNotification(perfume.Id, userId));
 		context.OutboxMessages.Add(message);
 		await context.SaveChangesAsync();
 		await transaction.CommitAsync(cancellationToken);
