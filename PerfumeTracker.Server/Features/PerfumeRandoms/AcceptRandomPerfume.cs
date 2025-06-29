@@ -1,5 +1,7 @@
 ﻿
 
+using PerfumeTracker.Server.Features.Outbox;
+
 namespace PerfumeTracker.Server.Features.PerfumeRandoms;
 
 public record AcceptRandomPerfumeCommand(int RandomsId) : ICommand<Unit>;
@@ -15,12 +17,14 @@ public class AcceptRandomPerfumeEndpoint : ICarterModule {
 	}
 }
 public record class RandomsAcceptedNotification() : INotification;
-public class AcceptRandomPerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<AcceptRandomPerfumeCommand, Unit> {
+public class AcceptRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AcceptRandomPerfumeCommand, Unit> {
 	public async Task<Unit> Handle(AcceptRandomPerfumeCommand request, CancellationToken cancellationToken) {
 		var perfumeRandom = await context.PerfumeRandoms.FindAsync(request.RandomsId);
 		perfumeRandom.IsAccepted = true;
-		context.OutboxMessages.Add(OutboxMessage.From(new RandomsAcceptedNotification()));
+		var message = OutboxMessage.From(new RandomsAcceptedNotification());
+		context.OutboxMessages.Add(message);
 		await context.SaveChangesAsync();
+		queue.Enqueue(message);
 		return Unit.Value;
 	}
 }

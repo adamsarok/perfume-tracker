@@ -1,4 +1,6 @@
 ﻿
+using PerfumeTracker.Server.Features.Outbox;
+
 namespace PerfumeTracker.Server.Features.Perfumes;
 public record UpdatePerfumeCommand(Guid Id, PerfumeUploadDto Dto) : ICommand<PerfumeDto>;
 public class UpdatePerfumeCommandValidator : AbstractValidator<UpdatePerfumeCommand> {
@@ -15,10 +17,11 @@ public class UpdatePerfumeEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.WRITE);
 	}
 }
-public record class PerfumeUpdatedNotification(Guid PerfumeId) : INotification;
+public record class PerfumeUpdatedNotification(Guid PerfumeId, Guid UserId) : INotification;
 public record class PerfumeTagsAddedNotification(List<Guid> PerfumeTagIds, Guid UserId) : INotification;
-public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandler<UpdatePerfumeCommand, PerfumeDto> {
+public class UpdatePerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<UpdatePerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(UpdatePerfumeCommand request, CancellationToken cancellationToken) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var find = await context
 			.Perfumes
 			.Include(x => x.PerfumeTags)
@@ -38,24 +41,17 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandl
 				UpdatedAt = DateTime.UtcNow
 			});
 		}
-		await UpdateTags(request.Dto, find);
-		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeUpdatedNotification(find.Id)));
-		await context.SaveChangesAsync();
-		return find.Adapt<PerfumeDto>();
-	}
-	private async Task UpdateTags(PerfumeUploadDto Dto, Perfume? find) {
-		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
-		if (find == null) return;
+		List<OutboxMessage> messages = new List<OutboxMessage>();
 		var tagsInDB = find.PerfumeTags
 			.Select(x => x.Tag)
 			.Select(x => x.TagName)
 			.ToList();
-		foreach (var remove in find.PerfumeTags.Where(x => !Dto.Tags.Select(x => x.TagName).Contains(x.Tag.TagName))) {
+		foreach (var remove in find.PerfumeTags.Where(x => !request.Dto.Tags.Select(x => x.TagName).Contains(x.Tag.TagName))) {
 			context.PerfumeTags.Remove(remove);
 		}
 		List<PerfumeTag> tagsToAdd = new List<PerfumeTag>();
-		if (Dto.Tags != null && Dto.Tags.Any()) {
-			foreach (var add in Dto.Tags.Where(x => !tagsInDB.Contains(x.TagName))) {
+		if (request.Dto.Tags != null && request.Dto.Tags.Any()) {
+			foreach (var add in request.Dto.Tags.Where(x => !tagsInDB.Contains(x.TagName))) {
 				tagsToAdd.Add(new PerfumeTag() {
 					PerfumeId = find.Id,
 					TagId = add.Id
@@ -64,7 +60,12 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context) : ICommandHandl
 		}
 		if (tagsToAdd.Any()) {
 			context.PerfumeTags.AddRange(tagsToAdd);
-			context.OutboxMessages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification(tagsToAdd.Select(x => x.Id).ToList(), userId)));
+			messages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification(tagsToAdd.Select(x => x.Id).ToList(), userId)));
 		}
+		messages.Add(OutboxMessage.From(new PerfumeUpdatedNotification(find.Id, userId)));
+		await context.OutboxMessages.AddRangeAsync(messages);
+		await context.SaveChangesAsync();
+		foreach (var message in messages) queue.Enqueue(message);
+		return find.Adapt<PerfumeDto>();
 	}
 }

@@ -108,6 +108,9 @@ builder.Services.AddCors(options => {
             .AllowCredentials());
 });
 
+builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
+builder.Services.AddHostedService<SideEffectProcessor>();
+
 builder.Services.AddHostedService<OutboxService>();
 builder.Services.AddHostedService<MissionService>();
 

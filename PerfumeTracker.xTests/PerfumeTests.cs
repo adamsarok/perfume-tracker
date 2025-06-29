@@ -87,7 +87,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task UpdatePerfume() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var handler = new UpdatePerfumeHandler(scope.PerfumeTrackerContext);
+		var handler = new UpdatePerfumeHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
 		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
 		var dto = new PerfumeUploadDto(perfume.House,
 			perfume.PerfumeName,
@@ -119,7 +119,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		await PrepareData();
 		using var scope = GetTestScope();
 		var dto = new PerfumeUploadDto("House3", "Perfume3", 5, "Notes", 50, 50, true, true, false, false, new());
-		var handler = new AddPerfumeHandler(scope.PerfumeTrackerContext);
+		var handler = new AddPerfumeHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
 		var response = await handler.Handle(new AddPerfumeCommand(dto), new CancellationToken());
 		Assert.NotNull(response);
 	}

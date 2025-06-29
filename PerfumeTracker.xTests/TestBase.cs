@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.Users;
 using System;
 using Xunit.Sdk;
@@ -19,6 +20,7 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 	protected Mock<IHubContext<MissionProgressHub>> MockHubContext = default!;
 	protected Mock<IClientProxy> MockClientProxy = default!;
 	protected List<HubMessage> HubMessages = new List<HubMessage>();
+	protected Mock<ISideEffectQueue> MockSideEffectQueue = default!;
 	public record HubMessage(string HubSentMethod, object[] HubSentArgs);
 	public TestBase(WebApplicationFactory<Program> factory) {
 		semaphore.Wait();
@@ -59,6 +61,7 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 					}
 					return userProxies[userId].Object;
 				});
+			MockSideEffectQueue = new Mock<ISideEffectQueue>();
 		} finally {
 			semaphore.Release();
 		}
