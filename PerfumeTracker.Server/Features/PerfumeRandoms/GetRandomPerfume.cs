@@ -18,7 +18,7 @@ public class GetRandomPerfumeEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.READ);
 	}
 }
-public record class RandomPerfumeAddedNotification(Guid PerfumeId, Guid UserId) : INotification;
+public record class RandomPerfumeAddedNotification(Guid PerfumeId, Guid UserId) : IUserNotification;
 public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : IQueryHandler<GetRandomPerfumeQuery, GetRandomPerfumeResponse> {
 	public async Task<GetRandomPerfumeResponse> Handle(GetRandomPerfumeQuery request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
