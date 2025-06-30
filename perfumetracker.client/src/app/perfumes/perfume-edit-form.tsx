@@ -71,7 +71,7 @@ const formSchema = z.object({
   summer: z.boolean(),
   autumn: z.boolean(),
   spring: z.boolean(),
-  imageObjectKey: z.string(),
+  imageObjectKey: z.string().nullable(),
   imageUrl: z.string(),
 });
 
@@ -173,7 +173,7 @@ export default function PerfumeEditForm({
         summer: perfume.perfume.summer,
         autumn: perfume.perfume.autumn,
         spring: perfume.perfume.spring,
-        imageObjectKey: perfume.perfume.imageObjectKey,
+        imageObjectKey: perfume.perfume.imageObjectKey ?? "",
         imageUrl: perfume.perfume.imageUrl,
       });
     }
