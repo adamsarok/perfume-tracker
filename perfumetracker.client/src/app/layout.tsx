@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { getCurrentUser, logoutUser } from "@/services/user-service";
+import { getCurrentUser, logoutUser, getUserXP, UserXPResponse } from "@/services/user-service";
 import { UserMissionDto } from "@/dto/MissionDto";
 import * as signalR from "@microsoft/signalr";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { useUserStore } from "@/stores/user-store";
 import { generateMissions } from "@/services/mission-service";
 import AppNavigationMenu from "@/components/app-navigation-menu";
 import { LogOut } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 
 function LayoutContent({ children }: { readonly children: React.ReactNode }) {
@@ -21,6 +22,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const router = useRouter();
   const [hasMounted, setHasMounted] = useState(false);
   const { user, isLoading, setUser, setLoading, clearUser } = useUserStore();
+  const [xp, setXp] = useState<UserXPResponse | null>(null);
 
   useEffect(() => {
     setHasMounted(true);
@@ -101,6 +103,11 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     checkAuth();
   }, [pathname, hasMounted, setUser, setLoading]);
 
+  useEffect(() => {
+    if (!hasMounted || !user) return;
+    getUserXP().then(setXp).catch(() => setXp(null));
+  }, [hasMounted, user]);
+
   const handleLogout = async () => {
     if (!hasMounted) return;
     try {
@@ -128,7 +135,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16">
             {user && (
               <div className="flex items-center justify-between w-full">
@@ -145,8 +152,16 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
             )}
           </div>
         </div>
+        {user && xp && (
+          <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <div className="flex items-center gap-4">
+              <Progress value={((xp.xp - xp.xpLastLevel) / (xp.xpNextLevel - xp.xpLastLevel)) * 100}   />
+              <span className="text-xs text-gray-500">{xp.xp} XP Level {xp.level}</span>
+            </div>
+          </div>
+        )}
       </nav>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="max-w-lg mx-auto px-4">
 
           {children}
