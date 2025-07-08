@@ -7,8 +7,7 @@ public static class SeedAchievements{
 				perfumesAdded
 				.Concat(perfumeWornDays).Concat(tags)
 				.Concat(perfumeTags)
-				.Concat(streaks)
-				.Concat(xpMilestones));
+				.Concat(streaks));
 			await context.SaveChangesAsync();
 		}
 	}
@@ -155,109 +154,6 @@ public static class SeedAchievements{
 			MinStreak = 365,
 			Name = "Year of Dedication",
 			Description = "A full year - your dedication is unparallelled!"
-		},
-	};
-
-	private readonly static List<Achievement> xpMilestones = new List<Achievement>() {
-		new Achievement() {
-			MinXP = 100,
-			Name = "Level 1",
-			Description = "Level 1"
-		},
-		new Achievement() {
-			MinXP = 250,
-			Name = "Level 2",
-			Description = "Level 2"
-		},
-		new Achievement() {
-			MinXP = 500,
-			Name = "Level 3",
-			Description = "Level 3"
-		},
-		new Achievement() {
-			MinXP = 1000,
-			Name = "Level 4",
-			Description = "Level 4"
-		},
-		new Achievement() {
-			MinXP = 2000,
-			Name = "Level 5",
-			Description = "Level 5"
-		},
-		new Achievement() {
-			MinXP = 3500,
-			Name = "Level 6",
-			Description = "Level 6"
-		},
-		new Achievement() {
-			MinXP = 5000,
-			Name = "Level 7",
-			Description = "Level 7"
-		},
-		new Achievement() {
-			MinXP = 7000,
-			Name = "Level 8",
-			Description = "Level 8"
-		},
-		new Achievement() {
-			MinXP = 10000,
-			Name = "Level 9",
-			Description = "Level 9"
-		},
-		new Achievement() {
-			MinXP = 14000,
-			Name = "Level 10",
-			Description = "Level 10"
-		},
-		new Achievement() {
-			MinXP = 18000,
-			Name = "Level 11",
-			Description = "Level 11"
-		},
-		new Achievement() {
-			MinXP = 22000,
-			Name = "Level 12",
-			Description = "Level 12"
-		},
-		new Achievement() {
-			MinXP = 27000,
-			Name = "Level 13",
-			Description = "Level 13"
-		},
-		new Achievement() {
-			MinXP = 32000,
-			Name = "Level 14",
-			Description = "Level 14"
-		},
-		new Achievement() {
-			MinXP = 37000,
-			Name = "Level 15",
-			Description = "Level 15"
-		},
-		new Achievement() {
-			MinXP = 42000,
-			Name = "Level 16",
-			Description = "Level 16"
-		},
-		new Achievement() {
-			MinXP = 45000,
-			Name = "Level 17",
-			Description = "Level 17"
-		},
-		new Achievement() {
-			MinXP = 47000,
-			Name = "Level 18",
-			Description = "Level 18"
-		},
-		new Achievement() {
-			MinXP = 48500,
-			Name = "Level 19",
-			Description = "Level 19"
-		},
-		new Achievement() {
-			MinXP = 50000,
-			Name = "Level 20",
-			Description = "Level 20"
 		},
 	};
 }

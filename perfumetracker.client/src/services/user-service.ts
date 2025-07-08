@@ -16,6 +16,13 @@ export interface UserConfiguration {
     inviteOnlyRegistration: boolean
 }
 
+export interface UserXPResponse {
+    xp: number;
+    xpLastLevel: number;
+    xpNextLevel: number;
+    level: number;
+}
+
 export async function loginUser(email: string, password: string): Promise<LoginResponse> {
     const response = await post<LoginResponse>(`/identity/account/login`, {
         email,
@@ -50,5 +57,10 @@ export async function registerUser(email: string, password: string, userName: st
         userName,
         inviteCode
     });
+    return response.data;
+}
+
+export async function getUserXP(): Promise<UserXPResponse> {
+    const response = await get<UserXPResponse>(`/users/xp`);
     return response.data;
 } 
