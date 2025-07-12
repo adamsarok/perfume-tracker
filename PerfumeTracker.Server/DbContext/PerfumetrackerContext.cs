@@ -14,7 +14,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 		: base(options) {
 		TenantProvider = tenantProvider;
 	}
-
+	public virtual DbSet<UserStreak> UserStreaks { get; set; }
 	public virtual DbSet<Perfume> Perfumes { get; set; }
 	public virtual DbSet<PerfumeRandoms> PerfumeRandoms { get; set; }
 	public virtual DbSet<PerfumeTag> PerfumeTags { get; set; }
@@ -63,6 +63,12 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 		modelBuilder.Entity<UserProfile>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserProfile_pkey");
 			entity.ToTable("UserProfile");
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.Id == TenantProvider.GetCurrentUserId()));
+		});
+
+		modelBuilder.Entity<UserStreak>(entity => {
+			entity.HasKey(e => e.Id).HasName("UserStreak_pkey");
+			entity.ToTable("UserStreak");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.Id == TenantProvider.GetCurrentUserId()));
 		});
 

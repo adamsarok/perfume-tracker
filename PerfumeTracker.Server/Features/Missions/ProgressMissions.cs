@@ -140,7 +140,6 @@ public class ProgressMissions {
 				await context.SaveChangesAsync(cancellationToken);
 			}
 		}
-
 	}
 	public class MissionProgressHub : Hub;
 }
