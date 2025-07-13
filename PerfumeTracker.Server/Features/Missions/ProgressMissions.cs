@@ -115,12 +115,19 @@ public class ProgressMissions {
 				.FirstOrDefaultAsync(cancellationToken);
 			if (userMission != null) await UpdateMissionProgress(cancellationToken, userMission, userMission.Mission, setExact);
 		}
+		async Task<float> GetXPMultiplier(CancellationToken token, Guid userId) {
+			var streak = await context.UserStreaks.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == userId && x.StreakEndAt == null);
+			if (streak != null) return 1f + Math.Min(2f, (float)streak.Progress / 100);
+			return 1f;
+		}
 		public async Task UpdateMissionProgress(CancellationToken cancellationToken, UserMission userMission, Mission mission, int? setExact = null) {
 			var now = DateTime.UtcNow;
 			if (userMission != null && !userMission.IsCompleted) {
 				userMission.Progress = setExact ?? userMission.Progress + 1;
 
 				if (userMission.Progress >= mission.RequiredCount) {
+					var multiplier = await GetXPMultiplier(cancellationToken, userMission.UserId);
+					userMission.XP_Awarded = (int)(userMission.Mission.XP * multiplier);
 					userMission.IsCompleted = true;
 					userMission.CompletedAt = now;
 				}
@@ -140,7 +147,6 @@ public class ProgressMissions {
 				await context.SaveChangesAsync(cancellationToken);
 			}
 		}
-
 	}
 	public class MissionProgressHub : Hub;
 }

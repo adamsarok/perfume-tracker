@@ -1,15 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Moq;
 using PerfumeTracker.Server.Features.Missions;
-using PerfumeTracker.Server.Models;
-using Xunit;
 using Microsoft.AspNetCore.Mvc.Testing;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Perfumes;
@@ -84,7 +73,7 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task ProgressMissions_PerfumeEventNotificationHandler_UpdatesProgress() {
 		await PrepareMissionData();
 		using var scope = GetTestScope();
-		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockHubContext.Object);
+		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object);
 		var handler = new ProgressMissions.PerfumeEventNotificationHandler(scope.PerfumeTrackerContext, updateHandler);
 		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
@@ -95,7 +84,7 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task ProgressMissions_PerfumeTagsAddedNotificationHandler_UpdatesProgress() {
 		await PrepareMissionData();
 		using var scope = GetTestScope();
-		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockHubContext.Object);
+		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object);
 		var handler = new ProgressMissions.PerfumeTagsAddedNotificationHandler(updateHandler);
 		var notification = new PerfumeTagsAddedNotification(new List<Guid> { Guid.NewGuid() }, TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
@@ -106,7 +95,7 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task ProgressMissions_PerfumeRandomAcceptedNotificationHandler_UpdatesProgress() {
 		await PrepareMissionData();
 		using var scope = GetTestScope();
-		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockHubContext.Object);
+		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object);
 		var handler = new ProgressMissions.PerfumeRandomAcceptedNotificationHandler(updateHandler);
 		var notification = new PerfumeRandomAcceptedNotification(Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
@@ -117,7 +106,7 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task ProgressMissions_RandomPerfumeAddedNotificationHandler_UpdatesProgress() {
 		await PrepareMissionData();
 		using var scope = GetTestScope();
-		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockHubContext.Object);
+		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object);
 		var handler = new ProgressMissions.RandomPerfumeAddedNotificationHandler(updateHandler);
 		var notification = new RandomPerfumeAddedNotification(Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);

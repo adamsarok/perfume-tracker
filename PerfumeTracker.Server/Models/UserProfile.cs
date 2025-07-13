@@ -28,4 +28,5 @@ public class UserProfile : Entity {
 	public decimal SprayAmountForBottleSize(decimal bottleSizeMl) => bottleSizeMl >= 20 ? SprayAmountFullSizeMl : SprayAmountSamplesMl;
 	public virtual ICollection<UserAchievement> UserAchievements { get; set; } = new List<UserAchievement>();
 	public virtual ICollection<UserMission> UserMissions { get; set; } = new List<UserMission>();
+	public string Timezone { get; set; } = "UTC"; //TODO: set per tenant timezone for nicer streak handling
 }
