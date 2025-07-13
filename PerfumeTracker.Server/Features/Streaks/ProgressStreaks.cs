@@ -1,57 +1,50 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Features.PerfumeRandoms;
-namespace PerfumeTracker.Server.Features.Missions;
-
+using static PerfumeTracker.Server.Models.UserStreak;
+namespace PerfumeTracker.Server.Features.Streaks;
 public class ProgressStreaks {
-	public class StreakEventNotificationHandler(PerfumeTrackerContext context, UpdateStreakProgressHandler updateStreakProgressHandler) : INotificationHandler<PerfumeEventAddedNotification> {
+	public class StreakEventNotificationHandler(UpdateStreakProgressHandler updateStreakProgressHandler) : INotificationHandler<PerfumeEventAddedNotification> {
 		public async Task Handle(PerfumeEventAddedNotification notification, CancellationToken cancellationToken) {
-			var now = DateTime.UtcNow;
-			//TODO
+			await updateStreakProgressHandler.UpdateStreakProgress(cancellationToken, notification.UserId);
 		}
 	}
-
 	public class UpdateStreakProgressHandler(PerfumeTrackerContext context, IHubContext<StreakProgressHub> streakProgressHub) {
-		public async Task UpdateStreakProgress(MissionType type, CancellationToken cancellationToken, Guid userId, int? setExact = null) {
+		const int streakProtectionDays = 1;
+		public async Task UpdateStreakProgress(CancellationToken cancellationToken, Guid userId) {
 			var now = DateTime.UtcNow;
-			var userMission = await context.UserMissions
-				.Include(x => x.Mission)
+			var userStreak = await context.UserStreaks
 				.IgnoreQueryFilters()
-				.Where(um => um.UserId == userId &&
-					um.Mission.Type == type &&
-					!um.IsDeleted &&
-					!um.IsCompleted &&
-					!um.Mission.IsDeleted &&
-					um.Mission.IsActive &&
-					um.Mission.StartDate <= now && um.Mission.EndDate > now)
+				.Where(um => um.UserId == userId)
 				.FirstOrDefaultAsync(cancellationToken);
-			if (userMission != null) await UpdateMissionProgress(cancellationToken, userMission, userMission.Mission, setExact);
-		}
-		public async Task UpdateMissionProgress(CancellationToken cancellationToken, UserMission userMission, Mission mission, int? setExact = null) {
-			var now = DateTime.UtcNow;
-			if (userMission != null && !userMission.IsCompleted) {
-				userMission.Progress = setExact ?? userMission.Progress + 1;
-
-				if (userMission.Progress >= mission.RequiredCount) {
-					userMission.IsCompleted = true;
-					userMission.CompletedAt = now;
+			var profile = await context.UserProfiles.FirstAsync();
+			bool streakEnded = false;
+			if (userStreak != null) {
+				TimeZoneInfo tzi2 = TimeZoneInfo.FindSystemTimeZoneById(profile.Timezone);
+				var offset = tzi2.GetUtcOffset(DateTime.UtcNow);
+				var dateUserLocal = DateTime.UtcNow.AddHours(offset.Hours);
+				if ((dateUserLocal.Date - userStreak.LastProgressedAt.Date.AddDays(streakProtectionDays)).TotalDays > 1) {
+					userStreak.StreakEndAt = userStreak.LastProgressedAt;
+					streakEnded = true;
+				} else {
+					userStreak.Progress++;
 				}
-				await streakProgressHub.Clients.User(userMission.UserId.ToString()).SendAsync("ReceiveStreakProgress",
-					new UserMissionDto(
-						Id: mission.Id,
-						Progress: (int)((float)userMission.Progress / (float)mission.RequiredCount * 100),
-						IsCompleted: userMission.IsCompleted,
-						Description: mission.Description,
-						EndDate: mission.EndDate,
-						MissionType: mission.Type,
-						Name: mission.Name,
-						RequiredCount: mission.RequiredCount,
-						StartDate: mission.StartDate,
-						XP: mission.XP
-				));
-				await context.SaveChangesAsync(cancellationToken);
 			}
+			UserStreak newStreak = null;
+			if (userStreak == null || streakEnded == true) {
+				newStreak = new UserStreak() {
+					StreakStartAt = DateTime.UtcNow,
+					Progress = 1,
+				};
+				context.UserStreaks.Add(newStreak);
+			}
+			await context.SaveChangesAsync();
+			await SendStreakProgress(newStreak ?? userStreak);
+
+		}
+		private async Task SendStreakProgress(UserStreak streak) {
+			await streakProgressHub.Clients.User(streak.UserId.ToString()).SendAsync("ReceiveStreakProgress",
+				streak.Adapt<UserStreakDto>()
+			);
 		}
 	}
 	public class StreakProgressHub : Hub;

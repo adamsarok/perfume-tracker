@@ -2,10 +2,8 @@
 
 namespace PerfumeTracker.Server.Features.Streaks;
 public record UserStreakDto(Guid Id, 
-	StreakGoal StreakGoal, 
-	StreakType Weekly, 
 	DateTime? CurrentStreakStart,
-	int CurrentStreakLengthDays,
+	int Progress,
 	int BestStreakLength);
 
 public record GetActiveStreaksQuery() : IQuery<List<UserStreakDto>>;
@@ -22,17 +20,15 @@ public class GetActiveStreaksEndpoint : ICarterModule {
 public class GetActiveStreaksHandler(PerfumeTrackerContext context)
 		: IQueryHandler<GetActiveStreaksQuery, List<UserStreakDto>> {
 	public async Task<List<UserStreakDto>> Handle(GetActiveStreaksQuery request, CancellationToken cancellationToken) {
-		int bestStreakLength = 0; //TODO
+		int bestStreakLength = await context.UserStreaks.MaxAsync(x => x.Progress, cancellationToken);
 		return await context
 			.UserStreaks
-			.Where(x => x.StreakEnd == null)
+			.Where(x => x.StreakEndAt == null)
 			.Select(x => new UserStreakDto(
 				x.Id,
-				x.Goal,
-				x.Type,
-				x.StreakStart,
-				(int)(DateTime.UtcNow - x.StreakStart).Value.TotalDays,
+				x.StreakStartAt,
+				x.Progress,
 				bestStreakLength
-				)).ToListAsync();
+				)).ToListAsync(cancellationToken);
 	}
 }

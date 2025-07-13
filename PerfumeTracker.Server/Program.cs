@@ -13,7 +13,6 @@ using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
-using PerfumeTracker.Server.Helpers;
 using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Server.Helpers;
 using PerfumeTracker.Server.Startup;
@@ -21,12 +20,8 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
-using System;
-using System.Data;
-using System.Diagnostics;
-using System.Text;
-using System.Threading.RateLimiting;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
+using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,7 +33,7 @@ if (!string.IsNullOrWhiteSpace(databaseUrl)) {
 	var password = uri.UserInfo.Split(':')[1];
 	conn = $"Host={uri.Host};Database={uri.AbsolutePath.Substring(1)};Username={username};Password={password};Port={uri.Port};SSL Mode=Require"; 
 } else {
-	conn = builder.Configuration.GetConnectionString("PerfumeTracker");
+	conn = builder.Configuration.GetConnectionString("PerfumeTrackerTest");
 	if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 }
 
@@ -84,6 +79,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
+builder.Services.AddScoped<UpdateStreakProgressHandler>();
 builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();

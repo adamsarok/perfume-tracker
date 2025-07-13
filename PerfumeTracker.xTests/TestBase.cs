@@ -10,6 +10,7 @@ using PerfumeTracker.Server.Features.Users;
 using System;
 using Xunit.Sdk;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
+using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
 
 namespace PerfumeTracker.xTests;
 public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
@@ -17,7 +18,8 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 	protected bool DbUp = false;
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 	protected MockTenantProvider TenantProvider = new MockTenantProvider();
-	protected Mock<IHubContext<MissionProgressHub>> MockHubContext = default!;
+	protected Mock<IHubContext<MissionProgressHub>> MockMissionProgressHubContext = default!;
+	protected Mock<IHubContext<StreakProgressHub>> MockStreakProgressHubContext = default!;
 	protected Mock<IClientProxy> MockClientProxy = default!;
 	protected List<HubMessage> HubMessages = new List<HubMessage>();
 	protected Mock<ISideEffectQueue> MockSideEffectQueue = default!;
@@ -50,8 +52,11 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 					HubMessages.Add(new HubMessage(method, args));
 				});
 
-			MockHubContext = new Mock<IHubContext<MissionProgressHub>>();
-			MockHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
+			MockMissionProgressHubContext = new Mock<IHubContext<MissionProgressHub>>();
+			MockMissionProgressHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
+
+			MockStreakProgressHubContext = new Mock<IHubContext<StreakProgressHub>>();
+			MockStreakProgressHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
 
 			var userProxies = new Dictionary<string, Mock<IClientProxy>>();
 			mockClients.Setup(clients => clients.User(It.IsAny<string>()))
