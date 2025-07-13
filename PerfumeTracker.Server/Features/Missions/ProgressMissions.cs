@@ -117,7 +117,7 @@ public class ProgressMissions {
 		}
 		async Task<float> GetXPMultiplier(CancellationToken token, Guid userId) {
 			var streak = await context.UserStreaks.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == userId && x.StreakEndAt == null);
-			if (streak != null) return 1f + Math.Min(2f, streak.Progress / 100);
+			if (streak != null) return 1f + Math.Min(2f, (float)streak.Progress / 100);
 			return 1f;
 		}
 		public async Task UpdateMissionProgress(CancellationToken cancellationToken, UserMission userMission, Mission mission, int? setExact = null) {
