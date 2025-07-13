@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Logging;
+using Moq;
 using PerfumeTracker.Server.Features.Missions;
+using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
 using PerfumeTracker.Server.Features.Perfumes;
@@ -53,7 +56,8 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	public async Task ProgressStreaks_PerfumeEventNotificationHandler_UpdatesProgress() {
 		await PrepareDb();
 		using var scope = GetTestScope();
-		var updateHandler = new UpdateStreakProgressHandler(scope.PerfumeTrackerContext, MockStreakProgressHubContext.Object);
+		var mockLogger = new Mock<ILogger<UpdateStreakProgressHandler>>();
+		var updateHandler = new UpdateStreakProgressHandler(scope.PerfumeTrackerContext, MockStreakProgressHubContext.Object, mockLogger.Object);
 		var handler = new StreakEventNotificationHandler(updateHandler);
 		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
