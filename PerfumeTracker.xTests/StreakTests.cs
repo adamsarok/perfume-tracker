@@ -53,15 +53,15 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	public async Task ProgressStreaks_PerfumeEventNotificationHandler_UpdatesProgress() {
 		await PrepareDb();
 		using var scope = GetTestScope();
-		var updateHandler = new ProgressStreaks.UpdateStreakProgressHandler(scope.PerfumeTrackerContext, MockStreakProgressHubContext.Object);
-		var handler = new ProgressStreaks.StreakEventNotificationHandler(updateHandler);
+		var updateHandler = new UpdateStreakProgressHandler(scope.PerfumeTrackerContext, MockStreakProgressHubContext.Object);
+		var handler = new StreakEventNotificationHandler(updateHandler);
 		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
-		AssertProgress(MissionType.WearPerfumes);
+		AssertProgress();
 	}
 
 
-	void AssertProgress(MissionType type) {
+	void AssertProgress() {
 		Assert.NotNull(HubMessages);
 		Assert.NotEmpty(HubMessages);
 		foreach (var m in HubMessages) {
@@ -73,6 +73,6 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 				return;
 			}
 		}
-		throw new Exception("Correct mission type not found in update args");
+		throw new Exception("Streak not found in update args");
 	}
 }
