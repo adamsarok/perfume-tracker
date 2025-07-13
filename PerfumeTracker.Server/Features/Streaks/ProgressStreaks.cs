@@ -8,7 +8,7 @@ public class ProgressStreaks {
 			await updateStreakProgressHandler.UpdateStreakProgress(cancellationToken, notification.UserId);
 		}
 	}
-	public class UpdateStreakProgressHandler(PerfumeTrackerContext context, IHubContext<StreakProgressHub> streakProgressHub) {
+	public class UpdateStreakProgressHandler(PerfumeTrackerContext context, IHubContext<StreakProgressHub> streakProgressHub, ILogger<UpdateStreakProgressHandler> logger)  {
 		const int streakProtectionDays = 1;
 		public async Task UpdateStreakProgress(CancellationToken cancellationToken, Guid userId) {
 			var now = DateTime.UtcNow;
@@ -16,16 +16,25 @@ public class ProgressStreaks {
 				.IgnoreQueryFilters()
 				.Where(um => um.UserId == userId)
 				.FirstOrDefaultAsync(cancellationToken);
-			var profile = await context.UserProfiles.FirstAsync();
+			var profile = await context.UserProfiles
+				.IgnoreQueryFilters()
+				.Where(um => um.Id == userId)
+				.FirstAsync();
 			bool streakEnded = false;
 			if (userStreak != null) {
-				TimeZoneInfo tzi2 = TimeZoneInfo.FindSystemTimeZoneById(profile.Timezone);
-				var offset = tzi2.GetUtcOffset(DateTime.UtcNow);
-				var dateUserLocal = DateTime.UtcNow.AddHours(offset.Hours);
+				int utcOffset = 0;
+				try {
+					var iana = string.IsNullOrWhiteSpace(profile.Timezone) ? "UTC" : profile.Timezone;
+					TimeZoneInfo tzi2 = TimeZoneInfo.FindSystemTimeZoneById(iana);
+					utcOffset = tzi2.GetUtcOffset(now).Hours;
+				} catch (Exception ex) {
+					logger.LogError(ex, "Timezone conversion failed");
+				}
+				var dateUserLocal = now.AddHours(utcOffset);
 				if ((dateUserLocal.Date - userStreak.LastProgressedAt.Date.AddDays(streakProtectionDays)).TotalDays > 1) {
 					userStreak.StreakEndAt = userStreak.LastProgressedAt;
 					streakEnded = true;
-				} else {
+				} else if (dateUserLocal.Date > userStreak.LastProgressedAt.Date) {
 					userStreak.Progress++;
 				}
 			}
@@ -33,7 +42,9 @@ public class ProgressStreaks {
 			if (userStreak == null || streakEnded == true) {
 				newStreak = new UserStreak() {
 					StreakStartAt = DateTime.UtcNow,
+					LastProgressedAt = DateTime.UtcNow,
 					Progress = 1,
+					UserId = userId,
 				};
 				context.UserStreaks.Add(newStreak);
 			}
