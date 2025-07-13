@@ -34,7 +34,7 @@ public class ProgressStreaks {
 				if ((dateUserLocal.Date - userStreak.LastProgressedAt.Date.AddDays(streakProtectionDays)).TotalDays > 1) {
 					userStreak.StreakEndAt = userStreak.LastProgressedAt;
 					streakEnded = true;
-				} else if (dateUserLocal.Date > userStreak.LastProgressedAt.Date) {
+				} else if (dateUserLocal.Date > userStreak.LastProgressedAt.AddHours(utcOffset).Date) {
 					userStreak.Progress++;
 				}
 			}

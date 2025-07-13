@@ -63,6 +63,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 		modelBuilder.Entity<UserProfile>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserProfile_pkey");
 			entity.ToTable("UserProfile");
+			entity.Property(e => e.Timezone).HasDefaultValue("UTC");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.Id == TenantProvider.GetCurrentUserId()));
 		});
 
