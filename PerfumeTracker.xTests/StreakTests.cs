@@ -40,17 +40,14 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	//	Assert.NotEmpty(userMissions);
 	//}
 
-	//[Fact] //TODO
-	//public async Task GetActiveMissionsHandler_ReturnsActiveMissions() {
-	//	await PrepareMissionData();
-	//	using var scope = GetTestScope();
-	//	var handlerc = new GenerateMissions(scope.PerfumeTrackerContext);
-	//	await handlerc.Handle(new GenerateMissionCommand(), CancellationToken.None);
-	//	var handler = new GetActiveMissionsHandler(scope.PerfumeTrackerContext);
-	//	var result = await handler.Handle(new GetActiveMissionsQuery(), CancellationToken.None);
-	//	Assert.NotNull(result);
-	//	Assert.NotEmpty(result);
-	//}
+	[Fact]
+	public async Task GetActiveStreaksHandler_ReturnsActiveStreaks() {
+		await PrepareDb();
+		using var scope = GetTestScope();
+		var queryHandler = new GetActiveStreaksHandler(scope.PerfumeTrackerContext);
+		var result = await queryHandler.Handle(new GetActiveStreaksQuery(), CancellationToken.None);
+		Assert.NotNull(result);
+	}
 
 	[Fact]
 	public async Task ProgressStreaks_PerfumeEventNotificationHandler_UpdatesProgress() {
