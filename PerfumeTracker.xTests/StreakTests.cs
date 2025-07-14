@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using PerfumeTracker.Server.Features.Missions;
-using PerfumeTracker.Server.Features.Outbox;
+using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Features.PerfumeRandoms;
-using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Features.Streaks;
 using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
 
@@ -30,15 +27,19 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 		}
 	}
 
-	//[Fact]
-	//public async Task ProgressStreaks_CreatesStreak() {
-	//	await PrepareDb();
-	//	using var scope = GetTestScope();
-	//	var handler = new UpdateStreakProgressHandler(scope.PerfumeTrackerContext);
-	//	await handler.Handle(new GenerateMissionCommand(), CancellationToken.None);
-	//	var userMissions = await scope.PerfumeTrackerContext.UserMissions.ToListAsync();
-	//	Assert.NotEmpty(userMissions);
-	//}
+	[Fact]
+	public async Task GetXPMultiplier_ReturnsValidXP() {
+		decimal last = 0;
+		using var scope = GetTestScope();
+		var xpService = new XPService(scope.PerfumeTrackerContext);
+		for (int i = 0; i < 500; i++) {
+			decimal multiplier = xpService.GetXPMultiplier(i);
+			Assert.True(multiplier > last || multiplier == XPService.MaxMultiplier);
+			Assert.True(multiplier <= XPService.MaxMultiplier);
+			last = multiplier;
+			Console.WriteLine(multiplier);
+		}
+	}
 
 	[Fact]
 	public async Task GetActiveStreaksHandler_ReturnsActiveStreaks() {

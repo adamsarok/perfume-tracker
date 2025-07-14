@@ -21,6 +21,8 @@ export interface UserXPResponse {
     xpLastLevel: number;
     xpNextLevel: number;
     level: number;
+    xpMultiplier: number;
+    streakLength: number;
 }
 
 export async function loginUser(email: string, password: string): Promise<LoginResponse> {

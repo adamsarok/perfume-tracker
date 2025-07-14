@@ -155,8 +155,9 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         {user && xp && (
           <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <div className="flex items-center gap-4">
-              <Progress value={((xp.xp - xp.xpLastLevel) / (xp.xpNextLevel - xp.xpLastLevel)) * 100}   />
               <span className="text-xs text-gray-500">{xp.xp} XP Level {xp.level}</span>
+              <Progress value={((xp.xp - xp.xpLastLevel) / (xp.xpNextLevel - xp.xpLastLevel)) * 100}   />
+              <span className="text-xs text-gray-500">{xp.streakLength}d streak x{xp.xpMultiplier}</span>
             </div>
           </div>
         )}
