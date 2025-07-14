@@ -2,11 +2,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PerfumeTracker.Server.Features.Common;
-using PerfumeTracker.Server.Features.Missions;
-using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Features.PerfumeRandoms;
-using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Features.Streaks;
 using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
 
@@ -33,11 +29,11 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 
 	[Fact]
 	public async Task GetXPMultiplier_ReturnsValidXP() {
-		float last = 0;
+		decimal last = 0;
 		using var scope = GetTestScope();
 		var xpService = new XPService(scope.PerfumeTrackerContext);
 		for (int i = 0; i < 500; i++) {
-			float multiplier = xpService.GetXPMultiplier(i);
+			decimal multiplier = xpService.GetXPMultiplier(i);
 			Assert.True(multiplier > last || multiplier == XPService.MaxMultiplier);
 			Assert.True(multiplier <= XPService.MaxMultiplier);
 			last = multiplier;
