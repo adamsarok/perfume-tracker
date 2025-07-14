@@ -1,9 +1,11 @@
 ﻿
 
+using PerfumeTracker.Server.Features.Common;
+
 namespace PerfumeTracker.Server.Features.Users;
 
 public record UserXPQuery() : IQuery<UserXPResponse>;
-public record UserXPResponse(long Xp, long XpLastLevel, long XpNextLevel, int Level);
+public record UserXPResponse(long Xp, long XpLastLevel, long XpNextLevel, int Level, decimal XpMultiplier, int StreakLength);
 public class GetCurrentUserXPEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/users/xp", (ISender sender) => {
@@ -30,7 +32,7 @@ public class Levels {
 	}
 }
 
-public class GetCurrentUserXPHandler(PerfumeTrackerContext context) : IQueryHandler<UserXPQuery, UserXPResponse> {
+public class GetCurrentUserXPHandler(PerfumeTrackerContext context, XPService xPService) : IQueryHandler<UserXPQuery, UserXPResponse> {
 	public async Task<UserXPResponse> Handle(UserXPQuery request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var xp = await context.UserMissions
@@ -39,11 +41,14 @@ public class GetCurrentUserXPHandler(PerfumeTrackerContext context) : IQueryHand
 			.SumAsync(x => x.Mission.XP);
 		var level = Levels.GetLevels()
 			.FirstOrDefault(x => x.MinXP <= xp && x.MaxXP >= xp);
+		var xpMultiplier = await xPService.GetXPMultiplier(cancellationToken, userId);
 		return new UserXPResponse(
 			Xp: xp,
 			XpLastLevel: level?.MinXP ?? 0,
 			XpNextLevel: level?.MaxXP + 1 ?? 0,
-			Level: level?.LevelNum ?? 1
+			Level: level?.LevelNum ?? 1,
+			(decimal)Math.Round(xpMultiplier.XpMultiplier, 2),
+			xpMultiplier.StreakDays
 		);
 	}
 }

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
+using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
 using PerfumeTracker.Server.Models;
@@ -99,7 +100,7 @@ public class ProgressMissions {
 		}
 	}
 
-	public class UpdateMissionProgressHandler(PerfumeTrackerContext context, IHubContext<MissionProgressHub> missionProgressHub) {
+	public class UpdateMissionProgressHandler(PerfumeTrackerContext context, IHubContext<MissionProgressHub> missionProgressHub, XPService xPService) {
 		public async Task UpdateMissionProgress(MissionType type, CancellationToken cancellationToken, Guid userId, int? setExact = null) {
 			var now = DateTime.UtcNow;
 			var userMission = await context.UserMissions
@@ -115,19 +116,14 @@ public class ProgressMissions {
 				.FirstOrDefaultAsync(cancellationToken);
 			if (userMission != null) await UpdateMissionProgress(cancellationToken, userMission, userMission.Mission, setExact);
 		}
-		async Task<float> GetXPMultiplier(CancellationToken token, Guid userId) {
-			var streak = await context.UserStreaks.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == userId && x.StreakEndAt == null);
-			if (streak != null) return 1f + Math.Min(2f, (float)streak.Progress / 100);
-			return 1f;
-		}
 		public async Task UpdateMissionProgress(CancellationToken cancellationToken, UserMission userMission, Mission mission, int? setExact = null) {
 			var now = DateTime.UtcNow;
 			if (userMission != null && !userMission.IsCompleted) {
 				userMission.Progress = setExact ?? userMission.Progress + 1;
 
 				if (userMission.Progress >= mission.RequiredCount) {
-					var multiplier = await GetXPMultiplier(cancellationToken, userMission.UserId);
-					userMission.XP_Awarded = (int)(userMission.Mission.XP * multiplier);
+					var multiplier = await xPService.GetXPMultiplier(cancellationToken, userMission.UserId);
+					userMission.XP_Awarded = (int)(userMission.Mission.XP * multiplier.XpMultiplier);
 					userMission.IsCompleted = true;
 					userMission.CompletedAt = now;
 				}
