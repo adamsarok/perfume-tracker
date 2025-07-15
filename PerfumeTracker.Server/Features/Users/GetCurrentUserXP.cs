@@ -36,9 +36,8 @@ public class GetCurrentUserXPHandler(PerfumeTrackerContext context, XPService xP
 	public async Task<UserXPResponse> Handle(UserXPQuery request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var xp = await context.UserMissions
-			.Include(x => x.Mission)
 			.Where(x => x.CompletedAt != null)
-			.SumAsync(x => x.Mission.XP);
+			.SumAsync(x => x.XP_Awarded);
 		var level = Levels.GetLevels()
 			.FirstOrDefault(x => x.MinXP <= xp && x.MaxXP >= xp);
 		var xpMultiplier = await xPService.GetXPMultiplier(cancellationToken, userId);
@@ -47,7 +46,7 @@ public class GetCurrentUserXPHandler(PerfumeTrackerContext context, XPService xP
 			XpLastLevel: level?.MinXP ?? 0,
 			XpNextLevel: level?.MaxXP + 1 ?? 0,
 			Level: level?.LevelNum ?? 1,
-			(decimal)Math.Round(xpMultiplier.XpMultiplier, 2),
+			Math.Round(xpMultiplier.XpMultiplier, 2),
 			xpMultiplier.StreakDays
 		);
 	}
