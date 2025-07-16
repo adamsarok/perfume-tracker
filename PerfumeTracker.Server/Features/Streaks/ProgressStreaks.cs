@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Features.PerfumeEvents;
+using PerfumeTracker.Server.Models;
 using static PerfumeTracker.Server.Models.UserStreak;
 namespace PerfumeTracker.Server.Features.Streaks;
 public class ProgressStreaks {
@@ -20,7 +21,7 @@ public class ProgressStreaks {
 				.IgnoreQueryFilters()
 				.Where(um => um.Id == userId)
 				.FirstAsync();
-			bool streakEnded = false;
+			StreakStatus status = StreakStatus.NoChange;
 			if (userStreak != null) {
 				int utcOffset = 0;
 				try {
@@ -30,19 +31,21 @@ public class ProgressStreaks {
 				} catch (Exception ex) {
 					logger.LogError(ex, "Timezone conversion failed");
 				}
-				var dateUserLocal = now.AddHours(utcOffset);
-				if ((dateUserLocal.Date - userStreak.LastProgressedAt.Date.AddDays(streakProtectionDays)).TotalDays > 1) {
-					userStreak.StreakEndAt = userStreak.LastProgressedAt;
-					streakEnded = true;
-				} else if (dateUserLocal.Date > userStreak.LastProgressedAt.AddHours(utcOffset).Date) {
-					userStreak.Progress++;
+				status = GetStreakStatus(userStreak.LastProgressedAt, now, utcOffset);
+				switch (status) {
+					case StreakStatus.Ended:
+						userStreak.StreakEndAt = userStreak.LastProgressedAt;
+						break;
+					case StreakStatus.Progress:
+						userStreak.Progress++;
+						break;
 				}
 			}
 			UserStreak newStreak = null;
-			if (userStreak == null || streakEnded == true) {
+			if (userStreak == null || status == StreakStatus.Ended) {
 				newStreak = new UserStreak() {
-					StreakStartAt = DateTime.UtcNow,
-					LastProgressedAt = DateTime.UtcNow,
+					StreakStartAt = now,
+					LastProgressedAt = now,
 					Progress = 1,
 					UserId = userId,
 				};
@@ -50,7 +53,15 @@ public class ProgressStreaks {
 			}
 			await context.SaveChangesAsync();
 			await SendStreakProgress(newStreak ?? userStreak);
-
+		}
+		public enum StreakStatus { Ended, Progress, NoChange }
+		public StreakStatus GetStreakStatus(DateTime lastProgressDate, DateTime nowDate, int userUtcOffset) {
+			var nowLocal = nowDate.AddHours(userUtcOffset).Date;
+			var progressLocal = lastProgressDate.AddHours(userUtcOffset).Date;
+			var diff = (nowLocal - progressLocal);
+			if (diff.TotalDays > streakProtectionDays) return StreakStatus.Ended;
+			if (nowLocal > progressLocal) return StreakStatus.Progress;
+			return StreakStatus.NoChange;
 		}
 		private async Task SendStreakProgress(UserStreak streak) {
 			await streakProgressHub.Clients.User(streak.UserId.ToString()).SendAsync("ReceiveStreakProgress",
