@@ -65,12 +65,13 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 
     [Theory]
     [InlineData("2024-07-10T00:00:00Z", "2024-07-10T23:59:59Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.NoChange)] // same day
-    [InlineData("2024-07-10T00:00:00Z", "2024-07-11T00:00:01Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)] // next day
+    [InlineData("2024-07-10T00:00:00Z", "2024-07-11T23:59:00Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)] // next day, whole day
     [InlineData("2024-07-10T00:00:00Z", "2024-07-12T00:00:00Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Ended)]	   // more than streakProtectionDays
     [InlineData("2024-07-10T23:00:00Z", "2024-07-11T01:00:00Z", 2, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.NoChange)] // same day with offset
-    [InlineData("2024-07-10T23:00:00Z", "2024-07-12T01:00:00Z", 2, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)]  // progress with offset
+    [InlineData("2024-07-10T23:00:00Z", "2024-07-12T01:00:00Z", 2, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)] // progress with offset
     [InlineData("2024-07-10T23:00:00Z", "2024-07-10T21:00:00Z", -2, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.NoChange)] // negative offset, same day
-    public void GetStreakStatus_ReturnsExpectedStatus(string lastProgress, string now, int utcOffset, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus expected)
+	[InlineData("2024-07-10T00:00:00Z", "2024-07-11T00:00:00Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)] // exactly 1-day boundary
+	public void GetStreakStatus_ReturnsExpectedStatus(string lastProgress, string now, int utcOffset, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus expected)
     {
         var mockLogger = new Mock<ILogger<ProgressStreaks.UpdateStreakProgressHandler>>();   // Arrange
         var handler = new ProgressStreaks.UpdateStreakProgressHandler(null, MockStreakProgressHubContext.Object, mockLogger.Object);

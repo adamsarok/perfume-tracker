@@ -58,9 +58,9 @@ public class ProgressStreaks {
 		public StreakStatus GetStreakStatus(DateTime lastProgressDate, DateTime nowDate, int userUtcOffset) {
 			var nowLocal = nowDate.AddHours(userUtcOffset).Date;
 			var progressLocal = lastProgressDate.AddHours(userUtcOffset).Date;
-			var diff = (nowLocal.Date - progressLocal.Date);
+			var diff = (nowLocal - progressLocal);
 			if (diff.TotalDays > streakProtectionDays) return StreakStatus.Ended;
-			if (nowLocal.Date > progressLocal.Date) return StreakStatus.Progress;
+			if (nowLocal > progressLocal) return StreakStatus.Progress;
 			return StreakStatus.NoChange;
 		}
 		private async Task SendStreakProgress(UserStreak streak) {
