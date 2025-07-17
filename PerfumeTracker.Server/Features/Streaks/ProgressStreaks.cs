@@ -15,7 +15,7 @@ public class ProgressStreaks {
 			var now = DateTime.UtcNow;
 			var userStreak = await context.UserStreaks
 				.IgnoreQueryFilters()
-				.Where(um => um.UserId == userId)
+				.Where(um => um.UserId == userId && um.StreakEndAt == null)
 				.FirstOrDefaultAsync(cancellationToken);
 			var profile = await context.UserProfiles
 				.IgnoreQueryFilters()
@@ -38,6 +38,7 @@ public class ProgressStreaks {
 						break;
 					case StreakStatus.Progress:
 						userStreak.Progress++;
+						userStreak.LastProgressedAt = DateTime.UtcNow;
 						break;
 				}
 			}
