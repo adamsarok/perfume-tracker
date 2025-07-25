@@ -58,15 +58,8 @@ const formSchema = z.object({
       message: "Perfume must be at least 1 characters.",
     })
     .trim(),
-  rating: z.coerce.number().min(0).max(10),
   amount: z.coerce.number().min(0).max(200),
   mlLeft: z.coerce.number().min(0).max(200),
-  notes: z
-    .string()
-    .min(1, {
-      message: "Notes must be at least 1 characters.",
-    })
-    .trim(),
   winter: z.boolean(),
   summer: z.boolean(),
   autumn: z.boolean(),
@@ -147,10 +140,8 @@ export default function PerfumeEditForm({
     defaultValues: {
       house: "",
       perfume: "",
-      rating: 0,
       amount: 0,
       mlLeft: 0,
-      notes: "",
       winter: true,
       summer: true,
       autumn: true,
@@ -165,10 +156,8 @@ export default function PerfumeEditForm({
       form.reset({
         house: perfume.perfume.house,
         perfume: perfume.perfume.perfumeName,
-        rating: perfume.perfume.rating,
         amount: perfume.perfume.ml,
         mlLeft: perfume.perfume.mlLeft,
-        notes: perfume.perfume.notes,
         winter: perfume.perfume.winter,
         summer: perfume.perfume.summer,
         autumn: perfume.perfume.autumn,
@@ -187,8 +176,6 @@ export default function PerfumeEditForm({
       id: perfumeId,
       house: values.house,
       perfumeName: values.perfume,
-      rating: values.rating,
-      notes: values.notes,
       ml: values.amount,
       mlLeft: values.mlLeft,
       summer: values.summer,
@@ -318,19 +305,6 @@ export default function PerfumeEditForm({
               <div className="flex">
                 <FormField
                   control={form.control}
-                  name="rating"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Rating</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Rating" {...field}  />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
@@ -356,19 +330,6 @@ export default function PerfumeEditForm({
                   )}
                 />
               </div>
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Notes" {...field}  />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <div className="w-full mb-0 mr-5">
                 <ChipClouds
                   className="w-full mb-0 mr-5"

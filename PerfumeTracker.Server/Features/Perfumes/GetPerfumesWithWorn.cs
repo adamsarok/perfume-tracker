@@ -29,7 +29,7 @@ public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, IPresigne
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Where(p => string.IsNullOrWhiteSpace(request.FullText)
-				|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{request.FullText}:*"))
+				//|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{request.FullText}:*"))
 				|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, request.FullText))
 				)
 			.Select(p => p.ToPerfumeWithWornStatsDto(settings, presignedUrlService))

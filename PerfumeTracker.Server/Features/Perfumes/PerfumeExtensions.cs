@@ -25,8 +25,6 @@ public static class PerfumeExtensions {
 					p.Id,
 					p.House,
 					p.PerfumeName,
-					p.Rating,
-					p.Notes,
 					p.Ml,
 					p.MlLeft,
 					p.ImageObjectKeyNew,
@@ -36,7 +34,8 @@ public static class PerfumeExtensions {
 					p.Summer,
 					p.Winter,
 					p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id, tag.Tag.IsDeleted)).ToList(),
-					p.IsDeleted
+					p.IsDeleted,
+					p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(p.Id, r.Rating, r.Comment, r.RatingDate)).ToList()
 				  ),
 				  worns.Any() ? worns.Count : 0,
 				  worns.Any() ? worns.Max(x => x.CreatedAt) : null,
