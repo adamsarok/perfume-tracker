@@ -4,14 +4,14 @@ import { PerfumeRatingDownloadDTO } from "@/dto/PerfumeRatingDownloadDTO";
 import { PerfumeRatingUploadDTO } from "@/dto/PerfumeRatingUploadDTO";
 
 
-export async function deleteRating(
+export async function deletePerfumeRating(
   perfumeId: string, ratingId: string
 ): Promise<ActionResult> {
   await del<PerfumeRatingDownloadDTO>(`/perfumes/${encodeURIComponent(perfumeId)}/ratings/${encodeURIComponent(ratingId)}`);
   return { ok: true };
 }
 
-export async function ratePerfume(perfumeId: string, rating: number, comment: string) : Promise<ActionResult> {
+export async function addPerfumeRating(perfumeId: string, rating: number, comment: string) : Promise<ActionResult> {
   const dto: PerfumeRatingUploadDTO = {
     perfumeId,
     rating,

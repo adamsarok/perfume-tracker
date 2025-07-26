@@ -39,6 +39,7 @@ import { Save, Trash2 } from "lucide-react";
 import { getTags } from "@/services/tag-service";
 import { get } from "@/services/axios-service";
 import { useAuth } from "@/hooks/use-auth";
+import PerfumeRatings from "./perfume-ratings";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -453,6 +454,7 @@ export default function PerfumeEditForm({
                 isRandomPerfume={isRandomPerfume}
               ></SprayOnComponent>
               <Separator className="mb-2 mt-2"></Separator>
+              <PerfumeRatings perfumeId={perfumeId} ratings={perfume?.perfume.ratings}></PerfumeRatings>
             </div>
           </div>
         </form>
