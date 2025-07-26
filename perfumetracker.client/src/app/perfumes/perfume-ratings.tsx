@@ -15,10 +15,11 @@ import { Save } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
 import { PerfumeRatingColumns } from "./perfume-rating-columns";
+import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
+import { Label } from "@/components/ui/label";
 
 interface PerfumeRatingFormProps {
-    readonly perfumeId: string;
-    readonly ratings: PerfumeRatingDownloadDTO[] | undefined;
+    readonly perfume: PerfumeWithWornStatsDTO;
 }
 
 const formSchema = z.object({
@@ -31,22 +32,22 @@ const formSchema = z.object({
     rating: z.coerce.number().min(0).max(10),
 });
 
-export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingFormProps) {
+export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
     //const [isLoading, setIsLoading] = useState(true);
-    const [localRatings, setLocalRatings] = useState<PerfumeRatingDownloadDTO[] | undefined>(ratings);
+    const [localRatings, setLocalRatings] = useState<PerfumeRatingDownloadDTO[] | undefined>(perfume.perfume.ratings);
 
     const auth = useAuth();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            comment: "",
-            rating: 0,
+            comment: perfume.lastComment ?? "",
+            rating: perfume.averageRating ?? 0,
         },
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         if (auth.guardAction()) return;
-        const result = await addPerfumeRating(perfumeId, values.rating, values.comment);
+        const result = await addPerfumeRating(perfume.perfume.id, values.rating, values.comment);
         if (result.ok) {
             showSuccess("Rating added");
             reload();
@@ -54,7 +55,7 @@ export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingForm
     }
 
     async function reload() {
-        const newRatings = await getPerfumeRatings(perfumeId);
+        const newRatings = await getPerfumeRatings(perfume.perfume.id);
         setLocalRatings(newRatings);
     }
 
@@ -70,41 +71,37 @@ export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingForm
                     onSubmit={form.handleSubmit(onSubmit)}
                     className="flex flex-col items-center justify-center mt-0"
                 >
-                    <div className="text-center w-full">
+                    <div className="flex items-end space-x-4 w-full mb-2">
+                        <Button color="primary" type="submit">
+                            <Save /> Rate
+                        </Button>
                         <FormField
                             control={form.control}
-                            name="comment"
+                            name="rating"
                             render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormLabel>Comment </FormLabel>
+                                <FormItem className="flex-1">
                                     <FormControl>
-                                        <Input placeholder="Comment" {...field} className="w-full" />
+                                        <Input placeholder="0" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <div className="flex items-end space-x-4 w-full mb-2">
-                            <FormField
-                                control={form.control}
-                                name="rating"
-                                render={({ field }) => (
-                                    <FormItem className="flex-1">
-                                        <FormLabel>Rating </FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="0" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <Button color="primary" type="submit">
-                                <Save /> Rate
-                            </Button>
-                        </div>
-                        <Separator className="mb-2"></Separator>
-                        {localRatings && <DataTable columns={PerfumeRatingColumns} data={localRatings} />}
+                        <FormField
+                            control={form.control}
+                            name="comment"
+                            render={({ field }) => (
+                                <FormItem className="flex-4">
+                                    <FormControl>
+                                        <Input placeholder="Comment" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
+                    <Separator className="mb-2"></Separator>
+                    {localRatings && <DataTable columns={PerfumeRatingColumns} data={localRatings} />}
                 </form>
             </Form>
 

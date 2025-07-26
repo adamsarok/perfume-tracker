@@ -92,7 +92,6 @@ export default function PerfumeEditForm({
         if (perfumeId) {
           const perfume = await getPerfume(perfumeId);
           setPerfume(perfume);
-          console.log(perfume);
           setImageUrl(perfume.perfume.imageUrl);
           loadedTags.forEach((allTag) => {
             if (
@@ -332,83 +331,8 @@ export default function PerfumeEditForm({
                   )}
                 />
               </div>
-              <div className="w-full mb-0 mr-5">
-                <ChipClouds
-                  className="w-full mb-0 mr-5"
-                  bottomChipProps={bottomChipProps}
-                  topChipProps={topChipProps}
-                  selectChip={selectChip}
-                  unSelectChip={unSelectChip}
-                />
-              </div>
+             
 
-              <div className="flex items-center space-x-4 mt-2 mb-2 w-full">
-                <FormField
-                  control={form.control}
-                  name="winter"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Winter </FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="spring"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Spring </FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="summer"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Summer </FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="autumn"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Autumn </FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div></div>
               <div className="flex mt-4 mb-2 w-full">
                 <Button color="primary" className="mr-4 flex-1 w-full" type="submit" >
                   <Save /> {perfume ? "Update" : "Insert"}
@@ -456,7 +380,16 @@ export default function PerfumeEditForm({
             </div>
           </div>
         </form>
-        <PerfumeRatings perfumeId={perfumeId} ratings={perfume?.perfume.ratings}></PerfumeRatings>
+        {perfume && <PerfumeRatings perfume={perfume}></PerfumeRatings>}
+        <div className="w-full mb-0 mr-5">
+                <ChipClouds
+                  className="w-full mb-0 mr-5"
+                  bottomChipProps={bottomChipProps}
+                  topChipProps={topChipProps}
+                  selectChip={selectChip}
+                  unSelectChip={unSelectChip}
+                />
+              </div>
       </Form>
     </div>
   );
