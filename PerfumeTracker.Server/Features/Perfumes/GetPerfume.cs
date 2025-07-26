@@ -21,6 +21,7 @@ public class GetPerfumeHandler(PerfumeTrackerContext context, IPresignedUrlServi
 			.Include(x => x.PerfumeEvents)
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
+			.Include(x => x.PerfumeRatings)
 			.Where(p => p.Id == request.Id)
 			.Select(p => p.ToPerfumeWithWornStatsDto(settings, presignedUrlService))
 			.AsSplitQuery()

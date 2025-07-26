@@ -109,5 +109,9 @@ export const columns: ColumnDef<PerfumeListDTO>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const date = row.original.lastWorn ? new Date(row.original.lastWorn) : null;
+      return <span>{date ? date.toLocaleString(undefined, { dateStyle: 'short' }) : ''}</span>;
+   },
   },
 ];

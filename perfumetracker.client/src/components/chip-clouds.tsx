@@ -63,35 +63,23 @@ export default function ChipClouds({
   return (
     <div className={className}>
       <div className="flex flex-wrap min-h-[50px]">
-        {topChips
-          .toSorted((a, b) => a.name.localeCompare(b.name))
-          .map((c) => (
-            <div key={c.name} className="mt-1 cursor-pointer p-[5px] text-lg">
-              <ColorChip
-                className={c.className}
-                color={c.color}
-                name={c.name}
-                onChipClick={() => handleTopChipClick(c)}
-                enabled
-              />
-            </div>
-          ))}
-      </div>
+
+
       <Drawer modal={false}>
         <DrawerTrigger asChild>
-          <Button>Add Tags</Button>
+          <Button className="ml-1 mt-2 h-6 px-2 py-0 text-xs">Add Tags</Button>
         </DrawerTrigger>
         <DrawerContent className="max-h-64">
           <DrawerTitle>Available tags:</DrawerTitle>
           <ScrollArea className="rounded-md border h-64">
             <div className="flex flex-wrap min-h-[50px]">
-              <div key="New" className="mt-1 cursor-pointer p-[5px] text-lg">
+              <div key="New" className="ml-1 mt-2 cursor-pointer">
                 <TagAddModal tagAdded={handleModalClose} />
               </div>
               {bottomChips.concat(dividers)
                 .toSorted((a, b) => a.name.localeCompare(b.name))
                 .map((c) => (
-                  <div key={c.name} className="mt-1 cursor-pointer p-[5px] text-lg">
+                  <div key={c.name} className="ml-1 mt-2 cursor-pointer">
                     <ColorChip
                       className={c.className}
                       color={c.color}
@@ -105,6 +93,20 @@ export default function ChipClouds({
           </ScrollArea>
         </DrawerContent>
       </Drawer>
+      {topChips
+          .toSorted((a, b) => a.name.localeCompare(b.name))
+          .map((c) => (
+            <div key={c.name} className="ml-1 mt-2 cursor-pointer">
+              <ColorChip
+                className={c.className}
+                color={c.color}
+                name={c.name}
+                onChipClick={() => handleTopChipClick(c)}
+                enabled
+              />
+            </div>
+          ))}
+      </div>
     </div>
   );
 }

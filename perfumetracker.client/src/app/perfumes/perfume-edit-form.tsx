@@ -20,7 +20,6 @@ import { Input } from "../../components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Checkbox } from "../../components/ui/checkbox";
 import { Separator } from "../../components/ui/separator";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import {
@@ -39,6 +38,7 @@ import { Save, Trash2 } from "lucide-react";
 import { getTags } from "@/services/tag-service";
 import { get } from "@/services/axios-service";
 import { useAuth } from "@/hooks/use-auth";
+import PerfumeRatings from "./perfume-ratings";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -58,15 +58,8 @@ const formSchema = z.object({
       message: "Perfume must be at least 1 characters.",
     })
     .trim(),
-  rating: z.coerce.number().min(0).max(10),
   amount: z.coerce.number().min(0).max(200),
   mlLeft: z.coerce.number().min(0).max(200),
-  notes: z
-    .string()
-    .min(1, {
-      message: "Notes must be at least 1 characters.",
-    })
-    .trim(),
   winter: z.boolean(),
   summer: z.boolean(),
   autumn: z.boolean(),
@@ -147,10 +140,8 @@ export default function PerfumeEditForm({
     defaultValues: {
       house: "",
       perfume: "",
-      rating: 0,
       amount: 0,
       mlLeft: 0,
-      notes: "",
       winter: true,
       summer: true,
       autumn: true,
@@ -165,10 +156,8 @@ export default function PerfumeEditForm({
       form.reset({
         house: perfume.perfume.house,
         perfume: perfume.perfume.perfumeName,
-        rating: perfume.perfume.rating,
         amount: perfume.perfume.ml,
         mlLeft: perfume.perfume.mlLeft,
-        notes: perfume.perfume.notes,
         winter: perfume.perfume.winter,
         summer: perfume.perfume.summer,
         autumn: perfume.perfume.autumn,
@@ -187,8 +176,6 @@ export default function PerfumeEditForm({
       id: perfumeId,
       house: values.house,
       perfumeName: values.perfume,
-      rating: values.rating,
-      notes: values.notes,
       ml: values.amount,
       mlLeft: values.mlLeft,
       summer: values.summer,
@@ -266,11 +253,11 @@ export default function PerfumeEditForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col items-center justify-center p-5 mt-0"
+          className="flex flex-col items-center justify-center w-full"
         >
-          <div className="flex flex-col items-center justify-center p-5 mt-0">
-            <div className="w-full max-w-[250px]">
-              <div className="flex items-center justify-center space-x-2 mb-2">
+          <div className="flex flex-col items-center justify-center w-full">
+            <div className="w-full">
+              <div className="flex items-center justify-center space-x-2 mb-2 w-full">
                 <img
                   onClick={() => { 
                     if (auth.guardAction()) return;
@@ -287,56 +274,44 @@ export default function PerfumeEditForm({
               </div>
               {showUploadButtons && <UploadComponent perfumeId={perfume?.perfume.id} onUpload={onUpload} />}
             </div>
-            <div className="text-center">
+            <div className="text-center w-full">
+            <div className="flex w-full space-x-2">
               <FormField
                 control={form.control}
                 name="house"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex-1">
                     <FormLabel>House</FormLabel>
                     <FormControl>
-                      <Input placeholder="House" {...field}  />
+                      <Input placeholder="House" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
+              <FormField 
                 control={form.control}
                 name="perfume"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex-3">
                     <FormLabel>Perfume</FormLabel>
                     <FormControl>
-                      <Input placeholder="Perfume" {...field}  />
+                      <Input placeholder="Perfume" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <div className="flex">
-                <FormField
-                  control={form.control}
-                  name="rating"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Rating</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Rating" {...field}  />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              </div>
+              <div className="flex w-full space-x-2">
                 <FormField
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex-1">
                       <FormLabel>Bottle (ml)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ml" {...field}  />
+                        <Input placeholder="Ml" {...field} className="w-full" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -346,29 +321,16 @@ export default function PerfumeEditForm({
                   control={form.control}
                   name="mlLeft"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex-1">
                       <FormLabel>Remaining (ml)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ml left" {...field}  />
+                        <Input placeholder="Ml left" {...field} className="w-full" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Notes" {...field}  />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <div className="w-full mb-0 mr-5">
                 <ChipClouds
                   className="w-full mb-0 mr-5"
@@ -378,82 +340,12 @@ export default function PerfumeEditForm({
                   unSelectChip={unSelectChip}
                 />
               </div>
-
-              <div className="flex items-center space-x-4 mt-2 mb-2">
-                <FormField
-                  control={form.control}
-                  name="winter"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Winter </FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="spring"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Spring </FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="summer"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Summer </FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="autumn"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Autumn </FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div></div>
-              <div className="flex mt-4 mb-2">
-                <Button color="primary" className="mr-4 flex-1" type="submit" >
+              <div className="flex mt-4 mb-2 w-full">
+                <Button color="primary" className="mr-4 flex-1 w-full" type="submit" >
                   <Save /> {perfume ? "Update" : "Insert"}
                 </Button>
                 <MessageBox
-                  className="flex-1"
+                  className="flex-1 w-full"
                   startContent={<Trash2 />}
                   modalButtonColor="danger"
                   modalButtonText="Delete"
@@ -466,8 +358,9 @@ export default function PerfumeEditForm({
                   button2text="Cancel"
                 ></MessageBox>
               </div>
+
               <Separator className="mb-2"></Separator>
-              <div className="flex items-center space-x-4 mb-2 mt-2">
+              <div className="flex items-center space-x-4 mb-2 mt-2 w-full">
                 <Label>{`Last worn: ${
                   perfume?.lastWorn
                     ? format(new Date(perfume?.lastWorn), "yyyy.MM.dd")
@@ -477,7 +370,7 @@ export default function PerfumeEditForm({
                 <Label>{`Worn ${perfume?.wornTimes} times`}</Label>
               </div>
               <Separator className="mb-2"></Separator>
-              <div className="flex items-center space-x-4 mb-2 mt-2">
+              <div className="flex items-center space-x-4 mb-2 mt-2 w-full">
                 <Label>
                   Usage: {perfume?.burnRatePerYearMl?.toFixed(1)} ml/year
                 </Label>
@@ -488,13 +381,14 @@ export default function PerfumeEditForm({
               <SprayOnComponent
                 perfumeId={perfume?.perfume.id}
                 onSuccess={null}
-                className=""
+                className="w-full"
                 isRandomPerfume={isRandomPerfume}
               ></SprayOnComponent>
               <Separator className="mb-2 mt-2"></Separator>
             </div>
           </div>
         </form>
+        {perfume && <PerfumeRatings perfume={perfume}></PerfumeRatings>}
       </Form>
     </div>
   );

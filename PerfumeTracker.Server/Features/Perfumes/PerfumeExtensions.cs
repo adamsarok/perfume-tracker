@@ -20,28 +20,35 @@ public static class PerfumeExtensions {
 				}
 			}
 		}
+		string lastComment = "";
+		decimal avgRating = 0;
+		if (p.PerfumeRatings.Any()) {
+			lastComment = p.PerfumeRatings.OrderByDescending(x => x.RatingDate).First().Comment;
+			avgRating = Math.Round(p.PerfumeRatings.Average(x => x.Rating), 1);
+		}
 		return new PerfumeWithWornStatsDto(
-				 new PerfumeDto(
-					p.Id,
-					p.House,
-					p.PerfumeName,
-					p.Rating,
-					p.Notes,
-					p.Ml,
-					p.MlLeft,
-					p.ImageObjectKeyNew,
-					presignedUrlService.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET), 
-					p.Autumn,
-					p.Spring,
-					p.Summer,
-					p.Winter,
-					p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id, tag.Tag.IsDeleted)).ToList(),
-					p.IsDeleted
-				  ),
-				  worns.Any() ? worns.Count : 0,
-				  worns.Any() ? worns.Max(x => x.CreatedAt) : null,
-				  burnRatePerYearMl,
-				  yearsLeft
-				  );
+			new PerfumeDto(
+				p.Id,
+				p.House,
+				p.PerfumeName,
+				p.Ml,
+				p.MlLeft,
+				p.ImageObjectKeyNew,
+				presignedUrlService.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET),
+				p.Autumn,
+				p.Spring,
+				p.Summer,
+				p.Winter,
+				p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id, tag.Tag.IsDeleted)).ToList(),
+				p.IsDeleted,
+				p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(p.Id, r.Rating, r.Comment, r.RatingDate)).ToList()
+			),
+			worns.Any() ? worns.Count : 0,
+			worns.Any() ? worns.Max(x => x.CreatedAt) : null,
+			burnRatePerYearMl,
+			yearsLeft,
+			avgRating,
+			lastComment
+		);
 	}
 }

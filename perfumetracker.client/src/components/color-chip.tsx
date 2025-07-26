@@ -13,7 +13,7 @@ export default function ColorChip(c: ChipProp) {
   const isEnabled = c.enabled ?? true;
   return (
     <Badge
-      className={c.className}
+      className={`${c.className}`}
       style={{ backgroundColor: c.color, color: getContrastColor(c.color) }}
       onClick={() => {
         if (isEnabled && c.onChipClick) c.onChipClick(c);

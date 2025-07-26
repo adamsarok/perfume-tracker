@@ -19,6 +19,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<PerfumeRandoms> PerfumeRandoms { get; set; }
 	public virtual DbSet<PerfumeTag> PerfumeTags { get; set; }
 	public virtual DbSet<PerfumeEvent> PerfumeEvents { get; set; }
+	public virtual DbSet<PerfumeRating> PerfumeRatings { get; set; }
 	public virtual DbSet<Recommendation> Recommendations { get; set; }
 	public virtual DbSet<Tag> Tags { get; set; }
 	public virtual DbSet<Achievement> Achievements { get; set; }
@@ -82,8 +83,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.Property(e => e.ImageObjectKeyNew);
 			entity.Property(e => e.Ml)
 				.HasDefaultValue(2);
-			entity.Property(e => e.Notes)
-				.HasDefaultValueSql("''::text");
 			entity.Property(e => e.Spring)
 				.HasDefaultValue(true);
 			entity.Property(e => e.Summer)
@@ -93,7 +92,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasGeneratedTsVectorColumn(
 				p => p.FullText,
 				"simple",
-				p => new { p.PerfumeName, p.House, p.Notes, p.Rating })
+				p => new { p.PerfumeName, p.House })
 				.HasIndex(p => p.FullText)
 				.HasMethod("GIN");
 			entity
@@ -142,6 +141,18 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.WithMany(p => p.PerfumeEvents)
 				.HasForeignKey(d => d.PerfumeId)
 				.HasConstraintName("PerfumeEvent_perfumeId_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
+
+		modelBuilder.Entity<PerfumeRating>(entity => {
+			entity.HasKey(e => e.Id).HasName("PerfumeRating_pkey");
+
+			entity.ToTable("PerfumeRating");
+
+			entity.HasOne(d => d.Perfume)
+				.WithMany(p => p.PerfumeRatings)
+				.HasForeignKey(d => d.PerfumeId)
+				.HasConstraintName("PerfumeRating_perfumeId_fkey");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 

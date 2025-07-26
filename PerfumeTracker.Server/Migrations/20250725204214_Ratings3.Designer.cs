@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using NpgsqlTypes;
 using PerfumeTracker.Server.DbContext;
 
 #nullable disable
@@ -12,9 +12,11 @@ using PerfumeTracker.Server.DbContext;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumeTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250725204214_Ratings3")]
+    partial class Ratings3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -338,12 +340,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<NpgsqlTsVector>("FullText")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("tsvector")
-                        .HasAnnotation("Npgsql:TsVectorConfig", "simple")
-                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "PerfumeName", "House" });
-
                     b.Property<string>("House")
                         .IsRequired()
                         .HasColumnType("text");
@@ -386,10 +382,6 @@ namespace PerfumeTracker.Server.Migrations
 
                     b.HasKey("Id")
                         .HasName("Perfume_pkey");
-
-                    b.HasIndex("FullText");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("FullText"), "GIN");
 
                     b.HasIndex("House", "PerfumeName")
                         .IsUnique();

@@ -1,11 +1,10 @@
+import { PerfumeRatingDownloadDTO } from "./PerfumeRatingDownloadDTO";
 import { TagDTO } from "./TagDTO";
 
 export interface PerfumeDTO {
     id: string;
     house: string;
     perfumeName: string;
-    rating: number;
-    notes: string;
     ml: number;
     mlLeft: number;
     imageObjectKey: string;
@@ -15,4 +14,5 @@ export interface PerfumeDTO {
     summer: boolean;
     winter: boolean;
     tags: TagDTO[];
+    ratings: PerfumeRatingDownloadDTO[];
 }

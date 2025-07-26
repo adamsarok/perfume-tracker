@@ -5,5 +5,7 @@ export interface PerfumeWithWornStatsDTO {
     wornTimes: number | undefined,
     lastWorn: Date | undefined,
     burnRatePerYearMl: number,
-    yearsLeft: number
+    yearsLeft: number,
+    averageRating: number,
+    lastComment: string,
 }
