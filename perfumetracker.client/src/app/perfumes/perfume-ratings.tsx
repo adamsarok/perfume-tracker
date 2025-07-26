@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { addPerfumeRating } from "@/services/perfume-rating-service"
+import { addPerfumeRating, getPerfumeRatings } from "@/services/perfume-rating-service"
 import { showError, showSuccess } from "@/services/toasty-service";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
+import { DataTable } from "@/components/ui/data-table";
+import { PerfumeRatingColumns } from "./perfume-rating-columns";
 
 interface PerfumeRatingFormProps {
     readonly perfumeId: string;
@@ -22,12 +23,6 @@ interface PerfumeRatingFormProps {
 }
 
 const formSchema = z.object({
-    perfumeId: z
-        .string()
-        .min(1, {
-            message: "PerfumeId must be at least 1 characters.",
-        })
-        .trim(),
     comment: z
         .string()
         .min(1, {
@@ -45,26 +40,28 @@ export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingForm
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            perfumeId: "",
             comment: "",
             rating: 0,
         },
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        console.log("calling submit");
         if (auth.guardAction()) return;
         const result = await addPerfumeRating(perfumeId, values.rating, values.comment);
-        if (result.ok && result.id) {
+        console.log(result);
+        if (result.ok) {
             showSuccess("Rating added");
-            reload(result.id);
+            reload();
         } else showError("Rating failed:", result.error ?? "unknown error");
     }
 
     const reload = useCallback(
-        (id: string | undefined) => {
-            if (id) router.push(`/perfumes/${id}`);
+        async () => {
+            const newRatings = await getPerfumeRatings(perfumeId);
+            console.log(newRatings);
         },
-        [router]
+        []
     );
 
     // if (isLoading) {
@@ -72,6 +69,7 @@ export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingForm
     // }
 
     //todo: existing ratings
+    console.log(ratings);
 
     return (
         <div>
@@ -80,26 +78,26 @@ export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingForm
                     onSubmit={form.handleSubmit(onSubmit)}
                     className="flex flex-col items-center justify-center mt-0"
                 >
-                    <div className="text-center">
+                    <div className="text-center w-full">
                         <FormField
                             control={form.control}
                             name="comment"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="w-full">
                                     <FormLabel>Comment </FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Comment" {...field} />
+                                        <Input placeholder="Comment" {...field} className="w-full" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <div className="flex items-center justify-left space-x-4 ">
+                        <div className="flex items-end space-x-4 w-full mb-2">
                             <FormField
                                 control={form.control}
                                 name="rating"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="flex-1">
                                         <FormLabel>Rating </FormLabel>
                                         <FormControl>
                                             <Input placeholder="0" {...field} />
@@ -108,11 +106,12 @@ export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingForm
                                     </FormItem>
                                 )}
                             />
-                            <Button color="primary" className="mr-4 flex-1" type="submit" >
-                                <Save /> "Rate"
+                            <Button color="primary" type="submit">
+                                <Save /> Rate
                             </Button>
                         </div>
                         <Separator className="mb-2"></Separator>
+                        {ratings && <DataTable columns={PerfumeRatingColumns} data={ratings} pagingEnabled={false}/>}
                     </div>
                 </form>
             </Form>

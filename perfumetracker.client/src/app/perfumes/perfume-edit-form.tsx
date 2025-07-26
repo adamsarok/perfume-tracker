@@ -92,6 +92,7 @@ export default function PerfumeEditForm({
         if (perfumeId) {
           const perfume = await getPerfume(perfumeId);
           setPerfume(perfume);
+          console.log(perfume);
           setImageUrl(perfume.perfume.imageUrl);
           loadedTags.forEach((allTag) => {
             if (
@@ -454,10 +455,10 @@ export default function PerfumeEditForm({
                 isRandomPerfume={isRandomPerfume}
               ></SprayOnComponent>
               <Separator className="mb-2 mt-2"></Separator>
-              <PerfumeRatings perfumeId={perfumeId} ratings={perfume?.perfume.ratings}></PerfumeRatings>
             </div>
           </div>
         </form>
+        <PerfumeRatings perfumeId={perfumeId} ratings={perfume?.perfume.ratings}></PerfumeRatings>
       </Form>
     </div>
   );
