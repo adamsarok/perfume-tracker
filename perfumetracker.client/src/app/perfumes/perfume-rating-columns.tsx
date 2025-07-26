@@ -38,4 +38,22 @@ export const PerfumeRatingColumns: ColumnDef<PerfumeRatingDownloadDTO>[] = [
             return <span>{row.original.rating}</span>
         },
     },
+    {
+        accessorKey: "ratingDate",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Date
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            );
+        },
+        cell: ({ row }) => {
+            const date = row.original.ratingDate ? new Date(row.original.ratingDate) : null;
+            return <span>{date ? date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>;
+        },
+    },
 ];

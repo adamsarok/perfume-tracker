@@ -20,7 +20,6 @@ import { Input } from "../../components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Checkbox } from "../../components/ui/checkbox";
 import { Separator } from "../../components/ui/separator";
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import {
@@ -276,33 +275,34 @@ export default function PerfumeEditForm({
               {showUploadButtons && <UploadComponent perfumeId={perfume?.perfume.id} onUpload={onUpload} />}
             </div>
             <div className="text-center w-full">
+            <div className="flex w-full space-x-2">
               <FormField
                 control={form.control}
                 name="house"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="flex-1">
                     <FormLabel>House</FormLabel>
                     <FormControl>
-                      <Input placeholder="House" {...field} className="w-full" />
+                      <Input placeholder="House" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
+              <FormField 
                 control={form.control}
                 name="perfume"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="flex-3">
                     <FormLabel>Perfume</FormLabel>
                     <FormControl>
-                      <Input placeholder="Perfume" {...field} className="w-full" />
+                      <Input placeholder="Perfume" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              </div>
               <div className="flex w-full space-x-2">
                 <FormField
                   control={form.control}
@@ -331,8 +331,15 @@ export default function PerfumeEditForm({
                   )}
                 />
               </div>
-             
-
+              <div className="w-full mb-0 mr-5">
+                <ChipClouds
+                  className="w-full mb-0 mr-5"
+                  bottomChipProps={bottomChipProps}
+                  topChipProps={topChipProps}
+                  selectChip={selectChip}
+                  unSelectChip={unSelectChip}
+                />
+              </div>
               <div className="flex mt-4 mb-2 w-full">
                 <Button color="primary" className="mr-4 flex-1 w-full" type="submit" >
                   <Save /> {perfume ? "Update" : "Insert"}
@@ -351,6 +358,7 @@ export default function PerfumeEditForm({
                   button2text="Cancel"
                 ></MessageBox>
               </div>
+
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2 w-full">
                 <Label>{`Last worn: ${
@@ -381,15 +389,6 @@ export default function PerfumeEditForm({
           </div>
         </form>
         {perfume && <PerfumeRatings perfume={perfume}></PerfumeRatings>}
-        <div className="w-full mb-0 mr-5">
-                <ChipClouds
-                  className="w-full mb-0 mr-5"
-                  bottomChipProps={bottomChipProps}
-                  topChipProps={topChipProps}
-                  selectChip={selectChip}
-                  unSelectChip={unSelectChip}
-                />
-              </div>
       </Form>
     </div>
   );

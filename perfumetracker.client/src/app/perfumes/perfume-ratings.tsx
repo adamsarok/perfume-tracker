@@ -8,7 +8,7 @@ import { z } from "zod";
 import { addPerfumeRating, getPerfumeRatings } from "@/services/perfume-rating-service"
 import { showError, showSuccess } from "@/services/toasty-service";
 import { useState, useEffect } from "react";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
@@ -16,7 +16,6 @@ import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
 import { PerfumeRatingColumns } from "./perfume-rating-columns";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
-import { Label } from "@/components/ui/label";
 
 interface PerfumeRatingFormProps {
     readonly perfume: PerfumeWithWornStatsDTO;
@@ -100,11 +99,10 @@ export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
                             )}
                         />
                     </div>
-                    <Separator className="mb-2"></Separator>
-                    {localRatings && <DataTable columns={PerfumeRatingColumns} data={localRatings} />}
                 </form>
             </Form>
-
+            <Separator className="mb-2"></Separator>
+            {localRatings && <DataTable columns={PerfumeRatingColumns} data={localRatings} />}
         </div>
     );
 }
