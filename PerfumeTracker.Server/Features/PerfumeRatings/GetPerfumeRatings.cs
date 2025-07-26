@@ -2,7 +2,7 @@
 public record GetPerfumeRatingQuery(Guid PerfumeId) : IQuery<List<PerfumeRatingDownloadDto>>;
 public class GetPerfumeRatingEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/perfumes/{perfumeId}/ratings", async (ISender sender, Guid perfumeId) => {
+		app.MapGet("/api/perfumes/{perfumeId}/ratings", async (ISender sender, Guid perfumeId) => {
 			var result = await sender.Send(new GetPerfumeRatingQuery(perfumeId));
 			return Results.Ok(result);
 		}).WithTags("PerfumeRatings")

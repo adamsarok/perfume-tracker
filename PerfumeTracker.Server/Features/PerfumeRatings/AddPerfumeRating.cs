@@ -6,9 +6,9 @@ public record PerfumeRatingDownloadDto(Guid PerfumeId, decimal Rating, string Co
 public record AddPerfumeRatingCommand(PerfumeRatingUploadDto Dto) : ICommand<PerfumeRatingDownloadDto>;
 public class AddPerfumeRatingEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/perfumes/{id}/ratings", async (PerfumeRatingUploadDto dto, ISender sender) => {
+		app.MapPost("/api/perfumes/{perfumeId}/ratings", async (PerfumeRatingUploadDto dto, ISender sender) => {
 			var result = await sender.Send(new AddPerfumeRatingCommand(dto));
-			return Results.CreatedAtRoute("GetPerfumeRatings", new { id = dto.PerfumeId }, result);
+			return Results.CreatedAtRoute("GetPerfumeRatings", new { perfumeId = dto.PerfumeId }, result);
 		}).WithTags("PerfumeRatings")
 			.WithName("PostPerfumeRating")
 			.RequireAuthorization(Policies.WRITE);

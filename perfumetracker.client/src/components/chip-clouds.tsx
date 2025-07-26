@@ -76,7 +76,7 @@ export default function ChipClouds({
               />
             </div>
           ))}
-      </div>
+
       <Drawer modal={false}>
         <DrawerTrigger asChild>
           <Button>Add Tags</Button>
@@ -105,6 +105,7 @@ export default function ChipClouds({
           </ScrollArea>
         </DrawerContent>
       </Drawer>
+      </div>
     </div>
   );
 }

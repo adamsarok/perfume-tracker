@@ -7,8 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { addPerfumeRating, getPerfumeRatings } from "@/services/perfume-rating-service"
 import { showError, showSuccess } from "@/services/toasty-service";
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,8 +33,8 @@ const formSchema = z.object({
 
 export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingFormProps) {
     //const [isLoading, setIsLoading] = useState(true);
+    const [localRatings, setLocalRatings] = useState<PerfumeRatingDownloadDTO[] | undefined>(ratings);
 
-    const router = useRouter();
     const auth = useAuth();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -46,30 +45,23 @@ export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingForm
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log("calling submit");
         if (auth.guardAction()) return;
         const result = await addPerfumeRating(perfumeId, values.rating, values.comment);
-        console.log(result);
         if (result.ok) {
             showSuccess("Rating added");
             reload();
         } else showError("Rating failed:", result.error ?? "unknown error");
     }
 
-    const reload = useCallback(
-        async () => {
-            const newRatings = await getPerfumeRatings(perfumeId);
-            console.log(newRatings);
-        },
-        []
-    );
+    async function reload() {
+        const newRatings = await getPerfumeRatings(perfumeId);
+        setLocalRatings(newRatings);
+    }
 
-    // if (isLoading) {
-    //     return <div>Loading...</div>;
-    // }
-
-    //todo: existing ratings
-    console.log(ratings);
+    // For debugging: log when localRatings changes
+    useEffect(() => {
+        console.log("localRatings updated:", localRatings);
+    }, [localRatings]);
 
     return (
         <div>
@@ -111,7 +103,7 @@ export default function PerfumeRatings({ perfumeId, ratings }: PerfumeRatingForm
                             </Button>
                         </div>
                         <Separator className="mb-2"></Separator>
-                        {ratings && <DataTable columns={PerfumeRatingColumns} data={ratings} pagingEnabled={false}/>}
+                        {localRatings && <DataTable columns={PerfumeRatingColumns} data={localRatings} />}
                     </div>
                 </form>
             </Form>
