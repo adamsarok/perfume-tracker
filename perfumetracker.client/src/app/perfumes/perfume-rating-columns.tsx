@@ -18,7 +18,7 @@ export const PerfumeRatingColumns: ColumnDef<PerfumeRatingDownloadDTO>[] = [
             );
         },
         cell: ({ row }) => {
-            return <a>{row.original.comment}</a>
+            return <span>{row.original.comment}</span>
         },
     },
     {
@@ -35,7 +35,7 @@ export const PerfumeRatingColumns: ColumnDef<PerfumeRatingDownloadDTO>[] = [
             );
         },
         cell: ({ row }) => {
-            return <a>{row.original.rating}</a>
+            return <span>{row.original.rating}</span>
         },
     },
 ];

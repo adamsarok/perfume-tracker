@@ -35,7 +35,7 @@ export default function PerfumeWornTable({
         house: x.perfume.house,
         perfume: x.perfume.perfumeName,
         ml: x.perfume.mlLeft,
-        rating: 0, //TODO avg rating
+        rating: x.averageRating,
         wornTimes: x.wornTimes,
         lastWorn: x.lastWorn,
         tags: x.perfume.tags,
