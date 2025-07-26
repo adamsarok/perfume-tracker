@@ -40,13 +40,13 @@ public class PerfumeWornTests : TestBase, IClassFixture<WebApplicationFactory<Pr
 	}
 
 	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1", Rating = 10
+			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1"
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume1")
 			},
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2", Rating = 1
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2"
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume2")
 			},
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "NotWornPerfume", Rating = 1
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "NotWornPerfume"
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("NotWornPerfume")
 			},
 		};

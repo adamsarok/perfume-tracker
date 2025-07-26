@@ -4,8 +4,6 @@ export interface PerfumeUploadDTO {
     id: string;
     house: string;
     perfumeName: string;
-    rating: number;
-    notes: string;
     ml: number;
     mlLeft: number;
     autumn: boolean;

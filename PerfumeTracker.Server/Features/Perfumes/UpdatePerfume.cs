@@ -1,5 +1,4 @@
-﻿
-using PerfumeTracker.Server.Features.Outbox;
+﻿using PerfumeTracker.Server.Features.Outbox;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 public record UpdatePerfumeCommand(Guid Id, PerfumeUploadDto Dto) : ICommand<PerfumeDto>;

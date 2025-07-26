@@ -3,8 +3,6 @@
 public partial class Perfume : UserEntity {
 	public string House { get; set; } = null!;
 	public string PerfumeName { get; set; } = null!;
-	public double Rating { get; set; }
-	public string Notes { get; set; } = null!;
 	public decimal Ml { get; set; }
 	[NotMapped]
 	public decimal MlLeft { get; set; }
@@ -17,4 +15,5 @@ public partial class Perfume : UserEntity {
 	public virtual ICollection<PerfumeRandoms> PerfumeRandoms { get; set; } = new List<PerfumeRandoms>();
 	public virtual ICollection<PerfumeTag> PerfumeTags { get; set; } = new List<PerfumeTag>();
 	public virtual ICollection<PerfumeEvent> PerfumeEvents { get; set; } = new List<PerfumeEvent>();
+	public virtual ICollection<PerfumeRating> PerfumeRatings { get; set; } = new List<PerfumeRating>();
 }

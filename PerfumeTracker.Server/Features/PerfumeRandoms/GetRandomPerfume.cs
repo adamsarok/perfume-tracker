@@ -33,7 +33,7 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 		var season = Season;
 		var all = await context
 			.Perfumes
-			.Where(x => x.Ml > 0 && x.Rating >= settings.MinimumRating)
+			.Where(x => x.Ml > 0 && x.PerfumeRatings.Average(x => x.Rating) >= settings.MinimumRating)
 			.Where(x => (!x.Winter && !x.Spring && !x.Summer && !x.Autumn) ||
 				(season == Seasons.Autumn && x.Autumn) ||
 				(season == Seasons.Winter && x.Winter) ||

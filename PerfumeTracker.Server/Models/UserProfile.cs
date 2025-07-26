@@ -18,7 +18,7 @@ public class UserProfile : Entity {
 	public string UserName { get; set; } = null!;
 	public string Email { get; set; } = null!;
 	public int XP { get; set; } = 0;
-	public double MinimumRating { get; set; }
+	public decimal MinimumRating { get; set; }
 	public int DayFilter { get; set; }
 	public bool ShowMalePerfumes { get; set; }
 	public bool ShowUnisexPerfumes { get; set; }

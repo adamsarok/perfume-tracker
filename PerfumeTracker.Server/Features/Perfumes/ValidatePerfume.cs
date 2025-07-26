@@ -4,6 +4,5 @@ public class PerfumeUploadValidator : AbstractValidator<PerfumeUploadDto> {
 		RuleFor(x => x.House).Length(1, 250);
 		RuleFor(x => x.PerfumeName).Length(1, 250);
 		RuleFor(x => x.Ml).GreaterThan(0.1m);
-		RuleFor(x => x.Rating).GreaterThanOrEqualTo(0);
 	}
 }

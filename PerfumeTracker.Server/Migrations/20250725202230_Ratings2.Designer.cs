@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTracker.Server.DbContext;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumeTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250725202230_Ratings2")]
+    partial class Ratings2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -342,7 +345,7 @@ namespace PerfumeTracker.Server.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("tsvector")
                         .HasAnnotation("Npgsql:TsVectorConfig", "simple")
-                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "PerfumeName", "House" });
+                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "PerfumeName", "House", "Notes", "Rating" });
 
                     b.Property<string>("House")
                         .IsRequired()
@@ -359,9 +362,18 @@ namespace PerfumeTracker.Server.Migrations
                         .HasColumnType("numeric")
                         .HasDefaultValue(2m);
 
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValueSql("''::text");
+
                     b.Property<string>("PerfumeName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("double precision");
 
                     b.Property<bool>("Spring")
                         .ValueGeneratedOnAdd()
@@ -802,8 +814,8 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal>("MinimumRating")
-                        .HasColumnType("numeric");
+                    b.Property<double>("MinimumRating")
+                        .HasColumnType("double precision");
 
                     b.Property<bool>("ShowFemalePerfumes")
                         .HasColumnType("boolean");

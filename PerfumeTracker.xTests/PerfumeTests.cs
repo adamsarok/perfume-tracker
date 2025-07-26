@@ -36,10 +36,10 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	}
 
 	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1", Rating = 10
+			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1"
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume1")
 			},
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2", Rating = 1
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2"
 				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume2")
 			},
 		};
@@ -91,8 +91,6 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		var perfume = await scope.PerfumeTrackerContext.Perfumes.FirstAsync();
 		var dto = new PerfumeUploadDto(perfume.House,
 			perfume.PerfumeName,
-			perfume.Rating,
-			perfume.Notes,
 			perfume.Ml,
 			perfume.MlLeft,
 			perfume.Autumn,
@@ -118,7 +116,7 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	public async Task AddPerfume() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var dto = new PerfumeUploadDto("House3", "Perfume3", 5, "Notes", 50, 50, true, true, false, false, new());
+		var dto = new PerfumeUploadDto("House3", "Perfume3", 50, 50, true, true, false, false, new());
 		var handler = new AddPerfumeHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
 		var response = await handler.Handle(new AddPerfumeCommand(dto), new CancellationToken());
 		Assert.NotNull(response);
