@@ -280,7 +280,7 @@ export default function PerfumeEditForm({
                 control={form.control}
                 name="house"
                 render={({ field }) => (
-                  <FormItem className="flex-1">
+                  <FormItem className="w-64">
                     <FormLabel>House</FormLabel>
                     <FormControl>
                       <Input placeholder="House" {...field} />
@@ -293,7 +293,7 @@ export default function PerfumeEditForm({
                 control={form.control}
                 name="perfume"
                 render={({ field }) => (
-                  <FormItem className="flex-3">
+                  <FormItem className="w-64">
                     <FormLabel>Perfume</FormLabel>
                     <FormControl>
                       <Input placeholder="Perfume" {...field} />
@@ -304,11 +304,11 @@ export default function PerfumeEditForm({
               />
               </div>
               <div className="flex w-full space-x-2">
-                <FormField
+                <FormField 
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem className="w-64">
                       <FormLabel>Bottle (ml)</FormLabel>
                       <FormControl>
                         <Input placeholder="Ml" {...field} className="w-full" />
@@ -321,7 +321,7 @@ export default function PerfumeEditForm({
                   control={form.control}
                   name="mlLeft"
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem className="w-64">
                       <FormLabel>Remaining (ml)</FormLabel>
                       <FormControl>
                         <Input placeholder="Ml left" {...field} className="w-full" />
@@ -331,21 +331,22 @@ export default function PerfumeEditForm({
                   )}
                 />
               </div>
-              <div className="w-full mb-0 mr-5">
+              <div className="w-full">
                 <ChipClouds
-                  className="w-full mb-0 mr-5"
+                  className="w-full"
                   bottomChipProps={bottomChipProps}
                   topChipProps={topChipProps}
                   selectChip={selectChip}
                   unSelectChip={unSelectChip}
                 />
               </div>
-              <div className="flex mt-4 mb-2 w-full">
-                <Button color="primary" className="mr-4 flex-1 w-full" type="submit" >
+              <Separator className="mb-2"></Separator>
+              <div className="flex mb-2 justify-between w-full">
+                <Button color="primary" className="w-32" type="submit" >
                   <Save /> {perfume ? "Update" : "Insert"}
                 </Button>
                 <MessageBox
-                  className="flex-1 w-full"
+                  className="w-32"
                   startContent={<Trash2 />}
                   modalButtonColor="danger"
                   modalButtonText="Delete"
