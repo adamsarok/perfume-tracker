@@ -308,19 +308,38 @@ export default function PerfumeEditForm({
                 >
                   <ChevronLeft />
                 </Button>
-                <img
-                  onClick={() => { 
-                    if (auth.guardAction()) return;
-                    setShowUploadButtons(!showUploadButtons);
+                <div
+                  style={{
+                    width: 200,
+                    height: 200,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: !imageUrl ? "#f3f3f3" : "transparent",
+                    borderRadius: 8,
+                    overflow: "hidden",
                   }}
-                  alt={
-                    imageUrl
-                      ? "Image of a perfume"
-                      : "Placeholder icon for a perfume"
-                  }
-                  className={`max-w-[150px] object-contain cursor-pointer'}`}
-                  src={imageUrl || "/perfume-icon.svg"}
-                />
+                >
+                  <img
+                    onClick={() => {
+                      if (auth.guardAction()) return;
+                      setShowUploadButtons(!showUploadButtons);
+                    }}
+                    alt={
+                      imageUrl
+                        ? "Image of a perfume"
+                        : "Placeholder icon for a perfume"
+                    }
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                      cursor: "pointer",
+                      display: "block",
+                    }}
+                    src={imageUrl || "/perfume-icon.svg"}
+                  />
+                </div>
                 <Button
                   type="button"
                   size="icon"
