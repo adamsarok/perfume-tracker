@@ -19,6 +19,18 @@ export async function getPerfume(id: string): Promise<PerfumeWithWornStatsDTO> {
   return response.data;
 }
 
+export async function getNextPerfumeId(id: string): Promise<string> {
+  const qry = `/perfumes/${encodeURIComponent(id)}/next`;
+  const response = await get<string>(qry);
+  return response.data;
+}
+
+export async function getPreviousPerfumeId(id: string): Promise<string> {
+  const qry = `/perfumes/${encodeURIComponent(id)}/previous`;
+  const response = await get<string>(qry);
+  return response.data;
+}
+
 export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {
   const qry = `/perfumes/`;
   const response = await get<PerfumeWithWornStatsDTO[]>(qry);

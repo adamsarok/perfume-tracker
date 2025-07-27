@@ -1,6 +1,7 @@
 ﻿using PerfumeTracker.Server.Features.Common;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
+public enum Direction {	Next, Previous }
 public record GetPerfumeQuery(Guid Id) : IQuery<PerfumeWithWornStatsDto>;
 public class GetPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
