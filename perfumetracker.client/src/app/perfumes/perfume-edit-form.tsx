@@ -27,6 +27,8 @@ import {
   deletePerfume,
   getPerfume,
   updatePerfume,
+  getNextPerfumeId,
+  getPreviousPerfumeId,
 } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
 import { ActionResult } from "@/dto/ActionResult";
@@ -34,7 +36,7 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "../../components/ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { Save, Trash2 } from "lucide-react";
+import { Save, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { getTags } from "@/services/tag-service";
 import { get } from "@/services/axios-service";
 import { useAuth } from "@/hooks/use-auth";
@@ -84,56 +86,24 @@ export default function PerfumeEditForm({
 
   useEffect(() => {
     const load = async () => {
-      try {
-        const loadedTags = await getTags();
-        const topChips: ChipProp[] = [];
-        const bottomChips: ChipProp[] = [];
-        if (perfumeId) {
-          const perfume = await getPerfume(perfumeId);
-          setPerfume(perfume);
-          setImageUrl(perfume.perfume.imageUrl);
-          loadedTags.forEach((allTag) => {
-            if (
-              !perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)
-            ) {
-              bottomChips.push({
-                name: allTag.tagName,
-                color: allTag.color,
-                className: "",
-                onChipClick: null,
-              });
-            }
-          });
-          perfume?.perfume.tags.forEach((x) => {
-            topChips.push({
-              name: x.tagName,
-              color: x.color,
-              className: "",
-              onChipClick: null,
-            });
-          });
-        } else {
-          loadedTags.forEach((allTag) => {
-              bottomChips.push({
-                name: allTag.tagName,
-                color: allTag.color,
-                className: "",
-                onChipClick: null,
-              });
-          });
-        }
-        setAllTags(loadedTags);
-        setTopChipProps(topChips);
-        setBottomChipProps(bottomChips);
-      } catch (error) {
-        console.error("Failed to load perfume/tags:", error);
-      } finally {
-        setIsLoading(false);
-      }
+      const perfume = await getPerfume(perfumeId);
+      await loadPerfume(perfume);
     };
-
     load();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        handlePrev();
+      } else if (e.key === "ArrowRight") {
+        handleNext();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [perfume]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -169,6 +139,52 @@ export default function PerfumeEditForm({
   }, [perfume, form]);
 
   const router = useRouter();
+
+  async function loadPerfume(perfume: PerfumeWithWornStatsDTO) {
+    try {
+      const loadedTags = await getTags();
+      const topChips: ChipProp[] = [];
+      const bottomChips: ChipProp[] = [];
+      if (perfume) {
+        setPerfume(perfume);
+        setImageUrl(perfume.perfume.imageUrl);
+        loadedTags.forEach((allTag) => {
+          if (!perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)) {
+            bottomChips.push({
+              name: allTag.tagName,
+              color: allTag.color,
+              className: "",
+              onChipClick: null,
+            });
+          }
+        });
+        perfume?.perfume.tags.forEach((x) => {
+          topChips.push({
+            name: x.tagName,
+            color: x.color,
+            className: "",
+            onChipClick: null,
+          });
+        });
+      } else {
+        loadedTags.forEach((allTag) => {
+          bottomChips.push({
+            name: allTag.tagName,
+            color: allTag.color,
+            className: "",
+            onChipClick: null,
+          });
+        });
+      }
+      setAllTags(loadedTags);
+      setTopChipProps(topChips);
+      setBottomChipProps(bottomChips);
+    } catch (error) {
+      console.error("Failed to load perfume/tags:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (auth.guardAction()) return;
@@ -244,6 +260,31 @@ export default function PerfumeEditForm({
     }
   };
 
+  // Navigation handlers
+  const handlePrev = async () => {
+    if (!perfume?.perfume.id) return;
+    try {
+      const prev = await getPreviousPerfumeId(perfume.perfume.id);
+      if (prev && typeof prev === 'string') {
+        router.push(`/perfumes/${prev}`);
+      }
+    } catch {
+      showError("Could not load previous perfume");
+    }
+  };
+
+  const handleNext = async () => {
+    if (!perfume?.perfume.id) return;
+    try {
+      const next = await getNextPerfumeId(perfume.perfume.id);
+      if (next && typeof next === 'string') {
+        router.push(`/perfumes/${next}`);
+      }
+    } catch {
+      showError("Could not load next perfume");
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -258,19 +299,56 @@ export default function PerfumeEditForm({
           <div className="flex flex-col items-center justify-center w-full">
             <div className="w-full">
               <div className="flex items-center justify-center space-x-2 mb-2 w-full">
-                <img
-                  onClick={() => { 
-                    if (auth.guardAction()) return;
-                    setShowUploadButtons(!showUploadButtons);
+                <Button
+                  type="button"
+                  size="icon"
+                  onClick={handlePrev}
+                  disabled={isLoading}
+                  aria-label="Previous perfume"
+                >
+                  <ChevronLeft />
+                </Button>
+                <div
+                  style={{
+                    width: 200,
+                    height: 200,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: !imageUrl ? "#f3f3f3" : "transparent",
+                    borderRadius: 8,
+                    overflow: "hidden",
                   }}
-                  alt={
-                    imageUrl
-                      ? "Image of a perfume"
-                      : "Placeholder icon for a perfume"
-                  }
-                  className={`max-w-[150px] object-contain cursor-pointer'}`}
-                  src={imageUrl || "/perfume-icon.svg"}
-                />
+                >
+                  <img
+                    onClick={() => {
+                      if (auth.guardAction()) return;
+                      setShowUploadButtons(!showUploadButtons);
+                    }}
+                    alt={
+                      imageUrl
+                        ? "Image of a perfume"
+                        : "Placeholder icon for a perfume"
+                    }
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                      cursor: "pointer",
+                      display: "block",
+                    }}
+                    src={imageUrl || "/perfume-icon.svg"}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  onClick={handleNext}
+                  disabled={isLoading}
+                  aria-label="Next perfume"
+                >
+                  <ChevronRight />
+                </Button>
               </div>
               {showUploadButtons && <UploadComponent perfumeId={perfume?.perfume.id} onUpload={onUpload} />}
             </div>

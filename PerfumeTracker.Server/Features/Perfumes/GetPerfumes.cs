@@ -16,6 +16,7 @@ public class GetPerfumesWithWornEndpoint : ICarterModule {
 			.WithTags("Perfumes")
 			.WithName("GetPerfumes")
 			.RequireAuthorization(Policies.READ);
+
 	}
 }
 
