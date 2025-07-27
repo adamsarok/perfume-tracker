@@ -23,16 +23,16 @@ public class GetAdjacentPerfumeIdEndpoint : ICarterModule {
 public class GetNextPerfumeHandler(PerfumeTrackerContext context)
 		: IQueryHandler<GetNextPerfumeIdQuery, Guid> {
 	public async Task<Guid> Handle(GetNextPerfumeIdQuery request, CancellationToken cancellationToken) {
-		if (!await context.Perfumes.AnyAsync()) throw new NotFoundException();
 		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		var from = await context.Perfumes.FindAsync(request.Id, cancellationToken);
+		if (from == null) throw new NotFoundException();
 		var next = await context.Perfumes
 				.Where(x =>
 					(string.Compare(x.House, from.House) > 0 ||
 					(x.House == from.House && string.Compare(x.PerfumeName, from.PerfumeName) > 0))
 					&& x.Ml > 0 
-					&& x.PerfumeRatings.Average(x => x.Rating) >= settings.MinimumRating
+					&& (!x.PerfumeRatings.Any() || x.PerfumeRatings.Average(x => x.Rating) >= settings.MinimumRating)
 				)
 				.OrderBy(x => x.House)
 				.ThenBy(x => x.PerfumeName)
@@ -47,16 +47,16 @@ public class GetNextPerfumeHandler(PerfumeTrackerContext context)
 public class GetPreviousPerfumeHandler(PerfumeTrackerContext context)
 		: IQueryHandler<GetPreviousPerfumeIdQuery, Guid> {
 	public async Task<Guid> Handle(GetPreviousPerfumeIdQuery request, CancellationToken cancellationToken) {
-		if (!await context.Perfumes.AnyAsync()) throw new NotFoundException();
 		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		var from = await context.Perfumes.FindAsync(request.Id, cancellationToken);
+		if (from == null) throw new NotFoundException();
 		var next = await context.Perfumes
 				.Where(x =>
 					(string.Compare(x.House, from.House) < 0 ||
 					(x.House == from.House && string.Compare(x.PerfumeName, from.PerfumeName) < 0))
 					&& x.Ml > 0
-					&& x.PerfumeRatings.Average(x => x.Rating) >= settings.MinimumRating
+				    && (!x.PerfumeRatings.Any() || x.PerfumeRatings.Average(x => x.Rating) >= settings.MinimumRating)
 				)
 				.OrderByDescending(x => x.House)
 				.ThenByDescending(x => x.PerfumeName)
