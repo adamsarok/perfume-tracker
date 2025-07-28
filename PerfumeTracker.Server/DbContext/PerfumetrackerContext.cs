@@ -204,15 +204,5 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 		});
 
 		base.OnModelCreating(modelBuilder);
-
-		modelBuilder.Entity<LogEntry>(entity => {
-			entity.ToTable("log")
-				.HasNoKey();
-			entity.Property(x => x.Message).HasColumnName("message");
-			entity.Property(x => x.Properties).HasColumnName("properties");
-			entity.Property(x => x.Exception).HasColumnName("exception");
-			entity.Property(x => x.Level).HasColumnName("level");
-			entity.Property(x => x.Timestamp).HasColumnName("timestamp");
-		});
 	}
 }
