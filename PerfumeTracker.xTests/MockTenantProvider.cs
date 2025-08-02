@@ -1,4 +1,4 @@
-﻿using PerfumeTracker.Server.Features.Auth;
+﻿using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.xTests;
 public class MockTenantProvider : ITenantProvider {

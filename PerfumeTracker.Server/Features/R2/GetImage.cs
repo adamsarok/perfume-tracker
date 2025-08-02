@@ -1,6 +1,7 @@
 ﻿
 using Amazon.S3;
-using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
 
 namespace PerfumeTracker.Server.Features.R2;
 public class GetPresignedUrlEndpoint : ICarterModule {

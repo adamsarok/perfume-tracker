@@ -1,4 +1,4 @@
-﻿namespace PerfumeTracker.Server.Helpers;
+﻿namespace PerfumeTracker.Server.Services.Common;
 
 public class PaginatedResult<TEntity>(int page, int pageSize, long totalCount, IEnumerable<TEntity> items)
 	where TEntity : class {

@@ -1,8 +1,7 @@
-﻿
-
-using PerfumeTracker.Server.Features.Outbox;
-using PerfumeTracker.Server.Features.PerfumeEvents;
+﻿using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.UserProfiles;
+using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Outbox;
 
 namespace PerfumeTracker.Server.Features.PerfumeRandoms;
 public record GetRandomPerfumeQuery() : IQuery<GetRandomPerfumeResponse>;

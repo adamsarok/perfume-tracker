@@ -1,6 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Achievements;
+﻿namespace PerfumeTracker.Server.Services.Achievements;
 
-public class CompleteAchievements {
+public class CompleteAchievements { //TODO: what is not an user accessible feature, move to a service
 	public class PerfumeAddNotificationHandler(PerfumeTrackerContext context, ILogger<PerfumeAddNotificationHandler> logger) : INotificationHandler<PerfumeAddedNotification> {
 		public async Task Handle(PerfumeAddedNotification notification, CancellationToken cancellationToken) {
 			try {

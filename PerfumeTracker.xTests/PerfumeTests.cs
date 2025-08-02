@@ -1,12 +1,5 @@
-﻿using Amazon.S3;
-using MediatR;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using PerfumeTracker.Server.Features.Common;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 using PerfumeTracker.Server.Features.Perfumes;
-using PerfumeTracker.Server.Models;
-using System.Net;
-using System.Net.Http.Json;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace PerfumeTracker.xTests;

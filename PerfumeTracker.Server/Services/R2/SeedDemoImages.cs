@@ -1,6 +1,7 @@
-﻿using System.IO;
+﻿using PerfumeTracker.Server.Features.R2;
+using System.IO;
 
-namespace PerfumeTracker.Server.Features.R2;
+namespace PerfumeTracker.Server.Services.R2;
 
 public static class SeedDemoImages {
 	public static async Task<List<Guid>> SeedDemoImagesAsync(UploadImageHandler handler) {

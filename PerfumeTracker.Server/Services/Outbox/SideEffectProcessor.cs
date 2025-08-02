@@ -1,4 +1,4 @@
-﻿namespace PerfumeTracker.Server.Features.Outbox;
+﻿namespace PerfumeTracker.Server.Services.Outbox;
 
 using Microsoft.Extensions.Hosting;
 using System;

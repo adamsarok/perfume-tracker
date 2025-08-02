@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Perfumes;
+using PerfumeTracker.Server.Services.Outbox;
 using System.Threading.Tasks;
 
 namespace PerfumeTracker.xTests;

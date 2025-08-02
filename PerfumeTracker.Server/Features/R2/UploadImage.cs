@@ -2,7 +2,8 @@
 using Amazon.S3;
 using ImageMagick;
 using Microsoft.AspNetCore.Http;
-using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
 using SixLabors.ImageSharp;
 using System;
 using System.Configuration;

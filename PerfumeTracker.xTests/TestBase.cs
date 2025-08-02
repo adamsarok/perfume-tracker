@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using PerfumeTracker.Server.Features.Auth;
-using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.Users;
 using System;
 using Xunit.Sdk;
-using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
-using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
+using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
+using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
+using PerfumeTracker.Server.Services.Outbox;
+using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.xTests;
 public class TestBase : IClassFixture<WebApplicationFactory<Program>> {

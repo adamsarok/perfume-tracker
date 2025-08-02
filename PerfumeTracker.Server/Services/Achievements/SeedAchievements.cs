@@ -1,4 +1,4 @@
-﻿namespace PerfumeTracker.Server.Features.Achievements;
+﻿namespace PerfumeTracker.Server.Services.Achievements;
 
 public static class SeedAchievements{
 	public static async Task SeedAchievementsAsync(PerfumeTrackerContext context) {

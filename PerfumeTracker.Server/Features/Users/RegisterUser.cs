@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Users;
+﻿using PerfumeTracker.Server.Services.Auth;
+
+namespace PerfumeTracker.Server.Features.Users;
 public record RegisterUserCommand(string UserName, string Email, string Password, Guid InviteCode) : ICommand<Unit>;
 public class RegisterUserEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

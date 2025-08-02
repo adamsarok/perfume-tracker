@@ -1,4 +1,4 @@
-﻿using PerfumeTracker.Server.Features.Outbox;
+﻿using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
 public record PerfumeRatingUploadDto(Guid PerfumeId, decimal Rating, string Comment);

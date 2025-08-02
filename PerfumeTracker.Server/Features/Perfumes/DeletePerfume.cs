@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Perfumes;
+﻿using PerfumeTracker.Server.Services.Auth;
+
+namespace PerfumeTracker.Server.Features.Perfumes;
 public record DeletePerfumeCommand(Guid Id) : ICommand<PerfumeDto>;
 public class DeletePerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

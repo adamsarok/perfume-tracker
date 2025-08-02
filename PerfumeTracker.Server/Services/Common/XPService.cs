@@ -1,4 +1,4 @@
-﻿namespace PerfumeTracker.Server.Features.Common;
+﻿namespace PerfumeTracker.Server.Services.Common;
 
 public class XPService(PerfumeTrackerContext context) {
 	public const decimal MaxMultiplier = 3.0m;

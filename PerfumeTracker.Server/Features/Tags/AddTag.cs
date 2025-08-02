@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Tags;
+﻿using PerfumeTracker.Server.Services.Auth;
+
+namespace PerfumeTracker.Server.Features.Tags;
 public record class AddTagCommand(TagAddDto TagDto) : ICommand<TagDto>;
 public class AddTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

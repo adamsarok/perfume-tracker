@@ -1,5 +1,4 @@
-﻿
-namespace PerfumeTracker.Server.Features.Outbox;
+﻿namespace PerfumeTracker.Server.Services.Outbox;
 
 public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger, ISideEffectQueue queue) : BackgroundService {
 	protected override async Task ExecuteAsync(CancellationToken cancellationToken) {

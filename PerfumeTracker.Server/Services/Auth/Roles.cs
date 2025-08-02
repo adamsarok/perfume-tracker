@@ -1,4 +1,4 @@
-﻿namespace PerfumeTracker.Server.Features.Auth;
+﻿namespace PerfumeTracker.Server.Services.Auth;
 
 public static class Roles {
 	public const string ADMIN = "Admin";

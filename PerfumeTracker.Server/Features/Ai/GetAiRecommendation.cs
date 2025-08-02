@@ -1,4 +1,5 @@
 ﻿using OpenAI.Chat;
+using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Ai;
 public record GetAiRecommendationQuery(string Query) : IQuery<string>;

@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
-using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Services.Missions;
+using PerfumeTracker.Server.Services.Common;
 
 namespace PerfumeTracker.xTests;
 
