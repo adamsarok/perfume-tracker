@@ -78,7 +78,7 @@ export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
                             control={form.control}
                             name="rating"
                             render={({ field }) => (
-                                <FormItem className="flex-1">
+                                <FormItem className="flex-1 min-w-12">
                                     <FormControl>
                                         <Input placeholder="0" {...field} />
                                     </FormControl>
