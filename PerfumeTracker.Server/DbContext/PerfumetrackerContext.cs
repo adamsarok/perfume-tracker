@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.DbContext;
 

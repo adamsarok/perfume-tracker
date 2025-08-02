@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Tags;
+﻿using PerfumeTracker.Server.Services.Auth;
+
+namespace PerfumeTracker.Server.Features.Tags;
 public record class UpdateTagCommand(Guid TagId, TagDto TagDto) : ICommand<TagDto>;
 public class UpdateTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

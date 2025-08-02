@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Missions;
+﻿using PerfumeTracker.Server.Services.Auth;
+
+namespace PerfumeTracker.Server.Features.Missions;
 public record UserMissionDto(Guid Id, 
 	string Name, 
 	string Description, 

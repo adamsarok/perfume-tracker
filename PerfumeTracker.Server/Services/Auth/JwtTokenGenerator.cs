@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using System.Text;
 
-namespace PerfumeTracker.Server.Features.Auth;
+namespace PerfumeTracker.Server.Services.Auth;
 
 public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, IConfiguration config, 
 	ILogger<JwtTokenGenerator> logger) : IJwtTokenGenerator {

@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Streaks;
-using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
+using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
 using Microsoft.AspNetCore.SignalR;
+using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.Server.Services.Streaks;
 
 namespace PerfumeTracker.xTests;
 

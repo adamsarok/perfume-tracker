@@ -3,7 +3,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using PerfumeTracker.Server.Config;
 
-namespace PerfumeTracker.Server.Features.Common;
+namespace PerfumeTracker.Server.Services.Common;
 public interface IPresignedUrlService {
 	string GetUrl(Guid? guid, HttpVerb httpVerb);
 }

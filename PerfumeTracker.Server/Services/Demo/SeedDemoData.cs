@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PerfumeTracker.Server.Models;
 
-namespace PerfumeTracker.Server.Features.Demo;
+namespace PerfumeTracker.Server.Services.Demo;
 
 public static class SeedDemoData {
 	public static async Task SeedDemoDataAsync(PerfumeTrackerContext context, Guid demoUserId, List<Guid> demoImageGuids) {

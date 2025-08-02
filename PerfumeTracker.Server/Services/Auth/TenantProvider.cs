@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace PerfumeTracker.Server.Features.Auth;
+namespace PerfumeTracker.Server.Services.Auth;
 
 public interface ITenantProvider {
 	Guid? GetCurrentUserId();

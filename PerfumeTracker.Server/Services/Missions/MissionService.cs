@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PerfumeTracker.Server.Models;
 using System.Threading.Tasks;
-using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
+using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
 
-namespace PerfumeTracker.Server.Features.Missions;
+namespace PerfumeTracker.Server.Services.Missions;
 
 public class MissionService(IServiceProvider serviceProvider, ILogger<MissionService> logger) : BackgroundService {
 	private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1);
@@ -27,7 +27,7 @@ public class MissionService(IServiceProvider serviceProvider, ILogger<MissionSer
 		var neededCount = conf.GetValue<int>("Missions:WeeklyCreateCount");
 		if (neededCount <= 0) return;
 		var now = DateTime.UtcNow;
-		var startDate = now.Date.AddDays(-((int)now.DayOfWeek == 0 ? 6 : (int)now.DayOfWeek - 1));
+		var startDate = now.Date.AddDays(-(now.DayOfWeek == 0 ? 6 : (int)now.DayOfWeek - 1));
 		var endDate = startDate.AddDays(7);
 
 		await context.Missions

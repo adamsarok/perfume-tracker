@@ -1,4 +1,6 @@
 ﻿
+using PerfumeTracker.Server.Services.Auth;
+
 namespace PerfumeTracker.Server.Features.Tags;
 public record GetTagsQuery() : IQuery<List<TagDto>>;
 public class GetTagsEndpoint : ICarterModule {

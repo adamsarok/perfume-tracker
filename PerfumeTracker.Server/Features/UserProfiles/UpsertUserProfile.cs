@@ -1,4 +1,6 @@
 ﻿
+using PerfumeTracker.Server.Services.Auth;
+
 namespace PerfumeTracker.Server.Features.UserProfiles;
 public record class UpsertUserProfileCommand(UserProfile UserProfile) : ICommand<UserProfile>;
 

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
-using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Users;
+using PerfumeTracker.Server.Services.Common;
 
 namespace PerfumeTracker.xTests;
 public class UserTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {

@@ -1,5 +1,10 @@
-﻿namespace PerfumeTracker.Server.Features.Users;
+﻿using PerfumeTracker.Server.Services.Auth;
+
+namespace PerfumeTracker.Server.Features.Users;
 public record CreateInviteCommand(string Email) : ICommand<CreateInviteResponse>;
+public class CreateInviteCommandValidator : AbstractValidator<CreateInviteCommand> {
+	public CreateInviteCommandValidator() => RuleFor(x => x.Email).EmailAddress();
+}
 public class CreateInviteEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/invite", async ([FromBody] CreateInviteCommand command,

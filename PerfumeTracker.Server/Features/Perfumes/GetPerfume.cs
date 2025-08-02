@@ -1,4 +1,5 @@
-﻿using PerfumeTracker.Server.Features.Common;
+﻿using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 public enum Direction {	Next, Previous }
