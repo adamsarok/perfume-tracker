@@ -9,8 +9,8 @@ public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId,
 public record PerfumeRandomAcceptedNotification(Guid PerfumeId, Guid UserId) : IUserNotification;
 public class AddPerfumeEventCommandValidator : AbstractValidator<AddPerfumeEventCommand> {
 	public AddPerfumeEventCommandValidator() {
-		RuleFor(x => x.Dto.PerfumeId).NotEmpty().WithMessage("PerfumeId is required.");
-		RuleFor(x => x.Dto.Type).IsInEnum().WithMessage("Invalid event type.");
+		RuleFor(x => x.Dto.PerfumeId).NotEmpty();
+		RuleFor(x => x.Dto.Type).IsInEnum();
 	}
 }
 public class AddPerfumeEventEndpoint : ICarterModule {

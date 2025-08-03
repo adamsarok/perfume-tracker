@@ -19,8 +19,6 @@ public class CreateInviteEndpoint : ICarterModule {
 public record CreateInviteResponse(string Email, Guid InviteCode);
 public class CreateInviteHandler(PerfumeTrackerContext context) : ICommandHandler<CreateInviteCommand, CreateInviteResponse> {
 	public async Task<CreateInviteResponse> Handle(CreateInviteCommand request, CancellationToken cancellationToken) {
-		//TODO set up fluentvalidation
-		if (string.IsNullOrWhiteSpace(request.Email)) throw new FieldEmptyException("Email");
 		var invite = new Invite() { Email = request.Email };
 		context.Invites.Add(invite);
 		await context.SaveChangesAsync();

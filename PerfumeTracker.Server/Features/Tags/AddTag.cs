@@ -1,10 +1,16 @@
-﻿using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Features.PerfumeRatings;
+using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Tags;
-public record class AddTagCommand(TagAddDto TagDto) : ICommand<TagDto>;
+public record class AddTagCommand(TagUploadDto Dto) : ICommand<TagDto>;
+public class AddTagCommandValidator : AbstractValidator<AddTagCommand> {
+	public AddTagCommandValidator() {
+		RuleFor(x => x.Dto).SetValidator(new TagValidator());
+	}
+}
 public class AddTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/tags", async (TagAddDto dto, ISender sender) => {
+		app.MapPost("/api/tags", async (TagUploadDto dto, ISender sender) => {
 			var result = await sender.Send(new AddTagCommand(dto));
 			return Results.CreatedAtRoute("GetTag", new { id = result.Id }, result);
 		}).WithTags("Tags")
@@ -15,7 +21,7 @@ public class AddTagEndpoint : ICarterModule {
 
 public class AddTagHandler(PerfumeTrackerContext context) : ICommandHandler<AddTagCommand, TagDto> {
 	public async Task<TagDto> Handle(AddTagCommand request, CancellationToken cancellationToken) {
-		var tag = request.TagDto.Adapt<Tag>();
+		var tag = request.Dto.Adapt<Tag>();
 		if (tag == null) throw new MappingException();
 		context.Tags.Add(tag);
 		await context.SaveChangesAsync();

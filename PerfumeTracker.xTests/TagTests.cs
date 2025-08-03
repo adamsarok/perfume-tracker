@@ -73,7 +73,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		using var scope = GetTestScope();
 		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
 		tag.TagName = Guid.NewGuid().ToString();
-		var dto = tag.Adapt<TagDto>();
+		var dto = tag.Adapt<TagUploadDto>();
 		var updateTagHandler = new UpdateTagHandler(scope.PerfumeTrackerContext);
 		var tagResult = await updateTagHandler.Handle(new UpdateTagCommand(tag.Id, dto), new CancellationToken());
 		Assert.Equal(tag.TagName, tagResult.TagName);
@@ -93,7 +93,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 	public async Task AddTag() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var dto = new TagAddDto("Purple", "#630330");
+		var dto = new TagUploadDto("Purple", "#630330", Guid.NewGuid());
 		var addTagHandler = new AddTagHandler(scope.PerfumeTrackerContext);
 		var result = await addTagHandler.Handle(new AddTagCommand(dto), new CancellationToken());
 		Assert.NotNull(await scope.PerfumeTrackerContext.Tags.FindAsync(result.Id));

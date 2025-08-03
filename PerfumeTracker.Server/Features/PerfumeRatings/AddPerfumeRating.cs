@@ -1,9 +1,16 @@
-﻿using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Features.PerfumeEvents;
+using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
 public record PerfumeRatingUploadDto(Guid PerfumeId, decimal Rating, string Comment);
 public record PerfumeRatingDownloadDto(Guid PerfumeId, decimal Rating, string Comment, DateTime RatingDate);
 public record AddPerfumeRatingCommand(PerfumeRatingUploadDto Dto) : ICommand<PerfumeRatingDownloadDto>;
+public class AddPerfumeRatingCommandValidator : AbstractValidator<AddPerfumeRatingCommand> {
+	public AddPerfumeRatingCommandValidator() {
+		RuleFor(x => x.Dto.PerfumeId).NotEmpty();
+		RuleFor(x => x.Dto.Rating).InclusiveBetween(0, 10);
+	}
+}
 public class AddPerfumeRatingEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfumes/{perfumeId}/ratings", async (PerfumeRatingUploadDto dto, ISender sender) => {

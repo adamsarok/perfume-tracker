@@ -5,7 +5,7 @@ namespace PerfumeTracker.Server.Features.Perfumes;
 public record AddPerfumeCommand(PerfumeUploadDto Dto) : ICommand<PerfumeDto>;
 public class AddPerfumeCommandValidator : AbstractValidator<AddPerfumeCommand> {
 	public AddPerfumeCommandValidator() {
-		RuleFor(x => x.Dto).SetValidator(new PerfumeUploadValidator());
+		RuleFor(x => x.Dto).SetValidator(new PerfumeValidator());
 	}
 }
 public class AddPerfumeEndpoint : ICarterModule {

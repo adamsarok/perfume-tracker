@@ -1,7 +1,16 @@
-﻿using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Features.UserProfiles;
+using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Users;
 public record RegisterUserCommand(string UserName, string Email, string Password, Guid InviteCode) : ICommand<Unit>;
+public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand> {
+	public RegisterUserCommandValidator() {
+		RuleFor(x => x.UserName).Length(1, 255);
+		RuleFor(x => x.Email).EmailAddress().Length(1, 255);
+		RuleFor(x => x.Password).Length(8, 100);
+		RuleFor(x => x.InviteCode).NotEmpty().WithMessage("Invite code is required for registration");
+	}
+}
 public class RegisterUserEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/register", async ([FromBody] RegisterUserCommand command,
