@@ -1,5 +1,4 @@
-﻿using PerfumeTracker.Server.Features.Outbox;
-using PerfumeTracker.Server.Features.PerfumeEvents;
+﻿using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
 public record DeletePerfumeRatingCommand(Guid PerfumeId, Guid RatingId) : ICommand<PerfumeRatingDownloadDto>;

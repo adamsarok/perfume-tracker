@@ -1,4 +1,6 @@
 ﻿
+using PerfumeTracker.Server.Services.Auth;
+
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
 
 public record GetWornPerfumeIdsQuery(int DaysFilter) : IQuery<List<Guid>>;

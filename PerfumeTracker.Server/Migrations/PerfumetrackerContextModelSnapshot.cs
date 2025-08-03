@@ -769,10 +769,6 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<int>("DayFilter")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -802,13 +798,6 @@ namespace PerfumeTracker.Server.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("XP")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id")
                         .HasName("UserProfile_pkey");

@@ -1,14 +1,7 @@
-﻿using Amazon.Runtime;
-using Amazon.S3;
+﻿using Amazon.S3;
 using ImageMagick;
-using Microsoft.AspNetCore.Http;
-using PerfumeTracker.Server.Features.Common;
-using SixLabors.ImageSharp;
-using System;
-using System.Configuration;
-using System.Net.Http;
-using System.Runtime.InteropServices;
-
+using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
 namespace PerfumeTracker.Server.Features.R2;
 
 public record UploadResponse(Guid Guid);

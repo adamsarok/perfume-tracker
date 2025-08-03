@@ -1,6 +1,7 @@
-﻿using PerfumeTracker.Server.Features.Common;
-using PerfumeTracker.Server.Features.UserProfiles;
+﻿using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Models;
+using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 public record GetPerfumesWithWornQuery(string? FullText = null) : IQuery<List<PerfumeWithWornStatsDto>>;

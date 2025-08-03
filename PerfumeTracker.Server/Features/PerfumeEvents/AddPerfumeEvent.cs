@@ -1,11 +1,18 @@
-﻿using PerfumeTracker.Server.Features.Outbox;
+﻿using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Outbox;
 using static PerfumeTracker.Server.Models.PerfumeEvent;
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
-public record PerfumeEventUploadDto(Guid PerfumeId, DateTime WornOn, PerfumeEventType Type, decimal? Amount, bool IsRandomPerfume);
+public record PerfumeEventUploadDto(Guid PerfumeId, DateTime? WornOn, PerfumeEventType Type, decimal? Amount, bool IsRandomPerfume);
 public record AddPerfumeEventCommand(PerfumeEventUploadDto Dto) : ICommand<PerfumeEventDownloadDto>;
 public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId, Guid UserId) : IUserNotification;
 public record PerfumeRandomAcceptedNotification(Guid PerfumeId, Guid UserId) : IUserNotification;
+public class AddPerfumeEventCommandValidator : AbstractValidator<AddPerfumeEventCommand> {
+	public AddPerfumeEventCommandValidator() {
+		RuleFor(x => x.Dto.PerfumeId).NotEmpty();
+		RuleFor(x => x.Dto.Type).IsInEnum();
+	}
+}
 public class AddPerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, ISender sender) => {
@@ -19,7 +26,12 @@ public class AddPerfumeEventEndpoint : ICarterModule {
 public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AddPerfumeEventCommand, PerfumeEventDownloadDto> {
 	public async Task<PerfumeEventDownloadDto> Handle(AddPerfumeEventCommand request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
-		var evt = request.Dto.Adapt<PerfumeEvent>();
+		var evt = new PerfumeEvent() {
+			AmountMl = request.Dto.Amount ?? 0,
+			PerfumeId = request.Dto.PerfumeId,
+			EventDate = request.Dto.WornOn ?? DateTime.UtcNow,
+			Type = request.Dto.Type
+		};
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);

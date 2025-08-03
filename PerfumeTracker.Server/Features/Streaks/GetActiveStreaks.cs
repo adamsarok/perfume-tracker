@@ -1,4 +1,5 @@
-﻿using static PerfumeTracker.Server.Models.UserStreak;
+﻿using PerfumeTracker.Server.Services.Auth;
+using static PerfumeTracker.Server.Models.UserStreak;
 
 namespace PerfumeTracker.Server.Features.Streaks;
 public record UserStreakDto(Guid Id, 

@@ -1,10 +1,11 @@
-﻿using PerfumeTracker.Server.Features.Outbox;
+﻿using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Outbox;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 public record UpdatePerfumeCommand(Guid Id, PerfumeUploadDto Dto) : ICommand<PerfumeDto>;
 public class UpdatePerfumeCommandValidator : AbstractValidator<UpdatePerfumeCommand> {
 	public UpdatePerfumeCommandValidator() {
-		RuleFor(x => x.Dto).SetValidator(new PerfumeUploadValidator());
+		RuleFor(x => x.Dto).SetValidator(new PerfumeValidator());
 	}
 }
 public class UpdatePerfumeEndpoint : ICarterModule {

@@ -1,4 +1,4 @@
-﻿using PerfumeTracker.Server.Features.Common;
+﻿using PerfumeTracker.Server.Services.Common;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 

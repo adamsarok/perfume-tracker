@@ -1,4 +1,4 @@
-﻿using PerfumeTracker.Server.Features.Common;
+﻿using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 public record GetNextPerfumeIdQuery(Guid Id) : IQuery<Guid>;

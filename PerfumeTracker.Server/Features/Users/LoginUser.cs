@@ -1,4 +1,6 @@
-﻿namespace PerfumeTracker.Server.Features.Users;
+﻿using PerfumeTracker.Server.Services.Auth;
+
+namespace PerfumeTracker.Server.Features.Users;
 
 public class LoginEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
