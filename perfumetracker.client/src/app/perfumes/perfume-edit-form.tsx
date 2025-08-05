@@ -86,8 +86,12 @@ export default function PerfumeEditForm({
 
   useEffect(() => {
     const load = async () => {
-      const perfume = await getPerfume(perfumeId);
-      await loadPerfume(perfume);
+      if (perfumeId) {
+        const perfume = await getPerfume(perfumeId);
+        await loadPerfume(perfume);
+      } else {
+        await loadPerfume(null);
+      }
     };
     load();
   }, []);
@@ -140,11 +144,12 @@ export default function PerfumeEditForm({
 
   const router = useRouter();
 
-  async function loadPerfume(perfume: PerfumeWithWornStatsDTO) {
+  async function loadPerfume(perfume: PerfumeWithWornStatsDTO | null) {
     try {
       const loadedTags = await getTags();
       const topChips: ChipProp[] = [];
       const bottomChips: ChipProp[] = [];
+      console.log("perfume", perfume);
       if (perfume) {
         setPerfume(perfume);
         setImageUrl(perfume.perfume.imageUrl);
@@ -353,36 +358,36 @@ export default function PerfumeEditForm({
               {showUploadButtons && <UploadComponent perfumeId={perfume?.perfume.id} onUpload={onUpload} />}
             </div>
             <div className="text-center w-full">
-            <div className="flex w-full space-x-2">
-              <FormField
-                control={form.control}
-                name="house"
-                render={({ field }) => (
-                  <FormItem className="w-64">
-                    <FormLabel>House</FormLabel>
-                    <FormControl>
-                      <Input placeholder="House" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField 
-                control={form.control}
-                name="perfume"
-                render={({ field }) => (
-                  <FormItem className="w-64">
-                    <FormLabel>Perfume</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Perfume" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="flex w-full space-x-2">
+                <FormField
+                  control={form.control}
+                  name="house"
+                  render={({ field }) => (
+                    <FormItem className="w-64">
+                      <FormLabel>House</FormLabel>
+                      <FormControl>
+                        <Input placeholder="House" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="perfume"
+                  render={({ field }) => (
+                    <FormItem className="w-64">
+                      <FormLabel>Perfume</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Perfume" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <div className="flex w-full space-x-2">
-                <FormField 
+                <FormField
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
@@ -440,11 +445,10 @@ export default function PerfumeEditForm({
 
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2 w-full">
-                <Label>{`Last worn: ${
-                  perfume?.lastWorn
+                <Label>{`Last worn: ${perfume?.lastWorn
                     ? format(new Date(perfume?.lastWorn), "yyyy.MM.dd")
                     : ""
-                }`}</Label>
+                  }`}</Label>
                 <Separator orientation="vertical" className="h-6" />
                 <Label>{`Worn ${perfume?.wornTimes} times`}</Label>
               </div>
