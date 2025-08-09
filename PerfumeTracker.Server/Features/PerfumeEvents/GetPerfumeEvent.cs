@@ -15,6 +15,6 @@ public class GetPerfumeEventEndpoint : ICarterModule {
 public class GetPerfumeEventHandler(PerfumeTrackerContext context)
 		: IQueryHandler<GetPerfumeEventQuery, PerfumeEvent> {
 	public async Task<PerfumeEvent> Handle(GetPerfumeEventQuery request, CancellationToken cancellationToken) {
-		return await context.PerfumeEvents.FindAsync(request.Id);
+		return await context.PerfumeEvents.FindAsync(request.Id) ?? throw new NotFoundException();
 	}
 }

@@ -21,10 +21,7 @@ public class GetActiveStreaksEndpoint : ICarterModule {
 public class GetActiveStreaksHandler(PerfumeTrackerContext context)
 		: IQueryHandler<GetActiveStreaksQuery, List<UserStreakDto>> {
 	public async Task<List<UserStreakDto>> Handle(GetActiveStreaksQuery request, CancellationToken cancellationToken) {
-		int bestStreakLength = 0;
-		try {
-			await context.UserStreaks.MaxAsync(x => x.Progress, cancellationToken);
-		} catch (Exception ex) { }
+		int? bestStreakLength = await context.UserStreaks.MaxAsync(x => (int?)x.Progress, cancellationToken);
 		return await context
 			.UserStreaks
 			.Where(x => x.StreakEndAt == null)
@@ -32,7 +29,7 @@ public class GetActiveStreaksHandler(PerfumeTrackerContext context)
 				x.Id,
 				x.StreakStartAt,
 				x.Progress,
-				bestStreakLength
+				bestStreakLength ?? 0
 				)).ToListAsync(cancellationToken);
 	}
 }

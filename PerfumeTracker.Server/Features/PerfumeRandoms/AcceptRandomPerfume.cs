@@ -20,6 +20,7 @@ public class AcceptRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffe
 	public async Task<Unit> Handle(AcceptRandomPerfumeCommand request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var perfumeRandom = await context.PerfumeRandoms.FindAsync(request.RandomsId);
+		if (perfumeRandom == null) throw new NotFoundException();
 		perfumeRandom.IsAccepted = true;
 		var message = OutboxMessage.From(new RandomsAcceptedNotification(userId));
 		context.OutboxMessages.Add(message);

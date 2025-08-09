@@ -43,7 +43,7 @@ public class ProgressStreaks {
 						break;
 				}
 			}
-			UserStreak newStreak = null;
+			UserStreak? newStreak = null;
 			if (userStreak == null || status == StreakStatus.Ended) {
 				newStreak = new UserStreak() {
 					StreakStartAt = now,
@@ -54,10 +54,10 @@ public class ProgressStreaks {
 				context.UserStreaks.Add(newStreak);
 			}
 			await context.SaveChangesAsync();
-			await SendStreakProgress(newStreak ?? userStreak);
+			await SendStreakProgress(newStreak ?? userStreak ?? throw new InvalidOperationException("User streak is null"));
 		}
 		public enum StreakStatus { Ended, Progress, NoChange }
-		public StreakStatus GetStreakStatus(DateTime lastProgressDate, DateTime nowDate, int userUtcOffset) {
+		public static StreakStatus GetStreakStatus(DateTime lastProgressDate, DateTime nowDate, int userUtcOffset) {
 			var nowLocal = nowDate.AddHours(userUtcOffset).Date;
 			var progressLocal = lastProgressDate.AddHours(userUtcOffset).Date;
 			var diff = nowLocal - progressLocal;

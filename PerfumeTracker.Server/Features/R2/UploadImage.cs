@@ -32,8 +32,7 @@ public class UploadImageEndpoint : ICarterModule {
 }
 public class UploadImageHandler(R2Configuration configuration, 
 	IPresignedUrlService presignedUrlService,
-	IHttpClientFactory httpClientFactory,
-	ILogger<UploadImageHandler> logger) { 
+	IHttpClientFactory httpClientFactory) { 
 	public async Task<Guid> UploadImage(Stream stream) {
 		if (!configuration.IsEnabled) throw new ConfigEmptyException("R2 not configured");
 		try {

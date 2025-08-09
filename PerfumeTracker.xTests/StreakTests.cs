@@ -79,7 +79,7 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
         var lastProgressDate = DateTime.Parse(lastProgress, null, System.Globalization.DateTimeStyles.AdjustToUniversal);
         var nowDate = DateTime.Parse(now, null, System.Globalization.DateTimeStyles.AdjustToUniversal);
 
-        var result = handler.GetStreakStatus(lastProgressDate, nowDate, utcOffset);         // Act
+        var result = UpdateStreakProgressHandler.GetStreakStatus(lastProgressDate, nowDate, utcOffset);         // Act
 
 		Assert.Equal(expected, result);														// Assert
 	}

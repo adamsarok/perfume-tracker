@@ -12,11 +12,11 @@ public class GetCurrentUser : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/identity/account/me", (HttpContext context) =>
 		{
-			var user = context.User;
+			ClaimsPrincipal user = context.User ?? throw new TenantNotSetException();
 			return Results.Ok(new UserResponse(
-				UserName: user.Identity?.Name,
-				Email: user.FindFirst(ClaimTypes.Email)?.Value,
-				Id: user.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+				UserName: user.Identity?.Name ?? throw new TenantNotSetException(),
+				Email: user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty,
+				Id: user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty,
 				Roles: user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value)
 			));
 		})

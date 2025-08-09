@@ -77,6 +77,7 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 		3 or 4 or 5 => Seasons.Spring,
 		6 or 7 or 8 => Seasons.Summer,
 		9 or 10 or 11 => Seasons.Autumn,
+		_ => throw new NotImplementedException(),
 	};
 	
 }

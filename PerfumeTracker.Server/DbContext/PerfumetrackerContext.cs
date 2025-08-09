@@ -30,21 +30,21 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<Mission> Missions { get; set; }
 	public virtual DbSet<UserMission> UserMissions { get; set; }
 	public virtual DbSet<Invite> Invites { get; set; }
-	protected override void OnModelCreating(ModelBuilder modelBuilder) {
+	protected override void OnModelCreating(ModelBuilder builder) {
 
-		modelBuilder.Entity<OutboxMessage>(entity => {
+		builder.Entity<OutboxMessage>(entity => {
 			entity.HasKey(e => e.Id).HasName("OutboxMessage_pkey");
 			entity.ToTable("OutboxMessage");
 			entity.HasIndex(o => new { o.ProcessedAt, o.CreatedAt })
 				.HasDatabaseName("IX_Outbox_ProcessedAt_CreatedAt");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
-		modelBuilder.Entity<Achievement>(entity => {
+		builder.Entity<Achievement>(entity => {
 			entity.HasKey(e => e.Id).HasName("Achievement_pkey");
 			entity.ToTable("Achievement");
 			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
-		modelBuilder.Entity<UserAchievement>(entity => {
+		builder.Entity<UserAchievement>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserAchievement_pkey");
 			entity.ToTable("UserAchievement");
 
@@ -62,20 +62,20 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<UserProfile>(entity => {
+		builder.Entity<UserProfile>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserProfile_pkey");
 			entity.ToTable("UserProfile");
 			entity.Property(e => e.Timezone).HasDefaultValue("UTC");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.Id == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<UserStreak>(entity => {
+		builder.Entity<UserStreak>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserStreak_pkey");
 			entity.ToTable("UserStreak");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.Id == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<Perfume>(entity => {
+		builder.Entity<Perfume>(entity => {
 			entity.HasKey(e => e.Id).HasName("Perfume_pkey");
 
 			entity.ToTable("Perfume");
@@ -101,7 +101,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<PerfumeRandoms>(entity => {
+		builder.Entity<PerfumeRandoms>(entity => {
 			entity.HasKey(e => e.Id).HasName("PerfumeRandom_pkey");
 
 			entity.ToTable("PerfumeRandom");
@@ -113,7 +113,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<PerfumeTag>(entity => {
+		builder.Entity<PerfumeTag>(entity => {
 			entity.HasKey(e => e.Id).HasName("PerfumeTag_pkey");
 
 			entity.ToTable("PerfumeTag");
@@ -129,7 +129,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<PerfumeEvent>(entity => {
+		builder.Entity<PerfumeEvent>(entity => {
 			entity.HasKey(e => e.Id).HasName("PerfumeEvent_pkey");
 
 			entity.ToTable("PerfumeEvent");
@@ -145,7 +145,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<PerfumeRating>(entity => {
+		builder.Entity<PerfumeRating>(entity => {
 			entity.HasKey(e => e.Id).HasName("PerfumeRating_pkey");
 
 			entity.ToTable("PerfumeRating");
@@ -157,7 +157,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<Recommendation>(entity => {
+		builder.Entity<Recommendation>(entity => {
 			entity.HasKey(e => e.Id).HasName("Recommendation_pkey");
 
 			entity.ToTable("Recommendation");
@@ -167,7 +167,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<Tag>(entity => {
+		builder.Entity<Tag>(entity => {
 			entity.HasKey(e => e.Id).HasName("Tag_pkey");
 
 			entity.ToTable("Tag");
@@ -176,13 +176,13 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<Mission>(entity => {
+		builder.Entity<Mission>(entity => {
 			entity.HasKey(e => e.Id).HasName("Mission_pkey");
 			entity.ToTable("Mission");
-			entity.HasQueryFilter(x => !x.IsDeleted); // && x.UserId == TenantProvider.GetCurrentUserId());
+			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
-		modelBuilder.Entity<UserMission>(entity => {
+		builder.Entity<UserMission>(entity => {
 			entity.HasKey(e => e.Id).HasName("UserMission_pkey");
 			entity.ToTable("UserMission");
 
@@ -198,12 +198,12 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		modelBuilder.Entity<Invite>(entity => {
+		builder.Entity<Invite>(entity => {
 			entity.HasKey(e => e.Id).HasName("Invite_pkey");
 			entity.ToTable("Invite");
 			entity.HasQueryFilter(x => !x.IsDeleted && !x.IsUsed);
 		});
 
-		base.OnModelCreating(modelBuilder);
+		base.OnModelCreating(builder);
 	}
 }
