@@ -10,15 +10,15 @@ using System;
 /// 3. OutboxService is responsible for error handling and cleanup. If the app shuts down or processing errors out, Outbox records a requeued 
 /// </summary>
 public class SideEffectProcessor(ISideEffectQueue queue, IServiceProvider serviceProvider, ILogger<SideEffectProcessor> logger) : BackgroundService {
-	protected override async Task ExecuteAsync(CancellationToken cancellationToken) {
-		await foreach (var message in queue.Reader.ReadAllAsync(cancellationToken)) {
+	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+		await foreach (var message in queue.Reader.ReadAllAsync(stoppingToken)) {
 			try {
 				using var scope = serviceProvider.CreateScope();
 				var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>(); //Create scope because SideEffectProcessor is singleton but DbContext is scoped
 				var publisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
 				context.Attach(message);
-				await ProcessMessageAsync(message, publisher, cancellationToken);
-				await context.SaveChangesAsync(cancellationToken);
+				await ProcessMessageAsync(message, publisher, stoppingToken);
+				await context.SaveChangesAsync(stoppingToken);
 			} catch (Exception ex) {
 				logger.LogError(ex, "Error processing side effect");
 			}

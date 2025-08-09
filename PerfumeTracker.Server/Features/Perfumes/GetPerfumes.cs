@@ -21,19 +21,27 @@ public class GetPerfumesWithWornEndpoint : ICarterModule {
 	}
 }
 
-public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, IPresignedUrlService presignedUrlService) 
+public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, IPresignedUrlService presignedUrlService)
 	: IQueryHandler<GetPerfumesWithWornQuery, List<PerfumeWithWornStatsDto>> {
 	public async Task<List<PerfumeWithWornStatsDto>> Handle(GetPerfumesWithWornQuery request, CancellationToken cancellationToken) {
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
+		var normalized = request.FullText?.Trim();
+		var hasQuery = !string.IsNullOrWhiteSpace(normalized);
+		var tsQuery = hasQuery
+			? string.Join(" & ", normalized!
+				.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+				.Select(t => $"{t}:*"))
+			: "";
 		return await context
 			.Perfumes
 			.Include(x => x.PerfumeEvents)
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Include(x => x.PerfumeRatings)
-			.Where(p => string.IsNullOrWhiteSpace(request.FullText)
-				|| p.FullText.Matches(EF.Functions.PlainToTsQuery($"{request.FullText}:*"))
-				|| p.PerfumeTags.Any(pt => EF.Functions.ILike(pt.Tag.TagName, $"%{request.FullText}%"))
+			.Where(p => !hasQuery
+				|| p.FullText.Matches(EF.Functions.ToTsQuery(tsQuery))
+				|| p.PerfumeTags.Any(pt
+					 => EF.Functions.ILike(pt.Tag.TagName, $"%{normalized}%"))
 			)
 			.Select(p => p.ToPerfumeWithWornStatsDto(settings, presignedUrlService))
 			.AsSplitQuery()
