@@ -16,7 +16,6 @@ public class DeletePerfumeRatingHandler(PerfumeTrackerContext context) : IComman
 	public async Task<PerfumeRatingDownloadDto> Handle(DeletePerfumeRatingCommand request, CancellationToken cancellationToken) {
 		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var rating = await context.PerfumeRatings.FindAsync(request.RatingId) ?? throw new NotFoundException("PerfumeRatings", request.RatingId);
-		if (rating == null) throw new NotFoundException();
 		if (rating.PerfumeId != request.PerfumeId) throw new BadRequestException("PerfumeRating does not belong to selected Perfume");
 		rating.IsDeleted = true;
 		await context.SaveChangesAsync();
