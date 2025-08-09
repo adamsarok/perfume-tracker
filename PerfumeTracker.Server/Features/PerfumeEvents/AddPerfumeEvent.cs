@@ -34,8 +34,7 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 		};
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		context.PerfumeEvents.Add(evt);
-		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
-		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
+		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId, cancellationToken) ?? throw new NotFoundException("Perfumes", evt.PerfumeId);
 		if (evt.AmountMl == 0 && evt.Type == PerfumeEvent.PerfumeEventType.Worn) evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		var result = evt.Adapt<PerfumeEventDownloadDto>();
 		List<OutboxMessage> messages = new List<OutboxMessage>();

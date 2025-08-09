@@ -14,7 +14,7 @@ public class ProgressStreaks {
 		const int streakProtectionDays = 1;
 		public async Task UpdateStreakProgress(CancellationToken cancellationToken, Guid userId) {
 			var now = DateTime.UtcNow;
-			var userStreak = await context.UserStreaks
+			var streak = await context.UserStreaks
 				.IgnoreQueryFilters()
 				.Where(um => um.UserId == userId && um.StreakEndAt == null)
 				.FirstOrDefaultAsync(cancellationToken);
@@ -23,7 +23,7 @@ public class ProgressStreaks {
 				.Where(um => um.Id == userId)
 				.FirstAsync();
 			StreakStatus status = StreakStatus.NoChange;
-			if (userStreak != null) {
+			if (streak != null) {
 				int utcOffset = 0;
 				try {
 					var iana = string.IsNullOrWhiteSpace(profile.Timezone) ? "UTC" : profile.Timezone;
@@ -32,32 +32,34 @@ public class ProgressStreaks {
 				} catch (Exception ex) {
 					logger.LogError(ex, "Timezone conversion failed");
 				}
-				status = GetStreakStatus(userStreak.LastProgressedAt, now, utcOffset);
+				status = GetStreakStatus(streak.LastProgressedAt, now, utcOffset);
 				switch (status) {
 					case StreakStatus.Ended:
-						userStreak.StreakEndAt = userStreak.LastProgressedAt;
+						streak.StreakEndAt = streak.LastProgressedAt;
 						break;
 					case StreakStatus.Progress:
-						userStreak.Progress++;
-						userStreak.LastProgressedAt = DateTime.UtcNow;
+						streak.Progress++;
+						streak.LastProgressedAt = DateTime.UtcNow;
 						break;
 				}
 			}
-			UserStreak newStreak = null;
-			if (userStreak == null || status == StreakStatus.Ended) {
-				newStreak = new UserStreak() {
+			if (streak == null || status == StreakStatus.Ended) {
+				var newStreak = new UserStreak() {
 					StreakStartAt = now,
 					LastProgressedAt = now,
 					Progress = 1,
 					UserId = userId,
 				};
 				context.UserStreaks.Add(newStreak);
+				await context.SaveChangesAsync(cancellationToken);
+				await SendStreakProgress(newStreak, cancellationToken);
+			} else {
+				await context.SaveChangesAsync(cancellationToken);
+				await SendStreakProgress(streak, cancellationToken);
 			}
-			await context.SaveChangesAsync();
-			await SendStreakProgress(newStreak ?? userStreak);
 		}
 		public enum StreakStatus { Ended, Progress, NoChange }
-		public StreakStatus GetStreakStatus(DateTime lastProgressDate, DateTime nowDate, int userUtcOffset) {
+		public static StreakStatus GetStreakStatus(DateTime lastProgressDate, DateTime nowDate, int userUtcOffset) {
 			var nowLocal = nowDate.AddHours(userUtcOffset).Date;
 			var progressLocal = lastProgressDate.AddHours(userUtcOffset).Date;
 			var diff = nowLocal - progressLocal;
@@ -65,9 +67,9 @@ public class ProgressStreaks {
 			if (nowLocal > progressLocal) return StreakStatus.Progress;
 			return StreakStatus.NoChange;
 		}
-		private async Task SendStreakProgress(UserStreak streak) {
+		private async Task SendStreakProgress(UserStreak streak, CancellationToken cancellationToken) {
 			await streakProgressHub.Clients.User(streak.UserId.ToString()).SendAsync("ReceiveStreakProgress",
-				streak.Adapt<UserStreakDto>()
+				streak.Adapt<UserStreakDto>(), cancellationToken
 			);
 		}
 	}

@@ -18,11 +18,11 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 	protected bool DbUp = false;
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 	protected MockTenantProvider TenantProvider = new MockTenantProvider();
-	protected Mock<IHubContext<MissionProgressHub>> MockMissionProgressHubContext = default!;
-	protected Mock<IHubContext<StreakProgressHub>> MockStreakProgressHubContext = default!;
-	protected Mock<IClientProxy> MockClientProxy = default!;
+	protected Mock<IHubContext<MissionProgressHub>> MockMissionProgressHubContext;
+	protected Mock<IHubContext<StreakProgressHub>> MockStreakProgressHubContext;
+	protected Mock<IClientProxy> MockClientProxy;
 	protected List<HubMessage> HubMessages = new List<HubMessage>();
-	protected Mock<ISideEffectQueue> MockSideEffectQueue = default!;
+	protected Mock<ISideEffectQueue> MockSideEffectQueue;
 	public record HubMessage(string HubSentMethod, object[] HubSentArgs);
 	public TestBase(WebApplicationFactory<Program> factory) {
 		semaphore.Wait();
@@ -37,6 +37,7 @@ public class TestBase : IClassFixture<WebApplicationFactory<Program>> {
 				var createUserHandler = new CreateUser(logger, userManager, scope.PerfumeTrackerContext);
 				user = createUserHandler.Create("test", "abcd1234ABCDxyz59697", Roles.USER, "test@example.com", false).GetAwaiter().GetResult();
 			}
+			if (user == null) throw new InvalidOperationException("User creation failed");
 			TenantProvider.MockTenantId = user.Id;
 
 			var mockClients = new Mock<IHubClients>();

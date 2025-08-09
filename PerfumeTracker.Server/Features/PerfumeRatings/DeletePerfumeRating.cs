@@ -5,7 +5,7 @@ public record DeletePerfumeRatingCommand(Guid PerfumeId, Guid RatingId) : IComma
 public class DeletePerfumeRatingEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfumes/{perfumeId}/ratings/{ratingId}", async (ISender sender, Guid perfumeId, Guid ratingId) => {
-			var result = await sender.Send(new DeletePerfumeRatingCommand(perfumeId, ratingId));
+			await sender.Send(new DeletePerfumeRatingCommand(perfumeId, ratingId));
 			return Results.NoContent();
 		}).WithTags("PerfumeRatings")
 			.WithName("DeletePerfumeRating")
@@ -14,9 +14,8 @@ public class DeletePerfumeRatingEndpoint : ICarterModule {
 }
 public class DeletePerfumeRatingHandler(PerfumeTrackerContext context) : ICommandHandler<DeletePerfumeRatingCommand, PerfumeRatingDownloadDto> {
 	public async Task<PerfumeRatingDownloadDto> Handle(DeletePerfumeRatingCommand request, CancellationToken cancellationToken) {
-		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
-		var rating = await context.PerfumeRatings.FindAsync(request.RatingId);
-		if (rating == null) throw new NotFoundException();
+		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
+		var rating = await context.PerfumeRatings.FindAsync(request.RatingId, cancellationToken) ?? throw new NotFoundException("PerfumeRatings", request.RatingId);
 		if (rating.PerfumeId != request.PerfumeId) throw new BadRequestException("PerfumeRating does not belong to selected Perfume");
 		rating.IsDeleted = true;
 		await context.SaveChangesAsync();

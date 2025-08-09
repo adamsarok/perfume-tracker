@@ -3,7 +3,7 @@ using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
 public record PerfumeRatingUploadDto(Guid PerfumeId, decimal Rating, string Comment);
-public record PerfumeRatingDownloadDto(Guid PerfumeId, decimal Rating, string Comment, DateTime RatingDate);
+public record PerfumeRatingDownloadDto(Guid PerfumeId, Guid Id, decimal Rating, string Comment, DateTime RatingDate, bool IsDeleted);
 public record AddPerfumeRatingCommand(PerfumeRatingUploadDto Dto) : ICommand<PerfumeRatingDownloadDto>;
 public class AddPerfumeRatingCommandValidator : AbstractValidator<AddPerfumeRatingCommand> {
 	public AddPerfumeRatingCommandValidator() {
@@ -23,10 +23,9 @@ public class AddPerfumeRatingEndpoint : ICarterModule {
 }
 public class AddPerfumeRatingHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeRatingCommand, PerfumeRatingDownloadDto> {
 	public async Task<PerfumeRatingDownloadDto> Handle(AddPerfumeRatingCommand request, CancellationToken cancellationToken) {
-		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
+		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var evt = request.Dto.Adapt<PerfumeRating>();
-		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
-		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
+		if (await context.Perfumes.FindAsync(evt.PerfumeId, cancellationToken) == null) throw new NotFoundException("Perfumes", evt.PerfumeId);
 		context.PerfumeRatings.Add(evt);
 		var result = evt.Adapt<PerfumeRatingDownloadDto>();
 		await context.SaveChangesAsync();

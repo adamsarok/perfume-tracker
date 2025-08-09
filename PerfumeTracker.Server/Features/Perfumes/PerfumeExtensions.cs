@@ -41,7 +41,7 @@ public static class PerfumeExtensions {
 				p.Winter,
 				p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id, tag.Tag.IsDeleted)).ToList(),
 				p.IsDeleted,
-				p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(p.Id, r.Rating, r.Comment, r.RatingDate)).ToList()
+				p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(r.PerfumeId, r.Id, r.Rating, r.Comment, r.RatingDate, r.IsDeleted)).ToList()
 			),
 			worns.Any() ? worns.Count : 0,
 			worns.Any() ? worns.Max(x => x.CreatedAt) : null,

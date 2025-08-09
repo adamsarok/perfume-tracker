@@ -30,7 +30,7 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	}
 
 	[Fact]
-	public async Task GetXPMultiplier_ReturnsValidXP() {
+	public void GetXPMultiplier_ReturnsValidXP() {
 		decimal last = 0;
 		using var scope = GetTestScope();
 		var xpService = new XPService(scope.PerfumeTrackerContext);
@@ -74,28 +74,21 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	[InlineData("2024-07-10T00:00:00Z", "2024-07-11T00:00:00Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)] // exactly 1-day boundary
 	public void GetStreakStatus_ReturnsExpectedStatus(string lastProgress, string now, int utcOffset, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus expected)
     {
-        var mockLogger = new Mock<ILogger<ProgressStreaks.UpdateStreakProgressHandler>>();   // Arrange
-        var handler = new ProgressStreaks.UpdateStreakProgressHandler(null, MockStreakProgressHubContext.Object, mockLogger.Object);
-        var lastProgressDate = DateTime.Parse(lastProgress, null, System.Globalization.DateTimeStyles.AdjustToUniversal);
-        var nowDate = DateTime.Parse(now, null, System.Globalization.DateTimeStyles.AdjustToUniversal);
+        var lastProgressDate = DateTime.Parse(lastProgress, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
+        var nowDate = DateTime.Parse(now, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
 
-        var result = handler.GetStreakStatus(lastProgressDate, nowDate, utcOffset);         // Act
+        var result = UpdateStreakProgressHandler.GetStreakStatus(lastProgressDate, nowDate, utcOffset);  
 
-		Assert.Equal(expected, result);														// Assert
+		Assert.Equal(expected, result);	
 	}
 
 	void AssertProgress() {
 		Assert.NotNull(HubMessages);
 		Assert.NotEmpty(HubMessages);
-		foreach (var m in HubMessages) {
-			foreach (var s in m.HubSentArgs) {
-				var streakDto = s as UserStreakDto;
-				Assert.NotNull(streakDto);
-				Assert.True(streakDto.Progress > 0);
-				HubMessages.Clear();
-				return;
-			}
-		}
-		throw new Exception("Streak not found in update args");
+		var hubSentArg = HubMessages[0].HubSentArgs[0];
+		var streakDto = hubSentArg as UserStreakDto;
+		Assert.NotNull(streakDto);
+		Assert.True(streakDto.Progress > 0);
+		HubMessages.Clear();
 	}
 }

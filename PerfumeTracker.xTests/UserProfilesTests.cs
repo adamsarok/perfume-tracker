@@ -15,7 +15,7 @@ public class UserProfilesTests : TestBase, IClassFixture<WebApplicationFactory<P
     public async Task GetUserProfiles() {
 		using var scope = GetTestScope();
 		var handler = new GetUserProfileHandler(scope.PerfumeTrackerContext);
-		var result = await handler.Handle(new GetUserProfileQuery(), new CancellationToken());
+		var result = await handler.Handle(new GetUserProfileQuery(), CancellationToken.None);
         Assert.NotNull(result);
     }
 }

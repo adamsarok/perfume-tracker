@@ -40,15 +40,9 @@ public class RandomPerfumeTests : TestBase, IClassFixture<WebApplicationFactory<
 	}
 
 	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1"
-				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume1")
-			},
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2"
-				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("Perfume2")
-			},
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "NotWornPerfume"
-				,FullText = NpgsqlTypes.NpgsqlTsVector.Parse("NotWornPerfume")
-			},
+			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1" },
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2" },
+			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "NotWornPerfume" },
 		};
 
 	[Fact]
@@ -56,7 +50,7 @@ public class RandomPerfumeTests : TestBase, IClassFixture<WebApplicationFactory<
 		await PrepareData();
 		using var scope = GetTestScope();
 		var handler = new GetRandomPerfumeHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
-		var response = await handler.Handle(new GetRandomPerfumeQuery(), new CancellationToken());
+		var response = await handler.Handle(new GetRandomPerfumeQuery(), CancellationToken.None);
 		Assert.NotNull(response);
 	}
 

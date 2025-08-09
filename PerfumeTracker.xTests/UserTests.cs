@@ -10,7 +10,7 @@ public class UserTests : TestBase, IClassFixture<WebApplicationFactory<Program>>
 		using var scope = GetTestScope();
 		var xpService = new XPService(scope.PerfumeTrackerContext);
 		var handler = new GetCurrentUserXPHandler(scope.PerfumeTrackerContext, xpService);
-		var result = await handler.Handle(new UserXPQuery(), new CancellationToken());
+		var result = await handler.Handle(new UserXPQuery(), CancellationToken.None);
 		Assert.NotNull(result); //TODO: add completed mission and assert
 	}
 }

@@ -13,8 +13,7 @@ public class UploadImageEndpoint : ICarterModule {
 			PerfumeTrackerContext perfumeTrackerContext,
 			UploadImageHandler uploadImageHandler) => {
 				if (!configuration.IsEnabled) return Results.InternalServerError("R2 not configured");
-				var perfume = await perfumeTrackerContext.Perfumes.FindAsync(perfumeId);
-				if (perfume == null) return Results.BadRequest("Perfume Id not found");
+				var perfume = await perfumeTrackerContext.Perfumes.FindAsync(perfumeId) ?? throw new NotFoundException("Perfumes", perfumeId);
 				if (file == null || file.Length == 0) return Results.BadRequest("No file uploaded");
 				if (file.Length > configuration.MaxFileSizeKb * 1024) {
 					return Results.BadRequest($"File size exceeds the maximum limit of {configuration.MaxFileSizeKb}kb");
@@ -32,8 +31,7 @@ public class UploadImageEndpoint : ICarterModule {
 }
 public class UploadImageHandler(R2Configuration configuration, 
 	IPresignedUrlService presignedUrlService,
-	IHttpClientFactory httpClientFactory,
-	ILogger<UploadImageHandler> logger) { 
+	IHttpClientFactory httpClientFactory) { 
 	public async Task<Guid> UploadImage(Stream stream) {
 		if (!configuration.IsEnabled) throw new ConfigEmptyException("R2 not configured");
 		try {
