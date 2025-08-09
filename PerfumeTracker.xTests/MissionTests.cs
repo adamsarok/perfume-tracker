@@ -125,7 +125,7 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		foreach (var m in HubMessages) {
 			foreach (var s in m.HubSentArgs) {
 				var mission = s as UserMissionDto;
-				if (mission.MissionType == type) {
+				if (mission != null && mission.MissionType == type) {
 					Assert.NotNull(mission);
 					Assert.True(mission.Progress > 0);
 					HubMessages.Clear();

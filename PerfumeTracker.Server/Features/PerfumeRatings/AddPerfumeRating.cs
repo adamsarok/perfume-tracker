@@ -23,10 +23,9 @@ public class AddPerfumeRatingEndpoint : ICarterModule {
 }
 public class AddPerfumeRatingHandler(PerfumeTrackerContext context) : ICommandHandler<AddPerfumeRatingCommand, PerfumeRatingDownloadDto> {
 	public async Task<PerfumeRatingDownloadDto> Handle(AddPerfumeRatingCommand request, CancellationToken cancellationToken) {
-		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
+		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var evt = request.Dto.Adapt<PerfumeRating>();
-		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId);
-		if (perfume == null) throw new NotFoundException("Perfume", evt.PerfumeId);
+		if (await context.Perfumes.FindAsync(evt.PerfumeId) == null) throw new NotFoundException("Perfumes", evt.PerfumeId);
 		context.PerfumeRatings.Add(evt);
 		var result = evt.Adapt<PerfumeRatingDownloadDto>();
 		await context.SaveChangesAsync();

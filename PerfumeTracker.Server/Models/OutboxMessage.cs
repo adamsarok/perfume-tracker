@@ -3,9 +3,11 @@
 namespace PerfumeTracker.Server.Models;
 
 public class OutboxMessage : UserEntity {
-	public static OutboxMessage From<T>(T payload) {
-		return new OutboxMessage() {
-			EventType = payload?.GetType().AssemblyQualifiedName ?? throw new InvalidOperationException("AssemblyQualifiedName is null"),
+	public static OutboxMessage From<T>(T payload) where T : notnull {
+		if (payload is null) throw new ArgumentNullException(nameof(payload));
+		var aqn = payload.GetType().AssemblyQualifiedName ?? throw new InvalidOperationException("Type.AssemblyQualifiedName is null");
+		return new OutboxMessage {
+			EventType = aqn,
 			Payload = JsonSerializer.Serialize(payload),
 		};
 	}

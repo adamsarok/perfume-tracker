@@ -119,7 +119,6 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope()) {
     var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 	var seedUsers = scope.ServiceProvider.GetRequiredService<ISeedUsers>();
-	var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 	await dbContext.Database.MigrateAsync();
 	await SeedAchievements.SeedAchievementsAsync(dbContext);
 	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
@@ -148,6 +147,8 @@ app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthCh
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
 
-app.Run();
+await app.RunAsync();
 
+#pragma warning disable S1118 // Utility classes should not have public constructors
 public partial class Program { } //for integration tests
+#pragma warning restore S1118 // Utility classes should not have public constructors

@@ -21,8 +21,7 @@ public class UpdateTagHandler(PerfumeTrackerContext context) : ICommandHandler<U
 	public async Task<TagDto> Handle(UpdateTagCommand request, CancellationToken cancellationToken) {
 		var find = await context
 			.Tags
-			.FindAsync(request.TagId);
-		if (find == null) throw new NotFoundException();
+			.FindAsync(request.TagId) ?? throw new NotFoundException("Tags", request.TagId);
 		context.Entry(find).CurrentValues.SetValues(request.Dto);
 		await context.SaveChangesAsync();
 		return find.Adapt<TagDto>();

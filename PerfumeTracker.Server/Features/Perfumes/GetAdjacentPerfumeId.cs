@@ -25,8 +25,7 @@ public class GetNextPerfumeHandler(PerfumeTrackerContext context)
 	public async Task<Guid> Handle(GetNextPerfumeIdQuery request, CancellationToken cancellationToken) {
 		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
-		var from = await context.Perfumes.FindAsync(request.Id, cancellationToken);
-		if (from == null) throw new NotFoundException();
+		var from = await context.Perfumes.FindAsync(request.Id, cancellationToken) ?? throw new NotFoundException("Perfumes", request.Id);
 		var next = await context.Perfumes
 				.Where(x =>
 					(string.Compare(x.House, from.House) > 0 ||
@@ -49,8 +48,7 @@ public class GetPreviousPerfumeHandler(PerfumeTrackerContext context)
 	public async Task<Guid> Handle(GetPreviousPerfumeIdQuery request, CancellationToken cancellationToken) {
 		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
-		var from = await context.Perfumes.FindAsync(request.Id, cancellationToken);
-		if (from == null) throw new NotFoundException();
+		var from = await context.Perfumes.FindAsync(request.Id, cancellationToken) ?? throw new NotFoundException("Perfumes", request.Id);
 		var next = await context.Perfumes
 				.Where(x =>
 					(string.Compare(x.House, from.House) < 0 ||

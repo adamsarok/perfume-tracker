@@ -12,14 +12,14 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	public OutboxTests(WebApplicationFactory<Program> factory) : base(factory) { }
 
 	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-	private async Task PrepareData() {
+	private async Task<List<OutboxMessage>> PrepareData() {
 		await semaphore.WaitAsync();
 		try {
 			using var scope = GetTestScope();
 			var sql = "truncate table \"public\".\"OutboxMessage\" cascade; ";
 			await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
 			var userId = TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("MockTenantProvider userId is null");
-			outboxSeed = new List<OutboxMessage>() {
+			var outboxSeed = new List<OutboxMessage>() {
 				OutboxMessage.From(new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), userId)),
 				OutboxMessage.From(new PerfumeAddedNotification(Guid.NewGuid(), userId)),
 				OutboxMessage.From(new PerfumeAddedNotification(Guid.NewGuid(), userId)),
@@ -28,23 +28,24 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 			outboxSeed[2].TryCount = 1;
 			scope.PerfumeTrackerContext.OutboxMessages.AddRange(outboxSeed);
 			await scope.PerfumeTrackerContext.SaveChangesAsync();
+			return outboxSeed;
 		} finally {
 			semaphore.Release();
 		}
 	}
-	private List<OutboxMessage> outboxSeed;
 
 	[Fact]
 	public async Task SideEffectQueue_CanEnqueue() {
-		await PrepareData();
+		var outboxSeed = await PrepareData();
 		using var scope = GetTestScope();
 		var channel = scope.ServiceScope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
 		channel.Enqueue(outboxSeed[0]);
+		Assert.True(await channel.Reader.WaitToReadAsync());
 	}
 
 	[Fact]
 	public async Task SideEffectProcessor_CanProcess() {
-		await PrepareData();
+		var outboxSeed = await PrepareData();
 		using var scope = GetTestScope();
 		var channel = scope.ServiceScope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
 		channel.Enqueue(outboxSeed[1]);

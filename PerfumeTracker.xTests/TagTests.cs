@@ -43,7 +43,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		using var scope = GetTestScope();
 		var getTagHandler = new GetTagHandler(scope.PerfumeTrackerContext);
 		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
-		var result = await getTagHandler.Handle(new GetTagQuery(tag.Id), new CancellationToken());
+		var result = await getTagHandler.Handle(new GetTagQuery(tag.Id), CancellationToken.None);
 		Assert.NotNull(result);
 		Assert.Equal(tag.Id, result.Id);
 	}
@@ -54,7 +54,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		using var scope = GetTestScope();
 		var getTagHandler = new GetTagHandler(scope.PerfumeTrackerContext);
 		await Assert.ThrowsAsync<NotFoundException>(async () => 
-			await getTagHandler.Handle(new GetTagQuery(Guid.NewGuid()), new CancellationToken()));
+			await getTagHandler.Handle(new GetTagQuery(Guid.NewGuid()), CancellationToken.None));
 	}
 
 	[Fact]
@@ -62,7 +62,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		await PrepareData();
 		using var scope = GetTestScope();
 		var getTagsHandler = new GetTagsHandler(scope.PerfumeTrackerContext);
-		var tags = await getTagsHandler.Handle(new GetTagsQuery(), new CancellationToken());
+		var tags = await getTagsHandler.Handle(new GetTagsQuery(), CancellationToken.None);
 		Assert.NotNull(tags);
 		Assert.NotEmpty(tags);
 	}
@@ -75,7 +75,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		tag.TagName = Guid.NewGuid().ToString();
 		var dto = tag.Adapt<TagUploadDto>();
 		var updateTagHandler = new UpdateTagHandler(scope.PerfumeTrackerContext);
-		var tagResult = await updateTagHandler.Handle(new UpdateTagCommand(tag.Id, dto), new CancellationToken());
+		var tagResult = await updateTagHandler.Handle(new UpdateTagCommand(tag.Id, dto), CancellationToken.None);
 		Assert.Equal(tag.TagName, tagResult.TagName);
 	}
 
@@ -85,7 +85,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		using var scope = GetTestScope();
 		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
 		var deleteTagHandler = new DeleteTagHandler(scope.PerfumeTrackerContext);
-		var result = await deleteTagHandler.Handle(new DeleteTagCommand(tag.Id), new CancellationToken());
+		var result = await deleteTagHandler.Handle(new DeleteTagCommand(tag.Id), CancellationToken.None);
 		Assert.True(result.IsDeleted);
 	}
 
@@ -95,7 +95,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		using var scope = GetTestScope();
 		var dto = new TagUploadDto("Purple", "#630330", Guid.NewGuid());
 		var addTagHandler = new AddTagHandler(scope.PerfumeTrackerContext);
-		var result = await addTagHandler.Handle(new AddTagCommand(dto), new CancellationToken());
+		var result = await addTagHandler.Handle(new AddTagCommand(dto), CancellationToken.None);
 		Assert.NotNull(await scope.PerfumeTrackerContext.Tags.FindAsync(result.Id));
 	}
 
@@ -104,7 +104,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		await PrepareData();
 		using var scope = GetTestScope();
 		var getTagStatsHandler = new GetTagStatsHandler(scope.PerfumeTrackerContext);
-		var tags = await getTagStatsHandler.Handle(new GetTagStatsQuery(), new CancellationToken());
+		var tags = await getTagStatsHandler.Handle(new GetTagStatsQuery(), CancellationToken.None);
 		Assert.NotNull(tags);
 		Assert.NotEmpty(tags);
 	}

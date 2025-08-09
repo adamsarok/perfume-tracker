@@ -12,8 +12,8 @@ public class GetUserConfiguration : ICarterModule {
 public record GetUserConfigurationResponse(bool InviteOnlyRegistration);
 public class GetUserConfigurationHandler(IConfiguration configuration) : IQueryHandler<GetUserConfigurationQuery, GetUserConfigurationResponse> {
 	public async Task<GetUserConfigurationResponse> Handle(GetUserConfigurationQuery request, CancellationToken cancellationToken) {
+		await Task.CompletedTask; // to suppress non-async warning
 		var userConfig = new UserConfiguration(configuration);
-		var response = new GetUserConfigurationResponse(userConfig.InviteOnlyRegistration);
-		return await Task.FromResult(response);
+		return new GetUserConfigurationResponse(userConfig.InviteOnlyRegistration);
 	}
 }
