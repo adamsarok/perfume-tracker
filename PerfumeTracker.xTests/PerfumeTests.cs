@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
+using Moq;
+using PerfumeTracker.Server.Features.PerfumeRandoms;
+using PerfumeTracker.Server.Features.PerfumeRatings;
 using PerfumeTracker.Server.Features.Perfumes;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
@@ -29,20 +32,20 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	}
 
 	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1" },
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2" },
-		};
+		new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1" },
+		new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2" },
+	};
 
 	static List<Tag> tagSeed = new List<Tag> {
-			new Tag { Id = Guid.NewGuid(), Color = "#FFFFFF", TagName = "Musky" },
-			new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" },
-			new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Blue" }
-		};
+		new Tag { Id = Guid.NewGuid(), Color = "#FFFFFF", TagName = "Musky" },
+		new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" },
+		new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Blue" }
+	};
 
 	static List<PerfumeTag> perfumeTagSeed = new List<PerfumeTag> {
-			new PerfumeTag { Id = Guid.NewGuid(), Perfume = perfumeSeed[0], Tag = tagSeed[0] },
-			new PerfumeTag { Id = Guid.NewGuid(), Perfume = perfumeSeed[1], Tag = tagSeed[1] }
-		};
+		new PerfumeTag { Id = Guid.NewGuid(), Perfume = perfumeSeed[0], Tag = tagSeed[0] },
+		new PerfumeTag { Id = Guid.NewGuid(), Perfume = perfumeSeed[1], Tag = tagSeed[1] }
+	};
 
 	[Fact]
 	public async Task GetPerfume() {
@@ -118,5 +121,61 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		var response = await handler.Handle(new GetPerfumesWithWornQuery(perfumeSeed[0].PerfumeName), CancellationToken.None);
 		Assert.NotNull(response);
 		Assert.NotEmpty(response);
+	}
+
+	[Fact]
+	public async Task AddPerfumeRating() {
+		await PrepareData();
+		using var scope = GetTestScope();
+		var dto = new PerfumeRatingUploadDto(perfumeSeed[0].Id, 5, "Nice perfume!");
+		var handler = new AddPerfumeRatingHandler(scope.PerfumeTrackerContext);
+		var response = await handler.Handle(new AddPerfumeRatingCommand(dto), CancellationToken.None);
+		Assert.NotNull(response);
+	}
+
+	[Fact]
+	public async Task DeletePerfumeRating() {
+		await PrepareData();
+		using var scope = GetTestScope();
+		var dto = new PerfumeRatingUploadDto(perfumeSeed[0].Id, 5, "Nice perfume!");
+		var handler = new AddPerfumeRatingHandler(scope.PerfumeTrackerContext);
+		var rating = await handler.Handle(new AddPerfumeRatingCommand(dto), CancellationToken.None);
+
+		var deleteHandler = new DeletePerfumeRatingHandler(scope.PerfumeTrackerContext);
+		rating = await deleteHandler.Handle(new DeletePerfumeRatingCommand(rating.PerfumeId, rating.Id), CancellationToken.None);
+		Assert.NotNull(rating);
+		Assert.True(rating.IsDeleted);
+	}
+
+	[Fact]
+	public async Task GetNextPerfume() {
+		await PrepareData();
+		using var scope = GetTestScope();
+		var handler = new GetNextPerfumeHandler(scope.PerfumeTrackerContext);
+		var response = await handler.Handle(new GetNextPerfumeIdQuery(perfumeSeed[0].Id), CancellationToken.None);
+		Assert.Equal(perfumeSeed[1].Id, response);
+	}
+	[Fact]
+	public async Task GetPreviousPerfume() {
+		await PrepareData();
+		using var scope = GetTestScope();
+		var handler = new GetPreviousPerfumeHandler(scope.PerfumeTrackerContext);
+		var response = await handler.Handle(new GetPreviousPerfumeIdQuery(perfumeSeed[0].Id), CancellationToken.None);
+		Assert.Equal(perfumeSeed[1].Id, response);
+	}
+	[Fact]
+	public async Task AcceptRandomPerfume() {
+		await PrepareData();
+		using var scope = GetTestScope();
+		var random = new PerfumeRandoms() {
+			Id = Guid.NewGuid(),
+			 PerfumeId = perfumeSeed[0].Id,
+			 UserId = scope.PerfumeTrackerContext.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException()
+		};
+		scope.PerfumeTrackerContext.PerfumeRandoms.Add(random);
+		await scope.PerfumeTrackerContext.SaveChangesAsync(CancellationToken.None);
+		var handler = new AcceptRandomPerfumeHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
+		await handler.Handle(new AcceptRandomPerfumeCommand(random.Id), CancellationToken.None);
+		MockSideEffectQueue.Verify(q => q.Enqueue(It.IsAny<OutboxMessage>()), Times.AtLeastOnce());
 	}
 }

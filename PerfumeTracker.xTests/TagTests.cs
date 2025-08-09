@@ -31,11 +31,9 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 	}
 
 	static List<Tag> tagSeed = new List<Tag> {
-			new Tag { Id = Guid.NewGuid(), Color = "#FFFFFF", TagName = "Musky" },
-			new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" }
-		};
-
-
+		new Tag { Id = Guid.NewGuid(), Color = "#FFFFFF", TagName = "Musky" },
+		new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" }
+	};
 
 	[Fact]
 	public async Task GetTag() {
@@ -53,7 +51,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		await PrepareData();
 		using var scope = GetTestScope();
 		var getTagHandler = new GetTagHandler(scope.PerfumeTrackerContext);
-		await Assert.ThrowsAsync<NotFoundException>(async () => 
+		await Assert.ThrowsAsync<NotFoundException>(async () =>
 			await getTagHandler.Handle(new GetTagQuery(Guid.NewGuid()), CancellationToken.None));
 	}
 

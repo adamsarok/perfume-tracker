@@ -3,7 +3,7 @@ using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
 public record PerfumeRatingUploadDto(Guid PerfumeId, decimal Rating, string Comment);
-public record PerfumeRatingDownloadDto(Guid PerfumeId, decimal Rating, string Comment, DateTime RatingDate);
+public record PerfumeRatingDownloadDto(Guid PerfumeId, Guid Id, decimal Rating, string Comment, DateTime RatingDate, bool IsDeleted);
 public record AddPerfumeRatingCommand(PerfumeRatingUploadDto Dto) : ICommand<PerfumeRatingDownloadDto>;
 public class AddPerfumeRatingCommandValidator : AbstractValidator<AddPerfumeRatingCommand> {
 	public AddPerfumeRatingCommandValidator() {

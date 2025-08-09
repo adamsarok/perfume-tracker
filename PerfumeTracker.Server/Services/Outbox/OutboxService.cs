@@ -1,13 +1,12 @@
 ﻿namespace PerfumeTracker.Server.Services.Outbox;
 
 public class OutboxService(IServiceProvider sp, ILogger<OutboxService> logger, ISideEffectQueue queue) : BackgroundService {
-	protected override async Task ExecuteAsync(CancellationToken cancellationToken) {
-		while (!cancellationToken.IsCancellationRequested) {
-			await ProcessMessages(cancellationToken);
-			await Task.Delay(1000 * 60 * 60, cancellationToken);
+	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+		while (!stoppingToken.IsCancellationRequested) {
+			await ProcessMessages(stoppingToken);
+			await Task.Delay(1000 * 60 * 60, stoppingToken);
 		}
 	}
-	//TODO: maintenance - clean old messages, move retry > 5 to dead letter queue
 	protected async Task ProcessMessages(CancellationToken cancellationToken) {
 		try {
 			using var scope = sp.CreateScope();
