@@ -91,7 +91,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 	public async Task AddTag() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var dto = new TagUploadDto("Purple", "#630330", Guid.NewGuid());
+		var dto = new TagUploadDto("Purple", "#630330");
 		var addTagHandler = new AddTagHandler(scope.PerfumeTrackerContext);
 		var result = await addTagHandler.Handle(new AddTagCommand(dto), CancellationToken.None);
 		Assert.NotNull(await scope.PerfumeTrackerContext.Tags.FindAsync(result.Id));
