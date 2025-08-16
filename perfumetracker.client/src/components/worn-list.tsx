@@ -45,7 +45,7 @@ export default function WornList({ refreshTrigger }: WornListProps) {
   }, []);
 
   useEffect(() => {
-    if (refreshTrigger !== undefined) {
+    if (typeof refreshTrigger === "number" && refreshTrigger > 0) {
       refreshList();
     }
   }, [refreshTrigger]);
