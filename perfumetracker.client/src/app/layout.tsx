@@ -166,7 +166,12 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         <div className="max-w-lg mx-auto px-4">
 
           {children}
-          <Toaster />
+          <Toaster 
+            visibleToasts={5} 
+            position="top-right"
+            expand={true}
+            richColors={false}
+          />
         </div>
       </main>
     </div>

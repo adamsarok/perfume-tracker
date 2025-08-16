@@ -25,7 +25,7 @@ export interface PerfumeSelectorProps {
 
 export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
   const onSprayOn = async () => {
-    window.location.reload();
+    //window.location.reload();
   };
 
   const perfumeMap = perfumes.map((x) => ({
