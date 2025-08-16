@@ -6,7 +6,11 @@ import { useInView } from "react-intersection-observer";
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { getWornBeforeID } from "@/services/perfume-worn-service";
 
-export default function WornList() {
+export interface WornListProps {
+  refreshTrigger?: number;
+}
+
+export default function WornList({ refreshTrigger }: WornListProps) {
   const [worns, setWorns] = useState<PerfumeWornDTO[]>([]);
   const [cursor, setCursor] = useState<number | null>(null);
   const { ref, inView } = useInView();
@@ -21,6 +25,17 @@ export default function WornList() {
     }
   };
 
+  const refreshList = async () => {
+    setWorns([]);
+    setCursor(null);
+    const newWorns = await getWornBeforeID(null, cardsPerPage);
+    if (newWorns.length > 0) {
+      const lastWorn = newWorns[newWorns.length - 1];
+      setCursor(lastWorn.sequenceNumber);
+      setWorns(newWorns);
+    }
+  };
+
   useEffect(() => {
     if (inView) loadMoreCards();
   }, [inView]);
@@ -28,6 +43,12 @@ export default function WornList() {
   useEffect(() => {
     loadMoreCards();
   }, []);
+
+  useEffect(() => {
+    if (refreshTrigger !== undefined) {
+      refreshList();
+    }
+  }, [refreshTrigger]);
 
   return (
     <div className="w-full max-w-3xl mx-auto px-2">

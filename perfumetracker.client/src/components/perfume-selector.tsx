@@ -21,11 +21,12 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 
 export interface PerfumeSelectorProps {
   perfumes: PerfumeWithWornStatsDTO[];
+  onSprayOnSuccess?: () => void;
 }
 
-export default function PerfumeSelector({ perfumes }: PerfumeSelectorProps) {
+export default function PerfumeSelector({ perfumes, onSprayOnSuccess }: PerfumeSelectorProps) {
   const onSprayOn = async () => {
-    //window.location.reload();
+    onSprayOnSuccess?.();
   };
 
   const perfumeMap = perfumes.map((x) => ({
