@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export default function Home() {
   const [perfumes, setPerfumes] = useState<PerfumeWithWornStatsDTO[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
   useEffect(() => {
     async function fetchPerfumes() {
@@ -20,13 +21,17 @@ export default function Home() {
     fetchPerfumes();
   }, []);
 
+  const handleSprayOnSuccess = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   return (
     <div>
       <div className="mt-2">
-        <PerfumeSelector perfumes={perfumes} />
+        <PerfumeSelector perfumes={perfumes} onSprayOnSuccess={handleSprayOnSuccess} />
       </div>
       <div className="mt-2">
-        <WornList />
+        <WornList refreshTrigger={refreshTrigger} />
       </div>
     </div>
   );
