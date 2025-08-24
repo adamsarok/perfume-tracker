@@ -1,5 +1,4 @@
-import { ActionResult } from "@/dto/ActionResult";
-import { get, put } from "./axios-service";
+import { AxiosResult, get, put } from "./axios-service";
 
 export interface UserProfile {
   minimumRating: number;
@@ -11,15 +10,13 @@ export interface UserProfile {
   sprayAmountSamplesMl: number;
 }
 
-export async function getUserProfile(): Promise<UserProfile> {
+export async function getUserProfile(): Promise<AxiosResult<UserProfile>> {
   const qry = `/user-profiles`;
-  const response = await get<UserProfile>(qry);
-  return response.data;
+  return get<UserProfile>(qry);
 }
 
 export async function updateUserProfile(
   userProfile: UserProfile
-): Promise<ActionResult> {
-  await put(`/user-profiles`, userProfile);
-  return { ok: true };
+): Promise<AxiosResult<unknown>> {
+  return put(`/user-profiles`, userProfile);
 }

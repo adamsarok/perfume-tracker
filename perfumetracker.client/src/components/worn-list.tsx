@@ -5,6 +5,7 @@ import PerfumeCard from "@/components/perfumecard";
 import { useInView } from "react-intersection-observer";
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { getWornBeforeID } from "@/services/perfume-worn-service";
+import { showError } from "@/services/toasty-service";
 
 export interface WornListProps {
   refreshTrigger?: number;
@@ -17,7 +18,13 @@ export default function WornList({ refreshTrigger }: WornListProps) {
   const cardsPerPage = 10;
 
   const loadMoreCards = async () => {
-    const newWorns = await getWornBeforeID(cursor, cardsPerPage);
+    const result = await getWornBeforeID(cursor, cardsPerPage);
+    if (result.error || !result.data) {
+      showError("Could not load worn perfumes", result.error ?? "unknown error");
+      return;
+    }
+    const newWorns = result.data;
+    newWorns.forEach(x => x.eventDate = new Date(x.eventDate));
     if (newWorns.length > 0) {
       const lastWorn = newWorns[newWorns.length - 1];
       setCursor(lastWorn.sequenceNumber);
@@ -28,7 +35,13 @@ export default function WornList({ refreshTrigger }: WornListProps) {
   const refreshList = async () => {
     setWorns([]);
     setCursor(null);
-    const newWorns = await getWornBeforeID(null, cardsPerPage);
+    const result = await getWornBeforeID(null, cardsPerPage);
+    if (result.error || !result.data) {
+      showError("Could not load worn perfumes", result.error ?? "unknown error");
+      return;
+    }
+    const newWorns = result.data;
+    newWorns.forEach(x => x.eventDate = new Date(x.eventDate));
     if (newWorns.length > 0) {
       const lastWorn = newWorns[newWorns.length - 1];
       setCursor(lastWorn.sequenceNumber);

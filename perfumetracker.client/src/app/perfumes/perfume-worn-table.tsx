@@ -16,6 +16,7 @@ import { TagDTO } from "@/dto/TagDTO";
 import { columns, PerfumeListDTO } from "./perfume-worn-columns";
 import { DataTable } from "@/components/ui/data-table";
 import { UserProfile } from "@/services/user-profiles-service";
+import { showError } from "@/services/toasty-service";
 
 export interface PerfumeWornTableProps {
   readonly allTags: TagDTO[];
@@ -29,8 +30,12 @@ export default function PerfumeWornTable({
   const [fulltext, setFulltext] = useState("");
   const list = useAsyncList({
     async load() {
-      const r: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext);
-      const perfumes: PerfumeListDTO[] = r.map((x) => ({
+      const result = await getPerfumesFulltext(fulltext);
+      if (result.error || !result.data) {
+        showError("Could not load perfumes", result.error ?? "unknown error");
+        return { items: [] };
+      }
+      const perfumes: PerfumeListDTO[] = result.data.map((x) => ({
         id: x.perfume.id,
         house: x.perfume.house,
         perfume: x.perfume.perfumeName,

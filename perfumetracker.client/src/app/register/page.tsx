@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getUserConfiguration, registerUser } from "@/services/user-service";
+import { showError } from "@/services/toasty-service";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -21,8 +22,13 @@ export default function RegisterPage() {
 
   useEffect(() => {
     const fetchConfig = async () => {
-      const config = await getUserConfiguration();
-      setInviteOnlyRegistration(config?.inviteOnlyRegistration);
+      const configResult = await getUserConfiguration();
+      if (configResult.error || !configResult.data) {
+        setInviteOnlyRegistration(true);
+        showError("Could not load configuration", configResult.error ?? "unknown error");
+        return;
+      }
+      setInviteOnlyRegistration(configResult.data.inviteOnlyRegistration);
     };
     fetchConfig();
   }, []);

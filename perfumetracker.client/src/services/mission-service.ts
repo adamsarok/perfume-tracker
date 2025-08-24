@@ -1,10 +1,9 @@
 import { UserMissionDto } from "@/dto/MissionDto";
-import { get, post } from "./axios-service";
+import { AxiosResult, get, post } from "./axios-service";
 
-export async function getActiveMissions(): Promise<UserMissionDto[]> {
+export async function getActiveMissions(): Promise<AxiosResult<UserMissionDto[]>> {
   const qry = `/missions/active`;
-  const response = await get<UserMissionDto[]>(qry);
-  return response.data;
+  return get<UserMissionDto[]>(qry);
 }
 
 export async function generateMissions(): Promise<void> {

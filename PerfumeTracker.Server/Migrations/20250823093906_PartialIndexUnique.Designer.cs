@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using PerfumeTracker.Server.DbContext;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumeTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250823093906_PartialIndexUnique")]
+    partial class PartialIndexUnique
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -366,7 +369,7 @@ namespace PerfumeTracker.Server.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("FullText"), "GIN");
 
-                    b.HasIndex("UserId", "House", "PerfumeName")
+                    b.HasIndex("House", "PerfumeName")
                         .IsUnique()
                         .HasFilter("\"IsDeleted\" = FALSE");
 

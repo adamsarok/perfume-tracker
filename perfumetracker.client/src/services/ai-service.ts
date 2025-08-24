@@ -1,6 +1,7 @@
 import { RecommendationDownloadDTO } from "@/dto/RecommendationDownloadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
-import { get, post } from "./axios-service";
+import { AxiosResult, get, post } from "./axios-service";
+import { Axios } from "axios";
 
 export interface TagWithCount {
   id: string;
@@ -20,12 +21,9 @@ export interface UserPreferences {
 }
 
 //TODO: paging
-export async function getAlreadyRecommended(): Promise<
-  RecommendationDownloadDTO[]
-> {
+export async function getAlreadyRecommended(): Promise<AxiosResult<RecommendationDownloadDTO[]>> {
   const qry = `/recommendations/`;
-  const response = await get<RecommendationDownloadDTO[]>(qry);
-  return response.data;
+  return get<RecommendationDownloadDTO[]>(qry);
 }
 
 // export async function addRecommendation(
@@ -53,22 +51,7 @@ function RemoveDiacritics(input: string) {
 
 export default async function getAiRecommendations(
   query: string
-): Promise<string> {
+): Promise<AxiosResult<string>> {
   query = RemoveDiacritics(query);
-  return await getOpenAIResponse(query);
-  // if (recommendations) {
-  //   const dto: RecommendationUploadDTO = {
-  //     query,
-  //     recommendations,
-  //   };
-  //   return await addRecommendation(dto); //TODO: move this to server side
-  // } else {
-  //   return Promise.reject(new Error("Open AI response is empty"));
-  // }
-}
-
-async function getOpenAIResponse(query: string) {
-  const qry = `/ai`;
-  const response = (await post<string>(qry, query)).data;
-  return response.replace(/\\n/g, '\n').substring(1, response.length - 2);
+  return post<string>('/ai', query);
 }

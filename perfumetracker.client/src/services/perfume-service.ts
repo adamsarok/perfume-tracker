@@ -1,65 +1,58 @@
 import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
-import { ActionResult } from "@/dto/ActionResult";
-import { del, get, post, put } from "./axios-service";
+import { AxiosResult, del, get, post, put } from "./axios-service";
 
 export async function getPerfumesFulltext(
   fulltext: string
-): Promise<PerfumeWithWornStatsDTO[]> {
- 
+): Promise<AxiosResult<PerfumeWithWornStatsDTO[]>> {
   const qry = `/perfumes/${fulltext ? `fulltext/${fulltext}` : ""}`;
-  const response = await get<PerfumeWithWornStatsDTO[]>(qry);
-  return response.data;
+  return get<PerfumeWithWornStatsDTO[]>(qry);
 }
 
-export async function getPerfume(id: string): Promise<PerfumeWithWornStatsDTO> {
+export async function getPerfume(id: string): Promise<AxiosResult<PerfumeWithWornStatsDTO>> {
   const qry = `/perfumes/${encodeURIComponent(id)}`;
-  const response = await get<PerfumeWithWornStatsDTO>(qry);
-  return response.data;
+  return get<PerfumeWithWornStatsDTO>(qry);
 }
 
-export async function getNextPerfumeId(id: string): Promise<string> {
+export async function getNextPerfumeId(id: string): Promise<AxiosResult<string>> {
   const qry = `/perfumes/${encodeURIComponent(id)}/next`;
-  const response = await get<string>(qry);
-  return response.data;
+  return get<string>(qry);
 }
 
-export async function getPreviousPerfumeId(id: string): Promise<string> {
+export async function getPreviousPerfumeId(id: string): Promise<AxiosResult<string>> {
   const qry = `/perfumes/${encodeURIComponent(id)}/previous`;
-  const response = await get<string>(qry);
-  return response.data;
+  return get<string>(qry);
 }
 
-export async function getPerfumes(): Promise<PerfumeWithWornStatsDTO[]> {
+export async function getPerfumes(): Promise<AxiosResult<PerfumeWithWornStatsDTO[]>> {
   const qry = `/perfumes/`;
-  const response = await get<PerfumeWithWornStatsDTO[]>(qry);
-  return response.data;
+  return get<PerfumeWithWornStatsDTO[]>(qry);
 }
 
 export async function addPerfume(
   perfume: PerfumeUploadDTO
-): Promise<ActionResult> {
-  const response = await post<PerfumeUploadDTO>(`/perfumes`, perfume);
-  return { ok: true, id: response.data.id };
+): Promise<AxiosResult<PerfumeUploadDTO>> {
+  return post<PerfumeUploadDTO>(`/perfumes`, perfume);
 }
 
 export async function updatePerfume(
   perfume: PerfumeUploadDTO
-): Promise<ActionResult> {
-  await put(`/perfumes/${perfume.id}`, perfume);
-  return { ok: true, id: perfume.id };
+): Promise<AxiosResult<unknown>> {
+  return put(`/perfumes/${perfume.id}`, perfume);
 }
 
 export async function updateImageGuid(
-  perfumeId: string, imageGuid: string
-): Promise<ActionResult> {
-  const dto: ImageGuidDTO = { parentObjectId: perfumeId, imageObjectKey: imageGuid };
-  await put(`/perfumes/imageguid`, dto);
-  return { ok: true, id: perfumeId };
+  perfumeId: string,
+  imageGuid: string
+): Promise<AxiosResult<unknown>> {
+  const dto: ImageGuidDTO = {
+    parentObjectId: perfumeId,
+    imageObjectKey: imageGuid,
+  };
+  return put(`/perfumes/imageguid`, dto);
 }
 
-export async function deletePerfume(id: string): Promise<ActionResult> {
-  await del(`/perfumes/${id}`);
-  return { ok: true, id: id };
+export async function deletePerfume(id: string): Promise<AxiosResult<void>> {
+  return del(`/perfumes/${id}`);
 }

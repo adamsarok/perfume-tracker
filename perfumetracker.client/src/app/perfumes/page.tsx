@@ -6,21 +6,34 @@ import { getUserProfile, UserProfile } from "@/services/user-profiles-service";
 import { getTags } from "@/services/tag-service";
 import { useEffect, useState } from "react";
 import { TagDTO } from "@/dto/TagDTO";
+import { showError } from "@/services/toasty-service";
 
 export const dynamic = 'force-dynamic'
 
 export default function StatsPage() {
-    const [tags, setTags] = useState<TagDTO[]>([]);
+    const [tags, setTags] = useState<TagDTO[] | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
-            setTags(await getTags());
-            setUserProfile(await getUserProfile());
+            const tagsResult = await getTags();
+            if (tagsResult.error || !tagsResult.data) { 
+                setTags([]);
+                showError("Could not load tags", tagsResult.error ?? "unknown error");
+                return;
+            }
+            setTags(tagsResult.data);
+            const userProfileResult = await getUserProfile();
+            if (userProfileResult.error || !userProfileResult.data) {
+                setUserProfile(null);
+                showError("Could not load user profile", userProfileResult.error ?? "unknown error");
+                return;
+            }
+            setUserProfile(userProfileResult.data);
         }
         fetchData();
     }, []);
-    if (!userProfile || tags.length === 0) {
+    if (!userProfile || !tags) {
         return <div>Loading...</div>;
     }
     return <div>

@@ -32,17 +32,21 @@ interface TagAddModalProps {
 }
 
 const formSchema = z.object({
-  tag: z.string().min(1, {
-    message: "Tag must be at least 1 characters.",
-  }).trim(),
-  color: z.string().min(1, {
-    message: "Color must be at least 1 characters.",
-  }).trim(),
+  tag: z
+    .string()
+    .min(1, {
+      message: "Tag must be at least 1 characters.",
+    })
+    .trim(),
+  color: z
+    .string()
+    .min(1, {
+      message: "Color must be at least 1 characters.",
+    })
+    .trim(),
 });
 
-export default function TagAddModal({
-  tagAdded
-}: TagAddModalProps) {
+export default function TagAddModal({ tagAdded }: TagAddModalProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,11 +62,13 @@ export default function TagAddModal({
       color: values.color,
     };
     const result = await addTag(tag);
-    if (result.ok && result.id) {
-      tag.id = result.id;
-      showSuccess("Tag add successful");
-      tagAdded(tag);
-    } else showError(`Tag add failed: ${result.error ?? "unknown error"}`);
+    if (result.error || !result.data) {
+      showError("Tag add failed", result.error ?? "unknown error");
+      return;
+    }
+    tag.id = result.data.id;
+    showSuccess("Tag add successful");
+    tagAdded(tag);
   }
 
   return (
