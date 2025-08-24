@@ -22,7 +22,13 @@ export default function TagTable() {
   const auth = useAuth();
   useEffect(() => {
     const fetchData = async () => {
-      const fetchedTags = await getTags();
+      const result = await getTags();
+      if (result.error || !result.data) {
+        setTags([]);
+        showError("Could not load tags", result.error ?? "unknown error");
+        return;
+      }
+      const fetchedTags = result.data;
       fetchedTags.sort((a, b) => a.tagName.localeCompare(b.tagName));
       setTags(fetchedTags);
       const initialTagColors = fetchedTags.reduce((acc, tag) => {

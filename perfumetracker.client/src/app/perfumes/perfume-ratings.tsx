@@ -54,8 +54,12 @@ export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
     }
 
     async function reload() {
-        const newRatings = await getPerfumeRatings(perfume.perfume.id);
-        setLocalRatings(newRatings);
+        const result = await getPerfumeRatings(perfume.perfume.id);
+        if (result.error || !result.data) {
+            showError("Could not load ratings", result.error ?? "unknown error");
+            return;
+        }
+        setLocalRatings(result.data);
     }
 
     // For debugging: log when localRatings changes

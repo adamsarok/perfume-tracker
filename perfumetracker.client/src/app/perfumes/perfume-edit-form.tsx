@@ -87,8 +87,13 @@ export default function PerfumeEditForm({
   useEffect(() => {
     const load = async () => {
       if (perfumeId) {
-        const perfume = await getPerfume(perfumeId);
-        await loadPerfume(perfume);
+        const result = await getPerfume(perfumeId);
+        if (result.error || !result.data) {
+          showError("Could not load perfume", result.error ?? "unknown error");
+          setIsLoading(false);
+          return;
+        }
+        await loadPerfume(result.data);
       } else {
         await loadPerfume(null);
       }
@@ -146,7 +151,13 @@ export default function PerfumeEditForm({
 
   async function loadPerfume(perfume: PerfumeWithWornStatsDTO | null) {
     try {
-      const loadedTags = await getTags();
+      const result = await getTags();
+      if (result.error || !result.data) {
+        showError("Could not load tags", result.error ?? "unknown error");
+        setIsLoading(false);
+        return;
+      }
+      const loadedTags = result.data;
       const topChips: ChipProp[] = [];
       const bottomChips: ChipProp[] = [];
       console.log("perfume", perfume);
@@ -259,8 +270,12 @@ export default function PerfumeEditForm({
   const onUpload = async (guid: string | undefined) => {
     if (perfume?.perfume.id && guid) {
       const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(guid)}`;
-      const presignedUrl = (await get<string>(qryPresigned)).data;
-      perfume.perfume.imageUrl = presignedUrl;
+      const result = await get<string>(qryPresigned);
+      if (result.error) {
+        showError("Could not get presigned url", result.error);
+        return;
+      }
+      perfume.perfume.imageUrl = result.data ?? "";
       setImageUrl(perfume.perfume.imageUrl);
     }
   };

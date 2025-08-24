@@ -20,9 +20,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function fetchSettings() {
-      const fetchedSettings = await getUserProfile();
-      setSettings(fetchedSettings);
-      setLocalSettings(fetchedSettings);
+      const settingsResult = await getUserProfile();
+      if (settingsResult.error || !settingsResult.data) {
+        showError("Could not load user profile", settingsResult.error ?? "unknown error");
+        return;
+      }
+      setSettings(settingsResult.data);
+      setLocalSettings(settingsResult.data);
     }
     fetchSettings();
   }, []);

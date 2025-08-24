@@ -5,7 +5,12 @@ import { Toaster } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { getCurrentUser, logoutUser, getUserXP, UserXPResponse } from "@/services/user-service";
+import {
+  getCurrentUser,
+  logoutUser,
+  getUserXP,
+  UserXPResponse,
+} from "@/services/user-service";
 import { UserMissionDto } from "@/dto/MissionDto";
 import * as signalR from "@microsoft/signalr";
 import { toast } from "sonner";
@@ -15,7 +20,7 @@ import { generateMissions } from "@/services/mission-service";
 import AppNavigationMenu from "@/components/app-navigation-menu";
 import { LogOut } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-
+import { showError } from "@/services/toasty-service";
 
 function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
@@ -28,7 +33,6 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     setHasMounted(true);
 
     const connectToSignalR = async () => {
-
       const apiUrl = await initializeApiUrl();
       console.log("apiUrl", apiUrl);
       if (!apiUrl) {
@@ -52,17 +56,17 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
             description: `Progress: ${mission.progress}%`,
           });
         }
-      }
-      );
+      });
 
-      connection.start()
+      connection
+        .start()
         .then(() => console.log("SignalR Connected"))
-        .catch(err => console.error("SignalR Connection Error: ", err));
+        .catch((err) => console.error("SignalR Connection Error: ", err));
 
       return () => {
         connection.stop();
       };
-    }
+    };
     connectToSignalR();
   }, []);
 
@@ -71,22 +75,36 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     const checkAuth = async () => {
       if (!hasMounted) return;
       try {
-        const currentUser = await getCurrentUser();
-        if (!hasMounted) return;
-        setUser(currentUser);
-        if (!currentUser && (pathname !== '/login' && pathname !== '/register')) {
-          router.push('/login');
-        } else if (currentUser && (pathname === '/login' || pathname === '/register')) {
-          router.push('/');
+        const currentUserResult = await getCurrentUser();
+        if (
+          !currentUserResult ||
+          currentUserResult.error ||
+          !currentUserResult.data
+        ) {
+          throw new Error(currentUserResult?.error || "Failed to fetch user");
         }
-        if (currentUser) {
+        if (!hasMounted) return;
+        setUser(currentUserResult.data);
+        if (
+          !currentUserResult.data &&
+          pathname !== "/login" &&
+          pathname !== "/register"
+        ) {
+          router.push("/login");
+        } else if (
+          currentUserResult.data &&
+          (pathname === "/login" || pathname === "/register")
+        ) {
+          router.push("/");
+        }
+        if (currentUserResult.data) {
           await generateMissions();
         }
       } catch (error) {
         if (!hasMounted) return;
-        console.error('Auth check failed:', error);
-        if ((pathname !== '/login' && pathname !== '/register')) {
-          router.push('/login');
+        console.error("Auth check failed:", error);
+        if (pathname !== "/login" && pathname !== "/register") {
+          router.push("/login");
         }
       } finally {
         if (hasMounted) {
@@ -95,7 +113,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
       }
     };
 
-    if ((pathname === '/login' || pathname === '/register')) {
+    if (pathname === "/login" || pathname === "/register") {
       setLoading(false);
       return;
     }
@@ -104,8 +122,16 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   }, [pathname, hasMounted, setUser, setLoading]);
 
   useEffect(() => {
-    if (!hasMounted || !user) return;
-    getUserXP().then(setXp).catch(() => setXp(null));
+    const fetchUserXP = async () => {
+      if (!hasMounted || !user) return;
+      const result = await getUserXP();
+      if (result.error || !result.data) {
+        showError("Could not load user XP", result.error ?? "unknown error");
+        return;
+      }
+      setXp(result.data);
+    };
+    fetchUserXP();
   }, [hasMounted, user]);
 
   const handleLogout = async () => {
@@ -113,14 +139,14 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     try {
       await logoutUser();
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     } finally {
       clearUser();
-      router.push('/login');
+      router.push("/login");
     }
   };
 
-  if (isLoading && (pathname !== '/login' && pathname !== '/register')) {
+  if (isLoading && pathname !== "/login" && pathname !== "/register") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
@@ -128,7 +154,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     );
   }
 
-  if ((pathname === '/login' || pathname === '/register')) {
+  if (pathname === "/login" || pathname === "/register") {
     return <>{children}</>;
   }
 
@@ -142,9 +168,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
                 <AppNavigationMenu></AppNavigationMenu>
                 <div className="flex items-center gap-4">
                   <span className="text-gray-700 text-sm">{user.email}</span>
-                  <Button size="icon"
-                    onClick={handleLogout}
-                  >
+                  <Button size="icon" onClick={handleLogout}>
                     <LogOut />
                   </Button>
                 </div>
@@ -155,19 +179,28 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         {user && xp && (
           <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <div className="flex items-center gap-4">
-              <span className="text-xs text-gray-500">{xp.xp} XP Level {xp.level}</span>
-              <Progress value={((xp.xp - xp.xpLastLevel) / (xp.xpNextLevel - xp.xpLastLevel)) * 100}   />
-              <span className="text-xs text-gray-500">{xp.streakLength}d streak x{xp.xpMultiplier}</span>
+              <span className="text-xs text-gray-500">
+                {xp.xp} XP Level {xp.level}
+              </span>
+              <Progress
+                value={
+                  ((xp.xp - xp.xpLastLevel) /
+                    (xp.xpNextLevel - xp.xpLastLevel)) *
+                  100
+                }
+              />
+              <span className="text-xs text-gray-500">
+                {xp.streakLength}d streak x{xp.xpMultiplier}
+              </span>
             </div>
           </div>
         )}
       </nav>
       <main className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="max-w-lg mx-auto px-4">
-
           {children}
-          <Toaster 
-            visibleToasts={5} 
+          <Toaster
+            visibleToasts={5}
             position="top-right"
             expand={true}
             richColors={false}

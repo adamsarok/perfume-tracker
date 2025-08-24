@@ -33,16 +33,6 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 			semaphore.Release();
 		}
 	}
-	
-	//[Fact] TODO: fix flaky test
-	//public async Task SideEffectQueue_CanEnqueue() {
-	//	var outboxSeed = await PrepareData();
-	//	using var scope = GetTestScope();
-	//	var channel = scope.ServiceScope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
-	//	channel.Enqueue(outboxSeed[0]);
-	//	using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-	//	Assert.True(await channel.Reader.WaitToReadAsync(cts.Token));
-	//}
 
 	[Fact]
 	public async Task SideEffectProcessor_CanProcess() {
