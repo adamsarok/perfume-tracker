@@ -97,7 +97,9 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasIndex(p => p.FullText)
 				.HasMethod("GIN");
 			entity
-				.HasIndex(p => new { p.House, p.PerfumeName }).IsUnique();
+				.HasIndex(p => new { p.House, p.PerfumeName })
+				.HasFilter(@"""IsDeleted"" = FALSE")
+				.IsUnique();
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
@@ -172,7 +174,9 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 
 			entity.ToTable("Tag");
 
-			entity.HasIndex(e => new { e.UserId, e.TagName }, "Tag_tag_key").IsUnique();
+			entity.HasIndex(e => new { e.UserId, e.TagName }, "Tag_tag_key")
+				.HasFilter(@"""IsDeleted"" = FALSE")
+				.IsUnique();
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
