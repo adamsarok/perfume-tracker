@@ -2,11 +2,12 @@ import { PerfumeUploadDTO } from "@/dto/PerfumeUploadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
 import { AxiosResult, del, get, post, put } from "./axios-service";
+import { PerfumeDTO } from "@/dto/PerfumeDTO";
 
 export async function getPerfumesFulltext(
   fulltext: string
 ): Promise<AxiosResult<PerfumeWithWornStatsDTO[]>> {
-  const qry = `/perfumes/${fulltext ? `fulltext/${fulltext}` : ""}`;
+  const qry = '/perfumes/' + (fulltext ? `fulltext/${encodeURIComponent(fulltext)}` : "");
   return get<PerfumeWithWornStatsDTO[]>(qry);
 }
 
@@ -32,14 +33,14 @@ export async function getPerfumes(): Promise<AxiosResult<PerfumeWithWornStatsDTO
 
 export async function addPerfume(
   perfume: PerfumeUploadDTO
-): Promise<AxiosResult<PerfumeUploadDTO>> {
-  return post<PerfumeUploadDTO>(`/perfumes`, perfume);
+): Promise<AxiosResult<PerfumeDTO>> {
+  return post<PerfumeDTO>(`/perfumes`, perfume);
 }
 
 export async function updatePerfume(
   perfume: PerfumeUploadDTO
-): Promise<AxiosResult<unknown>> {
-  return put(`/perfumes/${perfume.id}`, perfume);
+): Promise<AxiosResult<PerfumeDTO>> {
+  return put<PerfumeDTO>(`/perfumes/${perfume.id}`, perfume);
 }
 
 export async function updateImageGuid(
@@ -54,5 +55,5 @@ export async function updateImageGuid(
 }
 
 export async function deletePerfume(id: string): Promise<AxiosResult<void>> {
-  return del(`/perfumes/${id}`);
+  return del(`/perfumes/${encodeURIComponent(id)}`);
 }

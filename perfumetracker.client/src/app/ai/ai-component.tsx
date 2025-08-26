@@ -28,12 +28,12 @@ export default function AiComponent() {
   const [genderFilters, setGenderFilters] = useState<string[]>([]);
   useEffect(() => {
     const load = async () => {
-      const result = await getTagStats();
-      if (result.error || !result.data) { 
-        showError("Could not load tags", result.error ?? "unknown error");
+      const tagsResult = await getTagStats();
+      if (tagsResult.error || !tagsResult.data) { 
+        showError("Could not load tags", tagsResult.error ?? "unknown error");
         return;
       }
-      setTags(result.data); //TODO: these should be filtered and paginated
+      setTags(tagsResult.data); //TODO: these should be filtered and paginated
       const perfumesResponse = await getPerfumes();
       if (perfumesResponse.error || !perfumesResponse.data) {
         showError("Could not load perfumes", perfumesResponse.error ?? "unknown error");

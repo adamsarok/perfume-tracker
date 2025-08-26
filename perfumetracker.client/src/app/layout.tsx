@@ -32,21 +32,19 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   useEffect(() => {
     setHasMounted(true);
 
-    const connectToSignalR = async () => {
+    let connection: signalR.HubConnection | null = null;
+    let cancelled = false;
+    (async () => {
       const apiUrl = await initializeApiUrl();
-      console.log("apiUrl", apiUrl);
       if (!apiUrl) {
         console.error("API URL not configured");
         return;
       }
-
-      const connection = new signalR.HubConnectionBuilder()
+      connection = new signalR.HubConnectionBuilder()
         .withUrl(`${apiUrl}/hubs/mission-progress`)
         .withAutomaticReconnect()
         .build();
-
       connection.on("ReceiveMissionProgress", (mission: UserMissionDto) => {
-        console.log("received missions", mission);
         if (mission.isCompleted) {
           toast.success(`Mission Completed: ${mission.name}`, {
             description: mission.description,
@@ -57,17 +55,30 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
           });
         }
       });
-
-      connection
-        .start()
-        .then(() => console.log("SignalR Connected"))
-        .catch((err) => console.error("SignalR Connection Error: ", err));
-
-      return () => {
-        connection.stop();
-      };
+      try {
+        await connection.start();
+        console.log("SignalR Connected");
+      } catch (err) {
+        console.error("SignalR Connection Error: ", err);
+      }
+      if (cancelled && connection) {
+        try {
+          await connection.stop();
+        } catch (error) {
+          console.error("SignalR Disconnected: ", error);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (connection) {
+        try {
+          connection.stop();
+        } catch (error) {
+          console.error("SignalR Disconnected: ", error);
+        }
+      }
     };
-    connectToSignalR();
   }, []);
 
   useEffect(() => {

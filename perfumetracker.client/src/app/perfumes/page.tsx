@@ -11,11 +11,12 @@ import { showError } from "@/services/toasty-service";
 export const dynamic = 'force-dynamic'
 
 export default function StatsPage() {
-    const [tags, setTags] = useState<TagDTO[] | null>(null);
+    const [tags, setTags] = useState<TagDTO[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         const fetchData = async () => {
+            try {
             const tagsResult = await getTags();
             if (tagsResult.error || !tagsResult.data) { 
                 setTags([]);
@@ -30,11 +31,19 @@ export default function StatsPage() {
                 return;
             }
             setUserProfile(userProfileResult.data);
+            } catch (error) {
+                showError("Could not load data", error);
+            } finally {
+                setLoading(false);
+            }
         }
         fetchData();
     }, []);
-    if (!userProfile || !tags) {
+    if (loading) {
         return <div>Loading...</div>;
+    }
+    if (!userProfile) {
+        return <div>Could not load user profile</div>;
     }
     return <div>
       <Separator></Separator>

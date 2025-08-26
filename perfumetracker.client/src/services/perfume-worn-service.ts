@@ -4,7 +4,9 @@ import { AxiosResult, del, get, post } from "./axios-service";
 
 export async function getWornBeforeID(cursor: number | null, pageSize: number) : Promise<AxiosResult<PerfumeWornDTO[]>> {
     const qry = `/perfume-events/worn-perfumes?cursor=${encodeURIComponent(cursor ?? 0)}&pageSize=${encodeURIComponent(pageSize)}`;
-    return get<PerfumeWornDTO[]>(qry);
+    const result = await get<PerfumeWornDTO[]>(qry);
+    result.data?.forEach(x => x.eventDate = new Date(x.eventDate));
+    return result;
 }
 
 export async function getWornPerfumeIDs(dayFilter: number) : Promise<AxiosResult<number[]>> {
@@ -14,8 +16,8 @@ export async function getWornPerfumeIDs(dayFilter: number) : Promise<AxiosResult
 
 export async function deleteWear(
   id: string
-): Promise<AxiosResult<PerfumeWornDTO>> {
-  return del<PerfumeWornDTO>(`/perfume-events/${encodeURIComponent(id)}`);
+): Promise<AxiosResult<unknown>> {
+  return del(`/perfume-events/${encodeURIComponent(id)}`);
 }
 
 export async function wearPerfume(id: string, date: Date, isRandomPerfume: boolean) : Promise<AxiosResult<PerfumeWornUploadDTO>> {

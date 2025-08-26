@@ -11,7 +11,6 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getPerfumesFulltext } from "@/services/perfume-service";
-import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { TagDTO } from "@/dto/TagDTO";
 import { columns, PerfumeListDTO } from "./perfume-worn-columns";
 import { DataTable } from "@/components/ui/data-table";
@@ -151,7 +150,7 @@ export default function PerfumeWornTable({
     return {
       totalMl,
       burnRatePerYearMl: totalBurn,
-      yearsLeft: totalMl / totalBurn,
+      yearsLeft: totalBurn > 0 ? totalMl / totalBurn : 99,
     };
   }, [list.items]);
 

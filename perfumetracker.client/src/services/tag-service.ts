@@ -19,5 +19,5 @@ export async function updateTag(tag: TagDTO): Promise<AxiosResult<TagDTO>> {
 }
 
 export async function deleteTag(id: string): Promise<AxiosResult<TagDTO>> {
-  return del<TagDTO>(`/tags/${id}`);
+  return del(`/tags/${id}`);
 }

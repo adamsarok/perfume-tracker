@@ -15,7 +15,7 @@ export default function SuprisePerfumeComponent() {
     async function fetchData() {
         const result = await getPerfumeRandom();
         if (result.error || !result.data) {
-          showError("Could not load random perfume", result.error ?? "unknown error");
+          if (result.error) showError("Could not load random perfume", result.error ?? "unknown error");
           setLoading(false);
           setPerfumeId(null);
           return;

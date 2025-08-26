@@ -6,7 +6,7 @@ import { PerfumeRatingUploadDTO } from "@/dto/PerfumeRatingUploadDTO";
 export async function deletePerfumeRating(
   perfumeId: string, ratingId: string
 ): Promise<AxiosResult<unknown>> {
-  return del<PerfumeRatingDownloadDTO>(`/perfumes/${encodeURIComponent(perfumeId)}/ratings/${encodeURIComponent(ratingId)}`);
+  return del(`/perfumes/${encodeURIComponent(perfumeId)}/ratings/${encodeURIComponent(ratingId)}`);
 }
 
 export async function addPerfumeRating(perfumeId: string, rating: number, comment: string) : Promise<AxiosResult<PerfumeRatingDownloadDTO>> {
