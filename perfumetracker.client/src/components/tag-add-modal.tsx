@@ -80,7 +80,7 @@ export default function TagAddModal({ tagAdded }: TagAddModalProps) {
           </Badge>
         </DialogTrigger>
         <DialogContent>
-          <DialogHeader className="flex flsex-col gap-1">
+          <DialogHeader className="flex flex-col gap-1">
             <DialogTitle>Create Tag</DialogTitle>
             <DialogDescription asChild>
               <Form {...form}>

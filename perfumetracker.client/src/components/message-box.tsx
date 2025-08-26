@@ -55,7 +55,7 @@ export default function MessageBox({
         </DialogTrigger>
 
           <DialogContent>
-            <DialogHeader className="flex flsex-col gap-1">
+            <DialogHeader className="flex flex-col gap-1">
               <DialogTitle>{message}</DialogTitle>
               <DialogDescription>
                 <DialogClose asChild>

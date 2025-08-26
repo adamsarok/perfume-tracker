@@ -87,30 +87,19 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
       if (!hasMounted) return;
       try {
         const currentUserResult = await getCurrentUser();
-        if (
-          !currentUserResult ||
-          currentUserResult.error ||
-          !currentUserResult.data
-        ) {
-          throw new Error(currentUserResult?.error || "Failed to fetch user");
-        }
         if (!hasMounted) return;
-        setUser(currentUserResult.data);
-        if (
-          !currentUserResult.data &&
-          pathname !== "/login" &&
-          pathname !== "/register"
-        ) {
-          router.push("/login");
-        } else if (
-          currentUserResult.data &&
-          (pathname === "/login" || pathname === "/register")
-        ) {
+        if (currentUserResult.ok && currentUserResult.data) {
+          setUser(currentUserResult.data);
+        } else {
+          if (pathname !== "/login" && pathname !== "/register") {
+            router.push("/login");
+          }
+          return;
+        }
+        if (pathname === "/login" || pathname === "/register") {
           router.push("/");
         }
-        if (currentUserResult.data) {
-          await generateMissions();
-        }
+        await generateMissions();
       } catch (error) {
         if (!hasMounted) return;
         console.error("Auth check failed:", error);
@@ -147,14 +136,12 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
 
   const handleLogout = async () => {
     if (!hasMounted) return;
-    try {
-      await logoutUser();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      clearUser();
-      router.push("/login");
-    }
+    const result = await logoutUser();
+    if (result.error) {
+      toast.error("Error during logout: " + result.error);
+    } 
+    clearUser();
+    router.push("/login");
   };
 
   if (isLoading && pathname !== "/login" && pathname !== "/register") {

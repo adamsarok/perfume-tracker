@@ -35,7 +35,7 @@ export default function UploadComponent({ perfumeId, onUpload }: UploadComponent
           'Content-Type': 'multipart/form-data',
         },
       });
-      if (response.error || !response.data) {
+      if (response.error || !response.data?.guid) {
         showError('Error uploading file:', response.error ?? 'unknown error');
         return;
       }

@@ -36,8 +36,8 @@ export async function loginDemoUser(): Promise<AxiosResult<LoginResponse>> {
     return post<LoginResponse>(`/identity/account/login/demo`, {});
 }
 
-export async function logoutUser(): Promise<void> {
-    await post(`/identity/account/logout`, null);
+export async function logoutUser(): Promise<AxiosResult<unknown>> {
+    return post(`/identity/account/logout`, null);
 }
 
 export async function getCurrentUser(): Promise<AxiosResult<UserResponse>> {

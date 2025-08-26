@@ -1,7 +1,6 @@
 import { RecommendationDownloadDTO } from "@/dto/RecommendationDownloadDTO";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { AxiosResult, get, post } from "./axios-service";
-import { Axios } from "axios";
 
 export interface TagWithCount {
   id: string;
@@ -25,25 +24,6 @@ export async function getAlreadyRecommended(): Promise<AxiosResult<Recommendatio
   const qry = `/recommendations/`;
   return get<RecommendationDownloadDTO[]>(qry);
 }
-
-// export async function addRecommendation(
-//   recommendation: RecommendationUploadDTO
-// ): Promise<RecommendationDownloadDTO> {
-//   if (!apiAddress) throw new Error("PerfumeAPI address not set");
-//   const qry = `${apiAddress}/recommendations/`;
-//   const response = await fetch(qry, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(recommendation),
-//   });
-//   if (!response.ok) {
-//     throw new Error("Failed to add recommendation");
-//   }
-//   const r: RecommendationDownloadDTO = await response.json();
-//   return r;
-// }
 
 function RemoveDiacritics(input: string) {
   return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
