@@ -11,8 +11,7 @@ public class AddPerfumeCommandValidator : AbstractValidator<AddPerfumeCommand> {
 public class AddPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/perfumes", async (PerfumeUploadDto dto, ISender sender) => {
-			var perfume = dto.Adapt<PerfumeUploadDto>();
-			var result = await sender.Send(new AddPerfumeCommand(perfume));
+			var result = await sender.Send(new AddPerfumeCommand(dto));
 			return Results.CreatedAtRoute("GetPerfume", new { id = result.Id }, result);
 		}).WithTags("Perfumes")
 			.WithName("PostPerfume")

@@ -17,27 +17,24 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    try {
-      await loginUser(email.trim(), password);
+    const result = await loginUser(email.trim(), password);
+    if (result.error || !result.data) {
+      setError("Login failed: " + (result.error ?? "unknown error"));
+    } else {
       router.push("/"); // Redirect to home page after successful login
-    } catch (err) {
-      setError("Invalid email or password:" + err);
     }
   };
 
   const handleLoginDemo = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    try {
-      await loginDemoUser();
+    const result = await loginDemoUser();
+    if (result.error || !result.data) {
+      setError("Login failed: " + (result.error ?? "unknown error"));
+    } else {
       router.push("/"); // Redirect to home page after successful login
-    } catch (err) {
-      setError("Invalid email or password:" + err);
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -88,30 +85,19 @@ export default function LoginPage() {
           )}
 
           <div className="flex justify-evenly">
-            <Button
-              type="submit"
-            >
-              Sign in
-            </Button>
+            <Button type="submit">Sign in</Button>
             <Link href="/register" passHref>
-              <Button variant="outline"
-                type="button"
-              >
+              <Button variant="outline" type="button">
                 Register
               </Button>
             </Link>
-            <Button variant="secondary"
-              type="button"
-              onClick={handleLoginDemo}
-            >
+            <Button variant="secondary" type="button" onClick={handleLoginDemo}>
               Demo
             </Button>
           </div>
-          <div>
-            
-          </div>
+          <div></div>
         </form>
       </div>
     </div>
   );
-} 
+}

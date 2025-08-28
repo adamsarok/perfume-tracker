@@ -71,7 +71,7 @@ export default function AiComponent() {
 
   const getQuery = () => {
     let query = `Suggest ${perfumesCountSuggest} perfumes `;
-    if (perfumes.length > 0) {
+    if (selectedPerfumes.length > 0) {
       query += `similar to these perfumes: ${selectedPerfumes
         .map((x) => x.house + " - " + x.perfume)
         .join(",")} `;

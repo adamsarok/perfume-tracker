@@ -40,7 +40,7 @@ export async function addPerfume(
 export async function updatePerfume(
   perfume: PerfumeUploadDTO
 ): Promise<AxiosResult<PerfumeDTO>> {
-  return put<PerfumeDTO>(`/perfumes/${perfume.id}`, perfume);
+  return put<PerfumeDTO>(`/perfumes/${encodeURIComponent(perfume.id)}`, perfume);
 }
 
 export async function updateImageGuid(
