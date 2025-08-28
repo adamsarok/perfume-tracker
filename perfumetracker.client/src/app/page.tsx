@@ -5,6 +5,7 @@ import PerfumeSelector from "../components/perfume-selector";
 import WornList from "@/components/worn-list";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { getPerfumes } from "@/services/perfume-service";
+import { showError } from "@/services/toasty-service";
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +16,12 @@ export default function Home() {
   useEffect(() => {
     async function fetchPerfumes() {
       const r = await getPerfumes();
-      const perfumes = r.filter((x) => x.perfume.ml > 0); //todo filter on server side
+      if (r.error || !r.data) {
+        setPerfumes([]);
+        showError("Could not load perfumes", r.error ?? "unknown error");
+        return;
+      }
+      const perfumes = r.data.filter((x) => x.perfume.ml > 0); //todo filter on server side
       setPerfumes(perfumes);
     }
     fetchPerfumes();

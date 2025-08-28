@@ -1,4 +1,4 @@
-import { get, post } from "./axios-service";
+import { AxiosResult, get, post } from "./axios-service";
 
 export interface LoginResponse {
     email: string;
@@ -25,44 +25,38 @@ export interface UserXPResponse {
     streakLength: number;
 }
 
-export async function loginUser(email: string, password: string): Promise<LoginResponse> {
-    const response = await post<LoginResponse>(`/identity/account/login`, {
+export async function loginUser(email: string, password: string): Promise<AxiosResult<LoginResponse>> {
+    return post<LoginResponse>(`/identity/account/login`, {
         email,
         password,
     });
-    return response.data;
 }
 
-export async function loginDemoUser(): Promise<LoginResponse> {
-    const response = await post<LoginResponse>(`/identity/account/login/demo`, {});
-    return response.data;
+export async function loginDemoUser(): Promise<AxiosResult<LoginResponse>> {
+    return post<LoginResponse>(`/identity/account/login/demo`, {});
 }
 
-export async function logoutUser(): Promise<void> {
-    await post(`/identity/account/logout`, null);
+export async function logoutUser(): Promise<AxiosResult<unknown>> {
+    return post(`/identity/account/logout`, null);
 }
 
-export async function getCurrentUser(): Promise<UserResponse | null> {
-    const response = await get<UserResponse>(`/identity/account/me`);
-    return response.data;
+export async function getCurrentUser(): Promise<AxiosResult<UserResponse>> {
+    return get<UserResponse>(`/identity/account/me`);
 }
 
-export async function getUserConfiguration(): Promise<UserConfiguration | null> {
-    const response = await get<UserConfiguration>(`/identity/configuration`);
-    return response.data;
+export async function getUserConfiguration(): Promise<AxiosResult<UserConfiguration>> {
+    return get<UserConfiguration>(`/identity/configuration`);
 }
 
-export async function registerUser(email: string, password: string, userName: string, inviteCode: string | null): Promise<LoginResponse> {
-    const response = await post<LoginResponse>(`/identity/account/register`, {
+export async function registerUser(email: string, password: string, userName: string, inviteCode: string | null): Promise<AxiosResult<LoginResponse>> {
+    return post<LoginResponse>(`/identity/account/register`, {
         email,
         password,
         userName,
         inviteCode
     });
-    return response.data;
 }
 
-export async function getUserXP(): Promise<UserXPResponse> {
-    const response = await get<UserXPResponse>(`/users/xp`);
-    return response.data;
+export async function getUserXP(): Promise<AxiosResult<UserXPResponse>> {
+    return get<UserXPResponse>(`/users/xp`);
 } 

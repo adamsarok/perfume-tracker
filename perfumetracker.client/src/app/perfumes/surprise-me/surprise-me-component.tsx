@@ -2,6 +2,7 @@
 
 import PerfumeEditForm from "@/app/perfumes/perfume-edit-form";
 import { getPerfumeRandom } from "@/services/random-perfume-service";
+import { showError } from "@/services/toasty-service";
 import { useEffect, useState } from "react";
 
 export const dynamic = "force-dynamic";
@@ -12,20 +13,15 @@ export default function SuprisePerfumeComponent() {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     async function fetchData() {
-      try {
-        const id = await getPerfumeRandom();
-        if (!id) {
+        const result = await getPerfumeRandom();
+        if (result.error || !result.data) {
+          if (result.error) showError("Could not load random perfume", result.error ?? "unknown error");
+          setLoading(false);
           setPerfumeId(null);
           return;
         }
-        setPerfumeId(id);
-    
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setPerfumeId(null);
-      } finally {
+        setPerfumeId(result.data);
         setLoading(false);
-      }
     }
 
     fetchData();

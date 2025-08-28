@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { addPerfumeRating, getPerfumeRatings } from "@/services/perfume-rating-service"
 import { showError, showSuccess } from "@/services/toasty-service";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,6 @@ const formSchema = z.object({
 });
 
 export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
-    //const [isLoading, setIsLoading] = useState(true);
     const [localRatings, setLocalRatings] = useState<PerfumeRatingDownloadDTO[] | undefined>(perfume.perfume.ratings);
 
     const auth = useAuth();
@@ -54,14 +53,13 @@ export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
     }
 
     async function reload() {
-        const newRatings = await getPerfumeRatings(perfume.perfume.id);
-        setLocalRatings(newRatings);
+        const result = await getPerfumeRatings(perfume.perfume.id);
+        if (result.error || !result.data) {
+            showError("Could not load ratings", result.error ?? "unknown error");
+            return;
+        }
+        setLocalRatings(result.data);
     }
-
-    // For debugging: log when localRatings changes
-    useEffect(() => {
-        console.log("localRatings updated:", localRatings);
-    }, [localRatings]);
 
     return (
         <div>

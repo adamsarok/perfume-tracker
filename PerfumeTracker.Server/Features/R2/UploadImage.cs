@@ -18,7 +18,7 @@ public class UploadImageEndpoint : ICarterModule {
 				if (file.Length > configuration.MaxFileSizeKb * 1024) {
 					return Results.BadRequest($"File size exceeds the maximum limit of {configuration.MaxFileSizeKb}kb");
 				}
-				using var stream = file.OpenReadStream();
+				await using var stream = file.OpenReadStream();
 				perfume.ImageObjectKeyNew = await uploadImageHandler.UploadImage(stream);
 				await perfumeTrackerContext.SaveChangesAsync();
 				return Results.Ok(new UploadResponse(perfume.ImageObjectKeyNew.Value));

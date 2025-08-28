@@ -28,18 +28,32 @@ export default function AiComponent() {
   const [genderFilters, setGenderFilters] = useState<string[]>([]);
   useEffect(() => {
     const load = async () => {
-      setTags(await getTagStats()); //TODO: these should be filtered and paginated
-      setPerfumes((await getPerfumes()).map(x => ({
+      const tagsResult = await getTagStats();
+      if (tagsResult.error || !tagsResult.data) { 
+        showError("Could not load tags", tagsResult.error ?? "unknown error");
+        return;
+      }
+      setTags(tagsResult.data); //TODO: these should be filtered and paginated
+      const perfumesResponse = await getPerfumes();
+      if (perfumesResponse.error || !perfumesResponse.data) {
+        showError("Could not load perfumes", perfumesResponse.error ?? "unknown error");
+        return;
+      }
+      setPerfumes(perfumesResponse.data?.map(x => ({
         house: x.perfume.house,
         perfume: x.perfume.perfumeName,
         ml: x.perfume.ml,
         wornTimes: x.wornTimes
       })));
-      const profile = await getUserProfile();
+      const userProfile = await getUserProfile();
+      if (userProfile.error || !userProfile.data) { 
+        showError("Could not load user profile", userProfile.error ?? "unknown error");
+        return;
+      }
       const genderFilter: string[] = [];
-      if (profile?.showFemalePerfumes) genderFilter.push('female');
-      if (profile?.showMalePerfumes) genderFilter.push('male');
-      if (profile?.showUnisexPerfumes) genderFilter.push('unisex');
+      if (userProfile.data.showFemalePerfumes) genderFilter.push('female');
+      if (userProfile.data.showMalePerfumes) genderFilter.push('male');
+      if (userProfile.data.showUnisexPerfumes) genderFilter.push('unisex');
       setGenderFilters(genderFilter);
     }
     load();
@@ -57,7 +71,7 @@ export default function AiComponent() {
 
   const getQuery = () => {
     let query = `Suggest ${perfumesCountSuggest} perfumes `;
-    if (perfumes.length > 0) {
+    if (selectedPerfumes.length > 0) {
       query += `similar to these perfumes: ${selectedPerfumes
         .map((x) => x.house + " - " + x.perfume)
         .join(",")} `;
@@ -83,12 +97,13 @@ export default function AiComponent() {
       const queryLocal = getQuery();
       setQuery(queryLocal);
       if (queryLocal) {
-        const res = await getAiRecommendations(queryLocal);
-        if (res) {
-          setRecommendations(res);
-        } else {
-          showError("AI response is empty :(");
+        const result = await getAiRecommendations(queryLocal);
+        if (result.error || !result.data) {
+          showError("Failed to get AI recommendations", result.error ?? "unknown error");
+          return;
         }
+        const cleaned = result.data.replace(/\\n/g, '\n').substring(1, result.data.length - 2);
+        setRecommendations(cleaned);
       } else {
         showError("Query generation failed, query is empty");
       }

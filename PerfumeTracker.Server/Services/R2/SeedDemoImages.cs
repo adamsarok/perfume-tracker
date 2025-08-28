@@ -8,7 +8,7 @@ public static class SeedDemoImages {
 		List<Guid> imageGuids = new List<Guid>();
 		foreach (var imagePath in Directory.GetFiles("images")) {
 			var fileInfo = new FileInfo(imagePath);
-			using var stream = fileInfo.OpenRead();
+			await using var stream = fileInfo.OpenRead();
 			var guid = await handler.UploadImage(stream);
 			imageGuids.Add(guid);
 		}

@@ -11,11 +11,11 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getPerfumesFulltext } from "@/services/perfume-service";
-import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { TagDTO } from "@/dto/TagDTO";
 import { columns, PerfumeListDTO } from "./perfume-worn-columns";
 import { DataTable } from "@/components/ui/data-table";
 import { UserProfile } from "@/services/user-profiles-service";
+import { showError } from "@/services/toasty-service";
 
 export interface PerfumeWornTableProps {
   readonly allTags: TagDTO[];
@@ -29,8 +29,12 @@ export default function PerfumeWornTable({
   const [fulltext, setFulltext] = useState("");
   const list = useAsyncList({
     async load() {
-      const r: PerfumeWithWornStatsDTO[] = await getPerfumesFulltext(fulltext);
-      const perfumes: PerfumeListDTO[] = r.map((x) => ({
+      const result = await getPerfumesFulltext(fulltext);
+      if (result.error || !result.data) {
+        showError("Could not load perfumes", result.error ?? "unknown error");
+        return { items: [] };
+      }
+      const perfumes: PerfumeListDTO[] = result.data.map((x) => ({
         id: x.perfume.id,
         house: x.perfume.house,
         perfume: x.perfume.perfumeName,
@@ -146,7 +150,7 @@ export default function PerfumeWornTable({
     return {
       totalMl,
       burnRatePerYearMl: totalBurn,
-      yearsLeft: totalMl / totalBurn,
+      yearsLeft: totalBurn > 0 ? totalMl / totalBurn : 99,
     };
   }, [list.items]);
 

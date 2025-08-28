@@ -7,6 +7,7 @@ export interface PerfumeSelectDto {
   house: string,
   perfume: string,
   wornTimes: number | undefined,
+  ml: number | undefined,
 }
 
 export const PerfumeSelectColumns: ColumnDef<PerfumeSelectDto>[] = [

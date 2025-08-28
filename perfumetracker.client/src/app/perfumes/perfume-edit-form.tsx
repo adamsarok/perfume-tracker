@@ -31,16 +31,16 @@ import {
   getPreviousPerfumeId,
 } from "@/services/perfume-service";
 import { TagDTO } from "@/dto/TagDTO";
-import { ActionResult } from "@/dto/ActionResult";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "../../components/ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { Save, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { getTags } from "@/services/tag-service";
-import { get } from "@/services/axios-service";
+import { AxiosResult, get } from "@/services/axios-service";
 import { useAuth } from "@/hooks/use-auth";
 import PerfumeRatings from "./perfume-ratings";
+import { PerfumeDTO } from "@/dto/PerfumeDTO";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -87,8 +87,13 @@ export default function PerfumeEditForm({
   useEffect(() => {
     const load = async () => {
       if (perfumeId) {
-        const perfume = await getPerfume(perfumeId);
-        await loadPerfume(perfume);
+        const result = await getPerfume(perfumeId);
+        if (result.error || !result.data) {
+          showError("Could not load perfume", result.error ?? "unknown error");
+          setIsLoading(false);
+          return;
+        }
+        await loadPerfume(result.data);
       } else {
         await loadPerfume(null);
       }
@@ -107,7 +112,6 @@ export default function PerfumeEditForm({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [perfume]);
-
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -146,15 +150,22 @@ export default function PerfumeEditForm({
 
   async function loadPerfume(perfume: PerfumeWithWornStatsDTO | null) {
     try {
-      const loadedTags = await getTags();
+      const result = await getTags();
+      if (result.error || !result.data) {
+        showError("Could not load tags", result.error ?? "unknown error");
+        setIsLoading(false);
+        return;
+      }
+      const loadedTags = result.data;
       const topChips: ChipProp[] = [];
       const bottomChips: ChipProp[] = [];
-      console.log("perfume", perfume);
       if (perfume) {
         setPerfume(perfume);
         setImageUrl(perfume.perfume.imageUrl);
         loadedTags.forEach((allTag) => {
-          if (!perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)) {
+          if (
+            !perfume?.perfume.tags.some((tag) => tag.tagName === allTag.tagName)
+          ) {
             bottomChips.push({
               name: allTag.tagName,
               color: allTag.color,
@@ -205,13 +216,15 @@ export default function PerfumeEditForm({
       spring: values.spring,
       tags: perfume?.perfume.tags ?? [],
     };
-    let result: ActionResult;
+    let result: AxiosResult<PerfumeDTO>;
     if (!perfumeId) result = await addPerfume(perf);
     else result = await updatePerfume(perf);
-    if (result.ok && result.id) {
+    if (result.error || !result.data) {
+      showError("Update failed:", result.error ?? "unknown error");
+    } else {
       showSuccess("Update successful");
-      reload(result.id);
-    } else showError("Update failed:", result.error ?? "unknown error");
+      reload(result.data.id);
+    }
   }
 
   const reload = useCallback(
@@ -258,9 +271,15 @@ export default function PerfumeEditForm({
 
   const onUpload = async (guid: string | undefined) => {
     if (perfume?.perfume.id && guid) {
-      const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(guid)}`;
-      const presignedUrl = (await get<string>(qryPresigned)).data;
-      perfume.perfume.imageUrl = presignedUrl;
+      const qryPresigned = `/images/get-presigned-url/${encodeURIComponent(
+        guid
+      )}`;
+      const result = await get<string>(qryPresigned);
+      if (result.error) {
+        showError("Could not get presigned url", result.error);
+        return;
+      }
+      perfume.perfume.imageUrl = result.data ?? "";
       setImageUrl(perfume.perfume.imageUrl);
     }
   };
@@ -268,26 +287,22 @@ export default function PerfumeEditForm({
   // Navigation handlers
   const handlePrev = async () => {
     if (!perfume?.perfume.id) return;
-    try {
-      const prev = await getPreviousPerfumeId(perfume.perfume.id);
-      if (prev && typeof prev === 'string') {
-        router.push(`/perfumes/${prev}`);
-      }
-    } catch {
-      showError("Could not load previous perfume");
+    const prev = await getPreviousPerfumeId(perfume.perfume.id);
+    if (prev.error || !prev.data) {
+      showError("Could not load perfume", prev.error ?? "unknown error");
+      return;
     }
+    router.push(`/perfumes/${prev.data}`);
   };
 
   const handleNext = async () => {
     if (!perfume?.perfume.id) return;
-    try {
-      const next = await getNextPerfumeId(perfume.perfume.id);
-      if (next && typeof next === 'string') {
-        router.push(`/perfumes/${next}`);
-      }
-    } catch {
-      showError("Could not load next perfume");
+    const next = await getNextPerfumeId(perfume.perfume.id);
+    if (next.error || !next.data) {
+      showError("Could not load perfume", next.error ?? "unknown error");
+      return;
     }
+    router.push(`/perfumes/${next.data}`);
   };
 
   if (isLoading) {
@@ -355,7 +370,12 @@ export default function PerfumeEditForm({
                   <ChevronRight />
                 </Button>
               </div>
-              {showUploadButtons && <UploadComponent perfumeId={perfume?.perfume.id} onUpload={onUpload} />}
+              {showUploadButtons && (
+                <UploadComponent
+                  perfumeId={perfume?.perfume.id}
+                  onUpload={onUpload}
+                />
+              )}
             </div>
             <div className="text-center w-full">
               <div className="flex w-full space-x-2">
@@ -407,7 +427,11 @@ export default function PerfumeEditForm({
                     <FormItem className="w-64">
                       <FormLabel>Remaining (ml)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ml left" {...field} className="w-full" />
+                        <Input
+                          placeholder="Ml left"
+                          {...field}
+                          className="w-full"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -425,7 +449,7 @@ export default function PerfumeEditForm({
               </div>
               <Separator className="mb-2"></Separator>
               <div className="flex mb-2 justify-between w-full">
-                <Button color="primary" className="w-32" type="submit" >
+                <Button color="primary" className="w-32" type="submit">
                   <Save /> {perfume ? "Update" : "Insert"}
                 </Button>
                 <MessageBox
@@ -445,10 +469,11 @@ export default function PerfumeEditForm({
 
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2 w-full">
-                <Label>{`Last worn: ${perfume?.lastWorn
+                <Label>{`Last worn: ${
+                  perfume?.lastWorn
                     ? format(new Date(perfume?.lastWorn), "yyyy.MM.dd")
                     : ""
-                  }`}</Label>
+                }`}</Label>
                 <Separator orientation="vertical" className="h-6" />
                 <Label>{`Worn ${perfume?.wornTimes} times`}</Label>
               </div>
