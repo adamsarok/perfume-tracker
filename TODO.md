@@ -1,11 +1,13 @@
-# TODO
+ï»¿# TODO
 
 - [ ] maintenance - clean old outboxmessages messages, move retryCount > 5 to dead letter queue
 
 ## Achievements
 
 - [ ] ABC - collect all houses, perfumenames, tags etc. for all ABC letters
-- [ ] //[Fact] TODO: fix flaky test
+- [ ] Fix flaky test:
+   ```csharp
+ //[Fact] TODO: fix flaky test
 	//public async Task SideEffectQueue_CanEnqueue() {
 	//	var outboxSeed = await PrepareData();
 	//	using var scope = GetTestScope();
@@ -14,6 +16,7 @@
 	//	using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 	//	Assert.True(await channel.Reader.WaitToReadAsync(cts.Token));
 	//}
+    ```
 - [ ] Map unique-violation to a domain/user-friendly error
 
 With the new unique indexes, attempts to add duplicates will surface as DbUpdateException (Postgres 23505). Consider translating this to a validation error (e.g., 409/422) rather than a 500. Sketch:
@@ -26,7 +29,7 @@ try {
     // Map to your error contract, e.g. ValidationException with a message on Dto.PerfumeName or a specific DuplicatePerfumeException
     throw new DuplicatePerfumeException(request.Dto.House, request.Dto.PerfumeName, pex);
 } 
-- [ ] 33-37: Don’t set multipart/form-data header manually — it drops the boundary and can break uploads
+- [ ] 33-37: Donâ€™t set multipart/form-data header manually â€” it drops the boundary and can break uploads
 
 When sending FormData, the browser/Axios will set the Content-Type with the correct boundary. Manually forcing 'multipart/form-data' typically omits the boundary and can cause server-side parsers to fail. Remove the headers override here.
 
@@ -41,9 +44,9 @@ Apply this diff:
 
 - [ ] 33-37: Remove Manual Multipart/Form-Data Header and Audit Error Toasts
 
-We’ve confirmed via rg that this is the only hard-coded Content-Type: multipart/form-data in the repo—remove it here to let your HTTP client set the correct boundary automatically and prevent sporadic upload failures.
+Weâ€™ve confirmed via rg that this is the only hard-coded Content-Type: multipart/form-data in the repoâ€”remove it here to let your HTTP client set the correct boundary automatically and prevent sporadic upload failures.
 
-• In perfumetracker.client/src/components/upload-component.tsx at line 35, delete the explicit header:
+â€¢ In perfumetracker.client/src/components/upload-component.tsx at line 35, delete the explicit header:
 
  headers: {
    'Content-Type': 'multipart/form-data',
@@ -51,7 +54,7 @@ We’ve confirmed via rg that this is the only hard-coded Content-Type: multipart/
 
  - [ ] 88-96: Fix direct state mutation and use controlled checkboxes
 
-onCheckedChange={(checked) => (localSettings.showFemalePerfumes = ... )} mutates state directly and uses defaultChecked. This won’t trigger re-renders and can desync UI. Use controlled checked and setLocalSettings updates.
+onCheckedChange={(checked) => (localSettings.showFemalePerfumes = ... )} mutates state directly and uses defaultChecked. This wonâ€™t trigger re-renders and can desync UI. Use controlled checked and setLocalSettings updates.
 
 -            <Checkbox
 -              id="female"
@@ -107,7 +110,7 @@ Note: if your Checkbox supports an indeterminate state, checked === true keeps t
 
 Also applies to: 105-113, 122-130
 
-- [ ] Don’t treat empty string as an error; fix brittle substring/unescape.
+- [ ] Donâ€™t treat empty string as an error; fix brittle substring/unescape.
 
 Empty AI responses ('') are currently treated as failures due to !result.data.
 substring(1, result.data.length - 2) uses the original length after replacements, which can truncate incorrectly.
@@ -203,3 +206,89 @@ Apply this diff:
                      {button2text}
                    </Button>
                    </DialogClose>
+
+
+- [ ] 44-49: Dispose HttpResponseMessage and propagate cancellation (and set a content type)
+
+Prevent socket/resource leaks, make the request cancelable, and send a sane content type.
+
+-    var httpClient = httpClientFactory.CreateClient();
+-    var response = await httpClient.PutAsync(presignedUrl, new StreamContent(stream));
+-    if (!response.IsSuccessStatusCode) {
++    var httpClient = httpClientFactory.CreateClient();
++    using var content = new StreamContent(stream);
++    content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
++    using var response = await httpClient.PutAsync(presignedUrl, content, ct);
++    if (!response.IsSuccessStatusCode) {
+       throw new InvalidOperationException($"Failed to upload image to R2: {response.StatusCode}");
+     }
+And in the endpoint (lines 10â€“25) add and wire a CancellationToken:
+
+- app.MapPut("/api/images/upload/{perfumeId}", async (Guid perfumeId,
++ app.MapPut("/api/images/upload/{perfumeId}", async (Guid perfumeId,
+   IFormFile file,
+   R2Configuration configuration,
+   PerfumeTrackerContext perfumeTrackerContext,
+-  UploadImageHandler uploadImageHandler) => {
++  UploadImageHandler uploadImageHandler,
++  CancellationToken ct) => {
+     ...
+-    await using var stream = file.OpenReadStream();
+-    perfume.ImageObjectKeyNew = await uploadImageHandler.UploadImage(stream);
+-    await perfumeTrackerContext.SaveChangesAsync();
++    await using var stream = file.OpenReadStream();
++    perfume.ImageObjectKeyNew = await uploadImageHandler.UploadImage(stream, ct);
++    await perfumeTrackerContext.SaveChangesAsync(ct);
+
+- [ ] 35-41: Guard stream reset and add CancellationToken to UploadImage
+In PerfumeTracker.Server/Features/R2/UploadImage.cs, wrap the stream.Position = 0; call in a if (stream.CanSeek) checkâ€”falling back to copying into a seekable MemoryStream when CanSeek is falseâ€”and update the signature to
+
+public async Task<Guid> UploadImage(Stream stream, CancellationToken ct = default)
+then pass ct from your endpoint into UploadImage. Verified no other UploadImage call sites exist; the default ct parameter preserves existing callers.
+
+- [ ] 7-15: Add CancellationToken support across the upload pipeline
+
+Change SeedDemoImagesAsync signature to
+Task<List<Guid>> SeedDemoImagesAsync(UploadImageHandler handler, CancellationToken ct = default) and pass ct into handler.UploadImage.
+Update UploadImageHandler.UploadImage to
+Task<Guid> UploadImage(Stream stream, CancellationToken ct)
+and propagate ct through its internal HTTP/fileâ€upload calls.
+Update all call sites (e.g. in Program.cs and Features/R2/UploadImage.cs) from
+handler.UploadImage(stream) â†’ handler.UploadImage(stream, ct)
+
+- [ ] 20-26: Prefer result.ok and add a simple submitting guard
+
+Use the AxiosResult.ok flag for consistency across the app and prevent double submits with a local submitting state.
+
+Apply:
+
+   const handleLogin = async (e: React.FormEvent) => {
+     e.preventDefault();
+     setError("");
+-    const result = await loginUser(email.trim(), password);
+-    if (result.error || !result.data) {
++    const result = await loginUser(email.trim(), password);
++    if (!result.ok || !result.data) {
+       setError("Login failed: " + (result.error ?? "unknown error"));
+     } else {
+       router.push("/"); // Redirect to home page after successful login
+     }
+   };
+Optionally:
+
++  const [submitting, setSubmitting] = useState(false);
+   const handleLogin = async (e: React.FormEvent) => {
+     e.preventDefault();
+-    setError("");
++    if (submitting) return;
++    setSubmitting(true);
++    setError("");
+     const result = await loginUser(email.trim(), password);
+-    if (result.error || !result.data) {
++    if (!result.ok || !result.data) {
+       setError("Login failed: " + (result.error ?? "unknown error"));
+     } else {
+       router.push("/");
+     }
++    setSubmitting(false);
+   };
