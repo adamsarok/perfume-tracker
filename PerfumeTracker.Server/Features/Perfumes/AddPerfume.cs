@@ -23,7 +23,7 @@ public record class PerfumeAddedNotification(Guid PerfumeId, Guid UserId) : IUse
 public class AddPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AddPerfumeCommand, PerfumeDto> {
 	public async Task<PerfumeDto> Handle(AddPerfumeCommand request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
-		using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+		await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 		var perfume = request.Dto.Adapt<Perfume>();
 		if (perfume == null) throw new InvalidOperationException("Perfume mapping failed");
 		context.Perfumes.Add(perfume);
@@ -45,7 +45,7 @@ public class AddPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue q
 		}
 		var message = OutboxMessage.From(new PerfumeAddedNotification(perfume.Id, userId));
 		context.OutboxMessages.Add(message);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(cancellationToken);
 		await transaction.CommitAsync(cancellationToken);
 		queue.Enqueue(message);
 		return perfume.Adapt<PerfumeDto>();
