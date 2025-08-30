@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import {getUserProfile, updateUserProfile, UserProfile } from "@/services/user-profiles-service";
+import {
+  getUserProfile,
+  updateUserProfile,
+  UserProfile,
+} from "@/services/user-profiles-service";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { CircleX, SaveIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,7 +26,10 @@ export default function SettingsPage() {
     async function fetchSettings() {
       const settingsResult = await getUserProfile();
       if (settingsResult.error || !settingsResult.data) {
-        showError("Could not load user profile", settingsResult.error ?? "unknown error");
+        showError(
+          "Could not load user profile",
+          settingsResult.error ?? "unknown error"
+        );
         return;
       }
       setSettings(settingsResult.data);
@@ -87,9 +94,11 @@ export default function SettingsPage() {
           <div className="flex items-center space-x-2">
             <Checkbox
               id="female"
-              defaultChecked={localSettings.showFemalePerfumes}
+              checked={localSettings.showFemalePerfumes}
               onCheckedChange={(checked) =>
-                (localSettings.showFemalePerfumes = checked as boolean)
+                setLocalSettings((s) =>
+                  s ? { ...s, showFemalePerfumes: checked === true } : s
+                )
               }
             >
               Female
@@ -104,9 +113,11 @@ export default function SettingsPage() {
           <div className="flex items-center space-x-2">
             <Checkbox
               id="unisex"
-              defaultChecked={localSettings.showUnisexPerfumes}
+              checked={localSettings.showUnisexPerfumes}
               onCheckedChange={(checked) =>
-                (localSettings.showUnisexPerfumes = checked as boolean)
+                setLocalSettings((s) =>
+                  s ? { ...s, showUnisexPerfumes: checked === true } : s
+                )
               }
             >
               Unisex
@@ -121,9 +132,11 @@ export default function SettingsPage() {
           <div className="flex items-center space-x-2">
             <Checkbox
               id="male"
-              defaultChecked={localSettings.showMalePerfumes}
+              checked={localSettings.showMalePerfumes}
               onCheckedChange={(checked) =>
-                (localSettings.showMalePerfumes = checked as boolean)
+                setLocalSettings((s) =>
+                  s ? { ...s, showMalePerfumes: checked === true } : s
+                )
               }
             >
               Male
@@ -150,10 +163,15 @@ export default function SettingsPage() {
             step={0.1}
             min={0}
             onValueChange={(value) =>
-              setLocalSettings({ ...localSettings, sprayAmountFullSizeMl: value[0] })
+              setLocalSettings({
+                ...localSettings,
+                sprayAmountFullSizeMl: value[0],
+              })
             }
           />
-          <span className="ml-4">{localSettings.sprayAmountFullSizeMl?.toFixed(1)}</span>
+          <span className="ml-4">
+            {localSettings.sprayAmountFullSizeMl?.toFixed(1)}
+          </span>
         </div>
       </div>
       <Separator className="my-4" />
@@ -169,10 +187,15 @@ export default function SettingsPage() {
             step={0.1}
             min={0}
             onValueChange={(value) =>
-              setLocalSettings({ ...localSettings, sprayAmountSamplesMl: value[0] })
+              setLocalSettings({
+                ...localSettings,
+                sprayAmountSamplesMl: value[0],
+              })
             }
           />
-          <span className="ml-4">{localSettings.sprayAmountSamplesMl?.toFixed(1)}</span>
+          <span className="ml-4">
+            {localSettings.sprayAmountSamplesMl?.toFixed(1)}
+          </span>
         </div>
       </div>
       <Separator className="my-4" />
@@ -185,7 +208,7 @@ export default function SettingsPage() {
             else showSuccess("Settings set");
           }}
         >
-         <SaveIcon /> Save
+          <SaveIcon /> Save
         </Button>
         <Button variant="secondary" onClick={() => setLocalSettings(settings)}>
           <CircleX /> Cancel
