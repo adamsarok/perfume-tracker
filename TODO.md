@@ -58,55 +58,6 @@ Use this resilient parsing:
 +        text = text.trim().replace(/^```(?:\w+)?\n?/, '').replace(/```$/, '');
 +        setRecommendations(text);
 
-- [ ] Guard against divide-by-zero/NaN in XP progress calculation.
-
-If xpNextLevel === xpLastLevel, this yields Infinity/NaN. Clamp to [0,100] and guard denominator.
-
--              <Progress
--                value={
--                  ((xp.xp - xp.xpLastLevel) /
--                    (xp.xpNextLevel - xp.xpLastLevel)) *
--                  100
--                }
--              />
-+              <Progress
-+                value={
-+                  (xp.xpNextLevel - xp.xpLastLevel) > 0
-+                    ? Math.min(
-+                        100,
-+                        Math.max(
-+                          0,
-+                          ((xp.xp - xp.xpLastLevel) /
-+                            (xp.xpNextLevel - xp.xpLastLevel)) * 100
-+                        )
-+                      )
-+                    : 0
-+                }
-+              />
-
-- [ ] Do not mutate React state directly; update via setPerfume.
-
-Directly assigning perfume.perfume.imageUrl mutates state outside setState, risking stale renders and hard-to-debug issues.
-
--      const result = await get<string>(qryPresigned);
--      if (result.error) {
-+      const result = await get<string>(qryPresigned);
-+      if (result.error) {
-         showError("Could not get presigned url", result.error);
-         return;
-       }
--      perfume.perfume.imageUrl = result.data ?? "";
--      setImageUrl(perfume.perfume.imageUrl);
-+      setPerfume(prev =>
-+        prev
-+          ? {
-+              ...prev,
-+              perfume: { ...prev.perfume, imageUrl: result.data ?? "" },
-+            }
-+          : prev
-+      );
-+      setImageUrl(result.data ?? "");
-
 - [ ] perfumetracker.client/src/components/message-box.tsx (1)
 72-82: Fix nested button: add asChild to DialogClose
 

@@ -275,12 +275,19 @@ export default function PerfumeEditForm({
         guid
       )}`;
       const result = await get<string>(qryPresigned);
-      if (result.error) {
+      if (result.error || !result.data) {
         showError("Could not get presigned url", result.error);
         return;
       }
-      perfume.perfume.imageUrl = result.data ?? "";
-      setImageUrl(perfume.perfume.imageUrl);
+      setPerfume(prev =>
+        prev
+          ? {
+              ...prev,
+              perfume: { ...prev.perfume, imageUrl: result.data ?? "" },
+            }
+          : prev
+      );
+      setImageUrl(result.data);
     }
   };
 

@@ -139,7 +139,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
     const result = await logoutUser();
     if (result.error) {
       toast.error("Error during logout: " + result.error);
-    } 
+    }
     clearUser();
     router.push("/login");
   };
@@ -182,9 +182,17 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
               </span>
               <Progress
                 value={
-                  ((xp.xp - xp.xpLastLevel) /
-                    (xp.xpNextLevel - xp.xpLastLevel)) *
-                  100
+                  xp.xpNextLevel - xp.xpLastLevel > 0
+                    ? Math.min(
+                        100,
+                        Math.max(
+                          0,
+                          ((xp.xp - xp.xpLastLevel) /
+                            (xp.xpNextLevel - xp.xpLastLevel)) *
+                            100
+                        )
+                      )
+                    : 0
                 }
               />
               <span className="text-xs text-gray-500">
