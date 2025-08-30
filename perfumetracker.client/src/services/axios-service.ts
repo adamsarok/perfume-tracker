@@ -81,35 +81,16 @@ function getErrorResult(error: unknown): AxiosResult<never> {
 
 const api = axios.create({
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
   xsrfCookieName: "XSRF-TOKEN",
   xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
-// Add response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized error
       console.error("Authentication error:", error);
     }
     return Promise.reject(error);
   }
 );
-
-/*
-  TODO: centralized error handling
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Error checking current user:', error.response?.status, error.response?.data);
-      } else {
-        console.error('Error checking current user:', error);
-      }
-      return null;
-    }
-
-*/

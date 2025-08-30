@@ -2,8 +2,8 @@ import { showError } from "@/services/toasty-service";
 import FileSelector from "./file-selector";
 import { put } from "@/services/axios-service";
 interface UploadComponentProps {
-  perfumeId: string | undefined;
-  onUpload: (guid: string | undefined) => void;
+  readonly perfumeId: string | undefined;
+  readonly onUpload: (guid: string | undefined) => void;
 }
 interface UploadResponse {
   guid: string;  
@@ -30,11 +30,7 @@ export default function UploadComponent({ perfumeId, onUpload }: UploadComponent
       formData.append('file', file);
 
       const qry = `/images/upload/${encodeURIComponent(perfumeId)}`;
-      const response = await put<UploadResponse>(qry, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await put<UploadResponse>(qry, formData);
       if (response.error || !response.data?.guid) {
         showError('Error uploading file:', response.error ?? 'unknown error');
         return;

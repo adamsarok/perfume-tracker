@@ -29,28 +29,6 @@ try {
     // Map to your error contract, e.g. ValidationException with a message on Dto.PerfumeName or a specific DuplicatePerfumeException
     throw new DuplicatePerfumeException(request.Dto.House, request.Dto.PerfumeName, pex);
 } 
-- [ ] 33-37: Don’t set multipart/form-data header manually — it drops the boundary and can break uploads
-
-When sending FormData, the browser/Axios will set the Content-Type with the correct boundary. Manually forcing 'multipart/form-data' typically omits the boundary and can cause server-side parsers to fail. Remove the headers override here.
-
-Apply this diff:
-
-      const response = await put<UploadResponse>(qry, formData, {
-       headers: {
-          'Content-Type': 'multipart/form-data',
-      },
-     });
-     const response = await put<UploadResponse>(qry, formData);
-
-- [ ] 33-37: Remove Manual Multipart/Form-Data Header and Audit Error Toasts
-
-We’ve confirmed via rg that this is the only hard-coded Content-Type: multipart/form-data in the repo—remove it here to let your HTTP client set the correct boundary automatically and prevent sporadic upload failures.
-
-• In perfumetracker.client/src/components/upload-component.tsx at line 35, delete the explicit header:
-
- headers: {
-   'Content-Type': 'multipart/form-data',
- },
 
  - [ ] 88-96: Fix direct state mutation and use controlled checkboxes
 
