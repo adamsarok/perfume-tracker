@@ -28,7 +28,7 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-settings.DayFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 		var season = Season;
 		var all = await context
 			.Perfumes
@@ -40,7 +40,7 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 				(season == Seasons.Summer && x.Summer)
 			)
 			.Select(x => x.Id)
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 		if (all.Count == 0) return new GetRandomPerfumeResponse(null);
 		var filtered = all.Except(alreadySug).Except(worn);
 		if (!filtered.Any()) filtered = all.Except(worn);

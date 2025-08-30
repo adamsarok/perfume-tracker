@@ -24,7 +24,7 @@ public class AddTagHandler(PerfumeTrackerContext context) : ICommandHandler<AddT
 		var tag = request.Dto.Adapt<Tag>();
 		if (tag == null) throw new MappingException();
 		context.Tags.Add(tag);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(cancellationToken);
 		return tag.Adapt<TagDto>();
 	}
 }

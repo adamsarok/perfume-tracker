@@ -1,6 +1,6 @@
 ﻿namespace PerfumeTracker.Server.Services.Achievements;
 
-public class CompleteAchievements { //TODO: what is not an user accessible feature, move to a service
+public class CompleteAchievements {
 	public class PerfumeAddNotificationHandler(PerfumeTrackerContext context, ILogger<PerfumeAddNotificationHandler> logger) : INotificationHandler<PerfumeAddedNotification> {
 		public async Task Handle(PerfumeAddedNotification notification, CancellationToken cancellationToken) {
 			try {
@@ -10,7 +10,7 @@ public class CompleteAchievements { //TODO: what is not an user accessible featu
 					.Where(x => !context.UserAchievements
 						.Select(ua => ua.AchievementId)
 						.Contains(x.Id))
-					.ToListAsync();
+					.ToListAsync(cancellationToken);
 				if (achievements.Any()) {
 					context.UserAchievements.AddRange(achievements.Select(x => new UserAchievement() {
 						AchievementId = x.Id

@@ -18,15 +18,15 @@ public class GenerateMissions(PerfumeTrackerContext context) : ICommandHandler<G
 		var now = DateTime.UtcNow;
 		var activeMissions = await context.Missions
 			.Where(m => m.IsActive && m.StartDate <= now && m.EndDate > now)
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 
-		foreach (var mission in activeMissions) {
+		foreach (var missionId in activeMissions.Select(x => x.Id)) {
 			var userMission = await context.UserMissions
-				.FirstOrDefaultAsync(um => um.MissionId == mission.Id);
+				.FirstOrDefaultAsync(um => um.MissionId == missionId, cancellationToken);
 
 			if (userMission == null) {
 				userMission = new UserMission {
-					MissionId = mission.Id,
+					MissionId = missionId,
 					Progress = 0,
 					IsCompleted = false
 				};

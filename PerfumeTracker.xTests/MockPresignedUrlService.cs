@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace PerfumeTracker.xTests;
 public class MockPresignedUrlService : IPresignedUrlService {
-	public Uri? GetUrl(Guid? guid, HttpVerb httpVerb) => new Uri("");
+	public Uri? GetUrl(Guid? guid, HttpVerb httpVerb) => new("http://test.invalid");
 }

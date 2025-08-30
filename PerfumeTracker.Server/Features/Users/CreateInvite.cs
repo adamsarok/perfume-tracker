@@ -21,7 +21,7 @@ public class CreateInviteHandler(PerfumeTrackerContext context) : ICommandHandle
 	public async Task<CreateInviteResponse> Handle(CreateInviteCommand request, CancellationToken cancellationToken) {
 		var invite = new Invite() { Email = request.Email };
 		context.Invites.Add(invite);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(cancellationToken);
 		return new CreateInviteResponse(invite.Email, invite.Id);
 	}
 }

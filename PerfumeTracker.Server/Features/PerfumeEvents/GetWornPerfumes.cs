@@ -31,13 +31,15 @@ public class GetWornPerfumesHandler(PerfumeTrackerContext context, IPresignedUrl
 				x.EventDate,
 				x.Perfume.Id,
 				x.Perfume.ImageObjectKeyNew,
-				presignedUrlService.GetUrl(x.Perfume.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET).ToString(),
+				presignedUrlService.GetUrl(x.Perfume.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET) != null
+					? presignedUrlService.GetUrl(x.Perfume.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET)!.ToString()
+					: "",
 				x.Perfume.House,
 				x.Perfume.PerfumeName,
 				x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList(),
 				x.SequenceNumber,
 				x.IsDeleted
 			))
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 	}
 }

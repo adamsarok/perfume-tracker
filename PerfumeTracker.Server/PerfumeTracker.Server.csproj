@@ -24,7 +24,7 @@
 
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <AnalysisMode>Default</AnalysisMode>
   </PropertyGroup>
 
   <ItemGroup>

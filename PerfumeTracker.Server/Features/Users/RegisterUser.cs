@@ -30,13 +30,13 @@ public class RegisterUserHandler(ICreateUser createUser, IConfiguration configur
 		if (userConfig.InviteOnlyRegistration) {
 			invite = await context.Invites
 				.Where(x => x.Email == command.Email && x.Id == command.InviteCode)
-				.FirstOrDefaultAsync();
+				.FirstOrDefaultAsync(cancellationToken);
 			if (invite == null) throw new UnauthorizedException("Active invite code not found for this email address");
 		}
 		await createUser.Create(command.UserName, command.Password, Roles.USER, command.Email);
 		if (invite != null) {
 			invite.IsUsed = true;
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(cancellationToken);
 		}
 		return Unit.Value;
 	}

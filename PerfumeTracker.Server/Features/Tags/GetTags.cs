@@ -17,6 +17,6 @@ public class GetTagsHandler(PerfumeTrackerContext context) : IQueryHandler<GetTa
 		return await context
 			.Tags
 			.ProjectToType<TagDto>()
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 	}
 }

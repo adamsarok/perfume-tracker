@@ -11,7 +11,7 @@ public class PresignedUrlService : IPresignedUrlService {
 	private readonly R2Configuration r2Configuration;
 	private readonly BasicAWSCredentials basicAWSCredentials;
 	public PresignedUrlService(R2Configuration r2Configuration) {
-		basicAWSCredentials = new BasicAWSCredentials(r2Configuration.AccessKey, r2Configuration.SecretKey); ;
+		basicAWSCredentials = new BasicAWSCredentials(r2Configuration.AccessKey, r2Configuration.SecretKey);
 		this.r2Configuration = r2Configuration;
 	}
 

@@ -28,7 +28,7 @@ public class AddPerfumeRatingHandler(PerfumeTrackerContext context) : ICommandHa
 		if (await context.Perfumes.FindAsync(evt.PerfumeId, cancellationToken) == null) throw new NotFoundException("Perfumes", evt.PerfumeId);
 		context.PerfumeRatings.Add(evt);
 		var result = evt.Adapt<PerfumeRatingDownloadDto>();
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(cancellationToken);
 		return result;
 	}
 }

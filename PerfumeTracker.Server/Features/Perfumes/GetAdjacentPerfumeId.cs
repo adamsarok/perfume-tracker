@@ -35,11 +35,11 @@ public class GetNextPerfumeHandler(PerfumeTrackerContext context)
 				)
 				.OrderBy(x => x.House)
 				.ThenBy(x => x.PerfumeName)
-				.FirstOrDefaultAsync();
+				.FirstOrDefaultAsync(cancellationToken);
 		if (next != null) return next.Id;
 		var first = await context.Perfumes.OrderBy(x => x.House)
 			.ThenBy(x => x.PerfumeName)
-			.FirstAsync();
+			.FirstAsync(cancellationToken);
 		return first.Id;
 	}
 }
@@ -58,11 +58,11 @@ public class GetPreviousPerfumeHandler(PerfumeTrackerContext context)
 				)
 				.OrderByDescending(x => x.House)
 				.ThenByDescending(x => x.PerfumeName)
-				.FirstOrDefaultAsync();
+				.FirstOrDefaultAsync(cancellationToken);
 		if (next != null) return next.Id;
 		var last = await context.Perfumes.OrderByDescending(x => x.House)
 			.ThenByDescending(x => x.PerfumeName)
-			.FirstAsync();
+			.FirstAsync(cancellationToken);
 		return last.Id;
 	}
 }

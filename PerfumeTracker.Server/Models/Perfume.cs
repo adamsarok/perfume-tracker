@@ -12,8 +12,8 @@ public partial class Perfume : UserEntity {
 	public bool Summer { get; set; }
 	public bool Winter { get; set; }
 	public NpgsqlTsVector FullText { get; set; } = null!;
-	public virtual ICollection<PerfumeRandoms> PerfumeRandoms { get; set; } = new List<PerfumeRandoms>();
-	public virtual ICollection<PerfumeTag> PerfumeTags { get; set; } = new List<PerfumeTag>();
-	public virtual ICollection<PerfumeEvent> PerfumeEvents { get; set; } = new List<PerfumeEvent>();
-	public virtual ICollection<PerfumeRating> PerfumeRatings { get; set; } = new List<PerfumeRating>();
+	public virtual ICollection<PerfumeRandoms> PerfumeRandoms { get; } = [];
+	public virtual ICollection<PerfumeTag> PerfumeTags { get; } = [];
+	public virtual ICollection<PerfumeEvent> PerfumeEvents { get; } = [];
+	public virtual ICollection<PerfumeRating> PerfumeRatings { get; } = [];
 }
