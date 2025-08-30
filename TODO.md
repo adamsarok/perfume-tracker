@@ -58,26 +58,6 @@ Use this resilient parsing:
 +        text = text.trim().replace(/^```(?:\w+)?\n?/, '').replace(/```$/, '');
 +        setRecommendations(text);
 
-- [ ] perfumetracker.client/src/components/message-box.tsx (1)
-72-82: Fix nested button: add asChild to DialogClose
-
-Without asChild, DialogClose renders a button element, causing a <button><button/></button> nesting around your secondary Button. This is invalid HTML and can break keyboard focus and click handling.
-
-Apply this diff:
-
--                <DialogClose>
-+                <DialogClose asChild>
-                   <Button
-                     color="danger"
-                     type="button"
-                     onClick={() => {
-                       if (onButton2) onButton2();
-                     }}
-                   >
-                     {button2text}
-                   </Button>
-                   </DialogClose>
-
 
 - [ ] 44-49: Dispose HttpResponseMessage and propagate cancellation (and set a content type)
 
