@@ -34,7 +34,7 @@ public static class PerfumeExtensions {
 				p.Ml,
 				p.MlLeft,
 				p.ImageObjectKeyNew,
-				presignedUrlService.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET),
+				presignedUrlService.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET)?.ToString() ?? "",
 				p.Autumn,
 				p.Spring,
 				p.Summer,
