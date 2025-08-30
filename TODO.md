@@ -59,54 +59,6 @@ Use this resilient parsing:
 +        setRecommendations(text);
 
 
-- [ ] 44-49: Dispose HttpResponseMessage and propagate cancellation (and set a content type)
-
-Prevent socket/resource leaks, make the request cancelable, and send a sane content type.
-
--    var httpClient = httpClientFactory.CreateClient();
--    var response = await httpClient.PutAsync(presignedUrl, new StreamContent(stream));
--    if (!response.IsSuccessStatusCode) {
-+    var httpClient = httpClientFactory.CreateClient();
-+    using var content = new StreamContent(stream);
-+    content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-+    using var response = await httpClient.PutAsync(presignedUrl, content, ct);
-+    if (!response.IsSuccessStatusCode) {
-       throw new InvalidOperationException($"Failed to upload image to R2: {response.StatusCode}");
-     }
-And in the endpoint (lines 10–25) add and wire a CancellationToken:
-
-- app.MapPut("/api/images/upload/{perfumeId}", async (Guid perfumeId,
-+ app.MapPut("/api/images/upload/{perfumeId}", async (Guid perfumeId,
-   IFormFile file,
-   R2Configuration configuration,
-   PerfumeTrackerContext perfumeTrackerContext,
--  UploadImageHandler uploadImageHandler) => {
-+  UploadImageHandler uploadImageHandler,
-+  CancellationToken ct) => {
-     ...
--    await using var stream = file.OpenReadStream();
--    perfume.ImageObjectKeyNew = await uploadImageHandler.UploadImage(stream);
--    await perfumeTrackerContext.SaveChangesAsync();
-+    await using var stream = file.OpenReadStream();
-+    perfume.ImageObjectKeyNew = await uploadImageHandler.UploadImage(stream, ct);
-+    await perfumeTrackerContext.SaveChangesAsync(ct);
-
-- [ ] 35-41: Guard stream reset and add CancellationToken to UploadImage
-In PerfumeTracker.Server/Features/R2/UploadImage.cs, wrap the stream.Position = 0; call in a if (stream.CanSeek) check—falling back to copying into a seekable MemoryStream when CanSeek is false—and update the signature to
-
-public async Task<Guid> UploadImage(Stream stream, CancellationToken ct = default)
-then pass ct from your endpoint into UploadImage. Verified no other UploadImage call sites exist; the default ct parameter preserves existing callers.
-
-- [ ] 7-15: Add CancellationToken support across the upload pipeline
-
-Change SeedDemoImagesAsync signature to
-Task<List<Guid>> SeedDemoImagesAsync(UploadImageHandler handler, CancellationToken ct = default) and pass ct into handler.UploadImage.
-Update UploadImageHandler.UploadImage to
-Task<Guid> UploadImage(Stream stream, CancellationToken ct)
-and propagate ct through its internal HTTP/file‐upload calls.
-Update all call sites (e.g. in Program.cs and Features/R2/UploadImage.cs) from
-handler.UploadImage(stream) → handler.UploadImage(stream, ct)
-
 - [ ] 20-26: Prefer result.ok and add a simple submitting guard
 
 Use the AxiosResult.ok flag for consistency across the app and prevent double submits with a local submitting state.

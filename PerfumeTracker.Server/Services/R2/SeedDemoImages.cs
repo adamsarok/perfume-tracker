@@ -9,7 +9,7 @@ public static class SeedDemoImages {
 		foreach (var imagePath in Directory.GetFiles("images")) {
 			var fileInfo = new FileInfo(imagePath);
 			await using var stream = fileInfo.OpenRead();
-			var guid = await handler.UploadImage(stream);
+			var guid = await handler.UploadImage(stream, CancellationToken.None);
 			imageGuids.Add(guid);
 		}
 		return imageGuids;
