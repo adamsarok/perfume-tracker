@@ -28,7 +28,7 @@ public class GetPerfumeHandler(PerfumeTrackerContext context, IPresignedUrlServi
 			.Select(p => p.ToPerfumeWithWornStatsDto(settings, presignedUrlService))
 			.AsSplitQuery()
 			.AsNoTracking()
-			.FirstOrDefaultAsync();
+			.FirstOrDefaultAsync(cancellationToken);
 		return p ?? throw new NotFoundException();
 	}
 }

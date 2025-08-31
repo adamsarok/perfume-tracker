@@ -19,11 +19,11 @@ public record class RandomsAcceptedNotification(Guid UserId) : IUserNotification
 public class AcceptRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AcceptRandomPerfumeCommand, Unit> {
 	public async Task<Unit> Handle(AcceptRandomPerfumeCommand request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
-		var perfumeRandom = await context.PerfumeRandoms.FindAsync(request.RandomsId, cancellationToken) ?? throw new NotFoundException("PerfumeRandoms", request.RandomsId);
+		var perfumeRandom = await context.PerfumeRandoms.FindAsync([request.RandomsId], cancellationToken) ?? throw new NotFoundException("PerfumeRandoms", request.RandomsId);
 		perfumeRandom.IsAccepted = true;
 		var message = OutboxMessage.From(new RandomsAcceptedNotification(userId));
 		context.OutboxMessages.Add(message);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(cancellationToken);
 		queue.Enqueue(message);
 		return Unit.Value;
 	}

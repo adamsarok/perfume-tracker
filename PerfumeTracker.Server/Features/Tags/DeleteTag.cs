@@ -15,7 +15,7 @@ public class DeleteTagEndpoint : ICarterModule {
 }
 public class DeleteTagHandler(PerfumeTrackerContext context) : ICommandHandler<DeleteTagCommand, TagDto> {
 	public async Task<TagDto> Handle(DeleteTagCommand request, CancellationToken cancellationToken) {
-		var tag = await context.Tags.FindAsync(request.TagId, cancellationToken) ?? throw new NotFoundException("Tags", request.TagId);
+		var tag = await context.Tags.FindAsync([request.TagId], cancellationToken) ?? throw new NotFoundException("Tags", request.TagId);
 		tag.IsDeleted = true;
 		await context.SaveChangesAsync(cancellationToken);
 		return tag.Adapt<TagDto>();

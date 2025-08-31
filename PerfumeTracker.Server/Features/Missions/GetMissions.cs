@@ -38,6 +38,6 @@ public class GetActiveMissionsHandler(PerfumeTrackerContext context)
 			x.Mission.Type,
 			x.Mission.RequiredCount,
 			x.Progress,
-			x.IsCompleted)).ToListAsync();
+			x.IsCompleted)).ToListAsync(cancellationToken);
 	}
 }

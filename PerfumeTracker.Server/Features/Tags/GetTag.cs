@@ -16,7 +16,7 @@ public class GetTagHandler(PerfumeTrackerContext context) : IQueryHandler<GetTag
 	public async Task<TagDto> Handle(GetTagQuery request, CancellationToken cancellationToken) {
 		var t = await context
 			.Tags
-			.FindAsync(request.Id, cancellationToken) ?? throw new NotFoundException("Tags", request.Id);
+			.FindAsync([request.Id], cancellationToken) ?? throw new NotFoundException("Tags", request.Id);
 		var r = t.Adapt<TagDto>();
 		if (r == null) throw new MappingException();
 		return r;

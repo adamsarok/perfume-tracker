@@ -42,7 +42,7 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 		var channel = scope.ServiceScope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
 		channel.Enqueue(outboxSeed[1]);
 		await Task.Delay(1000);
-		var msg = await scope.PerfumeTrackerContext.OutboxMessages.FindAsync(outboxSeed[1].Id);
+		var msg = await scope.PerfumeTrackerContext.OutboxMessages.FindAsync([outboxSeed[1].Id]);
 		Assert.NotNull(msg);
 		Assert.NotNull(msg.ProcessedAt);
 	}
