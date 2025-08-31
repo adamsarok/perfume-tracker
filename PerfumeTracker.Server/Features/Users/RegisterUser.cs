@@ -31,9 +31,9 @@ public class RegisterUserHandler(ICreateUser createUser, IConfiguration configur
 			using var transaction = await context.Database.BeginTransactionAsync();
 			try {
 				invite = await context.Invites
-					.Where(x => x.Email == command.Email && x.Id == command.InviteCode)
+					.FromSql($"SELECT * FROM \"Invite\" WHERE \"Email\" = {command.Email} AND \"Id\" = {command.InviteCode} AND \"IsUsed\" = FALSE FOR UPDATE")
 					.FirstOrDefaultAsync(cancellationToken);
-				if (invite == null) throw new UnauthorizedException("Active invite code not found for this email address");
+				if (invite == null) throw new UnauthorizedException("Invite not valid or already used");
 				await createUser.Create(command.UserName, command.Password, Roles.USER, command.Email);
 				invite.IsUsed = true;
 				await context.SaveChangesAsync(cancellationToken);
