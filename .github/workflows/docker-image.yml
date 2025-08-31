@@ -80,6 +80,12 @@ jobs:
         RateLimits__Auth: 20
         RateLimits__Upload: 10
         CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
+        R2__AccessKey: DUMMY_KEY
+        R2__SecretKey: DUMMY_SECRET_KEY
+        R2__AccountId: DUMMY_ACCOUNT_ID
+        R2__BucketName: test
+        R2__ExpirationHours: 24
+        R2__MaxFileSizeKb: 256
       run: dotnet build
 
     - name: Install EF Core CLI tools
@@ -103,6 +109,12 @@ jobs:
        RateLimits__Auth: 20
        RateLimits__Upload: 10
        CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
+       R2__AccessKey: DUMMY_KEY
+       R2__SecretKey: DUMMY_SECRET_KEY
+       R2__AccountId: DUMMY_ACCOUNT_ID
+       R2__BucketName: test
+       R2__ExpirationHours: 24
+       R2__MaxFileSizeKb: 256
       run: dotnet ef database update
 
     - name: Run tests with coverage
@@ -123,6 +135,12 @@ jobs:
        RateLimits__Auth: 20
        RateLimits__Upload: 10
        CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
+       R2__AccessKey: DUMMY_KEY
+       R2__SecretKey: DUMMY_SECRET_KEY
+       R2__AccountId: DUMMY_ACCOUNT_ID
+       R2__BucketName: test
+       R2__ExpirationHours: 24
+       R2__MaxFileSizeKb: 256
       run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings
 
     - name: Upload coverage reports to Codecov
