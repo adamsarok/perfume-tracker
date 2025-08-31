@@ -8,7 +8,6 @@ public class RegisterUserCommandValidator : AbstractValidator<RegisterUserComman
 		RuleFor(x => x.UserName).Length(1, 255);
 		RuleFor(x => x.Email).EmailAddress().Length(1, 255);
 		RuleFor(x => x.Password).Length(8, 100);
-		RuleFor(x => x.InviteCode).NotEmpty().WithMessage("Invite code is required for registration");
 	}
 }
 public class RegisterUserEndpoint : ICarterModule {
@@ -28,7 +27,7 @@ public class RegisterUserHandler(ICreateUser createUser, IConfiguration configur
 		var userConfig = new UserConfiguration(configuration);
 		Invite? invite = null;
 		if (userConfig.InviteOnlyRegistration) {
-			using var transaction = await context.Database.BeginTransactionAsync();
+			using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 			try {
 				invite = await context.Invites
 					.FromSql($"SELECT * FROM \"Invite\" WHERE \"Email\" = {command.Email} AND \"Id\" = {command.InviteCode} AND \"IsUsed\" = FALSE FOR UPDATE")
