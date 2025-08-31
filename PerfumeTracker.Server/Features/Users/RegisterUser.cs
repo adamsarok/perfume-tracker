@@ -14,8 +14,8 @@ public class RegisterUserCommandValidator : AbstractValidator<RegisterUserComman
 public class RegisterUserEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/register", async ([FromBody] RegisterUserCommand command,
-		  ISender sender) => {
-			  await sender.Send(command);
+		  ISender sender, CancellationToken cancellationToken) => {
+			  await sender.Send(command, cancellationToken);
 			  return Results.Ok();
 		  }).WithTags("Users")
 			.WithName("Register")

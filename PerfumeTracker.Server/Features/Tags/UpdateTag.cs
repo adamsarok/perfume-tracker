@@ -9,8 +9,8 @@ public class UpdateTagCommandValidator : AbstractValidator<UpdateTagCommand> {
 }
 public class UpdateTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPut("/api/tags/{id}", async (Guid id, TagUploadDto dto, ISender sender) =>
-			await sender.Send(new UpdateTagCommand(id, dto)))
+		app.MapPut("/api/tags/{id}", async (Guid id, TagUploadDto dto, ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new UpdateTagCommand(id, dto), cancellationToken))
 			.WithTags("Tags")
 			.WithName("UpdateTag")
 			.RequireAuthorization(Policies.WRITE);

@@ -6,8 +6,8 @@ namespace PerfumeTracker.Server.Features.PerfumeEvents;
 public record GetWornPerfumesQuery(int? Cursor, int PageSize) : IQuery<List<PerfumeEventDownloadDto>>;
 public class GetWornPerfumesEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfume-events/worn-perfumes", async (int? cursor, int pageSize, ISender sender) => {
-			return await sender.Send(new GetWornPerfumesQuery(cursor, pageSize));
+		app.MapGet("/api/perfume-events/worn-perfumes", async (int? cursor, int pageSize, ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetWornPerfumesQuery(cursor, pageSize), cancellationToken);
 		})
 		.WithTags("PerfumeWorns")
 		.WithName("GetPerfumeWorns")

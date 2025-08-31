@@ -15,8 +15,8 @@ public class AddPerfumeEventCommandValidator : AbstractValidator<AddPerfumeEvent
 }
 public class AddPerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, ISender sender) => {
-			var result = await sender.Send(new AddPerfumeEventCommand(dto));
+		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, ISender sender, CancellationToken cancellationToken) => {
+			var result = await sender.Send(new AddPerfumeEventCommand(dto), cancellationToken);
 			return Results.CreatedAtRoute("GetPerfumeEvent", new { id = result.Id }, result);
 		}).WithTags("PerfumeWorns")
 			.WithName("PostPerfumeWorn")

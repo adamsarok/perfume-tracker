@@ -10,8 +10,8 @@ public class UpdatePerfumeCommandValidator : AbstractValidator<UpdatePerfumeComm
 }
 public class UpdatePerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPut("/api/perfumes/{id}", async (Guid id, PerfumeUploadDto dto, ISender sender) =>
-			await sender.Send(new UpdatePerfumeCommand(id, dto)))
+		app.MapPut("/api/perfumes/{id}", async (Guid id, PerfumeUploadDto dto, ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new UpdatePerfumeCommand(id, dto), cancellationToken))
 			.WithTags("Perfumes")
 			.WithName("UpdatePerfume")
 			.RequireAuthorization(Policies.WRITE);

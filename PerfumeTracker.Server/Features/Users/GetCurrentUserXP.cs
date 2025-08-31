@@ -7,8 +7,8 @@ public record UserXPQuery() : IQuery<UserXPResponse>;
 public record UserXPResponse(long Xp, long XpLastLevel, long XpNextLevel, int Level, decimal XpMultiplier, int StreakLength);
 public class GetCurrentUserXPEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/users/xp", (ISender sender) => {
-			return sender.Send(new UserXPQuery());
+		app.MapGet("/api/users/xp", (ISender sender, CancellationToken cancellationToken) => {
+			return sender.Send(new UserXPQuery(), cancellationToken);
 		}).WithTags("Users")
 			.WithName("GetCurrentUserXP")
 			.RequireAuthorization(Policies.READ);

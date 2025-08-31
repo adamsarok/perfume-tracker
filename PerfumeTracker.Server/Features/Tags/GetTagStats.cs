@@ -6,8 +6,8 @@ namespace PerfumeTracker.Server.Features.Tags;
 public record GetTagStatsQuery() : IQuery<List<TagStatDto>>;
 public class GetTagStatsEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/tags/stats", async (ISender sender) =>
-				await sender.Send(new GetTagsQuery()))
+		app.MapGet("/api/tags/stats", async (ISender sender, CancellationToken cancellationToken) =>
+				await sender.Send(new GetTagsQuery(), cancellationToken))
 				.WithTags("Tags")
 				.WithName("GetTagStats")
 				.RequireAuthorization(Policies.READ);

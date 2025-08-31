@@ -5,8 +5,8 @@ namespace PerfumeTracker.Server.Features.Tags;
 public record DeleteTagCommand(Guid TagId) : ICommand<TagDto>;
 public class DeleteTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapDelete("/api/tags/{id}", async (Guid id, ISender sender) => {
-			await sender.Send(new DeleteTagCommand(id));
+		app.MapDelete("/api/tags/{id}", async (Guid id, ISender sender, CancellationToken cancellationToken) => {
+			await sender.Send(new DeleteTagCommand(id), cancellationToken);
 			return Results.NoContent();
 		}).WithTags("Tags")
 		   .WithName("DeleteTag")

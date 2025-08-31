@@ -8,8 +8,8 @@ public class CreateInviteCommandValidator : AbstractValidator<CreateInviteComman
 public class CreateInviteEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/invite", async ([FromBody] CreateInviteCommand command,
-		  ISender sender) => {
-			  var response = await sender.Send(command);
+		  ISender sender, CancellationToken cancellationToken) => {
+			  var response = await sender.Send(command, cancellationToken);
 			  return Results.Ok(response.InviteCode);
 		  }).WithTags("Users")
 			.WithName("CreateInvite")

@@ -50,16 +50,14 @@ public class ProgressMissions {
 						if (lastWorn != null && (now - lastWorn.EventDate).TotalDays >= 30) await updateMissionProgressHandler.UpdateMissionProgress(m, m.Mission, cancellationToken);
 						break;
 					case MissionType.WearDifferentPerfumes:
-						var uniquePerfumesWorn = await context.PerfumeEvents
-							.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn &&
-									   x.EventDate >= m.Mission.StartDate &&
-									   x.UserId == notification.UserId)
+						var alreadyWornThisWindow = await context.PerfumeEvents
 							.IgnoreQueryFilters()
-							.Select(x => x.PerfumeId)
-							.Distinct()
-							.CountAsync(cancellationToken);
-						if (uniquePerfumesWorn > 0) await updateMissionProgressHandler.UpdateMissionProgress(m, m.Mission, cancellationToken);
-						break;
+	                        .AnyAsync(x => x.UserId == notification.UserId
+								&& x.PerfumeId == notification.PerfumeId
+	                            && x.Type == PerfumeEvent.PerfumeEventType.Worn
+	                            && x.EventDate >= m.Mission.StartDate
+	                            && x.EventDate <= now, cancellationToken);
+						if (!alreadyWornThisWindow) await updateMissionProgressHandler.UpdateMissionProgress(m, m.Mission, cancellationToken); break;
 					case MissionType.WearNote:
 						var perfumeTags = await context.PerfumeTags
 							.IgnoreQueryFilters()

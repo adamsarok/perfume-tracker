@@ -16,7 +16,7 @@ public class PresignedUrlService : IPresignedUrlService {
 	}
 
 	public Uri? GetUrl(Guid? guid, HttpVerb httpVerb) {
-		if (guid == null || !r2Configuration.IsEnabled) return null;
+		if (guid == null || r2Configuration == null || !r2Configuration.IsEnabled) return null;
 		using var s3Client = new AmazonS3Client(basicAWSCredentials, new AmazonS3Config {
 			ServiceURL = $"https://{r2Configuration.AccountId}.r2.cloudflarestorage.com",
 		});

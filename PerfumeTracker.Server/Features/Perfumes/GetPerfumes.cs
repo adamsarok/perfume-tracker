@@ -7,13 +7,13 @@ namespace PerfumeTracker.Server.Features.Perfumes;
 public record GetPerfumesWithWornQuery(string? FullText = null) : IQuery<List<PerfumeWithWornStatsDto>>;
 public class GetPerfumesWithWornEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfumes/fulltext/{fulltext}", async (string fulltext, ISender sender) =>
-			await sender.Send(new GetPerfumesWithWornQuery(fulltext)))
+		app.MapGet("/api/perfumes/fulltext/{fulltext}", async (string fulltext, ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new GetPerfumesWithWornQuery(fulltext), cancellationToken))
 			.WithTags("Perfumes")
 			.WithName("GetPerfumesFulltext")
 			.RequireAuthorization(Policies.READ);
-		app.MapGet("/api/perfumes", async (ISender sender) =>
-			await sender.Send(new GetPerfumesWithWornQuery()))
+		app.MapGet("/api/perfumes", async (ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new GetPerfumesWithWornQuery(), cancellationToken))
 			.WithTags("Perfumes")
 			.WithName("GetPerfumes")
 			.RequireAuthorization(Policies.READ);

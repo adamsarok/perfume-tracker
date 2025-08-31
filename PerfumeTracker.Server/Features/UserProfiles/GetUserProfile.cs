@@ -6,8 +6,8 @@ public record GetUserProfileQuery() : IQuery<UserProfile>;
 
 public class GetUserProfilesEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/user-profiles", async (ISender sender) =>
-			await sender.Send(new GetUserProfileQuery()))
+		app.MapGet("/api/user-profiles", async (ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new GetUserProfileQuery(), cancellationToken))
 			.WithTags("UserProfiles")
 			.WithName("GetUserProfile")
 			.RequireAuthorization(Policies.READ);

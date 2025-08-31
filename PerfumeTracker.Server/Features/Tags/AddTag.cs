@@ -10,8 +10,8 @@ public class AddTagCommandValidator : AbstractValidator<AddTagCommand> {
 }
 public class AddTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/tags", async (TagUploadDto dto, ISender sender) => {
-			var result = await sender.Send(new AddTagCommand(dto));
+		app.MapPost("/api/tags", async (TagUploadDto dto, ISender sender, CancellationToken cancellationToken) => {
+			var result = await sender.Send(new AddTagCommand(dto), cancellationToken);
 			return Results.CreatedAtRoute("GetTag", new { id = result.Id }, result);
 		}).WithTags("Tags")
 	   .WithName("AddTag")

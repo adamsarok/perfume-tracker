@@ -4,8 +4,8 @@ namespace PerfumeTracker.Server.Features.Perfumes;
 public record DeletePerfumeCommand(Guid Id) : ICommand<PerfumeDto>;
 public class DeletePerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapDelete("/api/perfumes/{id}", async (Guid id, ISender sender) => {
-			await sender.Send(new DeletePerfumeCommand(id));
+		app.MapDelete("/api/perfumes/{id}", async (Guid id, ISender sender, CancellationToken cancellationToken) => {
+			await sender.Send(new DeletePerfumeCommand(id), cancellationToken);
 			return Results.NoContent();
 		}).WithTags("Perfumes")
 			.WithName("DeletePerfume")

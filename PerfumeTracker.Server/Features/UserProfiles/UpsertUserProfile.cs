@@ -24,8 +24,8 @@ public class UpsertUserProfileValidator : AbstractValidator<UpsertUserProfileCom
 }
 public class UpsertUserProfilesModule : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPut("/api/user-profiles", async (UserProfile userProfile, ISender sender) =>
-			await sender.Send(new UpsertUserProfileCommand(userProfile)))
+		app.MapPut("/api/user-profiles", async (UserProfile userProfile, ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new UpsertUserProfileCommand(userProfile), cancellationToken))
 			.WithTags("UserProfiles")
 			.WithName("UpsertUserProfile")
 			.RequireAuthorization(Policies.WRITE);

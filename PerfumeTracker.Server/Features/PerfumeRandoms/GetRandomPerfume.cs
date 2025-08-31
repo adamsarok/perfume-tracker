@@ -8,8 +8,8 @@ public record GetRandomPerfumeQuery() : IQuery<GetRandomPerfumeResponse>;
 public record GetRandomPerfumeResponse(Guid? PerfumeId);
 public class GetRandomPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/random-perfumes", async (ISender sender) => {
-			var result = await sender.Send(new GetRandomPerfumeQuery());
+		app.MapGet("/api/random-perfumes", async (ISender sender, CancellationToken cancellationToken) => {
+			var result = await sender.Send(new GetRandomPerfumeQuery(), cancellationToken);
 			return result.PerfumeId;
 		})
 			.WithTags("PerfumeRandoms")

@@ -6,8 +6,8 @@ namespace PerfumeTracker.Server.Features.PerfumeRandoms;
 public record AcceptRandomPerfumeCommand(Guid RandomsId) : ICommand<Unit>;
 public class AcceptRandomPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/random-perfumes/{randomsId}", async (Guid randomsId, ISender sender) => {
-			await sender.Send(new AcceptRandomPerfumeCommand(randomsId));
+		app.MapPost("/api/random-perfumes/{randomsId}", async (Guid randomsId, ISender sender, CancellationToken cancellationToken) => {
+			await sender.Send(new AcceptRandomPerfumeCommand(randomsId), cancellationToken);
 			return Results.Created();
 		})
 			.WithTags("PerfumeRandoms")

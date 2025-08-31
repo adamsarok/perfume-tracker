@@ -5,14 +5,14 @@ public record GetNextPerfumeIdQuery(Guid Id) : IQuery<Guid>;
 public record GetPreviousPerfumeIdQuery(Guid Id) : IQuery<Guid>;
 public class GetAdjacentPerfumeIdEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfumes/{id}/next", async (Guid id, ISender sender) => {
-			return await sender.Send(new GetNextPerfumeIdQuery(id));
+		app.MapGet("/api/perfumes/{id}/next", async (Guid id, ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetNextPerfumeIdQuery(id), cancellationToken);
 		})
 			.WithTags("Perfumes")
 			.WithName("GetNextPerfume")
 			.RequireAuthorization(Policies.READ);
-		app.MapGet("/api/perfumes/{id}/previous", async (Guid id, ISender sender) => {
-			return await sender.Send(new GetPreviousPerfumeIdQuery(id));
+		app.MapGet("/api/perfumes/{id}/previous", async (Guid id, ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetPreviousPerfumeIdQuery(id), cancellationToken);
 		})
 			.WithTags("Perfumes")
 			.WithName("GetPreviousPerfume")

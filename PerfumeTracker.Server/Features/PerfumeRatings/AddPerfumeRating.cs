@@ -13,8 +13,8 @@ public class AddPerfumeRatingCommandValidator : AbstractValidator<AddPerfumeRati
 }
 public class AddPerfumeRatingEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/perfumes/{perfumeId}/ratings", async (PerfumeRatingUploadDto dto, ISender sender) => {
-			var result = await sender.Send(new AddPerfumeRatingCommand(dto));
+		app.MapPost("/api/perfumes/{perfumeId}/ratings", async (PerfumeRatingUploadDto dto, ISender sender, CancellationToken cancellationToken) => {
+			var result = await sender.Send(new AddPerfumeRatingCommand(dto), cancellationToken);
 			return Results.CreatedAtRoute("GetPerfumeRatings", new { perfumeId = dto.PerfumeId }, result);
 		}).WithTags("PerfumeRatings")
 			.WithName("PostPerfumeRating")
