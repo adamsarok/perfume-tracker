@@ -27,7 +27,7 @@ public class RegisterUserHandler(ICreateUser createUser, IConfiguration configur
 		var userConfig = new UserConfiguration(configuration);
 		Invite? invite = null;
 		if (userConfig.InviteOnlyRegistration) {
-			using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+			await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 			try {
 				invite = await context.Invites
 					.FromSql($"SELECT * FROM \"Invite\" WHERE \"Email\" = {command.Email} AND \"Id\" = {command.InviteCode} AND \"IsUsed\" = FALSE FOR UPDATE")
