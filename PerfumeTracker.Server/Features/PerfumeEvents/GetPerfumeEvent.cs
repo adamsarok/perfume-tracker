@@ -4,8 +4,8 @@ namespace PerfumeTracker.Server.Features.Perfumes;
 public record GetPerfumeEventQuery(Guid Id) : IQuery<PerfumeEvent>;
 public class GetPerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfume-events/{id}", async (Guid id, ISender sender) => {
-			return await sender.Send(new GetPerfumeEventQuery(id));
+		app.MapGet("/api/perfume-events/{id}", async (Guid id, ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetPerfumeEventQuery(id), cancellationToken);
 		})
 			.WithTags("PerfumeEvents")
 			.WithName("GetPerfumeEvent")
@@ -15,6 +15,6 @@ public class GetPerfumeEventEndpoint : ICarterModule {
 public class GetPerfumeEventHandler(PerfumeTrackerContext context)
 		: IQueryHandler<GetPerfumeEventQuery, PerfumeEvent> {
 	public async Task<PerfumeEvent> Handle(GetPerfumeEventQuery request, CancellationToken cancellationToken) {
-		return await context.PerfumeEvents.FindAsync(request.Id, cancellationToken) ?? throw new NotFoundException("PerfumeEvents", request.Id);
+		return await context.PerfumeEvents.FindAsync([request.Id], cancellationToken) ?? throw new NotFoundException("PerfumeEvents", request.Id);
 	}
 }

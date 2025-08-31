@@ -15,8 +15,8 @@ public class AddPerfumeEventCommandValidator : AbstractValidator<AddPerfumeEvent
 }
 public class AddPerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, ISender sender) => {
-			var result = await sender.Send(new AddPerfumeEventCommand(dto));
+		app.MapPost("/api/perfume-events", async (PerfumeEventUploadDto dto, ISender sender, CancellationToken cancellationToken) => {
+			var result = await sender.Send(new AddPerfumeEventCommand(dto), cancellationToken);
 			return Results.CreatedAtRoute("GetPerfumeEvent", new { id = result.Id }, result);
 		}).WithTags("PerfumeWorns")
 			.WithName("PostPerfumeWorn")
@@ -34,16 +34,16 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 		};
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		context.PerfumeEvents.Add(evt);
-		var perfume = await context.Perfumes.FindAsync(evt.PerfumeId, cancellationToken) ?? throw new NotFoundException("Perfumes", evt.PerfumeId);
+		var perfume = await context.Perfumes.FindAsync([evt.PerfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", evt.PerfumeId);
 		if (evt.AmountMl == 0 && evt.Type == PerfumeEvent.PerfumeEventType.Worn) evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		var result = evt.Adapt<PerfumeEventDownloadDto>();
-		List<OutboxMessage> messages = new List<OutboxMessage>();
+		List<OutboxMessage> messages = [];
 		if (evt.Type == PerfumeEvent.PerfumeEventType.Worn) {
 			messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId)));
 			if (request.Dto.IsRandomPerfume) messages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(result.PerfumeId, userId)));
 		}
-		await context.OutboxMessages.AddRangeAsync(messages);
-		await context.SaveChangesAsync();
+		await context.OutboxMessages.AddRangeAsync(messages, cancellationToken);
+		await context.SaveChangesAsync(cancellationToken);
 		foreach (var message in messages) {
 			queue.Enqueue(message);
 		}

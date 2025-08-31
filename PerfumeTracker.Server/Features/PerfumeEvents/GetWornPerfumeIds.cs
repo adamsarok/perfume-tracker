@@ -6,8 +6,8 @@ namespace PerfumeTracker.Server.Features.PerfumeEvents;
 public record GetWornPerfumeIdsQuery(int DaysFilter) : IQuery<List<Guid>>;
 public class GetWornPerfumeIdsEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfume-events/worn-perfumes/{daysBefore}", async (int daysBefore, ISender sender) =>
-			await sender.Send(new GetWornPerfumeIdsQuery(daysBefore)))
+		app.MapGet("/api/perfume-events/worn-perfumes/{daysBefore}", async (int daysBefore, ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new GetWornPerfumeIdsQuery(daysBefore), cancellationToken))
 			.WithTags("PerfumeWorns")
 			.WithName("GetPerfumesBefore")
 			.RequireAuthorization(Policies.READ);

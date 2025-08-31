@@ -34,14 +34,14 @@ public static class PerfumeExtensions {
 				p.Ml,
 				p.MlLeft,
 				p.ImageObjectKeyNew,
-				presignedUrlService.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET),
+				presignedUrlService.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET)?.ToString() ?? "",
 				p.Autumn,
 				p.Spring,
 				p.Summer,
 				p.Winter,
-				p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id, tag.Tag.IsDeleted)).ToList(),
+				[.. p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id, tag.Tag.IsDeleted))],
 				p.IsDeleted,
-				p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(r.PerfumeId, r.Id, r.Rating, r.Comment, r.RatingDate, r.IsDeleted)).ToList()
+				[.. p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(r.PerfumeId, r.Id, r.Rating, r.Comment, r.RatingDate, r.IsDeleted))]
 			),
 			worns.Any() ? worns.Count : 0,
 			worns.Any() ? worns.Max(x => x.CreatedAt) : null,

@@ -2,14 +2,15 @@
 using PerfumeTracker.Server.Features.UserProfiles;
 using PerfumeTracker.Server.Services.Auth;
 using PerfumeTracker.Server.Services.Outbox;
+using System.Threading;
 
 namespace PerfumeTracker.Server.Features.PerfumeRandoms;
 public record GetRandomPerfumeQuery() : IQuery<GetRandomPerfumeResponse>;
 public record GetRandomPerfumeResponse(Guid? PerfumeId);
 public class GetRandomPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/random-perfumes", async (ISender sender) => {
-			var result = await sender.Send(new GetRandomPerfumeQuery());
+		app.MapGet("/api/random-perfumes", async (ISender sender, CancellationToken cancellationToken) => {
+			var result = await sender.Send(new GetRandomPerfumeQuery(), cancellationToken);
 			return result.PerfumeId;
 		})
 			.WithTags("PerfumeRandoms")
@@ -22,13 +23,13 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 	public async Task<GetRandomPerfumeResponse> Handle(GetRandomPerfumeQuery request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
-		var alreadySug = await GetAlreadySuggestedRandomPerfumeIds(settings.DayFilter);
+		var alreadySug = await GetAlreadySuggestedRandomPerfumeIds(settings.DayFilter, cancellationToken);
 		var worn = await context
 			.PerfumeEvents
 			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-settings.DayFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 		var season = Season;
 		var all = await context
 			.Perfumes
@@ -40,18 +41,18 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 				(season == Seasons.Summer && x.Summer)
 			)
 			.Select(x => x.Id)
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 		if (all.Count == 0) return new GetRandomPerfumeResponse(null);
 		var filtered = all.Except(alreadySug).Except(worn);
 		if (!filtered.Any()) filtered = all.Except(worn);
 		if (!filtered.Any()) filtered = all;
 		int index = _random.Next(filtered.Count());
 		var result = filtered.ToArray()[index];
-		if (!alreadySug.Contains(result)) await AddRandomPerfume(result, userId);
+		if (!alreadySug.Contains(result)) await AddRandomPerfume(result, userId, cancellationToken);
 		return new GetRandomPerfumeResponse(result);
 	}
-	private async Task AddRandomPerfume(Guid perfumeId, Guid userId) {
-		var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId);
+	private async Task AddRandomPerfume(Guid perfumeId, Guid userId, CancellationToken cancellationToken) {
+		var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId, cancellationToken);
 		if (p == null) throw new NotFoundException();
 		var s = new Models.PerfumeRandoms() {
 			PerfumeId = perfumeId,
@@ -59,16 +60,16 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 		var message = OutboxMessage.From(new RandomPerfumeAddedNotification(perfumeId, userId));
 		context.OutboxMessages.Add(message);
 		context.PerfumeRandoms.Add(s);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(cancellationToken);
 		queue.Enqueue(message);
 	}
-	private async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter) {
+	private async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter, CancellationToken cancellationToken) {
 		return await context
 			.PerfumeRandoms
 			.Where(x => x.CreatedAt >= DateTime.UtcNow.AddDays(-daysFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 	}
 	enum Seasons { Winter, Spring, Summer, Autumn };
 	private static readonly Random _random = new();

@@ -2,4 +2,5 @@
 public class FieldEmptyException : BadRequestException {
 	public FieldEmptyException() : base() { }
 	public FieldEmptyException(string fieldName) : base($"{fieldName} is empty") { }
+	public FieldEmptyException(string fieldName, Exception? innerException) : base($"{fieldName} is empty", innerException) { }
 }

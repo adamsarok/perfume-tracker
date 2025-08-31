@@ -8,14 +8,13 @@ public class RegisterUserCommandValidator : AbstractValidator<RegisterUserComman
 		RuleFor(x => x.UserName).Length(1, 255);
 		RuleFor(x => x.Email).EmailAddress().Length(1, 255);
 		RuleFor(x => x.Password).Length(8, 100);
-		RuleFor(x => x.InviteCode).NotEmpty().WithMessage("Invite code is required for registration");
 	}
 }
 public class RegisterUserEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/register", async ([FromBody] RegisterUserCommand command,
-		  ISender sender) => {
-			  await sender.Send(command);
+		  ISender sender, CancellationToken cancellationToken) => {
+			  await sender.Send(command, cancellationToken);
 			  return Results.Ok();
 		  }).WithTags("Users")
 			.WithName("Register")
@@ -28,16 +27,23 @@ public class RegisterUserHandler(ICreateUser createUser, IConfiguration configur
 		var userConfig = new UserConfiguration(configuration);
 		Invite? invite = null;
 		if (userConfig.InviteOnlyRegistration) {
-			invite = await context.Invites
-				.Where(x => x.Email == command.Email && x.Id == command.InviteCode)
-				.FirstOrDefaultAsync();
-			if (invite == null) throw new UnauthorizedException("Active invite code not found for this email address");
+			await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+			try {
+				invite = await context.Invites
+					.FromSql($"SELECT * FROM \"Invite\" WHERE \"Email\" = {command.Email} AND \"Id\" = {command.InviteCode} AND \"IsUsed\" = FALSE FOR UPDATE")
+					.FirstOrDefaultAsync(cancellationToken);
+				if (invite == null) throw new UnauthorizedException("Invite not valid or already used");
+				await createUser.Create(command.UserName, command.Password, Roles.USER, command.Email);
+				invite.IsUsed = true;
+				await context.SaveChangesAsync(cancellationToken);
+				await transaction.CommitAsync(cancellationToken);
+				return Unit.Value;
+			} catch {
+				await transaction.RollbackAsync(cancellationToken);
+				throw;
+			}
 		}
 		await createUser.Create(command.UserName, command.Password, Roles.USER, command.Email);
-		if (invite != null) {
-			invite.IsUsed = true;
-			await context.SaveChangesAsync();
-		}
 		return Unit.Value;
 	}
 }

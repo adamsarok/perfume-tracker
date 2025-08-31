@@ -10,8 +10,8 @@ public class UpdatePerfumeCommandValidator : AbstractValidator<UpdatePerfumeComm
 }
 public class UpdatePerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPut("/api/perfumes/{id}", async (Guid id, PerfumeUploadDto dto, ISender sender) =>
-			await sender.Send(new UpdatePerfumeCommand(id, dto)))
+		app.MapPut("/api/perfumes/{id}", async (Guid id, PerfumeUploadDto dto, ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new UpdatePerfumeCommand(id, dto), cancellationToken))
 			.WithTags("Perfumes")
 			.WithName("UpdatePerfume")
 			.RequireAuthorization(Policies.WRITE);
@@ -26,10 +26,10 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context, ISideEffectQueu
 			.Perfumes
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
-			.FirstOrDefaultAsync(x => x.Id == request.Id);
+			.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 		if (find == null) throw new NotFoundException();
 		context.Entry(find).CurrentValues.SetValues(request.Dto);
-		var sum = await context.PerfumeEvents.Where(x => x.PerfumeId == find.Id).SumAsync(s => s.AmountMl);
+		var sum = await context.PerfumeEvents.Where(x => x.PerfumeId == find.Id).SumAsync(s => s.AmountMl, cancellationToken);
 		var mlLeftInDb = Math.Max(0, sum);
 		if (request.Dto.MlLeft != mlLeftInDb) {
 			context.PerfumeEvents.Add(new PerfumeEvent() {
@@ -41,7 +41,7 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context, ISideEffectQueu
 				UpdatedAt = DateTime.UtcNow
 			});
 		}
-		List<OutboxMessage> messages = new List<OutboxMessage>();
+		List<OutboxMessage> messages = [];
 		var tagsInDB = find.PerfumeTags
 			.Select(x => x.Tag)
 			.Select(x => x.TagName)
@@ -49,8 +49,8 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context, ISideEffectQueu
 		foreach (var remove in find.PerfumeTags.Where(x => !request.Dto.Tags.Select(x => x.TagName).Contains(x.Tag.TagName))) {
 			context.PerfumeTags.Remove(remove);
 		}
-		List<PerfumeTag> tagsToAdd = new List<PerfumeTag>();
-		if (request.Dto.Tags != null && request.Dto.Tags.Any()) {
+		List<PerfumeTag> tagsToAdd = [];
+		if (request.Dto.Tags != null && request.Dto.Tags.Count > 0) {
 			foreach (var add in request.Dto.Tags.Where(x => !tagsInDB.Contains(x.TagName))) {
 				tagsToAdd.Add(new PerfumeTag() {
 					PerfumeId = find.Id,
@@ -58,13 +58,13 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context, ISideEffectQueu
 				});
 			}
 		}
-		if (tagsToAdd.Any()) {
+		if (tagsToAdd.Count > 0) {
 			context.PerfumeTags.AddRange(tagsToAdd);
-			messages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification(tagsToAdd.Select(x => x.Id).ToList(), userId)));
+			messages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification([..tagsToAdd.Select(x => x.Id)], userId)));
 		}
 		messages.Add(OutboxMessage.From(new PerfumeUpdatedNotification(find.Id, userId)));
-		await context.OutboxMessages.AddRangeAsync(messages);
-		await context.SaveChangesAsync();
+		await context.OutboxMessages.AddRangeAsync(messages, cancellationToken);
+		await context.SaveChangesAsync(cancellationToken);
 		foreach (var message in messages) queue.Enqueue(message);
 		return find.Adapt<PerfumeDto>();
 	}

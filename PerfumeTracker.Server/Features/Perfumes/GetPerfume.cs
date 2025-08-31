@@ -6,8 +6,8 @@ public enum Direction {	Next, Previous }
 public record GetPerfumeQuery(Guid Id) : IQuery<PerfumeWithWornStatsDto>;
 public class GetPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfumes/{id}", async (Guid id, ISender sender) => {
-			return await sender.Send(new GetPerfumeQuery(id));
+		app.MapGet("/api/perfumes/{id}", async (Guid id, ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetPerfumeQuery(id), cancellationToken);
 		})
 			.WithTags("Perfumes")
 			.WithName("GetPerfume")
@@ -28,7 +28,7 @@ public class GetPerfumeHandler(PerfumeTrackerContext context, IPresignedUrlServi
 			.Select(p => p.ToPerfumeWithWornStatsDto(settings, presignedUrlService))
 			.AsSplitQuery()
 			.AsNoTracking()
-			.FirstOrDefaultAsync();
+			.FirstOrDefaultAsync(cancellationToken);
 		return p ?? throw new NotFoundException();
 	}
 }

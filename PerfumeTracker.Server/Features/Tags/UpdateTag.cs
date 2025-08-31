@@ -9,8 +9,8 @@ public class UpdateTagCommandValidator : AbstractValidator<UpdateTagCommand> {
 }
 public class UpdateTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPut("/api/tags/{id}", async (Guid id, TagUploadDto dto, ISender sender) =>
-			await sender.Send(new UpdateTagCommand(id, dto)))
+		app.MapPut("/api/tags/{id}", async (Guid id, TagUploadDto dto, ISender sender, CancellationToken cancellationToken) =>
+			await sender.Send(new UpdateTagCommand(id, dto), cancellationToken))
 			.WithTags("Tags")
 			.WithName("UpdateTag")
 			.RequireAuthorization(Policies.WRITE);
@@ -21,7 +21,7 @@ public class UpdateTagHandler(PerfumeTrackerContext context) : ICommandHandler<U
 	public async Task<TagDto> Handle(UpdateTagCommand request, CancellationToken cancellationToken) {
 		var find = await context
 			.Tags
-			.FindAsync(request.TagId, cancellationToken) ?? throw new NotFoundException("Tags", request.TagId);
+			.FindAsync([request.TagId], cancellationToken) ?? throw new NotFoundException("Tags", request.TagId);
 		context.Entry(find).CurrentValues.SetValues(request.Dto);
 		await context.SaveChangesAsync();
 		return find.Adapt<TagDto>();

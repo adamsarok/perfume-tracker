@@ -5,8 +5,8 @@ namespace PerfumeTracker.Server.Features.Missions;
 public record GenerateMissionCommand : ICommand;
 public class GenerateMissionsEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/missions/generate", async (ISender sender) => {
-			return await sender.Send(new GenerateMissionCommand());
+		app.MapPost("/api/missions/generate", async (ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GenerateMissionCommand(), cancellationToken);
 		})
 			.WithTags("Missions")
 			.WithName("GenerateMissions")
@@ -16,23 +16,27 @@ public class GenerateMissionsEndpoint : ICarterModule {
 public class GenerateMissions(PerfumeTrackerContext context) : ICommandHandler<GenerateMissionCommand> {
 	public async Task<Unit> Handle(GenerateMissionCommand request, CancellationToken cancellationToken) {
 		var now = DateTime.UtcNow;
-		var activeMissions = await context.Missions
+		var missionIds = await context.Missions
+			.AsNoTracking()
 			.Where(m => m.IsActive && m.StartDate <= now && m.EndDate > now)
-			.ToListAsync();
+			.Select(m => m.Id)
+			.ToListAsync(cancellationToken);
 
-		foreach (var mission in activeMissions) {
-			var userMission = await context.UserMissions
-				.FirstOrDefaultAsync(um => um.MissionId == mission.Id);
+		var existing = await context.UserMissions
+			.AsNoTracking()
+			.Where(um => missionIds.Contains(um.MissionId))
+			.Select(um => um.MissionId)
+			.ToListAsync(cancellationToken);
 
-			if (userMission == null) {
-				userMission = new UserMission {
-					MissionId = mission.Id,
-					Progress = 0,
-					IsCompleted = false
-				};
-				context.UserMissions.Add(userMission);
-			}
-		}
+		var toInsert = missionIds
+			.Except(existing)
+			.Select(mid => new UserMission {
+				MissionId = mid,
+				Progress = 0,
+				IsCompleted = false
+			});
+
+		await context.UserMissions.AddRangeAsync(toInsert, cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);
 		return new Unit();
 	}

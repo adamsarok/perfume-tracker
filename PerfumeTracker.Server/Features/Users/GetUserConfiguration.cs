@@ -2,8 +2,8 @@
 public record GetUserConfigurationQuery() : IQuery<GetUserConfigurationResponse>;
 public class GetUserConfiguration : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/identity/configuration", async (ISender sender) => {
-			return await sender.Send(new GetUserConfigurationQuery());
+		app.MapGet("/api/identity/configuration", async (ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetUserConfigurationQuery(), cancellationToken);
 		}).WithTags("Users")
 			.WithName("GetConfiguration")
 			.AllowAnonymous();

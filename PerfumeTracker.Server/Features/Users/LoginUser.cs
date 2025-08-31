@@ -5,14 +5,14 @@ namespace PerfumeTracker.Server.Features.Users;
 public class LoginEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapPost("/api/identity/account/login", async ([FromBody] LoginRequest request,
-		  HttpContext httpContext, ISender sender) => {
-			  var result = await sender.Send(new LoginUserCommand(request.Email.Trim(), request.Password, httpContext));
+		  HttpContext httpContext, ISender sender, CancellationToken cancellationToken) => {
+			  var result = await sender.Send(new LoginUserCommand(request.Email.Trim(), request.Password, httpContext), cancellationToken);
 			  return result.Result;
 		  }).WithTags("Users")
 			.WithName("LoginUser")
 			.AllowAnonymous();
-		app.MapPost("/api/identity/account/login/demo", async (ISender sender, HttpContext httpContext) => {
-			return await sender.Send(new LoginDemoUserCommand(httpContext));
+		app.MapPost("/api/identity/account/login/demo", async (ISender sender, HttpContext httpContext, CancellationToken cancellationToken) => {
+			return await sender.Send(new LoginDemoUserCommand(httpContext), cancellationToken);
 		}).WithTags("Users")
 			.WithName("LoginDemoUser")
 			.AllowAnonymous();

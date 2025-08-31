@@ -10,8 +10,8 @@ public record UserStreakDto(Guid Id,
 public record GetActiveStreaksQuery() : IQuery<List<UserStreakDto>>;
 public class GetActiveStreaksEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/streaks/active", async (ISender sender) => {
-			return await sender.Send(new GetActiveStreaksQuery());
+		app.MapGet("/api/streaks/active", async (ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetActiveStreaksQuery(), cancellationToken);
 		})
 			.WithTags("Streaks")
 			.WithName("GetActiveStreaks")

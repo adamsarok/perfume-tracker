@@ -69,7 +69,7 @@ export default function MessageBox({
                     {button1text}
                   </Button>
                 </DialogClose>
-                <DialogClose>
+                <DialogClose asChild>
                   <Button
                     color="danger"
                     type="button"

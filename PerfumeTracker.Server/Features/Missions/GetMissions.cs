@@ -14,8 +14,8 @@ public record UserMissionDto(Guid Id,
 public record GetActiveMissionsQuery() : IQuery<List<UserMissionDto>>;
 public class GetActiveMissionsEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/missions/active", async (ISender sender) => {
-			return await sender.Send(new GetActiveMissionsQuery());
+		app.MapGet("/api/missions/active", async (ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetActiveMissionsQuery(), cancellationToken);
 		})
 			.WithTags("Missions")
 			.WithName("GetActiveMissions")
@@ -38,6 +38,6 @@ public class GetActiveMissionsHandler(PerfumeTrackerContext context)
 			x.Mission.Type,
 			x.Mission.RequiredCount,
 			x.Progress,
-			x.IsCompleted)).ToListAsync();
+			x.IsCompleted)).ToListAsync(cancellationToken);
 	}
 }

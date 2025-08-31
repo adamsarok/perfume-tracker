@@ -8,10 +8,30 @@ on:
   workflow_dispatch:
   
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__PerfumeTracker: ${{ secrets.POSTGRES_CONNSTR }}
+      Jwt__Key: DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY
+      Jwt__Issuer: DUMMY
+      Jwt__Audience: DUMMY
+      Jwt__ExpirationHours: 24
+      Users__AdminUserName: DummyAdmin
+      Users__AdminEmail: admin@example.com
+      Users__AdminPassword: 123DummyAdminPass123
+      Users__DemoUserName: DummyDemo
+      Users__DemoEmail: demo@example.com
+      Users__DemoPassword: 123DummyDemoPass123
+      RateLimits__General: 250
+      RateLimits__Auth: 20
+      RateLimits__Upload: 10
+      CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
+      R2__AccessKey: DUMMY_KEY
+      R2__SecretKey: DUMMY_SECRET_KEY
+      R2__AccountId: DUMMY_ACCOUNT_ID
+      R2__BucketName: test
+      R2__ExpirationHours: 24
+      R2__MaxFileSizeKb: 256
     services:
       postgres:
         image: postgres
@@ -64,22 +84,6 @@ jobs:
 
     - name: Build API
       working-directory: ./PerfumeTracker.Server
-      env:
-        ConnectionStrings__PerfumeTracker: ${{ secrets.POSTGRES_CONNSTR }}
-        Jwt__Key: DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY
-        Jwt__Issuer: DUMMY
-        Jwt__Audience: DUMMY
-        Jwt__ExpirationHours: 24
-        Users__AdminUserName: DummyAdmin
-        Users__AdminEmail: admin@example.com
-        Users__AdminPassword: 123DummyAdminPass123
-        Users__DemoUserName: DummyDemo
-        Users__DemoEmail: demo@example.com
-        Users__DemoPassword: 123DummyDemoPass123
-        RateLimits__General: 250
-        RateLimits__Auth: 20
-        RateLimits__Upload: 10
-        CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
       run: dotnet build
 
     - name: Install EF Core CLI tools
@@ -87,42 +91,10 @@ jobs:
 
     - name: Update database
       working-directory: ./PerfumeTracker.Server
-      env:
-       ConnectionStrings__PerfumeTracker: ${{ secrets.POSTGRES_CONNSTR }}
-       Jwt__Key: DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY
-       Jwt__Issuer: DUMMY
-       Jwt__Audience: DUMMY
-       Jwt__ExpirationHours: 24
-       Users__AdminUserName: DummyAdmin
-       Users__AdminEmail: admin@example.com
-       Users__AdminPassword: 123DummyAdminPass123
-       Users__DemoUserName: DummyDemo
-       Users__DemoEmail: demo@example.com
-       Users__DemoPassword: 123DummyDemoPass123
-       RateLimits__General: 250
-       RateLimits__Auth: 20
-       RateLimits__Upload: 10
-       CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
       run: dotnet ef database update
 
     - name: Run tests with coverage
       working-directory: ./PerfumeTracker.xTests
-      env:
-       ConnectionStrings__PerfumeTracker: ${{ secrets.POSTGRES_CONNSTR }}
-       Jwt__Key: DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY
-       Jwt__Issuer: DUMMY
-       Jwt__Audience: DUMMY
-       Jwt__ExpirationHours: 24
-       Users__AdminUserName: DummyAdmin
-       Users__AdminEmail: admin@example.com
-       Users__AdminPassword: 123DummyAdminPass123
-       Users__DemoUserName: DummyDemo
-       Users__DemoEmail: demo@example.com
-       Users__DemoPassword: 123DummyDemoPass123
-       RateLimits__General: 250
-       RateLimits__Auth: 20
-       RateLimits__Upload: 10
-       CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
       run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings
 
     - name: Upload coverage reports to Codecov

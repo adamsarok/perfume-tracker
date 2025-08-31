@@ -5,14 +5,14 @@ public record GetNextPerfumeIdQuery(Guid Id) : IQuery<Guid>;
 public record GetPreviousPerfumeIdQuery(Guid Id) : IQuery<Guid>;
 public class GetAdjacentPerfumeIdEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfumes/{id}/next", async (Guid id, ISender sender) => {
-			return await sender.Send(new GetNextPerfumeIdQuery(id));
+		app.MapGet("/api/perfumes/{id}/next", async (Guid id, ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetNextPerfumeIdQuery(id), cancellationToken);
 		})
 			.WithTags("Perfumes")
 			.WithName("GetNextPerfume")
 			.RequireAuthorization(Policies.READ);
-		app.MapGet("/api/perfumes/{id}/previous", async (Guid id, ISender sender) => {
-			return await sender.Send(new GetPreviousPerfumeIdQuery(id));
+		app.MapGet("/api/perfumes/{id}/previous", async (Guid id, ISender sender, CancellationToken cancellationToken) => {
+			return await sender.Send(new GetPreviousPerfumeIdQuery(id), cancellationToken);
 		})
 			.WithTags("Perfumes")
 			.WithName("GetPreviousPerfume")
@@ -25,7 +25,7 @@ public class GetNextPerfumeHandler(PerfumeTrackerContext context)
 	public async Task<Guid> Handle(GetNextPerfumeIdQuery request, CancellationToken cancellationToken) {
 		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
-		var from = await context.Perfumes.FindAsync(request.Id, cancellationToken) ?? throw new NotFoundException("Perfumes", request.Id);
+		var from = await context.Perfumes.FindAsync([request.Id], cancellationToken) ?? throw new NotFoundException("Perfumes", request.Id);
 		var next = await context.Perfumes
 				.Where(x =>
 					(string.Compare(x.House, from.House) > 0 ||
@@ -35,11 +35,11 @@ public class GetNextPerfumeHandler(PerfumeTrackerContext context)
 				)
 				.OrderBy(x => x.House)
 				.ThenBy(x => x.PerfumeName)
-				.FirstOrDefaultAsync();
+				.FirstOrDefaultAsync(cancellationToken);
 		if (next != null) return next.Id;
 		var first = await context.Perfumes.OrderBy(x => x.House)
 			.ThenBy(x => x.PerfumeName)
-			.FirstAsync();
+			.FirstAsync(cancellationToken);
 		return first.Id;
 	}
 }
@@ -48,7 +48,7 @@ public class GetPreviousPerfumeHandler(PerfumeTrackerContext context)
 	public async Task<Guid> Handle(GetPreviousPerfumeIdQuery request, CancellationToken cancellationToken) {
 		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
-		var from = await context.Perfumes.FindAsync(request.Id, cancellationToken) ?? throw new NotFoundException("Perfumes", request.Id);
+		var from = await context.Perfumes.FindAsync([request.Id], cancellationToken) ?? throw new NotFoundException("Perfumes", request.Id);
 		var next = await context.Perfumes
 				.Where(x =>
 					(string.Compare(x.House, from.House) < 0 ||
@@ -58,11 +58,11 @@ public class GetPreviousPerfumeHandler(PerfumeTrackerContext context)
 				)
 				.OrderByDescending(x => x.House)
 				.ThenByDescending(x => x.PerfumeName)
-				.FirstOrDefaultAsync();
+				.FirstOrDefaultAsync(cancellationToken);
 		if (next != null) return next.Id;
 		var last = await context.Perfumes.OrderByDescending(x => x.House)
 			.ThenByDescending(x => x.PerfumeName)
-			.FirstAsync();
+			.FirstAsync(cancellationToken);
 		return last.Id;
 	}
 }

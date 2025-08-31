@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-
-namespace PerfumeTracker.Server.Features.Users;
+﻿namespace PerfumeTracker.Server.Features.Users;
 public interface ICreateUser {
 	Task<PerfumeIdentityUser?> Create(string userName, string password, string role, string email, bool isEmailConfirmed = false);
 }

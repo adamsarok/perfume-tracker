@@ -4,8 +4,8 @@ namespace PerfumeTracker.Server.Features.PerfumeRatings;
 public record GetPerfumeRatingQuery(Guid PerfumeId) : IQuery<List<PerfumeRatingDownloadDto>>;
 public class GetPerfumeRatingEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/perfumes/{perfumeId}/ratings", async (ISender sender, Guid perfumeId) => {
-			var result = await sender.Send(new GetPerfumeRatingQuery(perfumeId));
+		app.MapGet("/api/perfumes/{perfumeId}/ratings", async (ISender sender, Guid perfumeId, CancellationToken cancellationToken) => {
+			var result = await sender.Send(new GetPerfumeRatingQuery(perfumeId), cancellationToken);
 			return Results.Ok(result);
 		}).WithTags("PerfumeRatings")
 			.WithName("GetPerfumeRatings")
