@@ -22,6 +22,7 @@ jobs:
       Users__DemoUserName: DummyDemo
       Users__DemoEmail: demo@example.com
       Users__DemoPassword: 123DummyDemoPass123
+      Users__StreakProtectionDays: 1
       RateLimits__General: 250
       RateLimits__Auth: 20
       RateLimits__Upload: 10
