@@ -3,9 +3,10 @@ using Moq;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
 using PerfumeTracker.Server.Features.PerfumeRatings;
 using PerfumeTracker.Server.Features.Perfumes;
+using PerfumeTracker.xTests.Fixture;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 
 public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public PerfumeTests(WebApplicationFactory<Program> factory) : base(factory) { }

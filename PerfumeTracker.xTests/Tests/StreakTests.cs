@@ -9,25 +9,26 @@ using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Streaks;
 using PerfumeTracker.Server.Config;
 using Microsoft.Extensions.DependencyInjection;
+using PerfumeTracker.xTests.Fixture;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 
 public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public StreakTests(WebApplicationFactory<Program> factory) : base(factory) { }
 
 	static bool dbUp = false;
-	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+	private static readonly SemaphoreSlim semaphore = new(1);
 
 	private async Task PrepareDb() {
 		await semaphore.WaitAsync();
 		try {
 			if (!dbUp) {
 				using var scope = GetTestScope();
-				await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"public\".\"UserStreak\" CASCADE;");
+				_ = await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"public\".\"UserStreak\" CASCADE;");
 				dbUp = true;
 			}
 		} finally {
-			semaphore.Release();
+			_ = semaphore.Release();
 		}
 	}
 
@@ -69,14 +70,14 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	}
 
     [Theory]
-    [InlineData("2024-07-10T00:00:00Z", "2024-07-10T23:59:59Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.NoChange)] // same day
-    [InlineData("2024-07-10T00:00:00Z", "2024-07-11T23:59:00Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)] // next day, whole day
-    [InlineData("2024-07-10T00:00:00Z", "2024-07-13T00:00:00Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Ended)]	   // more than streakProtectionDays
-    [InlineData("2024-07-10T23:00:00Z", "2024-07-11T01:00:00Z", 2, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.NoChange)] // same day with offset
-    [InlineData("2024-07-10T23:00:00Z", "2024-07-12T01:00:00Z", 2, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)] // progress with offset
-    [InlineData("2024-07-10T23:00:00Z", "2024-07-10T21:00:00Z", -2, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.NoChange)] // negative offset, same day
-	[InlineData("2024-07-10T00:00:00Z", "2024-07-11T00:00:00Z", 0, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus.Progress)] // exactly 1-day boundary
-	public void GetStreakStatus_ReturnsExpectedStatus(string lastProgress, string now, int utcOffset, ProgressStreaks.UpdateStreakProgressHandler.StreakStatus expected)
+    [InlineData("2024-07-10T00:00:00Z", "2024-07-10T23:59:59Z", 0, UpdateStreakProgressHandler.StreakStatus.NoChange)] // same day
+    [InlineData("2024-07-10T00:00:00Z", "2024-07-11T23:59:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Progress)] // next day, whole day
+    [InlineData("2024-07-10T00:00:00Z", "2024-07-13T00:00:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Ended)]	   // more than streakProtectionDays
+    [InlineData("2024-07-10T23:00:00Z", "2024-07-11T01:00:00Z", 2, UpdateStreakProgressHandler.StreakStatus.NoChange)] // same day with offset
+    [InlineData("2024-07-10T23:00:00Z", "2024-07-12T01:00:00Z", 2, UpdateStreakProgressHandler.StreakStatus.Progress)] // progress with offset
+    [InlineData("2024-07-10T23:00:00Z", "2024-07-10T21:00:00Z", -2, UpdateStreakProgressHandler.StreakStatus.NoChange)] // negative offset, same day
+	[InlineData("2024-07-10T00:00:00Z", "2024-07-11T00:00:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Progress)] // exactly 1-day boundary
+	public void GetStreakStatus_ReturnsExpectedStatus(string lastProgress, string now, int utcOffset, UpdateStreakProgressHandler.StreakStatus expected)
     {
         var lastProgressDate = DateTime.Parse(lastProgress, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
         var nowDate = DateTime.Parse(now, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);

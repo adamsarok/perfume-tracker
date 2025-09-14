@@ -1,13 +1,8 @@
-using System;
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.Json;
-using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.UserProfiles;
-using PerfumeTracker.Server.Models;
+using PerfumeTracker.xTests.Fixture;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 
 public class UserProfilesTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public UserProfilesTests(WebApplicationFactory<Program> factory) : base(factory) { }

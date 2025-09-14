@@ -259,6 +259,7 @@ datingapp.db
 *.pem
 #*.png
 appsettings.Development.json
+appsettings.QA.json
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
