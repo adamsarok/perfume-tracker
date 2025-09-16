@@ -1,5 +1,6 @@
 ﻿# TODO
 
+- [ ] Login failed: Network Error is shown on ratelimit
 - [ ] maintenance - clean old outboxmessages messages, move retryCount > 5 to dead letter queue
 
 ## Achievements
