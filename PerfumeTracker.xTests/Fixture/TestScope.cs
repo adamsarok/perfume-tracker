@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Services.Auth;
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Fixture;
 public class TestScope : IDisposable {
 	private bool _disposed;
 	public PerfumeTrackerContext PerfumeTrackerContext { get; init; }
@@ -9,9 +9,7 @@ public class TestScope : IDisposable {
 	public TestScope(WebApplicationFactory<Program> factory, ITenantProvider tenantProvider) {
 		ServiceScope = factory.Services.CreateScope();
 		PerfumeTrackerContext = ServiceScope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		if (!PerfumeTrackerContext.Database.GetDbConnection().Database.ToLower().Contains("test")) {
-			throw new Exception("Live database connected!");
-		}
+		if (!PerfumeTrackerContext.Database.GetDbConnection().Database.ToLower().Contains("test")) 			throw new Exception("Live database connected!");
 		PerfumeTrackerContext.TenantProvider = tenantProvider;
 	}
 	public void Dispose() {

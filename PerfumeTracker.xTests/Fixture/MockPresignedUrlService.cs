@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Fixture;
 public class MockPresignedUrlService : IPresignedUrlService {
 	public Uri? GetUrl(Guid? guid, HttpVerb httpVerb) => new("http://test.invalid");
 }

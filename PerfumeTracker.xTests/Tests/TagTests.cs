@@ -1,39 +1,31 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Moq;
-using PerfumeTracker.Server.Features.Auth;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 using PerfumeTracker.Server.Features.Tags;
-using PerfumeTracker.Server.Models;
-using System.Net;
-using System.Net.Http.Json;
+using PerfumeTracker.xTests.Fixture;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public TagTests(WebApplicationFactory<Program> factory) : base(factory) { }
-	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+	private static readonly SemaphoreSlim semaphore = new(1);
 	private async Task PrepareData() {          //fixtures don't have DI
 		await semaphore.WaitAsync();
 		try {
 			if (!DbUp) {
 				using var scope = GetTestScope();
 				var sql = "truncate table \"public\".\"Tag\" cascade";
-				await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
+				_ = await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
 				scope.PerfumeTrackerContext.Tags.AddRange(tagSeed);
-				await scope.PerfumeTrackerContext.SaveChangesAsync();
+				_ = await scope.PerfumeTrackerContext.SaveChangesAsync();
 				DbUp = true;
 			}
 		} finally {
-			semaphore.Release();
+			_ = semaphore.Release();
 		}
 	}
 
-	static List<Tag> tagSeed = new List<Tag> {
+	static readonly List<Tag> tagSeed = [
 		new Tag { Id = Guid.NewGuid(), Color = "#FFFFFF", TagName = "Musky" },
 		new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" }
-	};
+	];
 
 	[Fact]
 	public async Task GetTag() {
@@ -51,7 +43,7 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 		await PrepareData();
 		using var scope = GetTestScope();
 		var getTagHandler = new GetTagHandler(scope.PerfumeTrackerContext);
-		await Assert.ThrowsAsync<NotFoundException>(async () =>
+		_ = await Assert.ThrowsAsync<NotFoundException>(async () =>
 			await getTagHandler.Handle(new GetTagQuery(Guid.NewGuid()), CancellationToken.None));
 	}
 

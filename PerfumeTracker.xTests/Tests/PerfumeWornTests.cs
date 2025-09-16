@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Perfumes;
+using PerfumeTracker.xTests.Fixture;
 using System.Net.Http.Json;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 
 public class PerfumeWornTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public PerfumeWornTests(WebApplicationFactory<Program> factory) : base(factory) { }

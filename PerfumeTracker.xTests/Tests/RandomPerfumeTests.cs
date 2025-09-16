@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
+using PerfumeTracker.xTests.Fixture;
 using System.Net.Http.Json;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 
 public class RandomPerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public RandomPerfumeTests(WebApplicationFactory<Program> factory) : base(factory) { }

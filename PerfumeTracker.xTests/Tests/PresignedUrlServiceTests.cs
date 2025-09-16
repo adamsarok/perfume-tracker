@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.xTests.Fixture;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 public class PresignedUrlServiceTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public PresignedUrlServiceTests(WebApplicationFactory<Program> factory) : base(factory) { }
 	[Fact]

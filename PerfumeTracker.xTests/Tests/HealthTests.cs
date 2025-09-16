@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
+using PerfumeTracker.xTests.Fixture;
 using System.Net.Http.Json;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 public class HealthTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
 
 	[Fact]

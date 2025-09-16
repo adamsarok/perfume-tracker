@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PerfumeTracker.xTests
+namespace PerfumeTracker.xTests.Tests
 {
     public class AiTests
     {

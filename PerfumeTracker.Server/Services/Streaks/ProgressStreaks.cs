@@ -10,8 +10,10 @@ public class ProgressStreaks {
 			await updateStreakProgressHandler.UpdateStreakProgress(cancellationToken, notification.UserId);
 		}
 	}
-	public class UpdateStreakProgressHandler(PerfumeTrackerContext context, IHubContext<StreakProgressHub> streakProgressHub, ILogger<UpdateStreakProgressHandler> logger)  {
-		const int streakProtectionDays = 1;
+	public class UpdateStreakProgressHandler(PerfumeTrackerContext context, 
+		IHubContext<StreakProgressHub> streakProgressHub, 
+		ILogger<UpdateStreakProgressHandler> logger,
+		UserConfiguration userConfiguration)  {
 		public async Task UpdateStreakProgress(CancellationToken cancellationToken, Guid userId) {
 			var now = DateTime.UtcNow;
 			var streak = await context.UserStreaks
@@ -59,11 +61,11 @@ public class ProgressStreaks {
 			}
 		}
 		public enum StreakStatus { Ended, Progress, NoChange }
-		public static StreakStatus GetStreakStatus(DateTime lastProgressDate, DateTime nowDate, int userUtcOffset) {
+		public StreakStatus GetStreakStatus(DateTime lastProgressDate, DateTime nowDate, int userUtcOffset) {
 			var nowLocal = nowDate.AddHours(userUtcOffset).Date;
 			var progressLocal = lastProgressDate.AddHours(userUtcOffset).Date;
 			var diff = nowLocal - progressLocal;
-			if (diff.TotalDays > streakProtectionDays) return StreakStatus.Ended;
+			if (diff.TotalDays > userConfiguration.StreakProtectionDays) return StreakStatus.Ended;
 			if (nowLocal > progressLocal) return StreakStatus.Progress;
 			return StreakStatus.NoChange;
 		}

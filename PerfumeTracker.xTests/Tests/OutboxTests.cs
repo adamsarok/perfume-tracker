@@ -5,10 +5,11 @@ using Moq;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Services.Outbox;
+using PerfumeTracker.xTests.Fixture;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public OutboxTests(WebApplicationFactory<Program> factory) : base(factory) { }
 
@@ -74,7 +75,7 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 		}
 
 		public async Task Test_ProcessMessages() {
-			await base.ProcessMessages(CancellationToken.None);
+			await ProcessMessages(CancellationToken.None);
 		}
 	}
 }

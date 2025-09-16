@@ -5,8 +5,9 @@ using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
 using PerfumeTracker.Server.Services.Missions;
 using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.xTests.Fixture;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 
 public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public MissionTests(WebApplicationFactory<Program> factory) : base(factory) { }

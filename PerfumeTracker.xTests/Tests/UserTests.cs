@@ -4,8 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.xTests.Fixture;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Tests;
 public class UserTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
 	public UserTests(WebApplicationFactory<Program> factory) : base(factory) { }
 	[Fact]

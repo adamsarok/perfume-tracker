@@ -1,6 +1,6 @@
 ﻿using PerfumeTracker.Server.Services.Auth;
 
-namespace PerfumeTracker.xTests;
+namespace PerfumeTracker.xTests.Fixture;
 public class MockTenantProvider : ITenantProvider {
 	public Guid? MockTenantId { get; set; }
 	public Guid? GetCurrentUserId() {
