@@ -52,7 +52,7 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	public async Task OutboxService_CanRetry() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var mockLogger = new Mock<ILogger<OutboxService>>();
+		var mockLogger = new Mock<ILogger<OutboxRetryService>>();
 		var mockSideEffectQueue = new Mock<ISideEffectQueue>();
 		var outboxService = new TestOutboxService(scope.ServiceScope.ServiceProvider, mockLogger.Object, mockSideEffectQueue.Object);
 		await outboxService.Test_ProcessMessages();
@@ -70,12 +70,12 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 		Assert.True(await channel.Reader.WaitToReadAsync(cts.Token));
 	}
 
-	class TestOutboxService : OutboxService {
-		public TestOutboxService(IServiceProvider sp, ILogger<OutboxService> logger, ISideEffectQueue queue) : base(sp, logger, queue) {
+	class TestOutboxService : OutboxRetryService {
+		public TestOutboxService(IServiceProvider sp, ILogger<OutboxRetryService> logger, ISideEffectQueue queue) : base(sp, logger, queue) {
 		}
 
 		public async Task Test_ProcessMessages() {
-			await ProcessMessages(CancellationToken.None);
+			await RetryMessages(CancellationToken.None);
 		}
 	}
 }

@@ -110,7 +110,7 @@ builder.Services.AddCors(options => {
 builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
 builder.Services.AddHostedService<SideEffectProcessor>();
 
-builder.Services.AddHostedService<OutboxService>();
+builder.Services.AddHostedService<OutboxRetryService>();
 builder.Services.AddHostedService<MissionService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
