@@ -19,8 +19,7 @@ public class GitHubLogin : ICarterModule {
 		});
 
 		app.MapGet("/api/auth/github/callback", async (HttpContext ctx, IConfiguration config,
-			UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator,
-			ILogger<GitHubLogin> logger) => {
+			UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator) => {
 				var result = await ctx.AuthenticateAsync("External");
 
 				if (!result.Succeeded || result.Principal is null)
@@ -39,8 +38,6 @@ public class GitHubLogin : ICarterModule {
 				await jwtTokenGenerator.WriteToken(user, ctx);
 
 				var clientUrl = config["Authentication:ClientUrl"] ?? "http://localhost:3000";
-
-				logger.LogInformation("Jwt token written");
 
 				return Results.Redirect(clientUrl);
 			});
