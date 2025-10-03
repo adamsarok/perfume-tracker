@@ -35,12 +35,14 @@ public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, ICo
 		var token = await GenerateToken(user);
 		bool isSecure = context.Request.IsHttps || 
 				string.Equals(context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase);
-		logger.Log(LogLevel.Information, "Secure cookies: {isSecure}", isSecure);
+
+		var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+
 		var cookieOptions = new CookieOptions {
 			HttpOnly = true,
 			Secure = context.Request.IsHttps || 
 				string.Equals(context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase),
-			SameSite = SameSiteMode.Strict,
+			SameSite = isDevelopment ? SameSiteMode.None : SameSiteMode.Strict,
 			Expires = DateTime.UtcNow.AddHours(24)
 		};
 

@@ -17,34 +17,38 @@ public class GitHubLogin : ICarterModule {
 			return Results.Challenge(props, new[] { "GitHub" });
 		});
 
-		app.MapGet("/api/auth/github/callback", async (HttpContext ctx, IConfiguration config) => {
-			var result = await ctx.AuthenticateAsync("External");
+		app.MapGet("/api/auth/github/callback", async (HttpContext ctx, IConfiguration config,
+			UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator) => {
+				var result = await ctx.AuthenticateAsync("External");
 
-			if (!result.Succeeded || result.Principal is null)
-				return Results.Unauthorized();
+				if (!result.Succeeded || result.Principal is null)
+					return Results.Unauthorized();
 
-			var claims = result.Principal.Identities.First().Claims;
+				var claims = result.Principal.Identities.First().Claims;
 
-			var userId = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? Guid.NewGuid().ToString();
-			var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? "";
+				var userId = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? Guid.NewGuid().ToString();
+				var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? "";
 
-			//TODO: UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator
+				var user = await userManager.FindByEmailAsync(email);
+				if (user == null) return Results.Unauthorized();
+				//var jwt = TEMP_GenerateJwt(userId, email, config);
 
-			var jwt = TEMP_GenerateJwt(userId, email, config);
+				// Option A: return JSON with token
+				// return Results.Json(new { token = jwt });
 
-			// Option A: return JSON with token
-			// return Results.Json(new { token = jwt });
+				// Option B: set cookie and redirect to NextJS
+				//ctx.Response.Cookies.Append("jwt", jwt, new CookieOptions {
+				//	HttpOnly = true,
+				//	Secure = true,
+				//	SameSite = SameSiteMode.Strict,
+				//	Expires = DateTimeOffset.UtcNow.AddHours(1)
+				//});
 
-			// Option B: set cookie and redirect to NextJS
-			ctx.Response.Cookies.Append("jwt", jwt, new CookieOptions {
-				HttpOnly = true,
-				Secure = true,
-				SameSite = SameSiteMode.Strict,
-				Expires = DateTimeOffset.UtcNow.AddHours(1)
+				await jwtTokenGenerator.WriteToken(user, ctx);
+				//return new LoginResult(Results.Ok(new { message = "Logged in successfully" }));
+
+				return Results.Redirect("http://localhost:3000");
 			});
-
-			return Results.Redirect("/");
-		});
 	}
 	private static string TEMP_GenerateJwt(string userId, string email, IConfiguration config) { //todo
 		var claims = new[]

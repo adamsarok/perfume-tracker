@@ -68,17 +68,16 @@ public static partial class Startup {
 		}).AddCookie("External", opts => {
 			opts.Cookie.Name = "ext.auth";
 			opts.Cookie.SameSite = SameSiteMode.None;
-			opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+			opts.Cookie.SecurePolicy = opts.Cookie.SecurePolicy = 
+				Debugger.IsAttached ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 		}).AddGitHub("GitHub", options => {
 			options.ClientId = configuration["Authentication:GitHub:ClientId"]!;
 			options.ClientSecret = configuration["Authentication:GitHub:ClientSecret"]!;
-			options.CallbackPath = "/api/auth/github/callback";
 			options.SignInScheme = "External";
 			options.Scope.Add("user:email");
 			options.SaveTokens = true;
 			options.CorrelationCookie.SameSite = SameSiteMode.None;
-			//options.CorrelationCookie.Domain = "yourdomain.com";
-			if (Debugger.IsAttached) {
+			if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development") {
 				options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 			} else {
 				options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
