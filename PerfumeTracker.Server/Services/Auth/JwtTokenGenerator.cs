@@ -33,16 +33,12 @@ public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, ICo
 	}
 	public async Task WriteToken(PerfumeIdentityUser user, HttpContext context) {
 		var token = await GenerateToken(user);
-		bool isSecure = context.Request.IsHttps || 
-				string.Equals(context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase);
-
-		var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
 
 		var cookieOptions = new CookieOptions {
 			HttpOnly = true,
 			Secure = context.Request.IsHttps || 
 				string.Equals(context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase),
-			SameSite = isDevelopment ? SameSiteMode.None : SameSiteMode.Strict,
+			SameSite = SameSiteMode.None, //TODO: should be strict
 			Expires = DateTime.UtcNow.AddHours(24)
 		};
 
