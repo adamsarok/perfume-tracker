@@ -69,7 +69,8 @@ public static partial class Startup {
 
 		var githubClientId = configuration["Authentication:GitHub:ClientId"];
 		var githubClientSecret = configuration["Authentication:GitHub:ClientSecret"];
-		if (!string.IsNullOrWhiteSpace(githubClientId) && !string.IsNullOrWhiteSpace(githubClientSecret)) {
+		var githubCallbackPath = configuration["Authentication:GitHub:CallbackPath"];
+		if (!string.IsNullOrWhiteSpace(githubClientId) && !string.IsNullOrWhiteSpace(githubClientSecret) && !string.IsNullOrWhiteSpace(githubCallbackPath)) {
 			auth.AddCookie("External", opts => {
 				opts.Cookie.Name = "ext.auth";
 				opts.Cookie.SameSite = SameSiteMode.None;
@@ -79,6 +80,7 @@ public static partial class Startup {
 				options.ClientSecret = githubClientSecret;
 				options.SignInScheme = "External";
 				options.Scope.Add("user:email");
+				options.CallbackPath = new PathString(githubCallbackPath);
 				options.SaveTokens = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				if (Env.IsDevelopment) {
