@@ -46,7 +46,7 @@ public static partial class Startup {
 			options.AddPolicy(Policies.ADMIN, p => p.RequireRole(Roles.ADMIN));
 		});
 
-		services.AddAuthentication(options => {
+		var auth = services.AddAuthentication(options => {
 			options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 			options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 		}).AddJwtBearer(options => {
@@ -65,23 +65,28 @@ public static partial class Startup {
 					return Task.CompletedTask;
 				}
 			};
-		}).AddCookie("External", opts => {
-			opts.Cookie.Name = "ext.auth";
-			opts.Cookie.SameSite = SameSiteMode.None;
-			opts.Cookie.SecurePolicy = opts.Cookie.SecurePolicy = 
-				Debugger.IsAttached ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
-		}).AddGitHub("GitHub", options => {
-			options.ClientId = configuration["Authentication:GitHub:ClientId"]!;
-			options.ClientSecret = configuration["Authentication:GitHub:ClientSecret"]!;
-			options.SignInScheme = "External";
-			options.Scope.Add("user:email");
-			options.SaveTokens = true;
-			options.CorrelationCookie.SameSite = SameSiteMode.None;
-			if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development") {
-				options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-			} else {
-				options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-			}
 		});
+
+		var githubClientId = configuration["Authentication:GitHub:ClientId"];
+		var githubClientSecret = configuration["Authentication:GitHub:ClientSecret"];
+		if (!string.IsNullOrWhiteSpace(githubClientId) && !string.IsNullOrWhiteSpace(githubClientSecret)) {
+			auth.AddCookie("External", opts => {
+				opts.Cookie.Name = "ext.auth";
+				opts.Cookie.SameSite = SameSiteMode.None;
+				opts.Cookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+			}).AddGitHub("GitHub", options => {
+				options.ClientId = githubClientId;
+				options.ClientSecret = githubClientSecret;
+				options.SignInScheme = "External";
+				options.Scope.Add("user:email");
+				options.SaveTokens = true;
+				options.CorrelationCookie.SameSite = SameSiteMode.None;
+				if (Env.IsDevelopment) {
+					options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+				} else {
+					options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+				}
+			});
+		}
 	}
 }

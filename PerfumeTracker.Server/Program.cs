@@ -138,14 +138,6 @@ using (var scope = app.Services.CreateScope()) {
 	if (demoUserId != null) await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value, demoImages);
 }
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions {
-	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-	KnownNetworks = { }, KnownProxies = { }
-});
-app.UseCookiePolicy(new CookiePolicyOptions {
-	MinimumSameSitePolicy = SameSiteMode.None,
-	Secure = CookieSecurePolicy.Always
-});
 app.UseRateLimiter();
 app.UseExceptionHandler();
 app.UseCors("AllowSpecificOrigin");
