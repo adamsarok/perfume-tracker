@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { loginDemoUser, loginUser } from "@/services/user-service";
+import { initializeApiUrl } from "@/services/axios-service";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -36,6 +37,17 @@ export default function LoginPage() {
     }
   };
 
+  const handleGithubLogin = async () => {
+    const apiUrl = await initializeApiUrl();
+    if (!apiUrl) {
+      console.error("API URL not configured");
+      return;
+    }
+    window.location.href = `${apiUrl}/identity/account/github/login`;
+  };
+
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -44,6 +56,10 @@ export default function LoginPage() {
             Sign in to your account
           </h2>
         </div>
+        <Button variant="outline" onClick={handleGithubLogin}>
+          Continue with GitHub
+        </Button>
+
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>

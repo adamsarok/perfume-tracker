@@ -64,6 +64,19 @@ public static partial class Startup {
 					return Task.CompletedTask;
 				}
 			};
+		}).AddCookie("External", opts => {
+			opts.Cookie.Name = "ext.auth";
+			opts.Cookie.SameSite = SameSiteMode.None;
+			opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+		}).AddGitHub("GitHub", options => {
+			options.ClientId = configuration["Authentication:GitHub:ClientId"]!;
+			options.ClientSecret = configuration["Authentication:GitHub:ClientSecret"]!;
+			options.CallbackPath = "/api/identity/account/github/callback";
+			options.SignInScheme = "External";
+			options.Scope.Add("user:email");
+			options.SaveTokens = true;
+			options.CorrelationCookie.SameSite = SameSiteMode.None;
+			options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 		});
 	}
 }
