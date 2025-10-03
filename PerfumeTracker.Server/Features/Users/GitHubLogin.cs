@@ -19,11 +19,18 @@ public class GitHubLogin : ICarterModule {
 		});
 
 		app.MapGet("/api/auth/github/callback", async (HttpContext ctx, IConfiguration config,
-			UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator) => {
+			UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator,
+			ILogger<GitHubLogin> logger) => {
+				logger.LogInformation("GitHub callback reached with params: code={Code}, state={State}",
+					ctx.Request.Query["code"], ctx.Request.Query["state"]);
+
 				var result = await ctx.AuthenticateAsync("External");
 
-				if (!result.Succeeded || result.Principal is null)
+				if (!result.Succeeded || result.Principal is null) {
+					logger.LogWarning("External authentication failed: {ErrorMessage}",
+						result.Failure?.Message ?? "Unknown error");
 					return Results.Unauthorized();
+				}
 
 				var identity = result.Principal.Identities.FirstOrDefault();
 				if (identity == null) return Results.Unauthorized();
@@ -38,7 +45,7 @@ public class GitHubLogin : ICarterModule {
 				await jwtTokenGenerator.WriteToken(user, ctx);
 
 				var clientUrl = config["Authentication:ClientUrl"] ?? "http://localhost:3000";
-
+				logger.LogInformation("Redirecting to {ClientUrl}", clientUrl);
 				return Results.Redirect(clientUrl);
 			});
 	}
