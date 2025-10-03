@@ -1,67 +1,70 @@
 ﻿
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server.Services.Auth;
 using System.Security.Claims;
+using System.Text;
 
 namespace PerfumeTracker.Server.Features.Users;
 
 public class GitHubLogin : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/identity/account/github/login", (HttpContext ctx) => {
+		app.MapGet("/api/auth/github/login", (HttpContext ctx) => {
 			var props = new AuthenticationProperties {
-				RedirectUri = "/api/identity/account/github/callback"
+				RedirectUri = "/api/auth/github/callback"
 			};
+
 			return Results.Challenge(props, new[] { "GitHub" });
-		})
-		.AllowAnonymous()
-		.WithName("GitHubLogin");
+		});
 
-		app.MapGet("/api/identity/account/github/callback", async (
-			HttpContext ctx,
-			UserManager<PerfumeIdentityUser> userManager,
-			IJwtTokenGenerator tokenWriter) => {
-				var result = await ctx.AuthenticateAsync("External");
-				if (!result.Succeeded || result.Principal == null)
-					return Results.Unauthorized();
+		app.MapGet("/api/auth/github/callback", async (HttpContext ctx, IConfiguration config) => {
+			var result = await ctx.AuthenticateAsync("External");
 
-				var principal = result.Principal;
-				var email = principal.FindFirst(ClaimTypes.Email)?.Value
-							?? principal.Claims.FirstOrDefault(c => c.Type == "urn:github:email")?.Value;
-				var name = principal.Identity?.Name
-						   ?? principal.Claims.FirstOrDefault(c => c.Type == "urn:github:login")?.Value
-						   ?? email;
+			if (!result.Succeeded || result.Principal is null)
+				return Results.Unauthorized();
 
-				if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(name))
-					return Results.Unauthorized();
+			var claims = result.Principal.Identities.First().Claims;
 
-				PerfumeIdentityUser? user = null;
-				if (!string.IsNullOrWhiteSpace(email))
-					user = await userManager.FindByEmailAsync(email);
-				if (user == null && !string.IsNullOrWhiteSpace(name))
-					user = await userManager.FindByNameAsync(name);
+			var userId = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? Guid.NewGuid().ToString();
+			var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? "";
 
-				if (user == null) {
-					user = new PerfumeIdentityUser {
-						UserName = name ?? email!,
-						Email = email
-					};
-					var createRes = await userManager.CreateAsync(user);
-					if (!createRes.Succeeded)
-						return Results.Unauthorized();
-					// optionally assign default role(s)
-					await userManager.AddToRoleAsync(user, Roles.USER);
-				}
+			//TODO: UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator
 
-				await tokenWriter.WriteToken(user, ctx);
+			var jwt = TEMP_GenerateJwt(userId, email, config);
 
-				// cleanup temp cookie
-				await ctx.SignOutAsync("External");
+			// Option A: return JSON with token
+			// return Results.Json(new { token = jwt });
 
-				// redirect back to SPA
-				return Results.Redirect("/");
-			})
-		.AllowAnonymous()
-		.WithName("GitHubCallback");
+			// Option B: set cookie and redirect to NextJS
+			ctx.Response.Cookies.Append("jwt", jwt, new CookieOptions {
+				HttpOnly = true,
+				Secure = true,
+				SameSite = SameSiteMode.Strict,
+				Expires = DateTimeOffset.UtcNow.AddHours(1)
+			});
+
+			return Results.Redirect("/");
+		});
+	}
+	private static string TEMP_GenerateJwt(string userId, string email, IConfiguration config) { //todo
+		var claims = new[]
+		{
+			new Claim(JwtRegisteredClaimNames.Sub, userId),
+			new Claim(JwtRegisteredClaimNames.Email, email),
+			new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+		};
+
+		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
+		var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+		var token = new JwtSecurityToken(
+			issuer: config["Jwt:Issuer"],
+			audience: config["Jwt:Audience"],
+			claims: claims,
+			expires: DateTime.UtcNow.AddHours(1),
+			signingCredentials: creds);
+
+		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
 }
 

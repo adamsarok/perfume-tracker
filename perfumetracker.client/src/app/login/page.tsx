@@ -43,7 +43,7 @@ export default function LoginPage() {
       console.error("API URL not configured");
       return;
     }
-    window.location.href = `${apiUrl}/identity/account/github/login`;
+    window.location.href = `${apiUrl}/auth/github/login`;
   };
 
 
