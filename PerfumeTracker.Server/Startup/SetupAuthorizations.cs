@@ -77,7 +77,7 @@ public static partial class Startup {
 				opts.Cookie.Name = "ext.auth";
 				opts.Cookie.SameSite = SameSiteMode.None;
 				opts.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-				//opts.Cookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+				opts.Cookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 			}).AddGitHub("GitHub", options => {
 				options.ClientId = githubClientId;
 				options.ClientSecret = githubClientSecret;
@@ -86,32 +86,7 @@ public static partial class Startup {
 				options.CallbackPath = new PathString(githubCallbackPath);
 				options.SaveTokens = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
-				options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-
-				options.Events = new OAuthEvents {
-					OnRedirectToAuthorizationEndpoint = context => {
-
-						// Ensure HTTPS for authorization URL in production
-						var uri = new Uri(context.RedirectUri);
-						if (uri.Scheme == "http") {
-							var httpsUri = new UriBuilder(uri) {
-								Scheme = "https",
-								Port = 443
-							}.Uri;
-							context.RedirectUri = httpsUri.ToString();
-						}
-						
-
-						context.Response.Redirect(context.RedirectUri);
-						return Task.CompletedTask;
-					}
-				};
-
-				//if (Env.IsDevelopment) {
-				//	options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-				//} else {
-				//	options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-				//}
+				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 			});
 		}
 	}
