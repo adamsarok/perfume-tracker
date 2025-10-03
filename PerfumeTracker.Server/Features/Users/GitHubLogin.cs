@@ -24,7 +24,9 @@ public class GitHubLogin : ICarterModule {
 				if (!result.Succeeded || result.Principal is null)
 					return Results.Unauthorized();
 
-				var claims = result.Principal.Identities.First().Claims;
+				var identity = result.Principal.Identities.FirstOrDefault();
+				if (identity == null) return Results.Unauthorized();
+				var claims = identity.Claims;
 
 				var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
 				if (string.IsNullOrWhiteSpace(email)) return Results.Unauthorized();
