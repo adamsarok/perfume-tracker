@@ -1,5 +1,45 @@
 ﻿# TODO
+- [ ] Critical: Email-only authentication creates security vulnerability.
 
+The current implementation authenticates users solely by matching the GitHub email to a local account email. This creates a serious security issue:
+
+Account takeover risk: If a user has both a local account and a GitHub account with the same email, they can authenticate to the local account via GitHub without proving ownership of that local account.
+No GitHub account linking: There's no record that this local account is linked to a specific GitHub account (GitHub's NameIdentifier claim).
+Email verification bypass: If local accounts require email verification but GitHub emails don't, this provides an unauthenticated path.
+Recommended solution: Implement proper external login account linking:
+
+ 			var claims = result.Principal.Identities.First().Claims;
+
++			var githubUserId = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
++			if (string.IsNullOrWhiteSpace(githubUserId))
++				return Results.Unauthorized();
++
+ 			var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+ 			if (string.IsNullOrWhiteSpace(email)) return Results.Unauthorized();
+
++			// Check if this GitHub account is already linked to a user
++			var loginInfo = new UserLoginInfo("GitHub", githubUserId, "GitHub");
++			var user = await userManager.FindByLoginAsync(loginInfo.LoginProvider, loginInfo.ProviderKey);
++			
++			if (user == null) {
++				// Check if a user with this email exists
+-				var user = await userManager.FindByEmailAsync(email);
+-				if (user == null) return Results.Unauthorized();
++				user = await userManager.FindByEmailAsync(email);
++				if (user == null) return Results.Unauthorized();
++				
++				// Link the GitHub account to the existing user
++				var result = await userManager.AddLoginAsync(user, loginInfo);
++				if (!result.Succeeded) return Results.Unauthorized();
++			}
+
+ 			await jwtTokenGenerator.WriteToken(user, ctx);
+This approach:
+
+Uses GitHub's NameIdentifier (unique user ID) to identify the GitHub account
+Checks if the GitHub account is already linked via FindByLoginAsync
+Only links to an existing email-matched account if no link exists
+Stores the link via AddLoginAsync for future authentication
 - [ ] Login failed: Network Error is shown on ratelimit
 - [ ] maintenance - clean old outboxmessages messages, move retryCount > 5 to dead letter queue
 
