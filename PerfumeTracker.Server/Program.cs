@@ -1,5 +1,6 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -9,7 +10,13 @@ using PerfumeTracker.Server.Config;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Middleware;
+using PerfumeTracker.Server.Services.Achievements;
+using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.Server.Services.Demo;
 using PerfumeTracker.Server.Services.Missions;
+using PerfumeTracker.Server.Services.Outbox;
+using PerfumeTracker.Server.Services.R2;
 using PerfumeTracker.Server.Startup;
 using Serilog;
 using Serilog.Core;
@@ -17,12 +24,6 @@ using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
-using PerfumeTracker.Server.Services.Outbox;
-using PerfumeTracker.Server.Services.Demo;
-using PerfumeTracker.Server.Services.Auth;
-using PerfumeTracker.Server.Services.Common;
-using PerfumeTracker.Server.Services.R2;
-using PerfumeTracker.Server.Services.Achievements;
 
 var builder = WebApplication.CreateBuilder(args);
 
