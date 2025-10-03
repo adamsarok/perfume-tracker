@@ -32,7 +32,7 @@ public static partial class Startup {
 
 
 		services.ConfigureApplicationCookie(options => {
-			options.Cookie.HttpOnly = false;
+			options.Cookie.HttpOnly = true;
 			options.ExpireTimeSpan = TimeSpan.FromHours(jwtConfig.ExpirationHours);
 
 			options.LoginPath = "/api/identity/account/login";

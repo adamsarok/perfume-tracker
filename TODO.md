@@ -1,4 +1,5 @@
 ﻿# TODO
+- [ ] SameSiteMode.None, HttpOnly = false -> 
 - [ ] Critical: Email-only authentication creates security vulnerability.
 
 The current implementation authenticates users solely by matching the GitHub email to a local account email. This creates a serious security issue:
