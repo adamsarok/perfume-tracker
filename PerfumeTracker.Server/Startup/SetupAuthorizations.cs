@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server.Services.Auth;
@@ -86,6 +87,26 @@ public static partial class Startup {
 				options.SaveTokens = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+
+				options.Events = new OAuthEvents {
+					OnRedirectToAuthorizationEndpoint = context => {
+
+						// Ensure HTTPS for authorization URL in production
+						var uri = new Uri(context.RedirectUri);
+						if (uri.Scheme == "http") {
+							var httpsUri = new UriBuilder(uri) {
+								Scheme = "https",
+								Port = 443
+							}.Uri;
+							context.RedirectUri = httpsUri.ToString();
+						}
+						
+
+						context.Response.Redirect(context.RedirectUri);
+						return Task.CompletedTask;
+					}
+				};
+
 				//if (Env.IsDevelopment) {
 				//	options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 				//} else {
