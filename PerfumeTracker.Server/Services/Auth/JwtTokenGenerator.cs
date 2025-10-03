@@ -35,10 +35,10 @@ public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, ICo
 		var token = await GenerateToken(user);
 
 		var cookieOptions = new CookieOptions {
-			HttpOnly = true,
+			HttpOnly = false,
 			Secure = context.Request.IsHttps || 
 				string.Equals(context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase),
-			SameSite = SameSiteMode.None, //TODO: should be strict
+			SameSite = SameSiteMode.None,
 			Expires = DateTime.UtcNow.AddHours(24)
 		};
 
