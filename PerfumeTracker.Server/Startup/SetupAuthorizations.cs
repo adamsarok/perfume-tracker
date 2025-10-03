@@ -86,11 +86,11 @@ public static partial class Startup {
 				options.SaveTokens = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-				if (Env.IsDevelopment) {
-					options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-				} else {
-					options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-				}
+				//if (Env.IsDevelopment) {
+				//	options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+				//} else {
+				//	options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+				//}
 			});
 		}
 	}
