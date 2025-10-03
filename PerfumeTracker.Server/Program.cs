@@ -118,6 +118,14 @@ builder.Services.AddHostedService<MissionService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options => {
+	options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+							  ForwardedHeaders.XForwardedProto |
+							  ForwardedHeaders.XForwardedHost;
+	options.KnownNetworks.Clear();
+	options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope()) {
@@ -138,6 +146,8 @@ using (var scope = app.Services.CreateScope()) {
 	if (demoUserId != null) await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value, demoImages);
 }
 
+if (!Env.IsDevelopment)	app.UseHttpsRedirection();
+app.UseForwardedHeaders();
 app.UseRateLimiter();
 app.UseExceptionHandler();
 app.UseCors("AllowSpecificOrigin");
