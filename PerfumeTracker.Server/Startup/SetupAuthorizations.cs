@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server.Services.Auth;
 using System.Diagnostics;
@@ -74,7 +75,8 @@ public static partial class Startup {
 			auth.AddCookie("External", opts => {
 				opts.Cookie.Name = "ext.auth";
 				opts.Cookie.SameSite = SameSiteMode.None;
-				opts.Cookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+				opts.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+				//opts.Cookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 			}).AddGitHub("GitHub", options => {
 				options.ClientId = githubClientId;
 				options.ClientSecret = githubClientSecret;
@@ -83,6 +85,7 @@ public static partial class Startup {
 				options.CallbackPath = new PathString(githubCallbackPath);
 				options.SaveTokens = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
+				options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 				if (Env.IsDevelopment) {
 					options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 				} else {
