@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Services.Auth;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace PerfumeTracker.Server.Startup;
 
@@ -69,25 +72,79 @@ public static partial class Startup {
 			};
 		});
 
+		auth.AddCookie("External", opts => {
+			opts.Cookie.Name = "ext.auth";
+			opts.Cookie.SameSite = SameSiteMode.None;
+			opts.Cookie.SecurePolicy = Env.IsDevelopment
+				? CookieSecurePolicy.SameAsRequest
+				: CookieSecurePolicy.Always;
+			opts.Cookie.HttpOnly = true;
+		});
+
 		var githubClientId = configuration["Authentication:GitHub:ClientId"];
 		var githubClientSecret = configuration["Authentication:GitHub:ClientSecret"];
 		var githubCallbackPath = configuration["Authentication:GitHub:CallbackPath"];
 		if (!string.IsNullOrWhiteSpace(githubClientId) && !string.IsNullOrWhiteSpace(githubClientSecret) && !string.IsNullOrWhiteSpace(githubCallbackPath)) {
-			auth.AddCookie("External", opts => {
-				opts.Cookie.Name = "ext.auth";
-				opts.Cookie.SameSite = SameSiteMode.None;
-				opts.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-				opts.Cookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
-			}).AddGitHub("GitHub", options => {
+			auth.AddGitHub("GitHub", options => {
 				options.ClientId = githubClientId;
 				options.ClientSecret = githubClientSecret;
 				options.SignInScheme = "External";
 				options.Scope.Add("user:email");
 				options.CallbackPath = new PathString(githubCallbackPath);
 				options.SaveTokens = true;
+				options.CorrelationCookie.HttpOnly = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+				
+				options.Events.OnTicketReceived = async context => await HandleOAuthCallback(context, "GitHub");
 			});
 		}
+
+		var googleClientId = configuration["Authentication:Google:ClientId"];
+		var googleClientSecret = configuration["Authentication:Google:ClientSecret"];
+		var googleCallbackPath = configuration["Authentication:Google:CallbackPath"];
+		if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret) && !string.IsNullOrWhiteSpace(googleCallbackPath)) {
+			auth.AddGoogle("Google", options => {
+				options.ClientId = googleClientId;
+				options.ClientSecret = googleClientSecret;
+				options.SignInScheme = "External";
+				options.CallbackPath = new PathString(googleCallbackPath);
+				options.SaveTokens = true;
+				options.CorrelationCookie.HttpOnly = true;
+				options.CorrelationCookie.SameSite = SameSiteMode.None;
+				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment
+					? CookieSecurePolicy.SameAsRequest
+					: CookieSecurePolicy.Always;
+
+				options.Events.OnTicketReceived = async context => await HandleOAuthCallback(context, "Google");
+			});
+		}
+	}
+
+	private static async Task HandleOAuthCallback(TicketReceivedContext context, string provider)
+	{
+		var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<PerfumeIdentityUser>>();
+		var jwtGenerator = context.HttpContext.RequestServices.GetRequiredService<IJwtTokenGenerator>();
+		var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<LoginGoogle>>();
+
+		var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
+		if (string.IsNullOrWhiteSpace(email)) {
+			logger.LogWarning("{Provider} authentication failed: No email claim found", provider);
+			context.Response.StatusCode = 401;
+			context.HandleResponse();
+			return;
+		}
+
+		var user = await userManager.FindByEmailAsync(email);
+		if (user == null) {
+			logger.LogWarning("User not found for email: {Email} from {Provider}", email, provider);
+			context.Response.StatusCode = 401;
+			context.HandleResponse();
+			return;
+		}
+
+		await jwtGenerator.WriteToken(user, context.HttpContext);
+
+		logger.LogInformation("Successfully authenticated user: {Email} via {Provider}", email, provider);
 	}
 }

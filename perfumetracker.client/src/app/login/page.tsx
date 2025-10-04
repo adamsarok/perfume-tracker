@@ -37,16 +37,22 @@ export default function LoginPage() {
     }
   };
 
-  const handleGithubLogin = async () => {
+  const handleOAuthLogin = async (provider: string) => {
     const apiUrl = await initializeApiUrl();
     if (!apiUrl) {
       console.error("API URL not configured");
       return;
     }
-    window.location.href = `${apiUrl}/auth/github/login`;
-  };
+    window.location.href = `${apiUrl}/auth/${provider}/login`;
+  }
 
+  const handleGithubLogin = async () => {
+    await handleOAuthLogin("github");
+  }
 
+  const handleGoogleLogin = async () => {
+    await handleOAuthLogin("google");
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -56,10 +62,14 @@ export default function LoginPage() {
             Sign in to your account
           </h2>
         </div>
-        <Button variant="outline" onClick={handleGithubLogin}>
-          Continue with GitHub
-        </Button>
-
+        <div>
+          <Button variant="outline" onClick={handleGithubLogin}>
+            Continue with GitHub
+          </Button>
+           <Button variant="outline" onClick={handleGoogleLogin}>
+            Continue with Google
+          </Button>
+        </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
