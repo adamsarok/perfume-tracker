@@ -29,8 +29,10 @@ public class RegisterUserHandler(ICreateUser createUser, IConfiguration configur
 		if (userConfig.InviteOnlyRegistration) {
 			await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 			try {
+				if (!Guid.TryParse(command.InviteCode, out var inviteId))
+					throw new UnauthorizedException("Invite not valid or already used");
 				invite = await context.Invites
-					.FromSql($"SELECT * FROM \"Invite\" WHERE \"Email\" = {command.Email} AND \"Id\" = {command.InviteCode} AND \"IsUsed\" = FALSE FOR UPDATE")
+					.FromSql($"SELECT * FROM \"Invite\" WHERE \"Email\" = {command.Email} AND \"Id\" = {inviteId} AND \"IsUsed\" = FALSE FOR UPDATE")
 					.FirstOrDefaultAsync(cancellationToken);
 				if (invite == null) throw new UnauthorizedException("Invite not valid or already used");
 				await createUser.Create(command.UserName, command.Password, Roles.USER, command.Email);
