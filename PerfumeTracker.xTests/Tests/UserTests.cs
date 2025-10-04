@@ -27,7 +27,7 @@ public class UserTests : TestBase, IClassFixture<WebApplicationFactory<Program>>
 		var createUser = scope.ServiceScope.ServiceProvider.GetRequiredService<ICreateUser>();
 		var configuration = scope.ServiceScope.ServiceProvider.GetRequiredService<IConfiguration>();
 		var registerHandler = new RegisterUserHandler(createUser, configuration, scope.PerfumeTrackerContext);
-		var registerCommand = new RegisterUserCommand("TestUser2", test2Mail, "abc123DEF_-y-98756123", inviteResult.InviteCode);
+		var registerCommand = new RegisterUserCommand("TestUser2", test2Mail, "abc123DEF_-y-98756123", inviteResult.InviteCode.ToString());
 		await registerHandler.Handle(registerCommand, CancellationToken.None);
 		var userManager = scope.ServiceScope.ServiceProvider.GetRequiredService<UserManager<PerfumeIdentityUser>>();
 		var result = await userManager.FindByEmailAsync(test2Mail);
