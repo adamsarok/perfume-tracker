@@ -7,7 +7,7 @@ using System.Text;
 
 namespace PerfumeTracker.Server.Features.Users;
 
-public class GitHubLogin : ICarterModule {
+public class LoginGithub : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/auth/github/login", (HttpContext ctx, IConfiguration config) => {
 			var clientUrl = config["Authentication:ClientUrl"] ?? "http://localhost:3000";
@@ -20,7 +20,7 @@ public class GitHubLogin : ICarterModule {
 
 		app.MapGet("/api/auth/github/callback", async (HttpContext ctx, IConfiguration config,
 			UserManager<PerfumeIdentityUser> userManager, IJwtTokenGenerator jwtTokenGenerator,
-			ILogger<GitHubLogin> logger) => {
+			ILogger<LoginGithub> logger) => {
 				logger.LogInformation("GitHub callback reached with params: code={Code}, state={State}",
 					ctx.Request.Query["code"], ctx.Request.Query["state"]);
 

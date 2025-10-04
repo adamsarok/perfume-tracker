@@ -69,16 +69,19 @@ public static partial class Startup {
 			};
 		});
 
+		auth.AddCookie("External", opts => {
+			opts.Cookie.Name = "ext.auth";
+			opts.Cookie.SameSite = SameSiteMode.None;
+			opts.Cookie.SecurePolicy = Env.IsDevelopment
+				? CookieSecurePolicy.SameAsRequest
+				: CookieSecurePolicy.Always;
+		});
+
 		var githubClientId = configuration["Authentication:GitHub:ClientId"];
 		var githubClientSecret = configuration["Authentication:GitHub:ClientSecret"];
 		var githubCallbackPath = configuration["Authentication:GitHub:CallbackPath"];
 		if (!string.IsNullOrWhiteSpace(githubClientId) && !string.IsNullOrWhiteSpace(githubClientSecret) && !string.IsNullOrWhiteSpace(githubCallbackPath)) {
-			auth.AddCookie("External", opts => {
-				opts.Cookie.Name = "ext.auth";
-				opts.Cookie.SameSite = SameSiteMode.None;
-				opts.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-				opts.Cookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
-			}).AddGitHub("GitHub", options => {
+			auth.AddGitHub("GitHub", options => {
 				options.ClientId = githubClientId;
 				options.ClientSecret = githubClientSecret;
 				options.SignInScheme = "External";
@@ -87,6 +90,24 @@ public static partial class Startup {
 				options.SaveTokens = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+			});
+		}
+
+		var googleClientId = configuration["Authentication:Google:ClientSecret"];
+		var googleClientSecret = configuration["Authentication:Google:ClientSecret"];
+		var googleCallbackPath = configuration["Authentication:Google:CallbackPath"];
+		if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret) && !string.IsNullOrWhiteSpace(googleCallbackPath)) {
+			auth.AddGoogle("Google", options => {
+				options.ClientId = googleClientId;
+				options.ClientSecret = googleClientSecret;
+				options.SignInScheme = "External";
+				options.CallbackPath = new PathString(googleCallbackPath);
+				options.SaveTokens = true;
+
+				options.CorrelationCookie.SameSite = SameSiteMode.None;
+				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment
+					? CookieSecurePolicy.SameAsRequest
+					: CookieSecurePolicy.Always;
 			});
 		}
 	}

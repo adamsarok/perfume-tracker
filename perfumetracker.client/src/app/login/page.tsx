@@ -45,7 +45,14 @@ export default function LoginPage() {
     }
     window.location.href = `${apiUrl}/auth/github/login`;
   };
-
+  const handleGoogleLogin = async () => {
+    const apiUrl = await initializeApiUrl();
+    if (!apiUrl) {
+      console.error("API URL not configured");
+      return;
+    }
+    window.location.href = `${apiUrl}/auth/google/login`;
+  };
 
 
   return (
@@ -56,10 +63,14 @@ export default function LoginPage() {
             Sign in to your account
           </h2>
         </div>
-        <Button variant="outline" onClick={handleGithubLogin}>
-          Continue with GitHub
-        </Button>
-
+        <div>
+          <Button variant="outline" onClick={handleGithubLogin}>
+            Continue with GitHub
+          </Button>
+           <Button variant="outline" onClick={handleGoogleLogin}>
+            Continue with Google
+          </Button>
+        </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
