@@ -2,7 +2,7 @@
 using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Users;
-public record RegisterUserCommand(string UserName, string Email, string Password, Guid InviteCode) : ICommand<Unit>;
+public record RegisterUserCommand(string UserName, string Email, string Password, string InviteCode) : ICommand<Unit>;
 public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand> {
 	public RegisterUserCommandValidator() {
 		RuleFor(x => x.UserName).Length(1, 255);

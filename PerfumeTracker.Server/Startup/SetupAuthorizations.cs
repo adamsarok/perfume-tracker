@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Services.Auth;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace PerfumeTracker.Server.Startup;
 
@@ -92,6 +95,8 @@ public static partial class Startup {
 				options.CorrelationCookie.HttpOnly = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+				
+				options.Events.OnTicketReceived = async context => await HandleOAuthCallback(context, "GitHub");
 			});
 		}
 
@@ -110,7 +115,36 @@ public static partial class Startup {
 				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment
 					? CookieSecurePolicy.SameAsRequest
 					: CookieSecurePolicy.Always;
+
+				options.Events.OnTicketReceived = async context => await HandleOAuthCallback(context, "Google");
 			});
 		}
+	}
+
+	private static async Task HandleOAuthCallback(TicketReceivedContext context, string provider)
+	{
+		var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<PerfumeIdentityUser>>();
+		var jwtGenerator = context.HttpContext.RequestServices.GetRequiredService<IJwtTokenGenerator>();
+		var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<LoginGoogle>>();
+
+		var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
+		if (string.IsNullOrWhiteSpace(email)) {
+			logger.LogWarning("{Provider} authentication failed: No email claim found", provider);
+			context.Response.StatusCode = 401;
+			context.HandleResponse();
+			return;
+		}
+
+		var user = await userManager.FindByEmailAsync(email);
+		if (user == null) {
+			logger.LogWarning("User not found for email: {Email} from {Provider}", email, provider);
+			context.Response.StatusCode = 401;
+			context.HandleResponse();
+			return;
+		}
+
+		await jwtGenerator.WriteToken(user, context.HttpContext);
+
+		logger.LogInformation("Successfully authenticated user: {Email} via {Provider}", email, provider);
 	}
 }
