@@ -75,6 +75,7 @@ public static partial class Startup {
 			opts.Cookie.SecurePolicy = Env.IsDevelopment
 				? CookieSecurePolicy.SameAsRequest
 				: CookieSecurePolicy.Always;
+			opts.Cookie.HttpOnly = true;
 		});
 
 		var githubClientId = configuration["Authentication:GitHub:ClientId"];
@@ -88,12 +89,13 @@ public static partial class Startup {
 				options.Scope.Add("user:email");
 				options.CallbackPath = new PathString(githubCallbackPath);
 				options.SaveTokens = true;
+				options.CorrelationCookie.HttpOnly = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 			});
 		}
 
-		var googleClientId = configuration["Authentication:Google:ClientSecret"];
+		var googleClientId = configuration["Authentication:Google:ClientId"];
 		var googleClientSecret = configuration["Authentication:Google:ClientSecret"];
 		var googleCallbackPath = configuration["Authentication:Google:CallbackPath"];
 		if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret) && !string.IsNullOrWhiteSpace(googleCallbackPath)) {
@@ -103,7 +105,7 @@ public static partial class Startup {
 				options.SignInScheme = "External";
 				options.CallbackPath = new PathString(googleCallbackPath);
 				options.SaveTokens = true;
-
+				options.CorrelationCookie.HttpOnly = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment
 					? CookieSecurePolicy.SameAsRequest
