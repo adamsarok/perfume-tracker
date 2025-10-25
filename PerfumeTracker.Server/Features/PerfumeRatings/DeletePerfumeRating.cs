@@ -1,8 +1,12 @@
-﻿using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
 public record DeletePerfumeRatingCommand(Guid PerfumeId, Guid RatingId) : ICommand<PerfumeRatingDownloadDto>;
 public class DeletePerfumeRatingEndpoint : ICarterModule {
+	/// <summary>
+	/// Registers the HTTP DELETE endpoint at /api/perfumes/{perfumeId}/ratings/{ratingId} to delete a specific perfume rating.
+	/// </summary>
+	/// <param name="app">The endpoint route builder used to register routes.</param>
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapDelete("/api/perfumes/{perfumeId}/ratings/{ratingId}", async (ISender sender, Guid perfumeId, Guid ratingId, CancellationToken cancellationToken) => {
 			await sender.Send(new DeletePerfumeRatingCommand(perfumeId, ratingId), cancellationToken);

@@ -31,6 +31,15 @@ const formSchema = z.object({
     rating: z.coerce.number().min(0).max(10),
 });
 
+/**
+ * Renders a rating form and ratings table for a given perfume and manages rating actions.
+ *
+ * The component displays a form to submit a numeric rating and optional comment, loads and
+ * shows existing ratings in a table, and supports adding and deleting ratings with UI feedback.
+ *
+ * @param perfume - Perfume data used to populate defaults and initial ratings (including id, average/last values, and existing ratings)
+ * @returns A React element that renders the rating form, a separator, and a data table of the perfume's ratings
+ */
 export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
     const [localRatings, setLocalRatings] = useState<PerfumeRatingDownloadDTO[] | undefined>(perfume.perfume.ratings);
 
