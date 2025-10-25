@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { addPerfumeRating, getPerfumeRatings } from "@/services/perfume-rating-service"
+import { addPerfumeRating, deletePerfumeRating, getPerfumeRatings } from "@/services/perfume-rating-service"
 import { showError, showSuccess } from "@/services/toasty-service";
 import { useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -61,6 +61,19 @@ export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
         setLocalRatings(result.data);
     }
 
+    const onDeleteRating = async (perfumeId: string | undefined, ratingId: string | undefined) => {
+        if (auth.guardAction()) return;
+        if (perfumeId && ratingId) {
+            const result = await deletePerfumeRating(perfumeId, ratingId);
+            if (result.error) showError("Rating deletion failed", result.error);
+            else {
+                showSuccess("Rating deleted!");
+                await reload();
+            }
+        }
+    };
+
+
     return (
         <div>
             <Form {...form}>
@@ -100,7 +113,7 @@ export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
                 </form>
             </Form>
             <Separator className="mb-2"></Separator>
-            {localRatings && <DataTable columns={PerfumeRatingColumns} data={localRatings} />}
+            {localRatings && <DataTable columns={PerfumeRatingColumns(onDeleteRating)} data={localRatings} />}
         </div>
     );
 }
