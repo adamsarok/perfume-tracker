@@ -63,12 +63,11 @@ export const PerfumeRatingColumns = (deletePerfumeRating: (perfumeId: string, ra
             return "";
         },
         cell: ({ row }) => {
-            return <span>
-                  <MessageBox
-                  className="w-32"
-                  startContent=""
+            return <MessageBox
+                  className="w-8"
+                  startContent={<Trash2 />}
                   modalButtonColor="danger"
-                  modalButtonText="X"
+                  modalButtonText=""
                   message="Are you sure you want to delete this Rating?"
                   onButton1={async () => {
                     await deletePerfumeRating(row.original.perfumeId, row.original.id);
@@ -76,8 +75,7 @@ export const PerfumeRatingColumns = (deletePerfumeRating: (perfumeId: string, ra
                   button1text="Delete"
                   onButton2={null}
                   button2text="Cancel"
-                ></MessageBox>
-            </span>;
+                />;
         },
     },
 ];

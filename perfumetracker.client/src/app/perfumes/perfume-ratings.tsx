@@ -61,18 +61,16 @@ export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
         setLocalRatings(result.data);
     }
 
-    const onDeleteRating = async (perfumeId: string | undefined, ratingId: string | undefined) => {
+    const onDeleteRating = async (perfumeId: string, ratingId: string) => {
         if (auth.guardAction()) return;
-        if (perfumeId && ratingId) {
-            const result = await deletePerfumeRating(perfumeId, ratingId);
-            if (result.error) showError("Rating deletion failed", result.error);
-            else {
-                showSuccess("Rating deleted!");
-                await reload();
-            }
+        const result = await deletePerfumeRating(perfumeId, ratingId);
+        if (result.error) {
+            showError("Rating deletion failed", result.error);
+        } else {
+            showSuccess("Rating deleted!");
+            await reload();
         }
     };
-
 
     return (
         <div>
