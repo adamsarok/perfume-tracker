@@ -20,6 +20,7 @@ public enum MissionType {
 	WearSamePerfume,
 	GetRandoms,
     AcceptRandoms,
+	[Obsolete("This mission type is not fun and needs to be redesigned before using it again")]
 	PerfumesTaggedPhotographed,
 	UseUnusedPerfumes,
     WearDifferentPerfumes,

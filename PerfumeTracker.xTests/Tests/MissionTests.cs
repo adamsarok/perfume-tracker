@@ -85,18 +85,6 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 	}
 
 	[Fact]
-	public async Task ProgressMissions_PerfumeTagsAddedNotificationHandler_UpdatesProgress() {
-		await PrepareMissionData();
-		using var scope = GetTestScope();
-		var xpService = new XPService(scope.PerfumeTrackerContext);
-		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object, xpService);
-		var handler = new ProgressMissions.PerfumeTagsAddedNotificationHandler(updateHandler);
-		var notification = new PerfumeTagsAddedNotification(new List<Guid> { Guid.NewGuid() }, TenantProvider.MockTenantId ?? throw new TenantNotSetException());
-		await handler.Handle(notification, CancellationToken.None);
-		AssertProgress(MissionType.PerfumesTaggedPhotographed);
-	}
-
-	[Fact]
 	public async Task ProgressMissions_PerfumeRandomAcceptedNotificationHandler_UpdatesProgress() {
 		await PrepareMissionData();
 		using var scope = GetTestScope();
