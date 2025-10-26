@@ -75,7 +75,7 @@ public class ProgressMissions {
 
 	public class PerfumeTagsAddedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeTagsAddedNotification> {
 		public async Task Handle(PerfumeTagsAddedNotification notification, CancellationToken cancellationToken) {
-			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.PerfumesTaggedPhotographed, notification.UserId, cancellationToken);
+			
 		}
 	}
 

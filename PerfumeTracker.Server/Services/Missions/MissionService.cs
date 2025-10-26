@@ -90,13 +90,6 @@ public class MissionService(IServiceProvider serviceProvider, ILogger<MissionSer
 					RequiredCount = 3,
 					XP = 100
 				},
-				MissionType.PerfumesTaggedPhotographed => new Mission {
-					Name = "Curator",
-					Description = "Tag and photograph all your perfumes",
-					Type = MissionType.PerfumesTaggedPhotographed,
-					RequiredCount = 0,
-					XP = 100
-				},
 				MissionType.UseUnusedPerfumes => new Mission {
 					Name = "Rediscovery",
 					Description = "Wear 2 perfumes you haven't used in a while",
