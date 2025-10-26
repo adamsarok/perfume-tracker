@@ -464,7 +464,7 @@ export default function PerfumeEditForm({
                   startContent={<Trash2 />}
                   modalButtonColor="danger"
                   modalButtonText="Delete"
-                  message="Are you sure you want to delete this Perfume?"
+                  message="Are you sure you want to delete this perfume?"
                   onButton1={() => {
                     onDelete(perfume?.perfume.id);
                   }}

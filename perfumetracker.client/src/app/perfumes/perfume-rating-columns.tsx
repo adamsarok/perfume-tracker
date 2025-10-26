@@ -68,7 +68,7 @@ export const PerfumeRatingColumns = (deletePerfumeRating: (perfumeId: string, ra
                   startContent={<Trash2 />}
                   modalButtonColor="danger"
                   modalButtonText=""
-                  message="Are you sure you want to delete this Rating?"
+                  message="Are you sure you want to delete this rating?"
                   onButton1={async () => {
                     await deletePerfumeRating(row.original.perfumeId, row.original.id);
                   }}
