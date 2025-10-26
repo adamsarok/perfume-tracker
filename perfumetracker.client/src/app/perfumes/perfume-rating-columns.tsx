@@ -60,15 +60,15 @@ export const PerfumeRatingColumns = (deletePerfumeRating: (perfumeId: string, ra
     },
     {   accessorKey: "delete",
         header: ({ column }) => {
-            
+            return "";
         },
         cell: ({ row }) => {
             return <span>
                   <MessageBox
                   className="w-32"
-                  startContent={<Trash2 />}
+                  startContent=""
                   modalButtonColor="danger"
-                  modalButtonText="Delete"
+                  modalButtonText="X"
                   message="Are you sure you want to delete this Rating?"
                   onButton1={async () => {
                     await deletePerfumeRating(row.original.perfumeId, row.original.id);
