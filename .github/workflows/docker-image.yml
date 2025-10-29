@@ -54,9 +54,9 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Set up Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
-        node-version: '24'
+        node-version: 24
 
     - name: Install dependencies
       working-directory: ./perfumetracker.client
