@@ -94,12 +94,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(p => p.UserId, _testUserId)
 			.RuleFor(p => p.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(p => p.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(p => p.IsDeleted, false)
-			.Ignore(p => p.FullText)
-			.Ignore(p => p.PerfumeRandoms)
-			.Ignore(p => p.PerfumeTags)
-			.Ignore(p => p.PerfumeEvents)
-			.Ignore(p => p.PerfumeRatings);
+			.RuleFor(p => p.IsDeleted, false);
 
 		TagFaker = new Faker<Tag>()
 			.RuleFor(t => t.Id, f => Guid.NewGuid())
@@ -112,8 +107,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(t => t.UserId, _testUserId)
 			.RuleFor(t => t.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(t => t.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(t => t.IsDeleted, false)
-			.Ignore(t => t.PerfumeTags);
+			.RuleFor(t => t.IsDeleted, false);
 
 		PerfumeTagFaker = new Faker<PerfumeTag>()
 			.RuleFor(pt => pt.Id, f => Guid.NewGuid())
@@ -122,9 +116,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pt => pt.UserId, _testUserId)
 			.RuleFor(pt => pt.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(pt => pt.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(pt => pt.IsDeleted, false)
-			.Ignore(pt => pt.Perfume)
-			.Ignore(pt => pt.Tag);
+			.RuleFor(pt => pt.IsDeleted, false);
 
 		PerfumeEventFaker = new Faker<PerfumeEvent>()
 			.RuleFor(pe => pe.Id, f => Guid.NewGuid())
@@ -136,8 +128,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pe => pe.UserId, _testUserId)
 			.RuleFor(pe => pe.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(pe => pe.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(pe => pe.IsDeleted, false)
-			.Ignore(pe => pe.Perfume);
+			.RuleFor(pe => pe.IsDeleted, false);
 
 		PerfumeRatingFaker = new Faker<PerfumeRating>()
 			.RuleFor(pr => pr.Id, f => Guid.NewGuid())
@@ -148,8 +139,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pr => pr.UserId, _testUserId)
 			.RuleFor(pr => pr.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(pr => pr.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(pr => pr.IsDeleted, false)
-			.Ignore(pr => pr.Perfume);
+			.RuleFor(pr => pr.IsDeleted, false);
 
 		PerfumeRandomsFaker = new Faker<PerfumeRandoms>()
 			.RuleFor(pr => pr.Id, f => Guid.NewGuid())
@@ -158,8 +148,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pr => pr.UserId, _testUserId)
 			.RuleFor(pr => pr.CreatedAt, f => f.Date.RecentOffset(30).UtcDateTime)
 			.RuleFor(pr => pr.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(pr => pr.IsDeleted, false)
-			.Ignore(pr => pr.Perfume);
+			.RuleFor(pr => pr.IsDeleted, false);
 
 		RecommendationFaker = new Faker<Recommendation>()
 			.RuleFor(r => r.Id, f => Guid.NewGuid())
@@ -191,9 +180,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(ua => ua.UserId, _testUserId)
 			.RuleFor(ua => ua.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(ua => ua.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(ua => ua.IsDeleted, false)
-			.Ignore(ua => ua.Achievement)
-			.Ignore(ua => ua.UserProfile);
+			.RuleFor(ua => ua.IsDeleted, false);
 
 		MissionFaker = new Faker<Mission>()
 			.RuleFor(m => m.Id, f => Guid.NewGuid())
@@ -248,9 +235,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(up => up.Timezone, f => f.PickRandom(new[] { "UTC", "America/New_York", "Europe/London", "Asia/Tokyo" }))
 			.RuleFor(up => up.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(up => up.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(up => up.IsDeleted, false)
-			.Ignore(up => up.UserAchievements)
-			.Ignore(up => up.UserMissions);
+			.RuleFor(up => up.IsDeleted, false);
 
 		OutboxMessageFaker = new Faker<OutboxMessage>()
 			.RuleFor(om => om.Id, f => Guid.NewGuid())
