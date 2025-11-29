@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ConnectionStrings__PerfumeTracker: ${{ secrets.POSTGRES_CONNSTR }}
+      ConnectionStrings__PerfumeTrackerTest: ${{ secrets.POSTGRES_CONNSTR }}
       Jwt__Key: DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY
       Jwt__Issuer: DUMMY
       Jwt__Audience: DUMMY
