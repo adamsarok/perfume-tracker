@@ -34,7 +34,7 @@ public class UploadImageHandler(R2Configuration configuration,
 	IPresignedUrlService presignedUrlService,
 	IHttpClientFactory httpClientFactory) {
 	public async Task<Guid> UploadImage(Stream stream, CancellationToken cancellationToken) {
-		if (!configuration.IsEnabled) return Guid.Empty;
+		if (!configuration.IsEnabled) throw new ConfigEmptyException("R2 not configured");
 		if (stream == null) throw new BadRequestException($"Image stream is null");
 		try {
 			using var image = new MagickImage(stream);

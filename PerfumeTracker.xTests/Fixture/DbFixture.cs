@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Outbox;
 using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
@@ -23,13 +24,11 @@ public abstract class DbFixture : IAsyncLifetime {
 	public Mock<IClientProxy> MockClientProxy;
 	public List<HubMessage> HubMessages = [];
 	public Mock<ISideEffectQueue> MockSideEffectQueue;
+	public MockPresignedUrlService MockPresignedUrlService = new();
 	public record HubMessage(string HubSentMethod, object[] HubSentArgs);
 
 	// Base Faker
 	private readonly Faker _faker = new Faker();
-
-	// User ID for all test data
-	private Guid _testUserId = Guid.NewGuid();
 
 	// Faker instances for all models
 	public Faker<Perfume> PerfumeFaker { get; }
@@ -53,13 +52,15 @@ public abstract class DbFixture : IAsyncLifetime {
 			  .WithWebHostBuilder(builder => {
 				  builder.UseEnvironment("Test");
 				  builder.ConfigureServices(services => {
-					  // Replace ITenantProvider with MockTenantProvider
 					  var descriptor = services.SingleOrDefault(
 						  d => d.ServiceType == typeof(ITenantProvider));
-					  if (descriptor != null) {
-						  services.Remove(descriptor);
-					  }
+					  if (descriptor != null) services.Remove(descriptor);
 					  services.AddScoped<ITenantProvider>(_ => TenantProvider);
+
+					  descriptor = services.SingleOrDefault(
+							d => d.ServiceType == typeof(IPresignedUrlService));
+					  if (descriptor != null) services.Remove(descriptor);
+					  services.AddScoped<IPresignedUrlService>(_ => MockPresignedUrlService);
 				  });
 			  });
 
@@ -88,6 +89,8 @@ public abstract class DbFixture : IAsyncLifetime {
 		});
 		MockSideEffectQueue = new Mock<ISideEffectQueue>();
 
+		var tenantId = TenantProvider.GetCurrentUserId();
+
 		// Initialize all Fakers
 		PerfumeFaker = new Faker<Perfume>()
 			.RuleFor(p => p.Id, f => Guid.NewGuid())
@@ -100,7 +103,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(p => p.Spring, f => f.Random.Bool())
 			.RuleFor(p => p.Summer, f => f.Random.Bool())
 			.RuleFor(p => p.Winter, f => f.Random.Bool())
-			.RuleFor(p => p.UserId, _testUserId)
+			.RuleFor(p => p.UserId, tenantId)
 			.RuleFor(p => p.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(p => p.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(p => p.IsDeleted, false);
@@ -113,7 +116,7 @@ public abstract class DbFixture : IAsyncLifetime {
 				"Powdery", "Musky", "Amber", "Vanilla", "Rose", "Jasmine"
 			}))
 			.RuleFor(t => t.Color, f => f.Internet.Color())
-			.RuleFor(t => t.UserId, _testUserId)
+			.RuleFor(t => t.UserId, tenantId)
 			.RuleFor(t => t.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(t => t.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(t => t.IsDeleted, false);
@@ -122,7 +125,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pt => pt.Id, f => Guid.NewGuid())
 			.RuleFor(pt => pt.PerfumeId, f => Guid.NewGuid())
 			.RuleFor(pt => pt.TagId, f => Guid.NewGuid())
-			.RuleFor(pt => pt.UserId, _testUserId)
+			.RuleFor(pt => pt.UserId, tenantId)
 			.RuleFor(pt => pt.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(pt => pt.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(pt => pt.IsDeleted, false);
@@ -134,7 +137,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pe => pe.Type, f => f.PickRandom<PerfumeEvent.PerfumeEventType>())
 			.RuleFor(pe => pe.AmountMl, f => f.Random.Decimal(0.05m, 0.5m))
 			.RuleFor(pe => pe.SequenceNumber, f => f.Random.Int(1, 1000))
-			.RuleFor(pe => pe.UserId, _testUserId)
+			.RuleFor(pe => pe.UserId, tenantId)
 			.RuleFor(pe => pe.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(pe => pe.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(pe => pe.IsDeleted, false);
@@ -145,7 +148,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pr => pr.RatingDate, f => f.Date.RecentOffset(90).UtcDateTime)
 			.RuleFor(pr => pr.Rating, f => f.Random.Decimal(1, 10))
 			.RuleFor(pr => pr.Comment, f => f.Lorem.Sentence(10))
-			.RuleFor(pr => pr.UserId, _testUserId)
+			.RuleFor(pr => pr.UserId, tenantId)
 			.RuleFor(pr => pr.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(pr => pr.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(pr => pr.IsDeleted, false);
@@ -154,7 +157,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pr => pr.Id, f => Guid.NewGuid())
 			.RuleFor(pr => pr.PerfumeId, f => Guid.NewGuid())
 			.RuleFor(pr => pr.IsAccepted, f => f.Random.Bool(0.3f))
-			.RuleFor(pr => pr.UserId, _testUserId)
+			.RuleFor(pr => pr.UserId, tenantId)
 			.RuleFor(pr => pr.CreatedAt, f => f.Date.RecentOffset(30).UtcDateTime)
 			.RuleFor(pr => pr.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(pr => pr.IsDeleted, false);
@@ -163,7 +166,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(r => r.Id, f => Guid.NewGuid())
 			.RuleFor(r => r.Query, f => f.Lorem.Sentence(5))
 			.RuleFor(r => r.Recommendations, f => f.Lorem.Paragraph())
-			.RuleFor(r => r.UserId, _testUserId)
+			.RuleFor(r => r.UserId, tenantId)
 			.RuleFor(r => r.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(r => r.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(r => r.IsDeleted, false);
@@ -186,7 +189,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(ua => ua.Id, f => Guid.NewGuid())
 			.RuleFor(ua => ua.AchievementId, f => Guid.NewGuid())
 			.RuleFor(ua => ua.IsRead, f => f.Random.Bool(0.7f))
-			.RuleFor(ua => ua.UserId, _testUserId)
+			.RuleFor(ua => ua.UserId, tenantId)
 			.RuleFor(ua => ua.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(ua => ua.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(ua => ua.IsDeleted, false);
@@ -214,7 +217,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(um => um.IsCompleted, f => f.Random.Bool(0.3f))
 			.RuleFor(um => um.CompletedAt, (f, um) => um.IsCompleted ? f.Date.RecentOffset(7).UtcDateTime : null)
 			.RuleFor(um => um.XP_Awarded, (f, um) => um.IsCompleted ? f.Random.Int(10, 200) : 0)
-			.RuleFor(um => um.UserId, _testUserId)
+			.RuleFor(um => um.UserId, tenantId)
 			.RuleFor(um => um.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(um => um.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(um => um.IsDeleted, false)
@@ -227,13 +230,13 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(us => us.LastProgressedAt, f => f.Date.RecentOffset(1).UtcDateTime)
 			.RuleFor(us => us.StreakEndAt, f => f.Random.Bool(0.2f) ? f.Date.RecentOffset(7).UtcDateTime : null)
 			.RuleFor(us => us.Progress, f => f.Random.Int(1, 100))
-			.RuleFor(us => us.UserId, _testUserId)
+			.RuleFor(us => us.UserId, tenantId)
 			.RuleFor(us => us.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(us => us.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(us => us.IsDeleted, false);
 
 		UserProfileFaker = new Faker<UserProfile>()
-			.RuleFor(up => up.Id, _testUserId)
+			.RuleFor(up => up.Id, tenantId)
 			.RuleFor(up => up.MinimumRating, f => f.Random.Decimal(0, 10))
 			.RuleFor(up => up.DayFilter, f => f.Random.Int(7, 90))
 			.RuleFor(up => up.ShowMalePerfumes, f => f.Random.Bool(0.8f))
@@ -258,7 +261,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(om => om.TryCount, f => f.Random.Int(0, 5))
 			.RuleFor(om => om.FailedAt, f => f.Random.Bool(0.1f) ? f.Date.RecentOffset(1).UtcDateTime : null)
 			.RuleFor(om => om.LastError, (f, om) => om.FailedAt != null ? f.Lorem.Sentence() : null)
-			.RuleFor(om => om.UserId, _testUserId)
+			.RuleFor(om => om.UserId, tenantId)
 			.RuleFor(om => om.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(om => om.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(om => om.IsDeleted, false);
@@ -287,16 +290,14 @@ public abstract class DbFixture : IAsyncLifetime {
 		ILogger<CreateUser> logger = scope.ServiceProvider.GetRequiredService<ILogger<CreateUser>>();
 		var userManager = scope.ServiceProvider.GetRequiredService<UserManager<PerfumeIdentityUser>>();
 		const string testMail = "test@example.com";
-		var user = userManager.FindByEmailAsync(testMail).GetAwaiter().GetResult();
+		var user = await userManager.FindByEmailAsync(testMail);
 		if (user == null) {
 			var createUserHandler = new CreateUser(logger, userManager, context);
 			user = createUserHandler.Create("test", "abcd1234ABCDxyz59697", Roles.USER, "test@example.com", false).GetAwaiter().GetResult();
 		}
 		if (user == null) throw new InvalidOperationException("User creation failed");
 		TenantProvider.MockTenantId = user.Id;
-
-		// Optional: Seed initial data here if needed
-		// await SeedTestData(context);
+		await SeedTestData(context);
 	}
 
 	public async Task DisposeAsync() {
@@ -306,33 +307,33 @@ public abstract class DbFixture : IAsyncLifetime {
 	public abstract Task SeedTestData(PerfumeTrackerContext context);
 
 	// Helper methods to generate data with specific UserId
-	public List<Perfume> GeneratePerfumes(int count, Guid? userId = null) {
+	public List<Perfume> GeneratePerfumes(int count) {
 		return PerfumeFaker.Clone()
-			.RuleFor(p => p.UserId, userId ?? _testUserId)
+			.RuleFor(p => p.UserId, TenantProvider.MockTenantId!.Value)
 			.Generate(count);
 	}
 
-	public List<Tag> GenerateTags(int count, Guid? userId = null) {
+	public List<Tag> GenerateTags(int count) {
 		return TagFaker.Clone()
-			.RuleFor(t => t.UserId, userId ?? _testUserId)
+			.RuleFor(t => t.UserId, TenantProvider.MockTenantId!.Value)
 			.Generate(count);
 	}
 
-	public List<PerfumeEvent> GeneratePerfumeEvents(int count, Guid perfumeId, Guid? userId = null) {
+	public List<PerfumeEvent> GeneratePerfumeEvents(int count, Guid perfumeId) {
 		return PerfumeEventFaker.Clone()
 			.RuleFor(pe => pe.PerfumeId, perfumeId)
-			.RuleFor(pe => pe.UserId, userId ?? _testUserId)
+			.RuleFor(pe => pe.UserId, TenantProvider.MockTenantId!.Value)
 			.Generate(count);
 	}
 
-	public List<PerfumeRating> GeneratePerfumeRatings(int count, Guid perfumeId, Guid? userId = null) {
+	public List<PerfumeRating> GeneratePerfumeRatings(int count, Guid perfumeId) {
 		return PerfumeRatingFaker.Clone()
 			.RuleFor(pr => pr.PerfumeId, perfumeId)
-			.RuleFor(pr => pr.UserId, userId ?? _testUserId)
+			.RuleFor(pr => pr.UserId, TenantProvider.MockTenantId!.Value)
 			.Generate(count);
 	}
 
-	public List<PerfumeTag> GeneratePerfumeTags(List<Guid> perfumeIds, List<Guid> tagIds, Guid? userId = null) {
+	public List<PerfumeTag> GeneratePerfumeTags(List<Guid> perfumeIds, List<Guid> tagIds) {
 		var perfumeTags = new List<PerfumeTag>();
 		foreach (var perfumeId in perfumeIds) {
 			var selectedTags = _faker.PickRandom(tagIds, _faker.Random.Int(1, Math.Min(3, tagIds.Count)));
@@ -341,12 +342,33 @@ public abstract class DbFixture : IAsyncLifetime {
 					Id = Guid.NewGuid(),
 					PerfumeId = perfumeId,
 					TagId = tagId,
-					UserId = userId ?? _testUserId,
+					UserId = TenantProvider.MockTenantId!.Value,
 					CreatedAt = DateTime.UtcNow,
 					UpdatedAt = DateTime.UtcNow
 				});
 			}
 		}
 		return perfumeTags;
+	}
+
+	public async Task<List<Tag>> SeedTags(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"Tag\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var tags = GenerateTags(count);
+		await context.Tags.AddRangeAsync(tags);
+		await context.SaveChangesAsync();
+		return tags;
+	}
+	public async Task<List<Perfume>> SeedPerfumes(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"Perfume\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = GeneratePerfumes(count);
+		await context.Perfumes.AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
 	}
 }

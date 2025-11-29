@@ -12,15 +12,8 @@ public class PerfumeFixture : DbFixture {
 	public PerfumeFixture() : base() { }
 
 	public async override Task SeedTestData(PerfumeTrackerContext context) {
-		// Generate 5 tags
-		var tags = GenerateTags(5);
-		await context.Tags.AddRangeAsync(tags);
-		await context.SaveChangesAsync();
-
-		// Generate 3 perfumes
-		var perfumes = GeneratePerfumes(3);
-		await context.Perfumes.AddRangeAsync(perfumes);
-		await context.SaveChangesAsync();
+		var tags = await SeedTags(3);
+		var perfumes = await SeedPerfumes(3);
 
 		// Generate perfume tags (linking perfumes to tags)
 		var perfumeIds = perfumes.Select(p => p.Id).ToList();

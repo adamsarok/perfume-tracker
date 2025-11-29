@@ -131,15 +131,19 @@ using (var scope = app.Services.CreateScope()) {
 	await SeedAchievements.SeedAchievementsAsync(dbContext);
 	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
 	await seedUsers.SeedAdminAsync();
-	var demoUserId = await seedUsers.SeedDemoUserAsync();
-	var uploadHandler = scope.ServiceProvider.GetRequiredService<UploadImageHandler>();
-	var demoImages = new List<Guid>();
-	try {
-		demoImages = await SeedDemoImages.SeedDemoImagesAsync(uploadHandler);
-	} catch (Exception ex) {
-		Log.Error(ex, "Failed to seed demo images");
+	if (!builder.Environment.IsEnvironment("Test")) {
+		var demoUserId = await seedUsers.SeedDemoUserAsync();
+		if (demoUserId != null) {
+			var uploadHandler = scope.ServiceProvider.GetRequiredService<UploadImageHandler>();
+			var demoImages = new List<Guid>();
+			try {
+				demoImages = await SeedDemoImages.SeedDemoImagesAsync(uploadHandler);
+			} catch (Exception ex) {
+				Log.Error(ex, "Failed to seed demo images");
+			}
+			await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value, demoImages);
+		}
 	}
-	if (demoUserId != null) await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value, demoImages);
 }
 
 if (!Env.IsDevelopment) app.UseHttpsRedirection();
