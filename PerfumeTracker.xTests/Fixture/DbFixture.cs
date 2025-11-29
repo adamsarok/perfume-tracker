@@ -15,7 +15,7 @@ using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace PerfumeTracker.xTests.Fixture;
 
-public class DbFixture : IAsyncLifetime {
+public abstract class DbFixture : IAsyncLifetime {
 	public WebApplicationFactory<Program> Factory { get; }
 	public MockTenantProvider TenantProvider = new();
 	public Mock<IHubContext<MissionProgressHub>> MockMissionProgressHubContext;
@@ -309,45 +309,7 @@ public class DbFixture : IAsyncLifetime {
 		await Factory.DisposeAsync();
 	}
 
-	// Helper method to generate test data with relationships
-	public async Task SeedTestData(PerfumeTrackerContext context) {
-		// Example: Generate perfumes with tags and events
-		var perfumes = PerfumeFaker.Generate(10);
-		var tags = TagFaker.Generate(5);
-
-		await context.Perfumes.AddRangeAsync(perfumes);
-		await context.Tags.AddRangeAsync(tags);
-		await context.SaveChangesAsync();
-
-		// Create relationships
-		var perfumeTags = new List<PerfumeTag>();
-		foreach (var perfume in perfumes) {
-			var randomTags = _faker.PickRandom(tags, _faker.Random.Int(1, 3));
-			foreach (var tag in randomTags) {
-				perfumeTags.Add(new PerfumeTag {
-					Id = Guid.NewGuid(),
-					PerfumeId = perfume.Id,
-					TagId = tag.Id,
-					UserId = _testUserId,
-					CreatedAt = DateTime.UtcNow,
-					UpdatedAt = DateTime.UtcNow
-				});
-			}
-		}
-
-		await context.PerfumeTags.AddRangeAsync(perfumeTags);
-
-		// Add events for some perfumes
-		var events = new List<PerfumeEvent>();
-		foreach (var perfume in perfumes.Take(5)) {
-			events.Add(PerfumeEventFaker.Clone()
-				.RuleFor(pe => pe.PerfumeId, perfume.Id)
-				.Generate());
-		}
-
-		await context.PerfumeEvents.AddRangeAsync(events);
-		await context.SaveChangesAsync();
-	}
+	public abstract Task SeedTestData(PerfumeTrackerContext context);
 
 	// Helper methods to generate data with specific UserId
 	public List<Perfume> GeneratePerfumes(int count, Guid? userId = null) {

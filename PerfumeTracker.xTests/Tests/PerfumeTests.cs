@@ -6,21 +6,39 @@ using PerfumeTracker.xTests.Fixture;
 namespace PerfumeTracker.xTests.Tests;
 
 [CollectionDefinition("Perfume Tests")]
-public class PerfumeCollection : ICollectionFixture<DbFixture>;
+public class PerfumeCollection : ICollectionFixture<PerfumeFixture>;
+
+public class PerfumeFixture : DbFixture {
+	public PerfumeFixture() : base() { }
+
+	public async override Task SeedTestData(PerfumeTrackerContext context) {
+		// Generate 5 tags
+		var tags = GenerateTags(5);
+		await context.Tags.AddRangeAsync(tags);
+		await context.SaveChangesAsync();
+
+		// Generate 3 perfumes
+		var perfumes = GeneratePerfumes(3);
+		await context.Perfumes.AddRangeAsync(perfumes);
+		await context.SaveChangesAsync();
+
+		// Generate perfume tags (linking perfumes to tags)
+		var perfumeIds = perfumes.Select(p => p.Id).ToList();
+		var tagIds = tags.Select(t => t.Id).ToList();
+		var perfumeTags = GeneratePerfumeTags(perfumeIds, tagIds);
+		await context.PerfumeTags.AddRangeAsync(perfumeTags);
+		await context.SaveChangesAsync();
+	}
+}
 
 [Collection("Perfume Tests")]
 public class PerfumeTests {
 
-	private readonly DbFixture _fixture;
-	public PerfumeTests(DbFixture fixture) {
+	private readonly PerfumeFixture _fixture;
+	public PerfumeTests(PerfumeFixture fixture) {
 		_fixture = fixture;
 	}
 
-	/* TODO:
-			scope.PerfumeTrackerContext.Tags.AddRange(tagSeed);
-				scope.PerfumeTrackerContext.Perfumes.AddRange(perfumeSeed);
-				scope.PerfumeTrackerContext.PerfumeTags.AddRange(perfumeTagSeed); 
-	*/
 
 	[Fact]
 	public async Task GetPerfume() {
