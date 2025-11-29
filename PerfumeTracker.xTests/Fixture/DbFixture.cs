@@ -1,13 +1,29 @@
 ﻿using Bogus;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
+using PerfumeTracker.Server.Features.Users;
+using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Outbox;
+using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
+using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace PerfumeTracker.xTests.Fixture;
 
 public class DbFixture : IAsyncLifetime {
 	public WebApplicationFactory<Program> Factory { get; }
+	public MockTenantProvider TenantProvider = new();
+	public Mock<IHubContext<MissionProgressHub>> MockMissionProgressHubContext;
+	public Mock<IHubContext<StreakProgressHub>> MockStreakProgressHubContext;
+	public Mock<IClientProxy> MockClientProxy;
+	public List<HubMessage> HubMessages = [];
+	public Mock<ISideEffectQueue> MockSideEffectQueue;
+	public record HubMessage(string HubSentMethod, object[] HubSentArgs);
 
 	// Base Faker
 	private readonly Faker _faker = new Faker();
@@ -37,6 +53,31 @@ public class DbFixture : IAsyncLifetime {
 			  .WithWebHostBuilder(builder => {
 				  builder.UseEnvironment("Test");
 			  });
+
+		//using var scope = GetTestScope();
+		var logger = Mock.Of<ILogger<CreateUser>>();
+
+		var mockClients = new Mock<IHubClients>();
+		MockClientProxy = new Mock<IClientProxy>();
+		_ = mockClients.Setup(clients => clients.All).Returns(MockClientProxy.Object);
+		_ = MockClientProxy.Setup(proxy => proxy
+			.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
+			.Returns(Task.CompletedTask)
+			.Callback<string, object[], CancellationToken>((method, args, token) =>
+				HubMessages.Add(new HubMessage(method, args)));
+
+		MockMissionProgressHubContext = new Mock<IHubContext<MissionProgressHub>>();
+		_ = MockMissionProgressHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
+
+		MockStreakProgressHubContext = new Mock<IHubContext<StreakProgressHub>>();
+		_ = MockStreakProgressHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
+
+		var userProxies = new Dictionary<string, Mock<IClientProxy>>();
+		_ = mockClients.Setup(clients => clients.User(It.IsAny<string>())).Returns((string userId) => {
+			if (!userProxies.ContainsKey(userId)) userProxies[userId] = MockClientProxy;
+			return userProxies[userId].Object;
+		});
+		MockSideEffectQueue = new Mock<ISideEffectQueue>();
 
 		// Initialize all Fakers
 		PerfumeFaker = new Faker<Perfume>()
@@ -249,6 +290,17 @@ public class DbFixture : IAsyncLifetime {
 		if (string.IsNullOrEmpty(databaseName)) throw new Exception("Test database not configured");
 		if (!databaseName.Contains("test", StringComparison.OrdinalIgnoreCase)) throw new Exception("Connected database is not a test database");
 
+		ILogger<CreateUser> logger = scope.ServiceProvider.GetRequiredService<ILogger<CreateUser>>();
+		var userManager = scope.ServiceProvider.GetRequiredService<UserManager<PerfumeIdentityUser>>();
+		const string testMail = "test@example.com";
+		var user = userManager.FindByEmailAsync(testMail).GetAwaiter().GetResult();
+		if (user == null) {
+			var createUserHandler = new CreateUser(logger, userManager, context);
+			user = createUserHandler.Create("test", "abcd1234ABCDxyz59697", Roles.USER, "test@example.com", false).GetAwaiter().GetResult();
+		}
+		if (user == null) throw new InvalidOperationException("User creation failed");
+		TenantProvider.MockTenantId = user.Id;
+
 		// Optional: Seed initial data here if needed
 		// await SeedTestData(context);
 	}
@@ -262,7 +314,7 @@ public class DbFixture : IAsyncLifetime {
 		// Example: Generate perfumes with tags and events
 		var perfumes = PerfumeFaker.Generate(10);
 		var tags = TagFaker.Generate(5);
-		
+
 		await context.Perfumes.AddRangeAsync(perfumes);
 		await context.Tags.AddRangeAsync(tags);
 		await context.SaveChangesAsync();
@@ -282,9 +334,9 @@ public class DbFixture : IAsyncLifetime {
 				});
 			}
 		}
-		
+
 		await context.PerfumeTags.AddRangeAsync(perfumeTags);
-		
+
 		// Add events for some perfumes
 		var events = new List<PerfumeEvent>();
 		foreach (var perfume in perfumes.Take(5)) {
@@ -292,7 +344,7 @@ public class DbFixture : IAsyncLifetime {
 				.RuleFor(pe => pe.PerfumeId, perfume.Id)
 				.Generate());
 		}
-		
+
 		await context.PerfumeEvents.AddRangeAsync(events);
 		await context.SaveChangesAsync();
 	}
