@@ -9,50 +9,50 @@ using System.Net.Http.Json;
 
 namespace PerfumeTracker.xTests.Tests;
 
-public class RandomPerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
-	public RandomPerfumeTests(WebApplicationFactory<Program> factory) : base(factory) { }
-	static bool dbUp = false;
-	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-	private async Task PrepareData() {          //fixtures don't have DI
-		await semaphore.WaitAsync();
-		try {
-			if (!dbUp) {
-				using var scope = GetTestScope();
-				var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;  truncate table \"public\".\"PerfumeRandom\" cascade;";
-				await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
-				scope.PerfumeTrackerContext.Perfumes.AddRange(perfumeSeed);
-				scope.PerfumeTrackerContext.PerfumeEvents.Add(new PerfumeEvent() {
-					Perfume = perfumeSeed[0],
-					CreatedAt = DateTime.UtcNow,
-					EventDate = DateTime.UtcNow,
-					Type = PerfumeEvent.PerfumeEventType.Worn
-				});
-				scope.PerfumeTrackerContext.PerfumeRandoms.Add(new PerfumeRandoms() {
-					Perfume = perfumeSeed[1],
-					CreatedAt = DateTime.UtcNow.AddDays(-2)
-				});
-				await scope.PerfumeTrackerContext.SaveChangesAsync();
-				dbUp = true;
-			}
-		}
-		finally {
-			semaphore.Release();
-		}
-	}
+[CollectionDefinition("RandomPerfume Tests")]
+public class RandomPerfumeCollection : ICollectionFixture<RandomPerfumeFixture>;
 
-	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1" },
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2" },
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "NotWornPerfume" },
-		};
+public class RandomPerfumeFixture : DbFixture {
+	public RandomPerfumeFixture() : base() { }
+
+	public async override Task SeedTestData(PerfumeTrackerContext context) {
+		var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;  truncate table \"public\".\"PerfumeRandom\" cascade;";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		
+		var perfumes = GeneratePerfumes(3);
+		await context.Perfumes.AddRangeAsync(perfumes);
+		await context.SaveChangesAsync();
+		
+		var events = GeneratePerfumeEvents(1, perfumes[0].Id);
+		events[0].Type = PerfumeEvent.PerfumeEventType.Worn;
+		events[0].EventDate = DateTime.UtcNow;
+		await context.PerfumeEvents.AddRangeAsync(events);
+		
+		var randoms = PerfumeRandomsFaker.Clone()
+			.RuleFor(pr => pr.PerfumeId, perfumes[1].Id)
+			.RuleFor(pr => pr.CreatedAt, DateTime.UtcNow.AddDays(-2))
+			.Generate(1);
+		await context.PerfumeRandoms.AddRangeAsync(randoms);
+		
+		await context.SaveChangesAsync();
+	}
+}
+
+[Collection("RandomPerfume Tests")]
+public class RandomPerfumeTests {
+	private readonly RandomPerfumeFixture _fixture;
+
+	public RandomPerfumeTests(RandomPerfumeFixture fixture) {
+		_fixture = fixture;
+	}
 
 	[Fact]
 	public async Task GetPerfumeSuggestion() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var handler = new GetRandomPerfumeHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var handler = new GetRandomPerfumeHandler(context, _fixture.MockSideEffectQueue.Object);
 		var response = await handler.Handle(new GetRandomPerfumeQuery(), CancellationToken.None);
 		Assert.NotNull(response);
 	}
-
 }

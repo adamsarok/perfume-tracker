@@ -96,7 +96,7 @@ public class PerfumeTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var handler = new DeletePerfumeHandler(context);
 		var perfume = await context.Perfumes.FirstAsync();
-		var result = await handler.Handle(new DeletePerfumeCommand(perfume, CancellationToken.None);
+		var result = await handler.Handle(new DeletePerfumeCommand(perfume.Id), CancellationToken.None);
 		Assert.True(result.IsDeleted);
 	}
 

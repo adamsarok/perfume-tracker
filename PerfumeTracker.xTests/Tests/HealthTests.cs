@@ -1,13 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
-using PerfumeTracker.xTests.Fixture;
 using System.Net.Http.Json;
 
 namespace PerfumeTracker.xTests.Tests;
-public class HealthTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
+
+public class HealthTests : IClassFixture<WebApplicationFactory<Program>> {
+	private readonly WebApplicationFactory<Program> _factory;
+
+	public HealthTests(WebApplicationFactory<Program> factory) {
+		_factory = factory;
+	}
 
 	[Fact]
 	public async Task GetHealth() {
-		var client = factory.CreateClient();
+		var client = _factory.CreateClient();
 		var response = await client.GetAsync($"/api/health");
 		response.EnsureSuccessStatusCode();
 
