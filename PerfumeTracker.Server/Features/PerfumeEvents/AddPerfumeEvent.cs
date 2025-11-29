@@ -40,13 +40,10 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 		var result = evt.Adapt<PerfumeEventDownloadDto>();
 		List<OutboxMessage> messages = [];
 		messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId, evt.Type)));
-		switch (evt.Type) {
-			case PerfumeEvent.PerfumeEventType.Worn:
+		
+		if (evt.Type == PerfumeEventType.Worn)
 				await HandleWorn(messages, context, evt, perfume!, request, userId, cancellationToken);
-				break;
-			default:
-				break;
-		}
+
 		await context.OutboxMessages.AddRangeAsync(messages, cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);
 		foreach (var message in messages) {
