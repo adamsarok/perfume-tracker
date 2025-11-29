@@ -52,6 +52,15 @@ public abstract class DbFixture : IAsyncLifetime {
 		Factory = new WebApplicationFactory<Program>()
 			  .WithWebHostBuilder(builder => {
 				  builder.UseEnvironment("Test");
+				  builder.ConfigureServices(services => {
+					  // Replace ITenantProvider with MockTenantProvider
+					  var descriptor = services.SingleOrDefault(
+						  d => d.ServiceType == typeof(ITenantProvider));
+					  if (descriptor != null) {
+						  services.Remove(descriptor);
+					  }
+					  services.AddScoped<ITenantProvider>(_ => TenantProvider);
+				  });
 			  });
 
 		//using var scope = GetTestScope();

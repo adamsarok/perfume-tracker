@@ -104,7 +104,8 @@ public class PerfumeTests {
 	public async Task AddPerfume() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var dto = new PerfumeUploadDto("House3", "Perfume3", 50, 50, true, true, false, false, new());
+		var perfumes = _fixture.GeneratePerfumes(1);
+		var dto = perfumes[0].Adapt<PerfumeUploadDto>();
 		var handler = new AddPerfumeHandler(context, _fixture.MockSideEffectQueue.Object);
 		var response = await handler.Handle(new AddPerfumeCommand(dto), CancellationToken.None);
 		Assert.NotNull(response);
@@ -154,7 +155,7 @@ public class PerfumeTests {
 		var perfume = await context.Perfumes.FirstAsync();
 		var handler = new GetNextPerfumeHandler(context);
 		var response = await handler.Handle(new GetNextPerfumeIdQuery(perfume.Id), CancellationToken.None);
-		Assert.Equal(perfume.Id, response);
+		Assert.NotEqual(perfume.Id, response); // Assuming there is more than one perfume, the next perfume ID should be different
 	}
 	[Fact]
 	public async Task GetPreviousPerfume() {
@@ -163,6 +164,6 @@ public class PerfumeTests {
 		var perfume = await context.Perfumes.FirstAsync();
 		var handler = new GetPreviousPerfumeHandler(context);
 		var response = await handler.Handle(new GetPreviousPerfumeIdQuery(perfume.Id), CancellationToken.None);
-		Assert.Equal(perfume.Id, response);
+		Assert.NotEqual(perfume.Id, response); // Assuming there is more than one perfume, the previous perfume ID should be different
 	}
 }

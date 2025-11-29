@@ -2,6 +2,7 @@
 using PerfumeTracker.Server.Services.Outbox;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
+
 public record AddPerfumeCommand(PerfumeUploadDto Dto) : ICommand<PerfumeDto>;
 public class AddPerfumeCommandValidator : AbstractValidator<AddPerfumeCommand> {
 	public AddPerfumeCommandValidator() {
@@ -26,11 +27,13 @@ public class AddPerfumeHandler(PerfumeTrackerContext context, ISideEffectQueue q
 		var perfume = request.Dto.Adapt<Perfume>();
 		if (perfume == null) throw new InvalidOperationException("Perfume mapping failed");
 		context.Perfumes.Add(perfume);
-		foreach (var tag in request.Dto.Tags) {
-			context.PerfumeTags.Add(new PerfumeTag() {
-				PerfumeId = perfume.Id,
-				TagId = tag.Id,
-			});
+		if (request.Dto.Tags != null) {
+			foreach (var tag in request.Dto.Tags) {
+				context.PerfumeTags.Add(new PerfumeTag() {
+					PerfumeId = perfume.Id,
+					TagId = tag.Id,
+				});
+			}
 		}
 		if (request.Dto.MlLeft > 0) {
 			context.PerfumeEvents.Add(new PerfumeEvent() {
