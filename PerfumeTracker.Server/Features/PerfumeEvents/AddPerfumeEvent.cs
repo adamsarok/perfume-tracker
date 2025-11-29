@@ -1,8 +1,5 @@
-﻿using Microsoft.Build.Tasks;
-using PerfumeTracker.Server.Models;
-using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Services.Auth;
 using PerfumeTracker.Server.Services.Outbox;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 using static PerfumeTracker.Server.Models.PerfumeEvent;
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
@@ -37,10 +34,8 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 		};
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync([evt.PerfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", evt.PerfumeId);
-		var result = evt.Adapt<PerfumeEventDownloadDto>();
 		List<OutboxMessage> messages = [];
-		messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId, evt.Type)));
-		
+		messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(evt.Id, evt.PerfumeId, userId, evt.Type)));		
 		if (evt.Type == PerfumeEventType.Worn)
 				await HandleWorn(messages, context, evt, perfume!, request, userId, cancellationToken);
 
@@ -49,7 +44,7 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 		foreach (var message in messages) {
 			queue.Enqueue(message);
 		}
-		return result;
+		return evt.Adapt<PerfumeEventDownloadDto>();
 	}
 
 	async Task HandleWorn(List<OutboxMessage> messages, PerfumeTrackerContext context, PerfumeEvent evt, Perfume perfume,
