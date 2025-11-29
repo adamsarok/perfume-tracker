@@ -1,8 +1,7 @@
-﻿
-using Mapster;
-using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
+
 public record DeletePerfumeEventCommand(Guid Id) : ICommand<PerfumeEventDownloadDto>;
 public class DeletePerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

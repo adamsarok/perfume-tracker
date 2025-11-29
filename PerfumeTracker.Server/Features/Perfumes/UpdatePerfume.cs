@@ -2,6 +2,7 @@
 using PerfumeTracker.Server.Services.Outbox;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
+
 public record UpdatePerfumeCommand(Guid Id, PerfumeUploadDto Dto) : ICommand<PerfumeDto>;
 public class UpdatePerfumeCommandValidator : AbstractValidator<UpdatePerfumeCommand> {
 	public UpdatePerfumeCommandValidator() {
@@ -60,7 +61,7 @@ public class UpdatePerfumeHandler(PerfumeTrackerContext context, ISideEffectQueu
 		}
 		if (tagsToAdd.Count > 0) {
 			context.PerfumeTags.AddRange(tagsToAdd);
-			messages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification([..tagsToAdd.Select(x => x.Id)], userId)));
+			messages.Add(OutboxMessage.From(new PerfumeTagsAddedNotification([.. tagsToAdd.Select(x => x.Id)], userId)));
 		}
 		messages.Add(OutboxMessage.From(new PerfumeUpdatedNotification(find.Id, userId)));
 		await context.OutboxMessages.AddRangeAsync(messages, cancellationToken);

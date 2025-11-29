@@ -1,10 +1,8 @@
-﻿using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Features.UserProfiles;
-using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Services.Auth;
 using PerfumeTracker.Server.Services.Outbox;
-using System.Threading;
 
 namespace PerfumeTracker.Server.Features.PerfumeRandoms;
+
 public record GetRandomPerfumeQuery() : IQuery<GetRandomPerfumeResponse>;
 public record GetRandomPerfumeResponse(Guid? PerfumeId, Guid? RandomsId);
 public class GetRandomPerfumeEndpoint : ICarterModule {
@@ -80,5 +78,5 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 		9 or 10 or 11 => Seasons.Autumn,
 		_ => throw new NotImplementedException(),
 	};
-	
+
 }

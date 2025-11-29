@@ -1,4 +1,5 @@
 ﻿namespace PerfumeTracker.Server.Config;
+
 public class UserConfiguration {
 	public string AdminUserName { get; init; }
 	public string AdminPassword { get; init; }

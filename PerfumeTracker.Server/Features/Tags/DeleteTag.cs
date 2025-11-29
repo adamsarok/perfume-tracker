@@ -2,6 +2,7 @@
 using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Tags;
+
 public record DeleteTagCommand(Guid TagId) : ICommand<TagDto>;
 public class DeleteTagEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.DbContext;
 
 public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUser, PerfumeIdentityRole, Guid> {
 	public ITenantProvider? TenantProvider { get; set; }
-	
+
 	public PerfumeTrackerContext(ITenantProvider tenantProvider) {
 		TenantProvider = tenantProvider;
 	}

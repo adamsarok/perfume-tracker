@@ -1,8 +1,8 @@
 ﻿using PerfumeTracker.Server.Services.Auth;
-using static PerfumeTracker.Server.Models.UserStreak;
 
 namespace PerfumeTracker.Server.Features.Streaks;
-public record UserStreakDto(Guid Id, 
+
+public record UserStreakDto(Guid Id,
 	DateTime? CurrentStreakStart,
 	int Progress,
 	int BestStreakLength);

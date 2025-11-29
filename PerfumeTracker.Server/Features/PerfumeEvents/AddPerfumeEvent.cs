@@ -3,6 +3,7 @@ using PerfumeTracker.Server.Services.Outbox;
 using static PerfumeTracker.Server.Models.PerfumeEvent;
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
+
 public record PerfumeEventUploadDto(Guid PerfumeId, DateTime? WornOn, PerfumeEventType Type, decimal? Amount, Guid? RandomsId);
 public record AddPerfumeEventCommand(PerfumeEventUploadDto Dto) : ICommand<PerfumeEventDownloadDto>;
 public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId, Guid UserId, PerfumeEvent.PerfumeEventType Type) : IUserNotification;
@@ -35,9 +36,9 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync([evt.PerfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", evt.PerfumeId);
 		List<OutboxMessage> messages = [];
-		messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(evt.Id, evt.PerfumeId, userId, evt.Type)));		
+		messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(evt.Id, evt.PerfumeId, userId, evt.Type)));
 		if (evt.Type == PerfumeEventType.Worn)
-				await HandleWorn(messages, context, evt, perfume!, request, userId, cancellationToken);
+			await HandleWorn(messages, context, evt, perfume!, request, userId, cancellationToken);
 
 		await context.OutboxMessages.AddRangeAsync(messages, cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);

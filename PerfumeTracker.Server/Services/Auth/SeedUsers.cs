@@ -1,7 +1,7 @@
 ﻿using PerfumeTracker.Server.Features.Users;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace PerfumeTracker.Server.Services.Auth;
+
 public interface ISeedUsers {
 	Task<Guid> SeedAdminAsync();
 	Task<Guid?> SeedDemoUserAsync();

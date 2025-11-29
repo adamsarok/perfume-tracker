@@ -1,7 +1,7 @@
-﻿using PerfumeTracker.Server.Features.PerfumeRatings;
-using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Tags;
+
 public record class AddTagCommand(TagUploadDto Dto) : ICommand<TagDto>;
 public class AddTagCommandValidator : AbstractValidator<AddTagCommand> {
 	public AddTagCommandValidator() {

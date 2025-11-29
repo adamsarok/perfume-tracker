@@ -1,19 +1,18 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Streaks;
-using PerfumeTracker.Server.Models;
-using static PerfumeTracker.Server.Models.UserStreak;
 namespace PerfumeTracker.Server.Services.Streaks;
+
 public class ProgressStreaks {
 	public class StreakEventNotificationHandler(UpdateStreakProgressHandler updateStreakProgressHandler) : INotificationHandler<PerfumeEventAddedNotification> {
 		public async Task Handle(PerfumeEventAddedNotification notification, CancellationToken cancellationToken) {
 			await updateStreakProgressHandler.UpdateStreakProgress(cancellationToken, notification.UserId);
 		}
 	}
-	public class UpdateStreakProgressHandler(PerfumeTrackerContext context, 
-		IHubContext<StreakProgressHub> streakProgressHub, 
+	public class UpdateStreakProgressHandler(PerfumeTrackerContext context,
+		IHubContext<StreakProgressHub> streakProgressHub,
 		ILogger<UpdateStreakProgressHandler> logger,
-		UserConfiguration userConfiguration)  {
+		UserConfiguration userConfiguration) {
 		public async Task UpdateStreakProgress(CancellationToken cancellationToken, Guid userId) {
 			var now = DateTime.UtcNow;
 			var streak = await context.UserStreaks

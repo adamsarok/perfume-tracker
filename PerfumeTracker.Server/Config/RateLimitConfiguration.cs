@@ -1,4 +1,5 @@
 ﻿namespace PerfumeTracker.Server.Config;
+
 public class RateLimitConfiguration {
 	public int General { get; init; }
 	public int Auth { get; init; }

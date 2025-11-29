@@ -14,7 +14,7 @@ public class SideEffectQueue : ISideEffectQueue {
 	}
 
 	public void Enqueue(OutboxMessage message) {
-		if (!_channel.Writer.TryWrite(message)) 			throw new InvalidOperationException("Failed to enqueue side effect.");
+		if (!_channel.Writer.TryWrite(message)) throw new InvalidOperationException("Failed to enqueue side effect.");
 	}
 
 	public ChannelReader<OutboxMessage> Reader => _channel.Reader;

@@ -2,6 +2,7 @@
 using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Ai;
+
 public record GetAiRecommendationQuery(string Query) : IQuery<string>;
 public class GetAiRecommendationEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

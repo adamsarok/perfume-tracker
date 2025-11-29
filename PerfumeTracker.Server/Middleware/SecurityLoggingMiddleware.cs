@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using Serilog;
 
 namespace PerfumeTracker.Server.Middleware;
+
 public class SecurityLoggingMiddleware {
 	private readonly RequestDelegate _next;
 	public SecurityLoggingMiddleware(RequestDelegate next) {

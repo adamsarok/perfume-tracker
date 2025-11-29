@@ -1,5 +1,4 @@
 ﻿using PerfumeTracker.Server.Features.R2;
-using System.IO;
 
 namespace PerfumeTracker.Server.Services.R2;
 

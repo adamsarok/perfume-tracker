@@ -1,9 +1,7 @@
-using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
-using PerfumeTracker.Server.Models;
 using PerfumeTracker.Server.Services.Common;
 
 namespace PerfumeTracker.Server.Services.Missions;
@@ -53,11 +51,11 @@ public class ProgressMissions {
 					case MissionType.WearDifferentPerfumes:
 						var alreadyWornThisWindow = await context.PerfumeEvents
 							.IgnoreQueryFilters()
-	                        .AnyAsync(x => x.UserId == notification.UserId
+							.AnyAsync(x => x.UserId == notification.UserId
 								&& x.PerfumeId == notification.PerfumeId
-	                            && x.Type == PerfumeEvent.PerfumeEventType.Worn
-	                            && x.EventDate >= m.Mission.StartDate
-	                            && x.EventDate <= now, cancellationToken);
+								&& x.Type == PerfumeEvent.PerfumeEventType.Worn
+								&& x.EventDate >= m.Mission.StartDate
+								&& x.EventDate <= now, cancellationToken);
 						if (!alreadyWornThisWindow) await updateMissionProgressHandler.UpdateMissionProgress(m, m.Mission, cancellationToken); break;
 					case MissionType.WearNote:
 						var perfumeTags = await context.PerfumeTags
@@ -76,7 +74,7 @@ public class ProgressMissions {
 
 	public class PerfumeTagsAddedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeTagsAddedNotification> {
 		public async Task Handle(PerfumeTagsAddedNotification notification, CancellationToken cancellationToken) {
-			
+
 		}
 	}
 
