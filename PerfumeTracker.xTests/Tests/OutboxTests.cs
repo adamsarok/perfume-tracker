@@ -22,7 +22,7 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 			await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
 			var userId = TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("MockTenantProvider userId is null");
 			var outboxSeed = new List<OutboxMessage>() {
-				OutboxMessage.From(new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), userId)),
+				OutboxMessage.From(new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), userId, PerfumeEvent.PerfumeEventType.Worn)),
 				OutboxMessage.From(new PerfumeAddedNotification(Guid.NewGuid(), userId)),
 				OutboxMessage.From(new PerfumeAddedNotification(Guid.NewGuid(), userId)),
 			};

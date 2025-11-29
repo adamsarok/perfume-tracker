@@ -79,7 +79,7 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		var xpService = new XPService(scope.PerfumeTrackerContext);
 		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object, xpService);
 		var handler = new ProgressMissions.PerfumeEventNotificationHandler(scope.PerfumeTrackerContext, updateHandler);
-		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
+		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException(), PerfumeEvent.PerfumeEventType.Worn);
 		await handler.Handle(notification, CancellationToken.None);
 		AssertProgress(MissionType.WearPerfumes);
 	}

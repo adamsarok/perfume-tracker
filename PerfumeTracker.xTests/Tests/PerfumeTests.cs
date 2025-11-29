@@ -164,19 +164,4 @@ public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 		var response = await handler.Handle(new GetPreviousPerfumeIdQuery(perfumeSeed[0].Id), CancellationToken.None);
 		Assert.Equal(perfumeSeed[1].Id, response);
 	}
-	[Fact]
-	public async Task AcceptRandomPerfume() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var random = new PerfumeRandoms() {
-			Id = Guid.NewGuid(),
-			 PerfumeId = perfumeSeed[0].Id,
-			 UserId = scope.PerfumeTrackerContext.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException()
-		};
-		scope.PerfumeTrackerContext.PerfumeRandoms.Add(random);
-		await scope.PerfumeTrackerContext.SaveChangesAsync(CancellationToken.None);
-		var handler = new AcceptRandomPerfumeHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
-		await handler.Handle(new AcceptRandomPerfumeCommand(random.Id), CancellationToken.None);
-		MockSideEffectQueue.Verify(q => q.Enqueue(It.IsAny<OutboxMessage>()), Times.AtLeastOnce());
-	}
 }

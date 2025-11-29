@@ -11,6 +11,7 @@ namespace PerfumeTracker.Server.Services.Missions;
 public class ProgressMissions {
 	public class PerfumeEventNotificationHandler(PerfumeTrackerContext context, UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeEventAddedNotification> {
 		public async Task Handle(PerfumeEventAddedNotification notification, CancellationToken cancellationToken) {
+			if (notification.Type != PerfumeEvent.PerfumeEventType.Worn) return;
 			var now = DateTime.UtcNow;
 			var userMissions = await context.UserMissions
 					.Include(x => x.Mission)

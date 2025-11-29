@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace PerfumeTracker.Server.Features.PerfumeRandoms;
 public record GetRandomPerfumeQuery() : IQuery<GetRandomPerfumeResponse>;
-public record GetRandomPerfumeResponse(Guid? PerfumeId);
+public record GetRandomPerfumeResponse(Guid? PerfumeId, Guid? RandomsId);
 public class GetRandomPerfumeEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/random-perfumes", async (ISender sender, CancellationToken cancellationToken) => {
@@ -42,16 +42,16 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 			)
 			.Select(x => x.Id)
 			.ToListAsync(cancellationToken);
-		if (all.Count == 0) return new GetRandomPerfumeResponse(null);
+		if (all.Count == 0) return new GetRandomPerfumeResponse(null, null);
 		var filtered = all.Except(alreadySug).Except(worn);
 		if (!filtered.Any()) filtered = all.Except(worn);
 		if (!filtered.Any()) filtered = all;
 		int index = _random.Next(filtered.Count());
 		var result = filtered.ToArray()[index];
-		if (!alreadySug.Contains(result)) await AddRandomPerfume(result, userId, cancellationToken);
-		return new GetRandomPerfumeResponse(result);
+		var randoms = await AddRandomPerfume(result, userId, cancellationToken);
+		return new GetRandomPerfumeResponse(result, randoms.Id);
 	}
-	private async Task AddRandomPerfume(Guid perfumeId, Guid userId, CancellationToken cancellationToken) {
+	private async Task<Models.PerfumeRandoms> AddRandomPerfume(Guid perfumeId, Guid userId, CancellationToken cancellationToken) {
 		var p = await context.Perfumes.FirstOrDefaultAsync(x => x.Id == perfumeId, cancellationToken);
 		if (p == null) throw new NotFoundException();
 		var s = new Models.PerfumeRandoms() {
@@ -62,6 +62,7 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 		context.PerfumeRandoms.Add(s);
 		await context.SaveChangesAsync(cancellationToken);
 		queue.Enqueue(message);
+		return s;
 	}
 	private async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter, CancellationToken cancellationToken) {
 		return await context

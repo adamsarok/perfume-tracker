@@ -1,11 +1,14 @@
-﻿using PerfumeTracker.Server.Services.Auth;
+﻿using Microsoft.Build.Tasks;
+using PerfumeTracker.Server.Models;
+using PerfumeTracker.Server.Services.Auth;
 using PerfumeTracker.Server.Services.Outbox;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 using static PerfumeTracker.Server.Models.PerfumeEvent;
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
-public record PerfumeEventUploadDto(Guid PerfumeId, DateTime? WornOn, PerfumeEventType Type, decimal? Amount, bool IsRandomPerfume);
+public record PerfumeEventUploadDto(Guid PerfumeId, DateTime? WornOn, PerfumeEventType Type, decimal? Amount, Guid? RandomId);
 public record AddPerfumeEventCommand(PerfumeEventUploadDto Dto) : ICommand<PerfumeEventDownloadDto>;
-public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId, Guid UserId) : IUserNotification;
+public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId, Guid UserId, PerfumeEvent.PerfumeEventType Type) : IUserNotification;
 public record PerfumeRandomAcceptedNotification(Guid PerfumeId, Guid UserId) : IUserNotification;
 public class AddPerfumeEventCommandValidator : AbstractValidator<AddPerfumeEventCommand> {
 	public AddPerfumeEventCommandValidator() {
@@ -32,15 +35,17 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 			EventDate = request.Dto.WornOn ?? DateTime.UtcNow,
 			Type = request.Dto.Type
 		};
-		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		context.PerfumeEvents.Add(evt);
 		var perfume = await context.Perfumes.FindAsync([evt.PerfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", evt.PerfumeId);
-		if (evt.AmountMl == 0 && evt.Type == PerfumeEvent.PerfumeEventType.Worn) evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		var result = evt.Adapt<PerfumeEventDownloadDto>();
 		List<OutboxMessage> messages = [];
-		if (evt.Type == PerfumeEvent.PerfumeEventType.Worn) {
-			messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId)));
-			if (request.Dto.IsRandomPerfume) messages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(result.PerfumeId, userId)));
+		messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(result.Id, result.PerfumeId, userId, evt.Type)));
+		switch (evt.Type) {
+			case PerfumeEvent.PerfumeEventType.Worn:
+				await HandleWorn(messages, context, evt, perfume!, request, userId, cancellationToken);
+				break;
+			default:
+				break;
 		}
 		await context.OutboxMessages.AddRangeAsync(messages, cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);
@@ -48,5 +53,17 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 			queue.Enqueue(message);
 		}
 		return result;
+	}
+
+	async Task HandleWorn(List<OutboxMessage> messages, PerfumeTrackerContext context, PerfumeEvent evt, Perfume perfume,
+			AddPerfumeEventCommand request, Guid userId, CancellationToken cancellationToken) {
+		if (evt.AmountMl == 0) {
+			var settings = await context.UserProfiles.FirstAsync(cancellationToken);
+			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
+		}
+		if (request.Dto.RandomId == null) return;
+		messages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(perfume.Id, userId)));
+		var randoms = await context.PerfumeRandoms.FindAsync(request.Dto.RandomId);
+		if (randoms != null) randoms.IsAccepted = true;
 	}
 }
