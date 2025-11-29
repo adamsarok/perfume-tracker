@@ -11,14 +11,14 @@ export interface SprayOnProps {
   readonly perfumeId: string | undefined;
   readonly onSuccess: (() => void) | null;
   readonly className: string;
-  readonly isRandomPerfume: boolean;
+  readonly randomsId: string | null;
 }
 
 export default function SprayOnComponent({
   perfumeId,
   onSuccess,
   className,
-  isRandomPerfume,
+  randomsId,
 }: SprayOnProps) {
   const yymmdd = new Date().toISOString().slice(0, 10);
   const [dateStr, setDateStr] = useState<string>(yymmdd);
@@ -39,7 +39,7 @@ export default function SprayOnComponent({
       } else {
         date = new Date();
       }
-      const result = await wearPerfume(perfumeId, date, isRandomPerfume);
+      const result = await wearPerfume(perfumeId, date, randomsId);
       if (result.ok) {
         showSuccess("Smell on!");
         if (onSuccess) onSuccess();

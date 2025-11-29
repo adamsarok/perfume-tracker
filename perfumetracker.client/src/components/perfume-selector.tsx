@@ -83,7 +83,7 @@ export default function PerfumeSelector({ perfumes, onSprayOnSuccess }: PerfumeS
         perfumeId={getPerfumeID()}
         onSuccess={onSprayOn}
         className="mb-2 mt-2"
-        isRandomPerfume={false}
+        randomsId={null}
       ></SprayOnComponent>
       <Separator className="mb-1"></Separator>
     </div>
