@@ -371,4 +371,161 @@ public abstract class DbFixture : IAsyncLifetime {
 		await context.SaveChangesAsync();
 		return result;
 	}
+
+	public async Task<List<PerfumeTag>> SeedPerfumeTags(List<Guid> perfumeIds, List<Guid> tagIds) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"PerfumeTag\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = GeneratePerfumeTags(perfumeIds, tagIds);
+		await context.Set<PerfumeTag>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<PerfumeEvent>> SeedPerfumeEvents(int count, Guid perfumeId) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = GeneratePerfumeEvents(count, perfumeId);
+		await context.Set<PerfumeEvent>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<PerfumeRating>> SeedPerfumeRatings(int count, Guid perfumeId) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"PerfumeRating\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = GeneratePerfumeRatings(count, perfumeId);
+		await context.Set<PerfumeRating>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<PerfumeRandoms>> SeedPerfumeRandoms(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"PerfumeRandoms\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = PerfumeRandomsFaker.Clone()
+			.RuleFor(pr => pr.UserId, TenantProvider.MockTenantId!.Value)
+			.Generate(count);
+		await context.Set<PerfumeRandoms>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<Recommendation>> SeedRecommendations(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"Recommendation\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = RecommendationFaker.Clone()
+			.RuleFor(r => r.UserId, TenantProvider.MockTenantId!.Value)
+			.Generate(count);
+		await context.Set<Recommendation>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<Achievement>> SeedAchievements(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"Achievement\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = AchievementFaker.Generate(count);
+		await context.Set<Achievement>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<UserAchievement>> SeedUserAchievements(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"UserAchievement\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = UserAchievementFaker.Clone()
+			.RuleFor(ua => ua.UserId, TenantProvider.MockTenantId!.Value)
+			.Generate(count);
+		await context.Set<UserAchievement>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<Mission>> SeedMissions(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"Mission\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = MissionFaker.Generate(count);
+		await context.Set<Mission>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<UserMission>> SeedUserMissions(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"UserMission\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = UserMissionFaker.Clone()
+			.RuleFor(um => um.UserId, TenantProvider.MockTenantId!.Value)
+			.Generate(count);
+		await context.Set<UserMission>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<UserStreak>> SeedUserStreaks(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"UserStreak\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = UserStreakFaker.Clone()
+			.RuleFor(us => us.UserId, TenantProvider.MockTenantId!.Value)
+			.Generate(count);
+		await context.Set<UserStreak>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<UserProfile> SeedUserProfile() {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"UserProfile\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = UserProfileFaker.Clone()
+			.RuleFor(up => up.Id, TenantProvider.MockTenantId!.Value)
+			.Generate();
+		await context.Set<UserProfile>().AddAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<OutboxMessage>> SeedOutboxMessages(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"OutboxMessage\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = OutboxMessageFaker.Clone()
+			.RuleFor(om => om.UserId, TenantProvider.MockTenantId!.Value)
+			.Generate(count);
+		await context.Set<OutboxMessage>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
+
+	public async Task<List<Invite>> SeedInvites(int count) {
+		using var scope = Factory.Services.CreateScope();
+		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var sql = "truncate table \"public\".\"Invite\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		var result = InviteFaker.Generate(count);
+		await context.Set<Invite>().AddRangeAsync(result);
+		await context.SaveChangesAsync();
+		return result;
+	}
 }
