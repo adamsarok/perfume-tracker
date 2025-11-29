@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.Models;
-using System.Threading.Tasks;
-using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
-
 namespace PerfumeTracker.Server.Services.Missions;
 
 public class MissionService(IServiceProvider serviceProvider, ILogger<MissionService> logger) : BackgroundService {

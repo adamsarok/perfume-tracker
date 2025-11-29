@@ -1,6 +1,7 @@
 ﻿using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
+
 public record GetPerfumeRatingQuery(Guid PerfumeId) : IQuery<List<PerfumeRatingDownloadDto>>;
 public class GetPerfumeRatingEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

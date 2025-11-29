@@ -2,6 +2,7 @@
 using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Missions;
+
 public record GenerateMissionCommand : ICommand;
 public class GenerateMissionsEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

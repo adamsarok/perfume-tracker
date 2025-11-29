@@ -1,6 +1,7 @@
 ﻿using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
+
 public record GetPerfumeEventQuery(Guid Id) : IQuery<PerfumeEvent>;
 public class GetPerfumeEventEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {

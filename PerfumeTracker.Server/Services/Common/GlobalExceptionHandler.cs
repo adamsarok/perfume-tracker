@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 
 namespace PerfumeTracker.Server.Services.Common;
+
 public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler {
 	public async ValueTask<bool> TryHandleAsync(
 		HttpContext httpContext,

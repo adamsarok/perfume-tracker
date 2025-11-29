@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
-
-namespace PerfumeTracker.Server.Middleware;
+﻿namespace PerfumeTracker.Server.Middleware;
 
 public class SecurityHeadersMiddleware {
 	private readonly RequestDelegate _next;
@@ -16,7 +13,7 @@ public class SecurityHeadersMiddleware {
 		context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
 		context.Response.Headers.Append("X-Permitted-Cross-Domain-Policies", "none");
 		context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-		context.Response.Headers.Append("Permissions-Policy", 
+		context.Response.Headers.Append("Permissions-Policy",
 			"accelerometer=(), " +
 			"camera=(), " +
 			"geolocation=(), " +

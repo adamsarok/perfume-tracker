@@ -1,5 +1,6 @@
+import { GetRandomPerfumeResponse } from "@/dto/GetRandomPerfumeResponse";
 import { AxiosResult, get } from "./axios-service";
 
-export async function getPerfumeRandom() : Promise<AxiosResult<string>> {
-    return get<string>('/random-perfumes');
+export async function getPerfumeRandom() : Promise<AxiosResult<GetRandomPerfumeResponse>> {
+    return get<GetRandomPerfumeResponse>('/random-perfumes');
 }

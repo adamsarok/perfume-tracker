@@ -18,7 +18,7 @@ public class GetWornPerfumesHandler(PerfumeTrackerContext context, IPresignedUrl
 	: IQueryHandler<GetWornPerfumesQuery, List<PerfumeEventDownloadDto>> {
 	public async Task<List<PerfumeEventDownloadDto>> Handle(GetWornPerfumesQuery request, CancellationToken cancellationToken) {
 		var query = context.PerfumeEvents.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn);
-		
+
 		if (request.Cursor.HasValue && request.Cursor > 0) {
 			query = query.Where(x => x.SequenceNumber < request.Cursor.Value);
 		}

@@ -64,7 +64,7 @@ public class StreakTests : TestBase, IClassFixture<WebApplicationFactory<Program
 		var updateHandler = new UpdateStreakProgressHandler(scope.PerfumeTrackerContext, MockStreakProgressHubContext.Object, 
 			mockLogger.Object, userConfig);
 		var handler = new StreakEventNotificationHandler(updateHandler);
-		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
+		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException(), PerfumeEvent.PerfumeEventType.Worn);
 		await handler.Handle(notification, CancellationToken.None);
 		AssertProgress();
 	}

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-
-namespace PerfumeTracker.Server.Models;
+﻿namespace PerfumeTracker.Server.Models;
 
 public class PerfumeIdentityRole : IdentityRole<Guid> {
 	public PerfumeIdentityRole() : base() { }

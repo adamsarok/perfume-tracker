@@ -1,6 +1,5 @@
-﻿using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+﻿namespace PerfumeTracker.Server.Models;
 
-namespace PerfumeTracker.Server.Models;
 public class UserProfile : Entity {
 	public UserProfile() { }
 	public UserProfile(Guid userId, string userName, string email) {

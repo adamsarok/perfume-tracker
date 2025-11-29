@@ -10,5 +10,5 @@ interface EditPerfumePageProps {
 
 export default async function EditPerfumePage(props: EditPerfumePageProps) {
     const params = await props.params;
-    return <PerfumeEditForm perfumeId={params.id} isRandomPerfume={false}></PerfumeEditForm>
+    return <PerfumeEditForm perfumeId={params.id} randomsId={null}></PerfumeEditForm>
 }

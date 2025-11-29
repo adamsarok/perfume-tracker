@@ -7,7 +7,7 @@ public class R2Configuration {
 	public string? BucketName { get; init; }
 	public int ExpirationHours { get; init; }
 	public int MaxFileSizeKb { get; init; }
-	public bool IsEnabled { get ; init;}
+	public bool IsEnabled { get; init; }
 	public R2Configuration(IConfiguration configuration) {
 		AccessKey = configuration["R2:AccessKey"];
 		SecretKey = configuration["R2:SecretKey"];
@@ -16,9 +16,9 @@ public class R2Configuration {
 		ExpirationHours = configuration.GetValue<int?>("R2:ExpirationHours") ?? 1;
 		MaxFileSizeKb = configuration.GetValue<int?>("R2:MaxFileSizeKb") ?? 256;
 		if (ExpirationHours <= 0 || MaxFileSizeKb <= 0) throw new InvalidOperationException("Expiration and file size limit values must be positive integers");
-		IsEnabled = !string.IsNullOrWhiteSpace(AccessKey) 
-			&& !string.IsNullOrWhiteSpace(SecretKey) 
-			&& !string.IsNullOrWhiteSpace(AccountId) 
+		IsEnabled = !string.IsNullOrWhiteSpace(AccessKey)
+			&& !string.IsNullOrWhiteSpace(SecretKey)
+			&& !string.IsNullOrWhiteSpace(AccountId)
 			&& !string.IsNullOrWhiteSpace(BucketName);
 	}
 }

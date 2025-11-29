@@ -70,7 +70,7 @@ public class PerfumeWornTests : TestBase, IClassFixture<WebApplicationFactory<Pr
 	public async Task AddPerfumeWorn() {
 		await PrepareData();
 		using var scope = GetTestScope();
-		var dto = new PerfumeEventUploadDto(perfumeSeed[2].Id, DateTime.UtcNow, PerfumeEvent.PerfumeEventType.Worn, 0.05m, false);
+		var dto = new PerfumeEventUploadDto(perfumeSeed[2].Id, DateTime.UtcNow, PerfumeEvent.PerfumeEventType.Worn, 0.05m, Guid.NewGuid());
 		var handler = new AddPerfumeEventHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
 		var result = await handler.Handle(new AddPerfumeEventCommand(dto), CancellationToken.None);
 		Assert.True(await scope.PerfumeTrackerContext.PerfumeEvents.AnyAsync(x => x.Id == result.Id));

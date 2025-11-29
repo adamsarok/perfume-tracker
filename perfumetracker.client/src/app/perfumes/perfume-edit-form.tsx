@@ -44,7 +44,7 @@ import { PerfumeDTO } from "@/dto/PerfumeDTO";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
-  readonly isRandomPerfume: boolean;
+  readonly randomsId: string | null;
 }
 
 const formSchema = z.object({
@@ -72,7 +72,7 @@ const formSchema = z.object({
 
 export default function PerfumeEditForm({
   perfumeId,
-  isRandomPerfume,
+  randomsId,
 }: PerfumeEditFormProps) {
   const [allTags, setAllTags] = useState<TagDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -497,7 +497,7 @@ export default function PerfumeEditForm({
                 perfumeId={perfume?.perfume.id}
                 onSuccess={null}
                 className="w-full"
-                isRandomPerfume={isRandomPerfume}
+                randomsId={randomsId}
               ></SprayOnComponent>
               <Separator className="mb-2 mt-2"></Separator>
             </div>

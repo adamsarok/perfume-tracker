@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using PerfumeTracker.Server.Models;
-
 namespace PerfumeTracker.Server.Services.Demo;
 
 public static class SeedDemoData {
@@ -46,11 +43,12 @@ public static class SeedDemoData {
 
 		int actImg = 0;
 
-		Guid? GetDemoImageGuid() { 
+		Guid? GetDemoImageGuid() {
 			if (demoImageGuids == null || demoImageGuids.Count == 0) return null;
 			if (actImg >= demoImageGuids.Count) actImg = 0;
 			return demoImageGuids[actImg++];
-		};
+		}
+		;
 
 		Perfume azure = new() {
 			UserId = demoUserId,
