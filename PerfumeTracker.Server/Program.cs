@@ -1,12 +1,7 @@
 using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
-using PerfumeTracker.Server.Config;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Middleware;
@@ -33,28 +28,29 @@ if (!string.IsNullOrWhiteSpace(databaseUrl)) {
 	var uri = new Uri(databaseUrl);
 	var username = uri.UserInfo.Split(':')[0];
 	var password = uri.UserInfo.Split(':')[1];
-	conn = $"Host={uri.Host};Database={uri.AbsolutePath.Substring(1)};Username={username};Password={password};Port={uri.Port};SSL Mode=Require"; 
+	conn = $"Host={uri.Host};Database={uri.AbsolutePath.Substring(1)};Username={username};Password={password};Port={uri.Port};SSL Mode=Require";
 } else {
-	conn = builder.Configuration.GetConnectionString("PerfumeTracker");
+	string db = builder.Environment.IsEnvironment("Test") ? "PerfumeTrackerTest" : "PerfumeTracker";
+	conn = builder.Configuration.GetConnectionString(db);
 	if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 }
 
 var loggerConfig = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.PostgreSQL(
-        connectionString: conn,
-        tableName: "log",
-        columnOptions: new Dictionary<string, ColumnWriterBase>
-        {
-            { "message", new RenderedMessageColumnWriter() },
-            { "message_template", new MessageTemplateColumnWriter() },
-            { "level", new LevelColumnWriter() },
-            { "timestamp", new TimestampColumnWriter() },
-            { "exception", new ExceptionColumnWriter() },
-            { "properties", new LogEventSerializedColumnWriter() }
-        },
-        needAutoCreateTable: true)
-    .Enrich.FromLogContext();
+	.WriteTo.Console()
+	.WriteTo.PostgreSQL(
+		connectionString: conn,
+		tableName: "log",
+		columnOptions: new Dictionary<string, ColumnWriterBase>
+		{
+			{ "message", new RenderedMessageColumnWriter() },
+			{ "message_template", new MessageTemplateColumnWriter() },
+			{ "level", new LevelColumnWriter() },
+			{ "timestamp", new TimestampColumnWriter() },
+			{ "exception", new ExceptionColumnWriter() },
+			{ "properties", new LogEventSerializedColumnWriter() }
+		},
+		needAutoCreateTable: true)
+	.Enrich.FromLogContext();
 
 var defaultLogLevel = builder.Configuration.GetValue<string>("Logging:LogLevel:Default") ?? "Information";
 loggerConfig.MinimumLevel.ControlledBy(new LoggingLevelSwitch(
@@ -95,19 +91,19 @@ builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
 builder.Services.AddHealthChecks()
-    .AddNpgSql(conn);
+	.AddNpgSql(conn);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 var corsConfig = new CorsConfiguration(builder.Configuration);
 builder.Services.AddCors(options => {
-    options.AddPolicy("AllowSpecificOrigin",
-        builder => builder
-            .WithOrigins(corsConfig.AllowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials());
+	options.AddPolicy("AllowSpecificOrigin",
+		builder => builder
+			.WithOrigins(corsConfig.AllowedOrigins)
+			.AllowAnyHeader()
+			.AllowAnyMethod()
+			.AllowCredentials());
 });
 
 builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
@@ -129,7 +125,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options => {
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope()) {
-    var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+	var dbContext = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 	var seedUsers = scope.ServiceProvider.GetRequiredService<ISeedUsers>();
 	await dbContext.Database.MigrateAsync();
 	await SeedAchievements.SeedAchievementsAsync(dbContext);
@@ -146,7 +142,7 @@ using (var scope = app.Services.CreateScope()) {
 	if (demoUserId != null) await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value, demoImages);
 }
 
-if (!Env.IsDevelopment)	app.UseHttpsRedirection();
+if (!Env.IsDevelopment) app.UseHttpsRedirection();
 app.UseForwardedHeaders();
 app.UseRateLimiter();
 app.UseExceptionHandler();
@@ -157,7 +153,7 @@ app.UseAuthorization();
 app.UseSecurityHeaders();
 app.MapCarter();
 app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions {
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+	ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
 

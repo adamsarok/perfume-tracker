@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
-using Moq;
-using PerfumeTracker.Server.Features.PerfumeRandoms;
 using PerfumeTracker.Server.Features.PerfumeRatings;
 using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.xTests.Fixture;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace PerfumeTracker.xTests.Tests;
 
 public class PerfumeTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
