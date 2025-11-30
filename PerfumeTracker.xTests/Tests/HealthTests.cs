@@ -1,13 +1,27 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using PerfumeTracker.xTests.Fixture;
+﻿using PerfumeTracker.xTests.Fixture;
 using System.Net.Http.Json;
 
 namespace PerfumeTracker.xTests.Tests;
-public class HealthTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>> {
+
+[CollectionDefinition("Health Tests")]
+public class HealthCollection : ICollectionFixture<HealthFixture>;
+
+public class HealthFixture : DbFixture {
+	public HealthFixture() : base() { }
+
+	public async override Task SeedTestData(PerfumeTrackerContext context) { }
+}
+
+[Collection("Health Tests")]
+public class HealthTests {
+	private readonly HealthFixture _fixture;
+	public HealthTests(HealthFixture fixture) {
+		_fixture = fixture;
+	}
 
 	[Fact]
 	public async Task GetHealth() {
-		var client = factory.CreateClient();
+		var client = _fixture.Factory.CreateClient();
 		var response = await client.GetAsync($"/api/health");
 		response.EnsureSuccessStatusCode();
 

@@ -8,49 +8,48 @@ using System.Net.Http.Json;
 
 namespace PerfumeTracker.xTests.Tests;
 
-public class PerfumeWornTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
-	public PerfumeWornTests(WebApplicationFactory<Program> factory) : base(factory) { }
-	static bool dbUp = false;
-	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-	private async Task PrepareData() {          //fixtures don't have DI
-		await semaphore.WaitAsync();
-		try {
-			if (!dbUp) {
-				using var scope = GetTestScope();
-				var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;";
-				await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
-				scope.PerfumeTrackerContext.Perfumes.AddRange(perfumeSeed);
-				scope.PerfumeTrackerContext.PerfumeEvents.Add(new PerfumeEvent() {
-					Perfume = perfumeSeed[0],
-					CreatedAt = DateTime.UtcNow,
-					EventDate = DateTime.UtcNow,
-					Type = PerfumeEvent.PerfumeEventType.Worn
-				});
-				scope.PerfumeTrackerContext.PerfumeEvents.Add(new PerfumeEvent() {
-					Perfume = perfumeSeed[1],
-					CreatedAt = DateTime.UtcNow.AddDays(-1),
-					EventDate = DateTime.UtcNow.AddDays(-1),
-					Type = PerfumeEvent.PerfumeEventType.Worn
-				});
-				await scope.PerfumeTrackerContext.SaveChangesAsync();
-				dbUp = true;
-			}
-		} finally {
-			semaphore.Release();
-		}
-	}
+[CollectionDefinition("PerfumeWorn Tests")]
+public class PerfumeWornCollection : ICollectionFixture<PerfumeWornFixture>;
 
-	static List<Perfume> perfumeSeed = new List<Perfume> {
-			new Perfume { Id = Guid.NewGuid(), House = "House1", PerfumeName = "Perfume1" },
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "Perfume2" },
-			new Perfume { Id = Guid.NewGuid(), House = "House2", PerfumeName = "NotWornPerfume" },
-		};
+public class PerfumeWornFixture : DbFixture {
+	public PerfumeWornFixture() : base() { }
+
+	public async override Task SeedTestData(PerfumeTrackerContext context) {
+		var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		
+		var perfumes = GeneratePerfumes(3);
+		await context.Perfumes.AddRangeAsync(perfumes);
+		await context.SaveChangesAsync();
+		
+		var events = GeneratePerfumeEvents(1, perfumes[0].Id);
+		events[0].Type = PerfumeEvent.PerfumeEventType.Worn;
+		events[0].EventDate = DateTime.UtcNow;
+		await context.PerfumeEvents.AddRangeAsync(events);
+		
+		var events2 = GeneratePerfumeEvents(1, perfumes[1].Id);
+		events2[0].Type = PerfumeEvent.PerfumeEventType.Worn;
+		events2[0].EventDate = DateTime.UtcNow.AddDays(-1);
+		await context.PerfumeEvents.AddRangeAsync(events2);
+		
+		await context.SaveChangesAsync();
+	}
+}
+
+[Collection("PerfumeWorn Tests")]
+public class PerfumeWornTests {
+	private readonly PerfumeWornFixture _fixture;
+
+	public PerfumeWornTests(PerfumeWornFixture fixture) {
+		_fixture = fixture;
+	}
 
 	[Fact]
 	public async Task GetPerfumeWorns() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var handler = new GetWornPerfumesHandler(scope.PerfumeTrackerContext, new MockPresignedUrlService());
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var handler = new GetWornPerfumesHandler(context, new MockPresignedUrlService());
 		var result = await handler.Handle(new GetWornPerfumesQuery(0, 20), CancellationToken.None);
 		Assert.NotNull(result);
 		Assert.NotEmpty(result);
@@ -58,21 +57,24 @@ public class PerfumeWornTests : TestBase, IClassFixture<WebApplicationFactory<Pr
 
 	[Fact]
 	public async Task DeletePerfumeWorn() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var worn = await scope.PerfumeTrackerContext.PerfumeEvents.FirstAsync();
-		var handler = new DeletePerfumeEventHandler(scope.PerfumeTrackerContext);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var worn = await context.PerfumeEvents.FirstAsync();
+		var handler = new DeletePerfumeEventHandler(context);
 		var result = await handler.Handle(new DeletePerfumeEventCommand(worn.Id), CancellationToken.None);
 		Assert.True(result.IsDeleted);
 	}
 
 	[Fact]
 	public async Task AddPerfumeWorn() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var dto = new PerfumeEventUploadDto(perfumeSeed[2].Id, DateTime.UtcNow, PerfumeEvent.PerfumeEventType.Worn, 0.05m, Guid.NewGuid());
-		var handler = new AddPerfumeEventHandler(scope.PerfumeTrackerContext, MockSideEffectQueue.Object);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var perfume = await context.Perfumes.Skip(2).FirstAsync();
+		var dto = new PerfumeEventUploadDto(perfume.Id, DateTime.UtcNow, PerfumeEvent.PerfumeEventType.Worn, 0.05m, Guid.NewGuid());
+		var handler = new AddPerfumeEventHandler(context, _fixture.MockSideEffectQueue.Object);
 		var result = await handler.Handle(new AddPerfumeEventCommand(dto), CancellationToken.None);
-		Assert.True(await scope.PerfumeTrackerContext.PerfumeEvents.AnyAsync(x => x.Id == result.Id));
+		Assert.True(await context.PerfumeEvents.AnyAsync(x => x.Id == result.Id));
 	}
 }

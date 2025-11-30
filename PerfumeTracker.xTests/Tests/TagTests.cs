@@ -1,38 +1,41 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.Tags;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;
-public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
-	public TagTests(WebApplicationFactory<Program> factory) : base(factory) { }
-	private static readonly SemaphoreSlim semaphore = new(1);
-	private async Task PrepareData() {          //fixtures don't have DI
-		await semaphore.WaitAsync();
-		try {
-			if (!DbUp) {
-				using var scope = GetTestScope();
-				var sql = "truncate table \"public\".\"Tag\" cascade";
-				_ = await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
-				scope.PerfumeTrackerContext.Tags.AddRange(tagSeed);
-				_ = await scope.PerfumeTrackerContext.SaveChangesAsync();
-				DbUp = true;
-			}
-		} finally {
-			_ = semaphore.Release();
-		}
-	}
 
-	static readonly List<Tag> tagSeed = [
-		new Tag { Id = Guid.NewGuid(), Color = "#FFFFFF", TagName = "Musky" },
-		new Tag { Id = Guid.NewGuid(), Color = "#FF0000", TagName = "Woody" }
-	];
+[CollectionDefinition("Tag Tests")]
+public class TagCollection : ICollectionFixture<TagFixture>;
+
+public class TagFixture : DbFixture {
+	public TagFixture() : base() { }
+
+	public async override Task SeedTestData(PerfumeTrackerContext context) {
+		var sql = "truncate table \"public\".\"Tag\" cascade";
+		await context.Database.ExecuteSqlRawAsync(sql);
+		
+		var tags = GenerateTags(2);
+		await context.Tags.AddRangeAsync(tags);
+		await context.SaveChangesAsync();
+	}
+}
+
+[Collection("Tag Tests")]
+public class TagTests {
+	private readonly TagFixture _fixture;
+
+	public TagTests(TagFixture fixture) {
+		_fixture = fixture;
+	}
 
 	[Fact]
 	public async Task GetTag() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var getTagHandler = new GetTagHandler(scope.PerfumeTrackerContext);
-		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var getTagHandler = new GetTagHandler(context);
+		var tag = await context.Tags.FirstAsync();
 		var result = await getTagHandler.Handle(new GetTagQuery(tag.Id), CancellationToken.None);
 		Assert.NotNull(result);
 		Assert.Equal(tag.Id, result.Id);
@@ -40,18 +43,20 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 
 	[Fact]
 	public async Task GetTag_NotFound() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var getTagHandler = new GetTagHandler(scope.PerfumeTrackerContext);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var getTagHandler = new GetTagHandler(context);
 		_ = await Assert.ThrowsAsync<NotFoundException>(async () =>
 			await getTagHandler.Handle(new GetTagQuery(Guid.NewGuid()), CancellationToken.None));
 	}
 
 	[Fact]
 	public async Task GetTags() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var getTagsHandler = new GetTagsHandler(scope.PerfumeTrackerContext);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var getTagsHandler = new GetTagsHandler(context);
 		var tags = await getTagsHandler.Handle(new GetTagsQuery(), CancellationToken.None);
 		Assert.NotNull(tags);
 		Assert.NotEmpty(tags);
@@ -59,41 +64,45 @@ public class TagTests : TestBase, IClassFixture<WebApplicationFactory<Program>> 
 
 	[Fact]
 	public async Task UpdateTag() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var tag = await context.Tags.FirstAsync();
 		tag.TagName = Guid.NewGuid().ToString();
 		var dto = tag.Adapt<TagUploadDto>();
-		var updateTagHandler = new UpdateTagHandler(scope.PerfumeTrackerContext);
+		var updateTagHandler = new UpdateTagHandler(context);
 		var tagResult = await updateTagHandler.Handle(new UpdateTagCommand(tag.Id, dto), CancellationToken.None);
 		Assert.Equal(tag.TagName, tagResult.TagName);
 	}
 
 	[Fact]
 	public async Task DeleteTag() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var tag = await scope.PerfumeTrackerContext.Tags.FirstAsync();
-		var deleteTagHandler = new DeleteTagHandler(scope.PerfumeTrackerContext);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var tag = await context.Tags.FirstAsync();
+		var deleteTagHandler = new DeleteTagHandler(context);
 		var result = await deleteTagHandler.Handle(new DeleteTagCommand(tag.Id), CancellationToken.None);
 		Assert.True(result.IsDeleted);
 	}
 
 	[Fact]
 	public async Task AddTag() {
-		await PrepareData();
-		using var scope = GetTestScope();
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
 		var dto = new TagUploadDto("Purple", "#630330");
-		var addTagHandler = new AddTagHandler(scope.PerfumeTrackerContext);
+		var addTagHandler = new AddTagHandler(context);
 		var result = await addTagHandler.Handle(new AddTagCommand(dto), CancellationToken.None);
-		Assert.NotNull(await scope.PerfumeTrackerContext.Tags.FindAsync(result.Id));
+		Assert.NotNull(await context.Tags.FindAsync(result.Id));
 	}
 
 	[Fact]
 	public async Task GetStats() {
-		await PrepareData();
-		using var scope = GetTestScope();
-		var getTagStatsHandler = new GetTagStatsHandler(scope.PerfumeTrackerContext);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		
+		var getTagStatsHandler = new GetTagStatsHandler(context);
 		var tags = await getTagStatsHandler.Handle(new GetTagStatsQuery(), CancellationToken.None);
 		Assert.NotNull(tags);
 		Assert.NotEmpty(tags);

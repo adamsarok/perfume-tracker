@@ -12,7 +12,7 @@ public class ProgressStreaks {
 	public class UpdateStreakProgressHandler(PerfumeTrackerContext context,
 		IHubContext<StreakProgressHub> streakProgressHub,
 		ILogger<UpdateStreakProgressHandler> logger,
-		UserConfiguration userConfiguration) {
+		IUserConfiguration userConfiguration) {
 		public async Task UpdateStreakProgress(CancellationToken cancellationToken, Guid userId) {
 			var now = DateTime.UtcNow;
 			var streak = await context.UserStreaks

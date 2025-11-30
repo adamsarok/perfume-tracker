@@ -1,60 +1,72 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Services.Outbox;
 using PerfumeTracker.xTests.Fixture;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace PerfumeTracker.xTests.Tests;
-public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
-	public OutboxTests(WebApplicationFactory<Program> factory) : base(factory) { }
 
-	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-	private async Task<List<OutboxMessage>> PrepareData() {
-		await semaphore.WaitAsync();
-		try {
-			using var scope = GetTestScope();
-			var sql = "truncate table \"public\".\"OutboxMessage\" cascade; ";
-			await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync(sql);
-			var userId = TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("MockTenantProvider userId is null");
-			var outboxSeed = new List<OutboxMessage>() {
-				OutboxMessage.From(new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), userId, PerfumeEvent.PerfumeEventType.Worn)),
-				OutboxMessage.From(new PerfumeAddedNotification(Guid.NewGuid(), userId)),
-				OutboxMessage.From(new PerfumeAddedNotification(Guid.NewGuid(), userId)),
-			};
-			outboxSeed[2].LastError = "Test Error";
-			outboxSeed[2].TryCount = 1;
-			scope.PerfumeTrackerContext.OutboxMessages.AddRange(outboxSeed);
-			await scope.PerfumeTrackerContext.SaveChangesAsync();
-			return outboxSeed;
-		} finally {
-			semaphore.Release();
-		}
+[CollectionDefinition("Outbox Tests")]
+public class OutboxCollection : ICollectionFixture<OutboxFixture>;
+
+public class OutboxFixture : DbFixture {
+	public OutboxFixture() : base() { }
+
+	public async override Task SeedTestData(PerfumeTrackerContext context) {
+		var sql = "truncate table \"public\".\"OutboxMessage\" cascade; ";
+		await context.Database.ExecuteSqlRawAsync(sql);
+
+		var userId = TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("MockTenantProvider userId is null");
+
+		var perfumes = await SeedPerfumes(3);
+		var randoms = await SeedPerfumeRandoms(1);
+		var events = await SeedPerfumeEvents(1, perfumes[2].Id);
+
+		var outboxMessages = new OutboxMessage[3] {
+			OutboxMessage.From(new PerfumeAddedNotification(perfumes[0].Id, userId)),
+			OutboxMessage.From(new PerfumeRandomAcceptedNotification(perfumes[1].Id, Guid.NewGuid())),
+			OutboxMessage.From(new PerfumeEventAddedNotification(Guid.NewGuid(), perfumes[2].Id, userId, PerfumeEvent.PerfumeEventType.Worn)),
+		};
+
+		outboxMessages[2].LastError = "Test Error";
+		outboxMessages[2].TryCount = 1;
+
+		await context.OutboxMessages.AddRangeAsync(outboxMessages);
+		await context.SaveChangesAsync();
+	}
+}
+
+[Collection("Outbox Tests")]
+public class OutboxTests {
+	private readonly OutboxFixture _fixture;
+
+	public OutboxTests(OutboxFixture fixture) {
+		_fixture = fixture;
 	}
 
 	[Fact]
 	public async Task SideEffectProcessor_CanProcess() {
-		var outboxSeed = await PrepareData();
-		using var scope = GetTestScope();
-		var channel = scope.ServiceScope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
-		channel.Enqueue(outboxSeed[1]);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+
+		var outboxMessage = await context.OutboxMessages.Skip(1).FirstAsync();
+		var channel = scope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
+		channel.Enqueue(outboxMessage);
 		await Task.Delay(1000);
-		var msg = await scope.PerfumeTrackerContext.OutboxMessages.FindAsync([outboxSeed[1].Id]);
+		var msg = await context.OutboxMessages.FindAsync([outboxMessage.Id]);
 		Assert.NotNull(msg);
 		Assert.NotNull(msg.ProcessedAt);
 	}
 
 	[Fact]
 	public async Task OutboxService_CanRetry() {
-		await PrepareData();
-		using var scope = GetTestScope();
+		using var scope = _fixture.Factory.Services.CreateScope();
+
 		var mockLogger = new Mock<ILogger<OutboxRetryService>>();
 		var mockSideEffectQueue = new Mock<ISideEffectQueue>();
-		var outboxService = new TestOutboxService(scope.ServiceScope.ServiceProvider, mockLogger.Object, mockSideEffectQueue.Object);
+		var outboxService = new TestOutboxService(scope.ServiceProvider, mockLogger.Object, mockSideEffectQueue.Object);
 		await outboxService.Test_ProcessMessages();
 		mockSideEffectQueue.Verify(q => q.Enqueue(It.IsAny<OutboxMessage>()), Times.AtLeastOnce());
 	}
@@ -62,10 +74,12 @@ public class OutboxTests : TestBase, IClassFixture<WebApplicationFactory<Program
 	[Fact(Skip = "Flaky: investigate intermittent timing/race in SideEffectQueue_CanEnqueue")]
 	[Trait("Category", "Flaky")]
 	public async Task SideEffectQueue_CanEnqueue() {
-		var outboxSeed = await PrepareData();
-		using var scope = GetTestScope();
-		var channel = scope.ServiceScope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
-		channel.Enqueue(outboxSeed[0]);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+
+		var outboxMessage = await context.OutboxMessages.FirstAsync();
+		var channel = scope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
+		channel.Enqueue(outboxMessage);
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 		Assert.True(await channel.Reader.WaitToReadAsync(cts.Token));
 	}

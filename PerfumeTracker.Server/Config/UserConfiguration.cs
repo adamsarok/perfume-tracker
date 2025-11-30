@@ -1,6 +1,17 @@
 ﻿namespace PerfumeTracker.Server.Config;
 
-public class UserConfiguration {
+public interface IUserConfiguration {
+	string AdminUserName { get; }
+	string AdminPassword { get; }
+	string AdminEmail { get; }
+	string? DemoUserName { get; }
+	string? DemoPassword { get; }
+	string? DemoEmail { get; }
+	bool InviteOnlyRegistration { get; }
+	int StreakProtectionDays { get; }
+}
+
+public class UserConfiguration : IUserConfiguration {
 	public string AdminUserName { get; init; }
 	public string AdminPassword { get; init; }
 	public string AdminEmail { get; init; }
@@ -17,6 +28,6 @@ public class UserConfiguration {
 		DemoEmail = configuration["Users:DemoEmail"];
 		DemoPassword = configuration["Users:DemoPassword"];
 		InviteOnlyRegistration = configuration.GetValue<bool?>("Users:InviteOnlyRegistration") ?? throw new ConfigEmptyException("Users:InviteOnlyRegistration is not configured");
-		StreakProtectionDays = configuration.GetValue<int>("Users:StreakProtectionDays");
+		StreakProtectionDays = configuration.GetValue<int?>("Users:StreakProtectionDays") ?? 2;
 	}
 }

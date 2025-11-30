@@ -48,6 +48,7 @@ public class MissionService(IServiceProvider serviceProvider, ILogger<MissionSer
 		var random = new Random();
 		var missionTypes = Enum.GetValues<MissionType>().ToList();
 		var selectedTypes = new HashSet<MissionType>();
+		selectedTypes.Add(MissionType.PerfumesTaggedPhotographed); // obsolete type, do not generate
 		var missions = new List<Mission>();
 
 		while (missions.Count < count && selectedTypes.Count < missionTypes.Count) {

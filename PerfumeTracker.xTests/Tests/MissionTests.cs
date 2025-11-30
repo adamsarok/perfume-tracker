@@ -1,72 +1,73 @@
+using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.Missions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
-using PerfumeTracker.Server.Services.Missions;
 using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.Server.Services.Missions;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;
 
-public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Program>> {
-	public MissionTests(WebApplicationFactory<Program> factory) : base(factory) { }
+[CollectionDefinition("Mission Tests")]
+public class MissionCollection : ICollectionFixture<MissionFixture>;
 
-	static bool dbUp = false;
-	private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+public class MissionFixture : DbFixture {
+	public MissionFixture() : base() { }
 
-	private async Task PrepareMissionData() {
-		await semaphore.WaitAsync();
-		try {
-			if (!dbUp) {
-				using var scope = GetTestScope();
-				await scope.PerfumeTrackerContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"public\".\"Mission\" CASCADE; TRUNCATE TABLE \"public\".\"UserMission\" CASCADE;");
-				var now = DateTime.UtcNow;
-				foreach (MissionType type in Enum.GetValues(typeof(MissionType))) {
-					var mission = new Mission {
-						Id = Guid.NewGuid(),
-						Name = $"Test Mission {type}",
-						Description = $"Test Desc {type}",
-						StartDate = now.AddDays(-1),
-						EndDate = now.AddDays(1),
-						IsActive = true,
-						Type = type,
-						RequiredCount = 1,
-						XP = 10
-					};
-					var userMission = new UserMission {
-						Mission = mission,
-						Id = Guid.NewGuid(),
-						UserId = TenantProvider.MockTenantId ?? throw new TenantNotSetException()
-					};
-					scope.PerfumeTrackerContext.Missions.Add(mission);
-					scope.PerfumeTrackerContext.UserMissions.Add(userMission);
-				}
-				await scope.PerfumeTrackerContext.SaveChangesAsync();
-				dbUp = true;
-			}
-		} finally {
-			semaphore.Release();
+	public async override Task SeedTestData(PerfumeTrackerContext context) {
+		await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"public\".\"Mission\" CASCADE; TRUNCATE TABLE \"public\".\"UserMission\" CASCADE;");
+		var now = DateTime.UtcNow;
+		foreach (MissionType type in Enum.GetValues(typeof(MissionType))) {
+			var mission = new Mission {
+				Id = Guid.NewGuid(),
+				Name = $"Test Mission {type}",
+				Description = $"Test Desc {type}",
+				StartDate = now.AddDays(-1),
+				EndDate = now.AddDays(1),
+				IsActive = true,
+				Type = type,
+				RequiredCount = 1,
+				XP = 10
+			};
+			var userMission = new UserMission {
+				Mission = mission,
+				Id = Guid.NewGuid(),
+				UserId = TenantProvider.MockTenantId ?? throw new TenantNotSetException()
+			};
+			context.Missions.Add(mission);
+			context.UserMissions.Add(userMission);
 		}
+		await context.SaveChangesAsync();
+	}
+}
+
+[Collection("Mission Tests")]
+public class MissionTests {
+	private readonly MissionFixture _fixture;
+
+	public MissionTests(MissionFixture fixture) {
+		_fixture = fixture;
 	}
 
 	[Fact]
 	public async Task GenerateMissionsHandler_CreatesUserMissions() {
-		await PrepareMissionData();
-		using var scope = GetTestScope();
-		var handler = new GenerateMissions(scope.PerfumeTrackerContext);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+
+		var handler = new GenerateMissions(context);
 		await handler.Handle(new GenerateMissionCommand(), CancellationToken.None);
-		var userMissions = await scope.PerfumeTrackerContext.UserMissions.ToListAsync();
+		var userMissions = await context.UserMissions.ToListAsync();
 		Assert.NotEmpty(userMissions);
 	}
 
 	[Fact]
 	public async Task GetActiveMissionsHandler_ReturnsActiveMissions() {
-		await PrepareMissionData();
-		using var scope = GetTestScope();
-		var handlerc = new GenerateMissions(scope.PerfumeTrackerContext);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+
+		var handlerc = new GenerateMissions(context);
 		await handlerc.Handle(new GenerateMissionCommand(), CancellationToken.None);
-		var handler = new GetActiveMissionsHandler(scope.PerfumeTrackerContext);
+		var handler = new GetActiveMissionsHandler(context);
 		var result = await handler.Handle(new GetActiveMissionsQuery(), CancellationToken.None);
 		Assert.NotNull(result);
 		Assert.NotEmpty(result);
@@ -74,50 +75,53 @@ public class MissionTests : TestBase, IClassFixture<WebApplicationFactory<Progra
 
 	[Fact]
 	public async Task ProgressMissions_PerfumeEventNotificationHandler_UpdatesProgress() {
-		await PrepareMissionData();
-		using var scope = GetTestScope();
-		var xpService = new XPService(scope.PerfumeTrackerContext);
-		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object, xpService);
-		var handler = new ProgressMissions.PerfumeEventNotificationHandler(scope.PerfumeTrackerContext, updateHandler);
-		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException(), PerfumeEvent.PerfumeEventType.Worn);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+
+		var xpService = new XPService(context);
+		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(context, _fixture.MockMissionProgressHubContext.Object, xpService);
+		var handler = new ProgressMissions.PerfumeEventNotificationHandler(context, updateHandler);
+		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException(), PerfumeEvent.PerfumeEventType.Worn);
 		await handler.Handle(notification, CancellationToken.None);
-		AssertProgress(MissionType.WearPerfumes);
+		AssertProgress(MissionType.WearDifferentPerfumes);
 	}
 
 	[Fact]
 	public async Task ProgressMissions_PerfumeRandomAcceptedNotificationHandler_UpdatesProgress() {
-		await PrepareMissionData();
-		using var scope = GetTestScope();
-		var xpService = new XPService(scope.PerfumeTrackerContext);
-		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object, xpService);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+
+		var xpService = new XPService(context);
+		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(context, _fixture.MockMissionProgressHubContext.Object, xpService);
 		var handler = new ProgressMissions.PerfumeRandomAcceptedNotificationHandler(updateHandler);
-		var notification = new PerfumeRandomAcceptedNotification(Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
+		var notification = new PerfumeRandomAcceptedNotification(Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
 		AssertProgress(MissionType.AcceptRandoms);
 	}
 
 	[Fact]
 	public async Task ProgressMissions_RandomPerfumeAddedNotificationHandler_UpdatesProgress() {
-		await PrepareMissionData();
-		using var scope = GetTestScope();
-		var xpService = new XPService(scope.PerfumeTrackerContext);
-		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(scope.PerfumeTrackerContext, MockMissionProgressHubContext.Object, xpService);
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+
+		var xpService = new XPService(context);
+		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(context, _fixture.MockMissionProgressHubContext.Object, xpService);
 		var handler = new ProgressMissions.RandomPerfumeAddedNotificationHandler(updateHandler);
-		var notification = new RandomPerfumeAddedNotification(Guid.NewGuid(), TenantProvider.MockTenantId ?? throw new TenantNotSetException());
+		var notification = new RandomPerfumeAddedNotification(Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
 		AssertProgress(MissionType.GetRandoms);
 	}
 
 	void AssertProgress(MissionType type) {
-		Assert.NotNull(HubMessages);
-		Assert.NotEmpty(HubMessages);
-		foreach (var m in HubMessages) {
+		Assert.NotNull(_fixture.HubMessages);
+		Assert.NotEmpty(_fixture.HubMessages);
+		foreach (var m in _fixture.HubMessages) {
 			foreach (var s in m.HubSentArgs) {
 				var mission = s as UserMissionDto;
 				if (mission != null && mission.MissionType == type) {
 					Assert.NotNull(mission);
 					Assert.True(mission.Progress > 0);
-					HubMessages.Clear();
+					_fixture.HubMessages.Clear();
 					return;
 				}
 			}
