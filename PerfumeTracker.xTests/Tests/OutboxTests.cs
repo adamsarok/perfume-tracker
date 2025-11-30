@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Services.Outbox;
 using PerfumeTracker.xTests.Fixture;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace PerfumeTracker.xTests.Tests;
 
@@ -20,15 +17,22 @@ public class OutboxFixture : DbFixture {
 	public async override Task SeedTestData(PerfumeTrackerContext context) {
 		var sql = "truncate table \"public\".\"OutboxMessage\" cascade; ";
 		await context.Database.ExecuteSqlRawAsync(sql);
-		
+
 		var userId = TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("MockTenantProvider userId is null");
-		var outboxMessages = OutboxMessageFaker.Clone()
-			.RuleFor(om => om.UserId, userId)
-			.Generate(3);
-		
+
+		var perfumes = await SeedPerfumes(3);
+		var randoms = await SeedPerfumeRandoms(1);
+		var events = await SeedPerfumeEvents(1, perfumes[2].Id);
+
+		var outboxMessages = new OutboxMessage[3] {
+			OutboxMessage.From(new PerfumeAddedNotification(perfumes[0].Id, userId)),
+			OutboxMessage.From(new PerfumeRandomAcceptedNotification(perfumes[1].Id, Guid.NewGuid())),
+			OutboxMessage.From(new PerfumeEventAddedNotification(Guid.NewGuid(), perfumes[2].Id, userId, PerfumeEvent.PerfumeEventType.Worn)),
+		};
+
 		outboxMessages[2].LastError = "Test Error";
 		outboxMessages[2].TryCount = 1;
-		
+
 		await context.OutboxMessages.AddRangeAsync(outboxMessages);
 		await context.SaveChangesAsync();
 	}
@@ -46,7 +50,7 @@ public class OutboxTests {
 	public async Task SideEffectProcessor_CanProcess() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		
+
 		var outboxMessage = await context.OutboxMessages.Skip(1).FirstAsync();
 		var channel = scope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
 		channel.Enqueue(outboxMessage);
@@ -59,7 +63,7 @@ public class OutboxTests {
 	[Fact]
 	public async Task OutboxService_CanRetry() {
 		using var scope = _fixture.Factory.Services.CreateScope();
-		
+
 		var mockLogger = new Mock<ILogger<OutboxRetryService>>();
 		var mockSideEffectQueue = new Mock<ISideEffectQueue>();
 		var outboxService = new TestOutboxService(scope.ServiceProvider, mockLogger.Object, mockSideEffectQueue.Object);
@@ -72,7 +76,7 @@ public class OutboxTests {
 	public async Task SideEffectQueue_CanEnqueue() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		
+
 		var outboxMessage = await context.OutboxMessages.FirstAsync();
 		var channel = scope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
 		channel.Enqueue(outboxMessage);

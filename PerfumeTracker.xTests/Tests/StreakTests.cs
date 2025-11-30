@@ -1,15 +1,12 @@
-using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using PerfumeTracker.Server.Config;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Streaks;
-using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
-using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Services.Common;
-using PerfumeTracker.Server.Services.Streaks;
-using PerfumeTracker.Server.Config;
-using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.xTests.Fixture;
+using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
 
 namespace PerfumeTracker.xTests.Tests;
 
@@ -37,7 +34,7 @@ public class StreakTests {
 		decimal last = 0;
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		
+
 		var xpService = new XPService(context);
 		for (int i = 0; i < 500; i++) {
 			decimal multiplier = xpService.GetXPMultiplier(i);
@@ -52,7 +49,7 @@ public class StreakTests {
 	public async Task GetActiveStreaksHandler_ReturnsActiveStreaks() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		
+
 		var queryHandler = new GetActiveStreaksHandler(context);
 		var result = await queryHandler.Handle(new GetActiveStreaksQuery(), CancellationToken.None);
 		Assert.NotNull(result);
@@ -62,10 +59,10 @@ public class StreakTests {
 	public async Task ProgressStreaks_PerfumeEventNotificationHandler_UpdatesProgress() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		
+
 		var mockLogger = new Mock<ILogger<UpdateStreakProgressHandler>>();
-		var userConfig = scope.ServiceProvider.GetRequiredService<UserConfiguration>();
-		var updateHandler = new UpdateStreakProgressHandler(context, _fixture.MockStreakProgressHubContext.Object, 
+		var userConfig = scope.ServiceProvider.GetRequiredService<IUserConfiguration>();
+		var updateHandler = new UpdateStreakProgressHandler(context, _fixture.MockStreakProgressHubContext.Object,
 			mockLogger.Object, userConfig);
 		var handler = new StreakEventNotificationHandler(updateHandler);
 		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException(), PerfumeEvent.PerfumeEventType.Worn);
@@ -74,23 +71,25 @@ public class StreakTests {
 	}
 
 	[Theory]
-	[InlineData("2024-07-10T00:00:00Z", "2024-07-10T23:59:59Z", 0, UpdateStreakProgressHandler.StreakStatus.NoChange)]
-	[InlineData("2024-07-10T00:00:00Z", "2024-07-11T23:59:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Progress)]
-	[InlineData("2024-07-10T00:00:00Z", "2024-07-13T00:00:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Ended)]
-	[InlineData("2024-07-10T23:00:00Z", "2024-07-11T01:00:00Z", 2, UpdateStreakProgressHandler.StreakStatus.NoChange)]
-	[InlineData("2024-07-10T23:00:00Z", "2024-07-12T01:00:00Z", 2, UpdateStreakProgressHandler.StreakStatus.Progress)]
-	[InlineData("2024-07-10T23:00:00Z", "2024-07-10T21:00:00Z", -2, UpdateStreakProgressHandler.StreakStatus.NoChange)]
-	[InlineData("2024-07-10T00:00:00Z", "2024-07-11T00:00:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Progress)]
+	[InlineData("2024-07-10T00:00:00Z", "2024-07-10T23:59:59Z", 0, UpdateStreakProgressHandler.StreakStatus.NoChange)] // same day
+	[InlineData("2024-07-10T00:00:00Z", "2024-07-11T23:59:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Progress)] // next day, whole day
+	[InlineData("2024-07-10T00:00:00Z", "2024-07-13T00:00:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Ended)]    // more than streakProtectionDays
+	[InlineData("2024-07-10T23:00:00Z", "2024-07-11T01:00:00Z", 2, UpdateStreakProgressHandler.StreakStatus.NoChange)] // same day with offset
+	[InlineData("2024-07-10T23:00:00Z", "2024-07-12T01:00:00Z", 2, UpdateStreakProgressHandler.StreakStatus.Progress)] // progress with offset
+	[InlineData("2024-07-10T23:00:00Z", "2024-07-10T21:00:00Z", -2, UpdateStreakProgressHandler.StreakStatus.NoChange)] // negative offset, same day
+	[InlineData("2024-07-10T00:00:00Z", "2024-07-11T00:00:00Z", 0, UpdateStreakProgressHandler.StreakStatus.Progress)] // exactly 1-day boundary
 	public void GetStreakStatus_ReturnsExpectedStatus(string lastProgress, string now, int utcOffset, UpdateStreakProgressHandler.StreakStatus expected) {
 		var lastProgressDate = DateTime.Parse(lastProgress, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
 		var nowDate = DateTime.Parse(now, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		
+
 		var mockLogger = new Mock<ILogger<UpdateStreakProgressHandler>>();
-		var userConfig = scope.ServiceProvider.GetRequiredService<UserConfiguration>();
+		var userConfig = new Mock<IUserConfiguration>();
+		userConfig.Setup(c => c.StreakProtectionDays).Returns(2);
+
 		var updateHandler = new UpdateStreakProgressHandler(context, _fixture.MockStreakProgressHubContext.Object,
-			mockLogger.Object, userConfig);
+			mockLogger.Object, userConfig.Object);
 		var result = updateHandler.GetStreakStatus(lastProgressDate, nowDate, utcOffset);
 
 		Assert.Equal(expected, result);

@@ -44,7 +44,7 @@ public abstract class DbFixture : IAsyncLifetime {
 	public Faker<UserMission> UserMissionFaker { get; }
 	public Faker<UserStreak> UserStreakFaker { get; }
 	public Faker<UserProfile> UserProfileFaker { get; }
-	public Faker<OutboxMessage> OutboxMessageFaker { get; }
+	//public Faker<OutboxMessage> OutboxMessageFaker { get; }
 	public Faker<Invite> InviteFaker { get; }
 
 	public DbFixture() {
@@ -249,23 +249,6 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(up => up.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(up => up.IsDeleted, false);
 
-		OutboxMessageFaker = new Faker<OutboxMessage>()
-			.RuleFor(om => om.Id, f => Guid.NewGuid())
-			.RuleFor(om => om.EventType, f => f.PickRandom(new[] {
-				"PerfumeEventAddedNotification",
-				"PerfumeAddedNotification",
-				"RandomPerfumeAddedNotification"
-			}))
-			.RuleFor(om => om.Payload, f => f.Random.AlphaNumeric(100))
-			.RuleFor(om => om.ProcessedAt, f => f.Random.Bool(0.7f) ? f.Date.RecentOffset(1).UtcDateTime : null)
-			.RuleFor(om => om.TryCount, f => f.Random.Int(0, 5))
-			.RuleFor(om => om.FailedAt, f => f.Random.Bool(0.1f) ? f.Date.RecentOffset(1).UtcDateTime : null)
-			.RuleFor(om => om.LastError, (f, om) => om.FailedAt != null ? f.Lorem.Sentence() : null)
-			.RuleFor(om => om.UserId, tenantId)
-			.RuleFor(om => om.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
-			.RuleFor(om => om.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(om => om.IsDeleted, false);
-
 		InviteFaker = new Faker<Invite>()
 			.RuleFor(i => i.Id, f => Guid.NewGuid())
 			.RuleFor(i => i.Email, f => f.Internet.Email())
@@ -408,11 +391,17 @@ public abstract class DbFixture : IAsyncLifetime {
 	public async Task<List<PerfumeRandoms>> SeedPerfumeRandoms(int count) {
 		using var scope = Factory.Services.CreateScope();
 		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var sql = "truncate table \"public\".\"PerfumeRandoms\" cascade; ";
+		var sql = "truncate table \"public\".\"PerfumeRandom\" cascade;";
+		var perfumes = GeneratePerfumes(count);
+		await context.Perfumes.AddRangeAsync(perfumes);
+		await context.SaveChangesAsync();
 		await context.Database.ExecuteSqlRawAsync(sql);
 		var result = PerfumeRandomsFaker.Clone()
 			.RuleFor(pr => pr.UserId, TenantProvider.MockTenantId!.Value)
 			.Generate(count);
+		for (int i = 0; i < count; i++) {
+			result[i].PerfumeId = perfumes[i].Id;
+		}
 		await context.Set<PerfumeRandoms>().AddRangeAsync(result);
 		await context.SaveChangesAsync();
 		return result;
@@ -501,19 +490,6 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(up => up.Id, TenantProvider.MockTenantId!.Value)
 			.Generate();
 		await context.Set<UserProfile>().AddAsync(result);
-		await context.SaveChangesAsync();
-		return result;
-	}
-
-	public async Task<List<OutboxMessage>> SeedOutboxMessages(int count) {
-		using var scope = Factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var sql = "truncate table \"public\".\"OutboxMessage\" cascade; ";
-		await context.Database.ExecuteSqlRawAsync(sql);
-		var result = OutboxMessageFaker.Clone()
-			.RuleFor(om => om.UserId, TenantProvider.MockTenantId!.Value)
-			.Generate(count);
-		await context.Set<OutboxMessage>().AddRangeAsync(result);
 		await context.SaveChangesAsync();
 		return result;
 	}
