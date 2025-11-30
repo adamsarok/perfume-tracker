@@ -28,6 +28,6 @@ public class UserConfiguration : IUserConfiguration {
 		DemoEmail = configuration["Users:DemoEmail"];
 		DemoPassword = configuration["Users:DemoPassword"];
 		InviteOnlyRegistration = configuration.GetValue<bool?>("Users:InviteOnlyRegistration") ?? throw new ConfigEmptyException("Users:InviteOnlyRegistration is not configured");
-		StreakProtectionDays = configuration.GetValue<int>("Users:StreakProtectionDays");
+		StreakProtectionDays = configuration.GetValue<int?>("Users:StreakProtectionDays") ?? 2;
 	}
 }
