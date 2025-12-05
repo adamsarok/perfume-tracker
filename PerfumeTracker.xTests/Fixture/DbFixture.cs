@@ -110,11 +110,11 @@ public abstract class DbFixture : IAsyncLifetime {
 
 		TagFaker = new Faker<Tag>()
 			.RuleFor(t => t.Id, f => Guid.NewGuid())
-			.RuleFor(t => t.TagName, f => f.PickRandom(new[] {
+			.RuleFor(t => t.TagName, f => $"{f.PickRandom(new[] {
 				"Woody", "Floral", "Fresh", "Citrus", "Spicy", "Oriental",
 				"Aquatic", "Fruity", "Green", "Leather", "Gourmand", "Aromatic",
 				"Powdery", "Musky", "Amber", "Vanilla", "Rose", "Jasmine"
-			}))
+			})}_{Guid.NewGuid().ToString().Substring(0, 8)}")
 			.RuleFor(t => t.Color, f => f.Internet.Color())
 			.RuleFor(t => t.UserId, tenantId)
 			.RuleFor(t => t.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
