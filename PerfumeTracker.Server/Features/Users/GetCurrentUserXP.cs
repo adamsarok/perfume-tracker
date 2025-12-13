@@ -16,7 +16,7 @@ public class GetCurrentUserXPEndpoint : ICarterModule {
 }
 
 public class Levels {
-	private static readonly long[] BreakPoints = [100, 500, 1000, 2500, 5000, 10000];
+	private static readonly long[] BreakPoints = [100, 500, 1000, 2500, 5000, 10000, 20000, 40000, 80000, 160000, 250000, 350000, 500000];
 	public record Level(int LevelNum, long MinXP, long MaxXP);
 	public static List<Level> GetLevels() {
 		var levels = new List<Level>();
