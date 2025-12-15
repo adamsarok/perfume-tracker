@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Streaks;
 namespace PerfumeTracker.Server.Services.Streaks;
@@ -12,7 +13,7 @@ public class ProgressStreaks {
 	public class UpdateStreakProgressHandler(PerfumeTrackerContext context,
 		IHubContext<StreakProgressHub> streakProgressHub,
 		ILogger<UpdateStreakProgressHandler> logger,
-		IUserConfiguration userConfiguration) {
+		IOptions<UserConfiguration> userConfiguration) {
 		public async Task UpdateStreakProgress(CancellationToken cancellationToken, Guid userId) {
 			var now = DateTime.UtcNow;
 			var streak = await context.UserStreaks
@@ -64,7 +65,7 @@ public class ProgressStreaks {
 			var nowLocal = nowDate.AddHours(userUtcOffset).Date;
 			var progressLocal = lastProgressDate.AddHours(userUtcOffset).Date;
 			var diff = nowLocal - progressLocal;
-			if (diff.TotalDays > userConfiguration.StreakProtectionDays) return StreakStatus.Ended;
+			if (diff.TotalDays > userConfiguration.Value.StreakProtectionDays) return StreakStatus.Ended;
 			if (nowLocal > progressLocal) return StreakStatus.Progress;
 			return StreakStatus.NoChange;
 		}

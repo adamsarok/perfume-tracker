@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Streaks;
@@ -60,7 +61,7 @@ public class StreakTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
 		var mockLogger = new Mock<ILogger<UpdateStreakProgressHandler>>();
-		var userConfig = scope.ServiceProvider.GetRequiredService<IUserConfiguration>();
+		var userConfig = scope.ServiceProvider.GetRequiredService<IOptions<UserConfiguration>>();
 		var updateHandler = new UpdateStreakProgressHandler(context, _fixture.MockStreakProgressHubContext.Object,
 			mockLogger.Object, userConfig);
 		var handler = new StreakEventNotificationHandler(updateHandler);
@@ -84,11 +85,16 @@ public class StreakTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
 		var mockLogger = new Mock<ILogger<UpdateStreakProgressHandler>>();
-		var userConfig = new Mock<IUserConfiguration>();
-		userConfig.Setup(c => c.StreakProtectionDays).Returns(2);
+		var userConfig = Options.Create(new UserConfiguration {
+			StreakProtectionDays = 2,
+			AdminUserName = "test",
+			AdminEmail = "test@example.com",
+			AdminPassword = "password",
+			InviteOnlyRegistration = false
+		});
 
 		var updateHandler = new UpdateStreakProgressHandler(context, _fixture.MockStreakProgressHubContext.Object,
-			mockLogger.Object, userConfig.Object);
+			mockLogger.Object, userConfig);
 		var result = updateHandler.GetStreakStatus(lastProgressDate, nowDate, utcOffset);
 
 		Assert.Equal(expected, result);
