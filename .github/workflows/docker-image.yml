@@ -24,10 +24,14 @@ jobs:
       Users__DemoEmail: demo@example.com
       Users__DemoPassword: 123DummyDemoPass123
       Users__StreakProtectionDays: 1
+      Users__InviteOnlyRegistration: false
       RateLimits__General: 250
       RateLimits__Auth: 20
       RateLimits__Upload: 10
-      CORS__AllowedOrigins: http://localhost:3000;https://localhost:3000;http://192.168.1.79:3000;https://192.168.1.79:3000
+      Cors__AllowedOrigins__0: http://localhost:3000
+      Cors__AllowedOrigins__1: https://localhost:3000
+      Cors__AllowedOrigins__2: http://192.168.1.79:3000
+      Cors__AllowedOrigins__3: https://192.168.1.79:3000
       R2__AccessKey: DUMMY_KEY
       R2__SecretKey: DUMMY_SECRET_KEY
       R2__AccountId: DUMMY_ACCOUNT_ID

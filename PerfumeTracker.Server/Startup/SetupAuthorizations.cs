@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Services.Auth;
-using System.Diagnostics;
 using System.Security.Claims;
 
 namespace PerfumeTracker.Server.Startup;
@@ -16,8 +13,6 @@ public static partial class Startup {
 		services.AddIdentity<PerfumeIdentityUser, PerfumeIdentityRole>()
 			.AddEntityFrameworkStores<PerfumeTrackerContext>()
 			.AddDefaultTokenProviders();
-
-		var jwtConfig = new JwtConfiguration(configuration);
 
 		services.Configure<IdentityOptions>(options => {
 			options.Password.RequireDigit = true;
@@ -35,6 +30,8 @@ public static partial class Startup {
 			options.User.RequireUniqueEmail = true;
 		});
 
+		var jwtConfig = configuration.GetSection("Jwt").Get<JwtConfiguration>()
+			?? throw new InvalidOperationException("JWT configuration is missing");
 
 		services.ConfigureApplicationCookie(options => {
 			options.Cookie.HttpOnly = true;
@@ -62,7 +59,7 @@ public static partial class Startup {
 				ValidateIssuerSigningKey = true,
 				ValidIssuer = jwtConfig.Issuer,
 				ValidAudience = jwtConfig.Audience,
-				IssuerSigningKey = jwtConfig.Key
+				IssuerSigningKey = jwtConfig.GetSecurityKey()
 			};
 			options.Events = new JwtBearerEvents {
 				OnMessageReceived = context => {
@@ -95,7 +92,7 @@ public static partial class Startup {
 				options.CorrelationCookie.HttpOnly = true;
 				options.CorrelationCookie.SameSite = SameSiteMode.None;
 				options.CorrelationCookie.SecurePolicy = Env.IsDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
-				
+
 				options.Events.OnTicketReceived = async context => await HandleOAuthCallback(context, "GitHub");
 			});
 		}
@@ -121,8 +118,7 @@ public static partial class Startup {
 		}
 	}
 
-	private static async Task HandleOAuthCallback(TicketReceivedContext context, string provider)
-	{
+	private static async Task HandleOAuthCallback(TicketReceivedContext context, string provider) {
 		var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<PerfumeIdentityUser>>();
 		var jwtGenerator = context.HttpContext.RequestServices.GetRequiredService<IJwtTokenGenerator>();
 		var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<LoginGoogle>>();

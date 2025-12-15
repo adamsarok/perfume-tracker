@@ -1,9 +1,9 @@
 namespace PerfumeTracker.Server.Services.Demo;
 
 public static class SeedDemoData {
-	public static async Task SeedDemoDataAsync(PerfumeTrackerContext context, Guid demoUserId, List<Guid> demoImageGuids) {
+	public static async Task SeedDemoDataAsync(PerfumeTrackerContext context, Guid demoUserId) {
 		await SeedDemoTagsAsync(context, demoUserId);
-		await SeedDemoPerfumesAsync(context, demoUserId, demoImageGuids);
+		await SeedDemoPerfumesAsync(context, demoUserId);
 		await SeedDemoWearEventsAsync(context, demoUserId);
 		await SeedDemoMissionsAsync(context, demoUserId);
 	}
@@ -32,7 +32,7 @@ public static class SeedDemoData {
 		await context.SaveChangesAsync();
 	}
 
-	private static async Task SeedDemoPerfumesAsync(PerfumeTrackerContext context, Guid demoUserId, List<Guid> demoImageGuids) {
+	private static async Task SeedDemoPerfumesAsync(PerfumeTrackerContext context, Guid demoUserId) {
 		if (await context.Perfumes.IgnoreQueryFilters().AnyAsync(p => p.UserId == demoUserId))
 			return;
 
@@ -41,22 +41,12 @@ public static class SeedDemoData {
 			.Where(t => t.UserId == demoUserId).ToListAsync();
 		var tagDict = tags.ToDictionary(t => t.TagName, t => t);
 
-		int actImg = 0;
-
-		Guid? GetDemoImageGuid() {
-			if (demoImageGuids == null || demoImageGuids.Count == 0) return null;
-			if (actImg >= demoImageGuids.Count) actImg = 0;
-			return demoImageGuids[actImg++];
-		}
-		;
-
 		Perfume azure = new() {
 			UserId = demoUserId,
 			House = "Maison de Luxe",
 			PerfumeName = "Azure Mystique",
 			Ml = 100,
 			MlLeft = 85,
-			ImageObjectKeyNew = GetDemoImageGuid(),
 			Autumn = true,
 			Spring = true,
 			Summer = true,
@@ -68,7 +58,6 @@ public static class SeedDemoData {
 			PerfumeName = "Tobacco Rêve",
 			Ml = 50,
 			MlLeft = 45,
-			ImageObjectKeyNew = GetDemoImageGuid(),
 			Autumn = true,
 			Spring = false,
 			Summer = false,
@@ -80,7 +69,6 @@ public static class SeedDemoData {
 			PerfumeName = "Cool Magic",
 			Ml = 100,
 			MlLeft = 60,
-			ImageObjectKeyNew = GetDemoImageGuid(),
 			Autumn = false,
 			Spring = true,
 			Summer = true,
@@ -92,7 +80,6 @@ public static class SeedDemoData {
 			PerfumeName = "Nocturne",
 			Ml = 100,
 			MlLeft = 80,
-			ImageObjectKeyNew = GetDemoImageGuid(),
 			Autumn = true,
 			Spring = false,
 			Summer = false,
@@ -104,7 +91,6 @@ public static class SeedDemoData {
 			PerfumeName = "Classic Bergamot",
 			Ml = 100,
 			MlLeft = 90,
-			ImageObjectKeyNew = GetDemoImageGuid(),
 			Autumn = false,
 			Spring = true,
 			Summer = true,

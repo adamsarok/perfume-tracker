@@ -11,7 +11,6 @@ using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Demo;
 using PerfumeTracker.Server.Services.Missions;
 using PerfumeTracker.Server.Services.Outbox;
-using PerfumeTracker.Server.Services.R2;
 using PerfumeTracker.Server.Startup;
 using Serilog;
 using Serilog.Core;
@@ -64,7 +63,8 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
-Startup.SetupRateLimiting(builder.Services, builder.Configuration);
+var rateLimitConfig = builder.Configuration.GetSection("RateLimits").Get<RateLimitConfiguration>();
+if (rateLimitConfig != null) Startup.SetupRateLimiting(builder.Services, rateLimitConfig);
 Startup.SetupAuthorizations(builder.Services, builder.Configuration);
 
 var assembly = typeof(Program).Assembly;
@@ -75,6 +75,23 @@ builder.Services.AddMediatR(config => {
 	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
+// Config
+builder.Services.AddOptionsWithValidateOnStart<CorsConfiguration>()
+	.Bind(builder.Configuration.GetSection("CORS"))
+	.ValidateDataAnnotations();
+builder.Services.AddOptionsWithValidateOnStart<R2Configuration>()
+	.Bind(builder.Configuration.GetSection("R2"))
+	.ValidateDataAnnotations();
+builder.Services.AddOptionsWithValidateOnStart<JwtConfiguration>()
+	.Bind(builder.Configuration.GetSection("Jwt"))
+	.ValidateDataAnnotations();
+builder.Services.AddOptionsWithValidateOnStart<RateLimitConfiguration>()
+	.Bind(builder.Configuration.GetSection("RateLimits"))
+	.ValidateDataAnnotations();
+builder.Services.AddOptionsWithValidateOnStart<UserConfiguration>()
+	.Bind(builder.Configuration.GetSection("Users"))
+	.ValidateDataAnnotations();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -83,10 +100,8 @@ builder.Services.AddScoped<UpdateStreakProgressHandler>();
 builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
-builder.Services.AddScoped<R2Configuration>();
 builder.Services.AddScoped<UploadImageHandler>();
 builder.Services.AddScoped<XPService>();
-builder.Services.AddSingleton<IUserConfiguration, UserConfiguration>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
@@ -96,14 +111,16 @@ builder.Services.AddHealthChecks()
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-var corsConfig = new CorsConfiguration(builder.Configuration);
 builder.Services.AddCors(options => {
-	options.AddPolicy("AllowSpecificOrigin",
-		builder => builder
-			.WithOrigins(corsConfig.AllowedOrigins)
-			.AllowAnyHeader()
-			.AllowAnyMethod()
-			.AllowCredentials());
+	var corsConfig = builder.Configuration.GetSection("CORS").Get<CorsConfiguration>();
+	if (corsConfig?.AllowedOrigins != null && corsConfig.AllowedOrigins.Length > 0) {
+		options.AddPolicy("AllowSpecificOrigin",
+			policy => policy
+				.WithOrigins(corsConfig.AllowedOrigins)
+				.AllowAnyHeader()
+				.AllowAnyMethod()
+				.AllowCredentials());
+	}
 });
 
 builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
@@ -131,19 +148,8 @@ using (var scope = app.Services.CreateScope()) {
 	await SeedAchievements.SeedAchievementsAsync(dbContext);
 	await SeedRoles.SeedRolesAsync(scope.ServiceProvider);
 	await seedUsers.SeedAdminAsync();
-	if (!builder.Environment.IsEnvironment("Test")) {
-		var demoUserId = await seedUsers.SeedDemoUserAsync();
-		if (demoUserId != null) {
-			var uploadHandler = scope.ServiceProvider.GetRequiredService<UploadImageHandler>();
-			var demoImages = new List<Guid>();
-			try {
-				demoImages = await SeedDemoImages.SeedDemoImagesAsync(uploadHandler);
-			} catch (Exception ex) {
-				Log.Error(ex, "Failed to seed demo images");
-			}
-			await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value, demoImages);
-		}
-	}
+	var demoUserId = await seedUsers.SeedDemoUserAsync();
+	await SeedDemoData.SeedDemoDataAsync(dbContext, demoUserId.Value);
 }
 
 if (!Env.IsDevelopment) app.UseHttpsRedirection();

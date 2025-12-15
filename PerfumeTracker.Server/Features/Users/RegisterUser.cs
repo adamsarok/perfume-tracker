@@ -1,7 +1,8 @@
-﻿using PerfumeTracker.Server.Features.UserProfiles;
+﻿using Microsoft.Extensions.Options;
 using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Users;
+
 public record RegisterUserCommand(string UserName, string Email, string Password, string InviteCode) : ICommand<Unit>;
 public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand> {
 	public RegisterUserCommandValidator() {
@@ -22,11 +23,10 @@ public class RegisterUserEndpoint : ICarterModule {
 	}
 }
 
-public class RegisterUserHandler(ICreateUser createUser, IConfiguration configuration, PerfumeTrackerContext context) : ICommandHandler<RegisterUserCommand, Unit>  {
+public class RegisterUserHandler(ICreateUser createUser, IOptions<UserConfiguration> userConfig, PerfumeTrackerContext context) : ICommandHandler<RegisterUserCommand, Unit> {
 	public async Task<Unit> Handle(RegisterUserCommand command, CancellationToken cancellationToken) {
-		var userConfig = new UserConfiguration(configuration);
 		Invite? invite = null;
-		if (userConfig.InviteOnlyRegistration) {
+		if (userConfig.Value.InviteOnlyRegistration) {
 			await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 			try {
 				if (!Guid.TryParse(command.InviteCode, out var inviteId))
