@@ -1,5 +1,6 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.R2;
@@ -83,7 +84,8 @@ builder.Services.AddScoped<UpdateStreakProgressHandler>();
 builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
-builder.Services.AddScoped<R2Configuration>();
+builder.Services.Configure<R2Configuration>(builder.Configuration.GetSection("R2"));
+builder.Services.AddSingleton<IValidateOptions<R2Configuration>, R2ConfigurationValidator>();
 builder.Services.AddScoped<UploadImageHandler>();
 builder.Services.AddScoped<XPService>();
 builder.Services.AddSingleton<IUserConfiguration, UserConfiguration>();
