@@ -15,7 +15,7 @@ public class UploadImageEndpoint : ICarterModule {
 			UploadImageHandler uploadImageHandler,
 			CancellationToken cancellationToken) => {
 				var configuration = r2Options.Value;
-				if (!configuration.IsEnabled) return Results.InternalServerError("R2 not configured");
+				if (!configuration.IsConfigured) return Results.InternalServerError("R2 not configured");
 				var perfume = await perfumeTrackerContext.Perfumes.FindAsync([perfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", perfumeId);
 				if (file == null || file.Length == 0) return Results.BadRequest("No file uploaded");
 				if (file.Length > configuration.MaxFileSizeKb * 1024) {
@@ -36,9 +36,9 @@ public class UploadImageHandler(IOptions<R2Configuration> r2Options,
 	IPresignedUrlService presignedUrlService,
 	IHttpClientFactory httpClientFactory) {
 	private readonly R2Configuration configuration = r2Options.Value;
-	
+
 	public async Task<Guid> UploadImage(Stream stream, CancellationToken cancellationToken) {
-		if (!configuration.IsEnabled) throw new ConfigEmptyException("R2 not configured");
+		if (!configuration.IsConfigured) throw new ConfigEmptyException("R2 not configured");
 		if (stream == null) throw new BadRequestException($"Image stream is null");
 		try {
 			using var image = new MagickImage(stream);

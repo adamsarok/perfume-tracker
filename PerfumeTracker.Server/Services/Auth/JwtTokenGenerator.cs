@@ -1,12 +1,14 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 namespace PerfumeTracker.Server.Services.Auth;
 
-public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, IConfiguration config,
+public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, IOptions<JwtConfiguration> jwtOptions,
 	ILogger<JwtTokenGenerator> logger) : IJwtTokenGenerator {
+	private readonly JwtConfiguration jwtConfiguration = jwtOptions.Value;
+	
 	public async Task<string> GenerateToken(PerfumeIdentityUser user) {
-		var jwtConfiguration = new JwtConfiguration(config);
 		var claims = new List<Claim>
 		{
 			new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -18,7 +20,7 @@ public class JwtTokenGenerator(UserManager<PerfumeIdentityUser> userManager, ICo
 			claims.Add(new Claim(ClaimTypes.Role, role));
 		}
 
-		var creds = new SigningCredentials(jwtConfiguration.Key, SecurityAlgorithms.HmacSha256);
+		var creds = new SigningCredentials(jwtConfiguration.GetSecurityKey(), SecurityAlgorithms.HmacSha256);
 
 		var token = new JwtSecurityToken(
 			jwtConfiguration.Issuer,

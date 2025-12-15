@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
@@ -47,7 +46,7 @@ public class UserTests {
 		const string test2Mail = "test2@user.com";
 		var inviteResult = await inviteHandler.Handle(new CreateInviteCommand(test2Mail), CancellationToken.None);
 		var createUser = scope.ServiceProvider.GetRequiredService<ICreateUser>();
-		var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+		var configuration = scope.ServiceProvider.GetRequiredService<IOptions<UserConfiguration>>();
 		var registerHandler = new RegisterUserHandler(createUser, configuration, context);
 		var registerCommand = new RegisterUserCommand("TestUser2", test2Mail, "abc123DEF_-y-98756123", inviteResult.InviteCode.ToString());
 		await registerHandler.Handle(registerCommand, CancellationToken.None);

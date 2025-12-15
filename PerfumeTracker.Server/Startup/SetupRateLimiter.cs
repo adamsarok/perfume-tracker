@@ -1,11 +1,10 @@
-﻿using PerfumeTracker.Server.Config;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Threading.RateLimiting;
 
 namespace PerfumeTracker.Server.Startup;
+
 public static partial class Startup {
-	public static void SetupRateLimiting(IServiceCollection services, IConfiguration config) {
-		var rateLimiterConfig = new RateLimitConfiguration(config);
+	public static void SetupRateLimiting(IServiceCollection services, RateLimitConfiguration rateLimiterConfig) {
 		services.AddRateLimiter(options => {
 			options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext => {
 				string path = httpContext.Request.Path.ToString();

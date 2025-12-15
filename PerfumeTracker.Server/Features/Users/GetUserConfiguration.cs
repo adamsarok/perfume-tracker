@@ -1,4 +1,7 @@
-﻿namespace PerfumeTracker.Server.Features.Users;
+﻿using Microsoft.Extensions.Options;
+
+namespace PerfumeTracker.Server.Features.Users;
+
 public record GetUserConfigurationQuery() : IQuery<GetUserConfigurationResponse>;
 public class GetUserConfiguration : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
@@ -7,13 +10,12 @@ public class GetUserConfiguration : ICarterModule {
 		}).WithTags("Users")
 			.WithName("GetConfiguration")
 			.AllowAnonymous();
-}
+	}
 }
 public record GetUserConfigurationResponse(bool InviteOnlyRegistration);
-public class GetUserConfigurationHandler(IConfiguration configuration) : IQueryHandler<GetUserConfigurationQuery, GetUserConfigurationResponse> {
+public class GetUserConfigurationHandler(IOptions<UserConfiguration> configuration) : IQueryHandler<GetUserConfigurationQuery, GetUserConfigurationResponse> {
 	public async Task<GetUserConfigurationResponse> Handle(GetUserConfigurationQuery request, CancellationToken cancellationToken) {
 		await Task.CompletedTask; // to suppress non-async warning
-		var userConfig = new UserConfiguration(configuration);
-		return new GetUserConfigurationResponse(userConfig.InviteOnlyRegistration);
+		return new GetUserConfigurationResponse(configuration.Value.InviteOnlyRegistration);
 	}
 }
