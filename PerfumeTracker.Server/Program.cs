@@ -102,7 +102,6 @@ builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
 builder.Services.AddScoped<UploadImageHandler>();
 builder.Services.AddScoped<XPService>();
-builder.Services.AddSingleton<IUserConfiguration, UserConfiguration>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
