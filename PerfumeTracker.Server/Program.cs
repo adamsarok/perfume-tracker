@@ -112,7 +112,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options => {
-	var corsConfig = builder.Configuration.GetSection("Cors").Get<CorsConfiguration>();
+	var corsConfig = builder.Configuration.GetSection("CORS").Get<CorsConfiguration>();
 	if (corsConfig?.AllowedOrigins != null && corsConfig.AllowedOrigins.Length > 0) {
 		options.AddPolicy("AllowSpecificOrigin",
 			policy => policy
