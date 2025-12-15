@@ -77,7 +77,7 @@ builder.Services.AddMediatR(config => {
 
 // Config
 builder.Services.AddOptionsWithValidateOnStart<CorsConfiguration>()
-	.Bind(builder.Configuration.GetSection("Cors"))
+	.Bind(builder.Configuration.GetSection("CORS"))
 	.ValidateDataAnnotations();
 builder.Services.AddOptionsWithValidateOnStart<R2Configuration>()
 	.Bind(builder.Configuration.GetSection("R2"))
