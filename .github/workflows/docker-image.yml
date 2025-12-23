@@ -40,7 +40,7 @@ jobs:
       R2__MaxFileSizeKb: 256
     services:
       postgres:
-        image: postgres
+        image: pgvector/pgvector
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}

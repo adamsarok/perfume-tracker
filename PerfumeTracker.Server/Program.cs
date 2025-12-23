@@ -9,6 +9,7 @@ using PerfumeTracker.Server.Services.Achievements;
 using PerfumeTracker.Server.Services.Auth;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Demo;
+using PerfumeTracker.Server.Services.Embedding;
 using PerfumeTracker.Server.Services.Missions;
 using PerfumeTracker.Server.Services.Outbox;
 using PerfumeTracker.Server.Startup;
@@ -59,7 +60,7 @@ Log.Logger = loggerConfig.CreateLogger();
 builder.Host.UseSerilog();
 
 builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
-	opt.UseNpgsql(conn);
+	opt.UseNpgsql(conn, o => o.UseVector());
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
@@ -127,6 +128,7 @@ builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
 builder.Services.AddHostedService<SideEffectProcessor>();
 
 builder.Services.AddHostedService<OutboxRetryService>();
+builder.Services.AddHostedService<EmbeddingRetryService>();
 builder.Services.AddHostedService<MissionService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
