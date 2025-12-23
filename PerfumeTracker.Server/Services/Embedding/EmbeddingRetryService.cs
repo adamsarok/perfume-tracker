@@ -4,6 +4,11 @@ namespace PerfumeTracker.Server.Services.Embedding;
 
 public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetryService> logger, IEncoder encoder) : BackgroundService {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+		if (encoder is NullEncoder) {
+			logger.LogInformation("Embedding service disabled (no OpenAI API key configured)");
+			return;
+		}
+
 		await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
 
 		while (!stoppingToken.IsCancellationRequested) {

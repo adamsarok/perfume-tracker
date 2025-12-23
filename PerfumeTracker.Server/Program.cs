@@ -99,10 +99,15 @@ builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddScoped<UpdateStreakProgressHandler>();
-builder.Services.AddSingleton<OpenAIClient>(
-	_ => new OpenAIClient(builder.Configuration["OpenAI:ApiKey"] ?? "")
-);
-builder.Services.AddSingleton<IEncoder, Encoder>();
+
+var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
+if (!string.IsNullOrWhiteSpace(openAiApiKey)) {
+	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
+	builder.Services.AddScoped<IEncoder, Encoder>();
+} else {
+	builder.Services.AddScoped<IEncoder, NullEncoder>();
+}
+
 builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();

@@ -19,6 +19,9 @@ public class GetAiRecommendationEndpoint : ICarterModule {
 public class GetAiRecommendationHandler(IConfiguration configuration) : IQueryHandler<GetAiRecommendationQuery, string> {
 	public async Task<string> Handle(GetAiRecommendationQuery request, CancellationToken cancellationToken) {
 		string? apiKey = configuration["OpenAi:ApiKey"];
+		if (string.IsNullOrWhiteSpace(apiKey)) {
+			throw new InvalidOperationException("OpenAI API key is not configured");
+		}
 		ChatClient client = new(model: "gpt-4o-mini", apiKey: apiKey);
 		List<ChatMessage> messages = [
 			new SystemChatMessage("You are a perfume recommendation expert."),
