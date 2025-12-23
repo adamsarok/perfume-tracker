@@ -26,9 +26,12 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 		using var scope = sp.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
+		var test = await context.Perfumes.CountAsync(cancellationToken);
+
 		// Find perfumes that need embeddings
 		var perfumesNeedingEmbedding = await context.Perfumes
-			.Where(p => !context.PerfumeDocuments.Any(d => d.Id == p.Id))
+			.IgnoreQueryFilters()
+			.Where(p => !context.PerfumeDocuments.Any(d => d.Id == p.Id) && !p.IsDeleted)
 			.Take(100)
 			.Include(p => p.PerfumeTags).ThenInclude(pt => pt.Tag)
 			.Include(p => p.PerfumeRatings)
@@ -47,7 +50,8 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 				context.PerfumeDocuments.Add(new PerfumeDocument {
 					Id = perfume.Id,
 					Text = text,
-					Embedding = embedding
+					Embedding = embedding,
+					UserId = perfume.UserId
 				});
 
 				await context.SaveChangesAsync(cancellationToken);
@@ -60,14 +64,13 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 	private string BuildText(Perfume perfume) {
 		var sb = new StringBuilder(); // only add fields which are not available in perfume. Eg House can be searched in Perfume - sentiment based on all tags & comments can not
 
-		sb.Append($"Perfume rated {perfume.PerfumeRatings.Average(x => x.Rating).ToString("0.#")} points, ");
-
 		if (perfume.PerfumeTags.Any()) {
-			sb.Append($"has {string.Join(", ", perfume.PerfumeTags.Select(pt => pt.Tag.TagName))} notes");
+			sb.Append($"Perfume has {string.Join(", ", perfume.PerfumeTags.Select(pt => pt.Tag.TagName))} notes. ");
 		}
 
 		if (perfume.PerfumeRatings.Any()) {
-			sb.Append($"User thinks perfume is ");
+			sb.Append($"User rated perfume {perfume.PerfumeRatings.Average(x => x.Rating).ToString("0.#")} points. ");
+			sb.Append($"User thinks perfume ");
 			var comments = perfume.PerfumeRatings
 				.Where(r => !string.IsNullOrWhiteSpace(r.Comment))
 				.OrderByDescending(r => r.UpdatedAt)

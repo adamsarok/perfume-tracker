@@ -1,5 +1,6 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.HttpOverrides;
+using OpenAI;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.R2;
@@ -98,6 +99,10 @@ builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddScoped<UpdateStreakProgressHandler>();
+builder.Services.AddSingleton<OpenAIClient>(
+	_ => new OpenAIClient(builder.Configuration["OpenAI:ApiKey"] ?? "")
+);
+builder.Services.AddSingleton<IEncoder, Encoder>();
 builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
