@@ -31,8 +31,6 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 		using var scope = sp.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
-		var test = await context.Perfumes.CountAsync(cancellationToken);
-
 		// Find perfumes that need embeddings
 		var perfumesNeedingEmbedding = await context.Perfumes
 			.IgnoreQueryFilters()
@@ -50,7 +48,7 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 		foreach (var perfume in perfumesNeedingEmbedding) {
 			try {
 				var text = BuildText(perfume);
-				var embedding = await encoder.GetEmbeddings(text);
+				var embedding = await encoder.GetEmbeddings(text, cancellationToken);
 
 				context.PerfumeDocuments.Add(new PerfumeDocument {
 					Id = perfume.Id,
@@ -70,12 +68,12 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 		var sb = new StringBuilder(); // only add fields which are not available in perfume. Eg House can be searched in Perfume - sentiment based on all tags & comments can not
 
 		if (perfume.PerfumeTags.Any()) {
-			sb.Append($"Perfume has {string.Join(", ", perfume.PerfumeTags.Select(pt => pt.Tag.TagName))} notes. ");
+			sb.Append($"Notes: {string.Join(", ", perfume.PerfumeTags.Select(pt => pt.Tag.TagName))}. ");
 		}
 
 		if (perfume.PerfumeRatings.Any()) {
-			sb.Append($"User rated perfume {perfume.PerfumeRatings.Average(x => x.Rating).ToString("0.#")} points. ");
-			sb.Append($"User thinks perfume ");
+			sb.Append($"Rating: {perfume.PerfumeRatings.Average(x => x.Rating).ToString("0.#")}/10 points. ");
+			sb.Append($"User comments: ");
 			var comments = perfume.PerfumeRatings
 				.Where(r => !string.IsNullOrWhiteSpace(r.Comment))
 				.OrderByDescending(r => r.UpdatedAt)
@@ -84,6 +82,11 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 			if (comments.Any()) {
 				sb.Append($"{string.Join(". ", comments)} ");
 			}
+		}
+
+		var wearEvents = perfume.PerfumeEvents.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn);
+		if (wearEvents.Any()) {
+			sb.Append($"Worn {wearEvents.Count()} times, last on {wearEvents.Max(x => x.EventDate).ToString("yyyy-MM-dd")}.");
 		}
 
 		return sb.ToString();

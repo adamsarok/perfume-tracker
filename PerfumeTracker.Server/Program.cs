@@ -103,9 +103,9 @@ builder.Services.AddScoped<UpdateStreakProgressHandler>();
 var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
 if (!string.IsNullOrWhiteSpace(openAiApiKey)) {
 	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
-	builder.Services.AddScoped<IEncoder, Encoder>();
+	builder.Services.AddSingleton<IEncoder, Encoder>();
 } else {
-	builder.Services.AddScoped<IEncoder, NullEncoder>();
+	builder.Services.AddSingleton<IEncoder, NullEncoder>();
 }
 
 builder.Services.AddScoped<ICreateUser, CreateUser>();
