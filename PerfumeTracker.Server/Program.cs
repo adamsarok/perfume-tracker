@@ -71,8 +71,6 @@ Startup.SetupAuthorizations(builder.Services, builder.Configuration);
 
 var assembly = typeof(Program).Assembly;
 builder.Services.AddMediatR(config => {
-	var licenseKey = builder.Configuration.GetValue<string>("Mediatr:LicenseKey");
-	if (!string.IsNullOrWhiteSpace(licenseKey)) config.LicenseKey = licenseKey;
 	config.RegisterServicesFromAssembly(assembly);
 	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
