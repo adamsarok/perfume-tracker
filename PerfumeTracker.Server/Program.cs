@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using OpenAI;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
+using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Middleware;
@@ -109,6 +110,7 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey)) {
 builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
+builder.Services.AddScoped<IPerfumeRecommender, PerfumeRecommender>();
 builder.Services.AddScoped<UploadImageHandler>();
 builder.Services.AddScoped<XPService>();
 builder.Services.AddCarter();
@@ -145,7 +147,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options => {
 	options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
 							  ForwardedHeaders.XForwardedProto |
 							  ForwardedHeaders.XForwardedHost;
-	options.KnownNetworks.Clear();
+	options.KnownIPNetworks.Clear();
 	options.KnownProxies.Clear();
 });
 
