@@ -1,6 +1,6 @@
 ﻿using PerfumeTracker.Server.Services.Common;
 
-namespace PerfumeTracker.Server.Features.Perfumes;
+namespace PerfumeTracker.Server.Features.Perfumes.Extensions;
 
 public static class PerfumeExtensions {
 	public static PerfumeWithWornStatsDto ToPerfumeWithWornStatsDto(this Perfume p, UserProfile userProfile, IPresignedUrlService presignedUrlService) {

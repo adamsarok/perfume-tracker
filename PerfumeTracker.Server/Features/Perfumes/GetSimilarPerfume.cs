@@ -1,8 +1,6 @@
-﻿
+﻿using PerfumeTracker.Server.Services.Auth;
 
-using PerfumeTracker.Server.Services.Auth;
-
-namespace PerfumeTracker.Server.Features.Ai;
+namespace PerfumeTracker.Server.Features.Perfumes;
 public class GetSimilarPerfumes {
 	public record GetSimilarPerfumesQuery(Guid PerfumeId) : IQuery<GetSimilarPerfumesResponse>;
 	public record GetSimilarPerfumesResponse(IEnumerable<Perfume> Perfumes);
