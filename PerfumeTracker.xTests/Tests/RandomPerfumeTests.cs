@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
+using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.xTests.Fixture;
+using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
 
 namespace PerfumeTracker.xTests.Tests;
 
@@ -41,8 +45,12 @@ public class RandomPerfumeTests {
 	public async Task GetPerfumeSuggestion() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-
-		var handler = new GetRandomPerfumeHandler(context, _fixture.MockSideEffectQueue.Object);
+		var perfume = await context.Perfumes.FirstAsync();
+		var mockRecommender = new Mock<IPerfumeRecommender>();
+		_ = mockRecommender.Setup(x => 
+			x.GetRecommendationsForStrategy(It.IsAny<RecommendationStrategy>(), 1, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new List<Perfume>() { perfume });
+		var handler = new GetRandomPerfumeHandler(context, _fixture.MockSideEffectQueue.Object, mockRecommender.Object);
 		var response = await handler.Handle(new GetRandomPerfumeQuery(), CancellationToken.None);
 		Assert.NotNull(response);
 	}
