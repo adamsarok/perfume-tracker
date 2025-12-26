@@ -12,8 +12,8 @@ export async function getPerfumesFulltext(
   return get<PerfumeWithWornStatsDTO[]>(qry);
 }
 
-export async function getPerfumeRecommendations(): Promise<AxiosResult<PerfumeRecommendationDTO[]>> {
-  const qry = `/perfumes/`;
+export async function getPerfumeRecommendations(count: number): Promise<AxiosResult<PerfumeRecommendationDTO[]>> {
+  const qry = `/perfumes/recommendations/${count}`;
   return get<PerfumeRecommendationDTO[]>(qry);
 }
 

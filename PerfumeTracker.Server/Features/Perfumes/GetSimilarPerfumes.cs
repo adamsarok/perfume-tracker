@@ -14,7 +14,7 @@ public class GetSimilarPerfumes {
 	}
 	public class GetSimilarPerfumesEndpoint : ICarterModule {
 		public void AddRoutes(IEndpointRouteBuilder app) {
-			app.MapGet("/api/ai/similar-perfumes/{perfumeId}/{count}", async (Guid perfumeId, int count, ISender sender, CancellationToken cancellationToken) => {
+			app.MapGet("/api/perfumes/similar-perfumes/{perfumeId}/{count}", async (Guid perfumeId, int count, ISender sender, CancellationToken cancellationToken) => {
 				
 				var result = await sender.Send(new GetSimilarPerfumesQuery(perfumeId, count), cancellationToken);
 				return Results.Ok(result);

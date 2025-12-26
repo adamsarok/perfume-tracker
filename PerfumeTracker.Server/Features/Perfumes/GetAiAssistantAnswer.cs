@@ -6,7 +6,7 @@ namespace PerfumeTracker.Server.Features.Perfumes;
 public record GetAiRecommendationQuery(string Query) : IQuery<string>;
 public class GetAiRecommendationEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/ai", async (GetAiRecommendationQuery query, ISender sender, CancellationToken cancellationToken) => {
+		app.MapPost("/api/ai-assistant", async (GetAiRecommendationQuery query, ISender sender, CancellationToken cancellationToken) => {
 			var result = await sender.Send(query, cancellationToken);
 			return Results.Ok(result);
 		})
