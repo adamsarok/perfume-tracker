@@ -80,7 +80,7 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 				.Take(10)
 				.Select(r => r.Comment);
 			if (comments.Any()) {
-				sb.Append($"{string.Join(". ", comments)} ");
+				sb.Append($"{string.Join(". ", comments)}. ");
 			}
 		}
 
