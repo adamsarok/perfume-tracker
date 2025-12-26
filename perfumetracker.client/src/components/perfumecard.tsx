@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 export interface PerfumeCardProps {
   readonly worn: PerfumeWornDTO;
+  readonly recommendationType?: string;
 }
 
 export default function PerfumeCard({
