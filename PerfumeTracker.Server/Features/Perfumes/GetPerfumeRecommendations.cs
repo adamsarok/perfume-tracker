@@ -13,14 +13,13 @@ public class GetPerfumeRecommendations {
 	}
 	public class GetPerfumeRecommendationsEndpoint : ICarterModule {
 		public void AddRoutes(IEndpointRouteBuilder app) {
-			app.MapGet("/api/perfumes/recommendations/{count}", async (Guid perfumeId, int count, ISender sender, CancellationToken cancellationToken) => {
-				
+			app.MapGet("/api/perfumes/recommendations/{count}", async (int count, ISender sender, CancellationToken cancellationToken) => {
 				var result = await sender.Send(new GetPerfumeRecommendationsQuery(count), cancellationToken);
 				return Results.Ok(result);
 			})
 			.WithTags("Perfumes")
 			.WithName("GetPerfumeRecommendations")
-			.RequireAuthorization(Policies.WRITE);
+			.RequireAuthorization(Policies.READ);
 		}
 	}
 

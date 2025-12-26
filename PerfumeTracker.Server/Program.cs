@@ -92,6 +92,8 @@ builder.Services.AddOptionsWithValidateOnStart<RateLimitConfiguration>()
 builder.Services.AddOptionsWithValidateOnStart<UserConfiguration>()
 	.Bind(builder.Configuration.GetSection("Users"))
 	.ValidateDataAnnotations();
+builder.Services.AddOptions<OpenAIOptions>()
+	.Bind(builder.Configuration.GetSection("OpenAI"));
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();

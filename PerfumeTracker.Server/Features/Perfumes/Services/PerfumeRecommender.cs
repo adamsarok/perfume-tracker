@@ -1,10 +1,5 @@
-﻿using PerfumeTracker.Server.Features.PerfumeRandoms;
-using PerfumeTracker.Server.Models;
-using PerfumeTracker.Server.Services.Embedding;
+﻿using PerfumeTracker.Server.Services.Embedding;
 using Pgvector.EntityFrameworkCore;
-using System;
-using System.Threading;
-
 
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
@@ -31,8 +26,16 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder)
 	}
 
 	private async Task<IEnumerable<Perfume>> GetLeastUsed(int count, decimal minimumRating, CancellationToken cancellationToken) {
-		throw new NotImplementedException();
+		var result = await context.Perfumes
+			.Where(p => p.Ml > 0 && p.PerfumeRatings.Average(pr => pr.Rating) >= minimumRating)
+			.OrderBy(p => p.PerfumeEvents.Count(pe => pe.Type == PerfumeEvent.PerfumeEventType.Worn))
+			.Take(count * RANDOM_SAMPLE_MULTIPLIER)
+			.ToListAsync(cancellationToken);
+		return result
+			.OrderBy(_ => Random.Shared.Next())
+			.Take(count);
 	}
+
 	private async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter, CancellationToken cancellationToken) {
 		return await context
 			.PerfumeRandoms
@@ -155,7 +158,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder)
 			.Where(p => p.Ml > 0 && p.PerfumeRatings.Average(pr => pr.Rating) >= minimumRating)
 			.OrderBy(p => p.PerfumeEvents.Where(pe => pe.Type == PerfumeEvent.PerfumeEventType.Worn).Max(e => e.EventDate))
 			.Take(count * RANDOM_SAMPLE_MULTIPLIER)
-			.ToListAsync();
+			.ToListAsync(cancellationToken);
 		return result
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count);
