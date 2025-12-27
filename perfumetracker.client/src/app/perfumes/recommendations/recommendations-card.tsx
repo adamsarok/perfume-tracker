@@ -100,6 +100,7 @@ export default function PerfumeRecommendationsCard({
                     onSuccess={null}
                     className="mb-2 mt-2"
                     randomsId={null}
+                    showFullButton={false}
                   ></SprayOnComponent>
           </a>
         </CardHeader>
