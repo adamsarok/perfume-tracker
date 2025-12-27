@@ -1,11 +1,12 @@
 ﻿using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Services.Auth;
-using System.ComponentModel.DataAnnotations;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
+
 public class GetPerfumeRecommendations {
 	public record GetPerfumeRecommendationsQuery(int Count) : IQuery<GetPerfumeRecommendationsResponse>;
-	public record GetPerfumeRecommendationsResponse(IEnumerable<Perfume> Perfumes);
+	public record GetPerfumeRecommendationsResponse(IEnumerable<PerfumeRecommendationDto> PerfumeRecommendations);
+	public record PerfumeRecommendationDto(PerfumeWithWornStatsDto perfume, RecommendationStrategy strategy);
 	public class GetPerfumeRecommendationsQueryValidator : AbstractValidator<GetPerfumeRecommendationsQuery> {
 		public GetPerfumeRecommendationsQueryValidator() {
 			RuleFor(x => x.Count).InclusiveBetween(1, 20);
@@ -25,12 +26,17 @@ public class GetPerfumeRecommendations {
 
 	public class GetPerfumeRecommendationsHandler(IPerfumeRecommender perfumeRecommender) : IQueryHandler<GetPerfumeRecommendationsQuery, GetPerfumeRecommendationsResponse> {
 		public async Task<GetPerfumeRecommendationsResponse> Handle(GetPerfumeRecommendationsQuery request, CancellationToken cancellationToken) {
-			// TODO: strategy should be user selectable?
-			//foreach (var strategy in RecommendationStrategy)) {
-			//	var perfumes = await perfumeRecommender.GetRecommendationsForStrategy(request.Count, cancellationToken);
-			//}
-			//return new GetPerfumeRecommendationsResponse(perfumes);
-			throw new NotImplementedException();
+			var strategyCnt = Enum.GetValues<RecommendationStrategy>().Length;
+			int cntPerStrategy = (int)Math.Ceiling((double)request.Count / strategyCnt);
+			var recommendations = new List<PerfumeRecommendationDto>();
+			foreach (var strategy in Enum.GetValues<RecommendationStrategy>()) {
+				var recs = await perfumeRecommender.GetRecommendationsForStrategy(strategy, cntPerStrategy, cancellationToken);
+				recommendations.AddRange(recs.Select(x => new PerfumeRecommendationDto(x, strategy)));
+			}
+			var result = recommendations
+				.OrderBy(_ => Random.Shared.Next())
+				.Take(request.Count);
+			return new GetPerfumeRecommendationsResponse(result);
 		}
 	}
 }

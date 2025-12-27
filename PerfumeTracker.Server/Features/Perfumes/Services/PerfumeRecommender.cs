@@ -1,4 +1,6 @@
-﻿using PerfumeTracker.Server.Services.Embedding;
+﻿using PerfumeTracker.Server.Features.Perfumes.Extensions;
+using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.Server.Services.Embedding;
 using Pgvector.EntityFrameworkCore;
 
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
@@ -11,29 +13,30 @@ public enum RecommendationStrategy {
 	LeastUsed           // Bottom 10% usage
 }
 
-public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder) : IPerfumeRecommender {
+public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder, IPresignedUrlService presignedUrlService) : IPerfumeRecommender {
 	private const int RANDOM_SAMPLE_MULTIPLIER = 3;
-	public async Task<IEnumerable<Perfume>> GetRecommendationsForStrategy(RecommendationStrategy strategy, int count, CancellationToken cancellationToken) {
+	public async Task<IEnumerable<PerfumeWithWornStatsDto>> GetRecommendationsForStrategy(RecommendationStrategy strategy, int count, CancellationToken cancellationToken) {
 		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
 		return strategy switch {
-			RecommendationStrategy.ForgottenFavorite => await GetForgottenFavorites(count, settings.MinimumRating, cancellationToken),
-			RecommendationStrategy.MoodBased => await GetMoodBased(count, settings.MinimumRating, cancellationToken),
-			RecommendationStrategy.Seasonal => await GetSeasonal(count, settings.MinimumRating, cancellationToken),
+			RecommendationStrategy.ForgottenFavorite => await GetForgottenFavorites(count, settings, cancellationToken),
+			RecommendationStrategy.MoodBased => await GetMoodBased(count, settings, cancellationToken),
+			RecommendationStrategy.Seasonal => await GetSeasonal(count, settings, cancellationToken),
 			RecommendationStrategy.Random => await GetRandom(count, settings, cancellationToken),
-			RecommendationStrategy.LeastUsed => await GetLeastUsed(count, settings.MinimumRating, cancellationToken),
+			RecommendationStrategy.LeastUsed => await GetLeastUsed(count, settings, cancellationToken),
 			_ => throw new ArgumentOutOfRangeException(nameof(strategy))
 		};
 	}
 
-	private async Task<IEnumerable<Perfume>> GetLeastUsed(int count, decimal minimumRating, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetLeastUsed(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		var result = await context.Perfumes
-			.Where(p => p.Ml > 0 && p.PerfumeRatings.Average(pr => pr.Rating) >= minimumRating)
+			.Where(p => p.Ml > 0 && p.PerfumeRatings.Average(pr => pr.Rating) >= userProfile.MinimumRating)
 			.OrderBy(p => p.PerfumeEvents.Count(pe => pe.Type == PerfumeEvent.PerfumeEventType.Worn))
 			.Take(count * RANDOM_SAMPLE_MULTIPLIER)
 			.ToListAsync(cancellationToken);
 		return result
 			.OrderBy(_ => Random.Shared.Next())
-			.Take(count);
+			.Take(count)
+			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
 	}
 
 	private async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter, CancellationToken cancellationToken) {
@@ -45,35 +48,36 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder)
 			.ToListAsync(cancellationToken);
 	}
 
-	private async Task<IEnumerable<Perfume>> GetRandom(int count, UserProfile settings, CancellationToken cancellationToken) {
-		var alreadySuggestedIds = await GetAlreadySuggestedRandomPerfumeIds(settings.DayFilter, cancellationToken);
+	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetRandom(int count, UserProfile userProfile, CancellationToken cancellationToken) {
+		var alreadySuggestedIds = await GetAlreadySuggestedRandomPerfumeIds(userProfile.DayFilter, cancellationToken);
 		var worn = await context
 			.PerfumeEvents
-			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-settings.DayFilter))
+			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn && x.EventDate >= DateTimeOffset.UtcNow.AddDays(-userProfile.DayFilter))
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.ToListAsync(cancellationToken);
 		var all = await context
 			.Perfumes
-			.Where(p => p.Ml > 0 && p.PerfumeRatings.Average(pr => pr.Rating) >= settings.MinimumRating)
+			.Where(p => p.Ml > 0 && p.PerfumeRatings.Average(pr => pr.Rating) >= userProfile.MinimumRating)
 			.ToListAsync(cancellationToken);
-		if (all.Count == 0) return Enumerable.Empty<Perfume>();
+		if (all.Count == 0) return Enumerable.Empty<PerfumeWithWornStatsDto>();
 		var filtered = all.Where(x => !alreadySuggestedIds.Contains(x.Id) && !worn.Contains(x.Id));
 		if (!filtered.Any()) filtered = all.Where(x => !worn.Contains(x.Id));
 		if (!filtered.Any()) filtered = all;
 		return filtered
 			.OrderBy(_ => Random.Shared.Next())
-			.Take(count);
+			.Take(count)
+			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
 	}
 
-	private async Task<IEnumerable<Perfume>> GetSeasonal(int count, decimal minimumRating, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetSeasonal(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		// User might not have logged any tags or comments that indicate seasonality
 		// Query more from DB and ask LLM to help pick?
 		// Hardcode some common seasonal tags?
 		var keywords = GetSeasonalKeywords(Season);
 		var seasonalTagged = await context.Perfumes
 		.Where(x => x.Ml > 0
-			&& x.PerfumeRatings.Average(r => r.Rating) >= minimumRating
+			&& x.PerfumeRatings.Average(r => r.Rating) >= userProfile.MinimumRating
 			&& x.PerfumeTags.Any(pt => keywords.Contains(pt.Tag.TagName.ToLower())))
 		.Include(x => x.PerfumeTags)
 		.ThenInclude(x => x.Tag)
@@ -83,7 +87,8 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder)
 		// Should there be a filter on recently worn?
 		return seasonalTagged
 			.OrderBy(_ => Random.Shared.Next())
-			.Take(count);
+			.Take(count)
+			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
 	}
 	public enum Seasons { Winter, Spring, Summer, Autumn };
 	public static Seasons Season => DateTime.UtcNow.Month switch {
@@ -104,7 +109,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder)
 		};
 	}
 
-	private async Task<IEnumerable<Perfume>> GetMoodBased(int count, decimal minimumRating, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetMoodBased(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		var lastFiveIds = await context.PerfumeEvents
 			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn)
 			.OrderByDescending(x => x.EventDate)
@@ -117,19 +122,18 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder)
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Select(x => x.PerfumeTags.Select(pt => pt.Tag.TagName))
-			.Distinct()
 			.ToListAsync(cancellationToken);
 		var flatTags = tags.SelectMany(x => x).Distinct().ToList();
 		var embedding = await encoder.GetEmbeddings(string.Join(" ", flatTags), cancellationToken);
-		return await GetSimilarToEmbedding(count, minimumRating, lastFiveIds, embedding, cancellationToken);
+		return await GetSimilarToEmbedding(count, userProfile, lastFiveIds, embedding, cancellationToken);
 	}
 
-	private async Task<IEnumerable<Perfume>> GetSimilarToEmbedding(int count, decimal minimumRating, List<Guid> exceptPerfumeIds, Pgvector.Vector embedding, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetSimilarToEmbedding(int count, UserProfile userProfile, List<Guid> exceptPerfumeIds, Pgvector.Vector embedding, CancellationToken cancellationToken) {
 		var result = await context.PerfumeDocuments
 					.Where(x => !exceptPerfumeIds.Contains(x.Id)
 						&& x.Embedding != null
 						&& x.Perfume.Ml > 0
-						&& x.Perfume.PerfumeRatings.Average(pr => pr.Rating) >= minimumRating)
+						&& x.Perfume.PerfumeRatings.Average(pr => pr.Rating) >= userProfile.MinimumRating)
 					.Include(x => x.Perfume)
 					.OrderBy(x => x.Embedding!.L2Distance(embedding))
 					.Take(count * RANDOM_SAMPLE_MULTIPLIER)
@@ -137,31 +141,32 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder)
 					.ToListAsync(cancellationToken);
 		return result
 			.OrderBy(_ => Random.Shared.Next())
-			.Take(count);
+			.Take(count)
+			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
 	}
 
-	public async Task<IEnumerable<Perfume>> GetSimilar(Guid perfumeId, int count, CancellationToken cancellationToken) {
-		var userProfile = await context.UserProfiles.FirstAsync(cancellationToken);
+	public async Task<IEnumerable<PerfumeWithWornStatsDto>> GetSimilar(Guid perfumeId, int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		var perfume = await context.Perfumes
 			.Include(x => x.PerfumeDocument)
 			.FirstOrDefaultAsync(x => x.Id == perfumeId, cancellationToken);
 		var embedding = perfume?.PerfumeDocument?.Embedding;
 		if (embedding == null) {
-			return Enumerable.Empty<Perfume>();
+			return Enumerable.Empty<PerfumeWithWornStatsDto>();
 		}
-		return await GetSimilarToEmbedding(count, userProfile.MinimumRating, new List<Guid> { perfumeId }, embedding, cancellationToken);
+		return await GetSimilarToEmbedding(count, userProfile, new List<Guid> { perfumeId }, embedding, cancellationToken);
 	}
 
-	private async Task<IEnumerable<Perfume>> GetForgottenFavorites(int count, decimal minimumRating, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetForgottenFavorites(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		// TODO: check if orderby causes performance issues, if so denormalize last worn date into Perfume table
 		var result = await context.Perfumes
-			.Where(p => p.Ml > 0 && p.PerfumeRatings.Average(pr => pr.Rating) >= minimumRating)
+			.Include(p => p.PerfumeEvents)
+			.Where(p => p.Ml > 0 && p.PerfumeRatings.Average(pr => pr.Rating) >= userProfile.MinimumRating)
 			.OrderBy(p => p.PerfumeEvents.Where(pe => pe.Type == PerfumeEvent.PerfumeEventType.Worn).Max(e => e.EventDate))
 			.Take(count * RANDOM_SAMPLE_MULTIPLIER)
 			.ToListAsync(cancellationToken);
 		return result
 			.OrderBy(_ => Random.Shared.Next())
-			.Take(count);
+			.Take(count)
+			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
 	}
-
 }

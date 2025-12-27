@@ -13,8 +13,8 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 
 		while (!stoppingToken.IsCancellationRequested) {
 			try {
-				await Backfill(stoppingToken);
-				await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+				bool hasUpdates = await BackfillBatch(stoppingToken);
+				await Task.Delay(hasUpdates ? TimeSpan.FromSeconds(5) : TimeSpan.FromMinutes(60), stoppingToken);
 			} catch (Exception ex) {
 				logger.LogError(ex, "Error processing embeddings");
 				await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
@@ -27,7 +27,7 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 	/// </summary>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	private async Task Backfill(CancellationToken cancellationToken) {
+	private async Task<bool> BackfillBatch(CancellationToken cancellationToken) {
 		using var scope = sp.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
@@ -41,13 +41,18 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 			.Include(p => p.PerfumeEvents)
 			.ToListAsync(cancellationToken);
 
-		if (perfumesNeedingEmbedding.Count == 0) return;
+		if (perfumesNeedingEmbedding.Count == 0) return false;
+
+		bool hasUpdates = false;
 
 		logger.LogInformation("Processing {Count} perfumes for embeddings", perfumesNeedingEmbedding.Count);
 
 		foreach (var perfume in perfumesNeedingEmbedding) {
 			try {
 				var text = BuildText(perfume);
+				if (string.IsNullOrWhiteSpace(text)) {
+					continue; // TODO mark so we don't try again?
+				}
 				var embedding = await encoder.GetEmbeddings(text, cancellationToken);
 
 				context.PerfumeDocuments.Add(new PerfumeDocument {
@@ -58,10 +63,12 @@ public class EmbeddingRetryService(IServiceProvider sp, ILogger<EmbeddingRetrySe
 				});
 
 				await context.SaveChangesAsync(cancellationToken);
+				hasUpdates = true;
 			} catch (Exception ex) {
 				logger.LogError(ex, "Failed to generate embedding for perfume {PerfumeId}", perfume.Id);
 			}
 		}
+		return hasUpdates;
 	}
 
 	private string BuildText(Perfume perfume) {

@@ -115,6 +115,7 @@ builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
 builder.Services.AddScoped<IPerfumeRecommender, PerfumeRecommender>();
 builder.Services.AddScoped<UploadImageHandler>();
 builder.Services.AddScoped<XPService>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
