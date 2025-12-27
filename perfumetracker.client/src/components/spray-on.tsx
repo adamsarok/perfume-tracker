@@ -12,7 +12,7 @@ export interface SprayOnProps {
   readonly onSuccess: (() => void) | null;
   readonly className: string;
   readonly randomsId: string | null;
-  readonly showFullButton?: boolean;
+  readonly showFullComponent?: boolean;
 }
 
 export default function SprayOnComponent({
@@ -20,7 +20,7 @@ export default function SprayOnComponent({
   onSuccess,
   className,
   randomsId,
-  showFullButton = true,
+  showFullComponent = true,
 }: SprayOnProps) {
   const yymmdd = new Date().toISOString().slice(0, 10);
   const [dateStr, setDateStr] = useState<string>(yymmdd);
@@ -52,16 +52,20 @@ export default function SprayOnComponent({
   return (
     <div className={"flex items-center space-x-4 " + className}>
       <Button type="button" color="secondary" onClick={() => onSprayOn()} className="flex-2">
-        <WandSparkles /> {showFullButton ? "Spray On" : ""}
+        <WandSparkles /> {showFullComponent ? "Spray On" : ""}
       </Button>
-      <Label htmlFor="date">Worn On</Label>
-      <Input
-        type="date"
-        className="flex-1"
-        id="date"
-        value={dateStr}
-        onChange={handleDateChange}
-      />
+      {showFullComponent && (
+        <>
+          <Label htmlFor="date">Worn On</Label>
+          <Input
+            type="date"
+            className="flex-1"
+            id="date"
+            value={dateStr}
+            onChange={handleDateChange}
+          />
+        </>
+      )}
     </div>
   );
 }
