@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { wearPerfume } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { WandSparkles } from "lucide-react";
+import { SprayCan, WandSparkles } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export interface SprayOnProps {
@@ -52,7 +52,7 @@ export default function SprayOnComponent({
   return (
     <div className={"flex items-center space-x-4 " + className}>
       <Button type="button" color="secondary" onClick={() => onSprayOn()} className="flex-2">
-        <WandSparkles /> {showFullComponent ? "Spray On" : ""}
+        <SprayCan /> {showFullComponent ? "Spray On" : ""}
       </Button>
       {showFullComponent && (
         <>
