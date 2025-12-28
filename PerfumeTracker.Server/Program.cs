@@ -19,6 +19,7 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
+using System.Text.Json.Serialization;
 using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
 
@@ -124,6 +125,9 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.ConfigureHttpJsonOptions(options => {
+	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 builder.Services.AddCors(options => {
 	var corsConfig = builder.Configuration.GetSection("CORS").Get<CorsConfiguration>();

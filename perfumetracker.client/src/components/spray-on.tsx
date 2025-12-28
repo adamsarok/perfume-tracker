@@ -51,7 +51,13 @@ export default function SprayOnComponent({
 
   return (
     <div className={"flex items-center space-x-4 " + className}>
-      <Button type="button" color="secondary" onClick={() => onSprayOn()} className="flex-2">
+      <Button 
+        type="button" 
+        color="secondary" 
+        onClick={() => onSprayOn()} 
+        className="flex-2"
+        aria-label="Spray On"
+      >
         <SprayCan /> {showFullComponent ? "Spray On" : ""}
       </Button>
       {showFullComponent && (

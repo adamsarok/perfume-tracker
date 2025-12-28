@@ -25,8 +25,6 @@ public class GetPerfumeRecommendations {
 
 	public class GetPerfumeRecommendationsHandler(IPerfumeRecommender perfumeRecommender) : IQueryHandler<GetPerfumeRecommendationsQuery, IEnumerable<PerfumeRecommendationDto>> {
 		public async Task<IEnumerable<PerfumeRecommendationDto>> Handle(GetPerfumeRecommendationsQuery request, CancellationToken cancellationToken) {
-			// warning just for testing
-
 			var strategyCnt = Enum.GetValues<RecommendationStrategy>().Length;
 			int cntPerStrategy = (int)Math.Ceiling((double)request.Count / strategyCnt);
 			var recommendations = new List<PerfumeRecommendationDto>();

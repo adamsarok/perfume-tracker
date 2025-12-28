@@ -45,7 +45,7 @@ public class RandomPerfumeTests {
 	public async Task GetPerfumeSuggestion() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var profileService = scope.ServiceProvider.GetRequiredService<UserProfileService>();
+		var profileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var userProfile = await profileService.GetCurrentUserProfile(CancellationToken.None);
 		var presignedUrlService = scope.ServiceProvider.GetRequiredService<IPresignedUrlService>();
 		var perfume = await context.Perfumes.FirstAsync();
