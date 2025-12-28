@@ -29,7 +29,9 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<Mission> Missions { get; set; }
 	public virtual DbSet<UserMission> UserMissions { get; set; }
 	public virtual DbSet<Invite> Invites { get; set; }
+	public virtual DbSet<PerfumeDocument> PerfumeDocuments { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
+		builder.HasPostgresExtension("vector");
 
 		builder.Entity<OutboxMessage>(entity => {
 			entity.HasKey(e => e.Id).HasName("OutboxMessage_pkey");
@@ -205,6 +207,16 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasKey(e => e.Id).HasName("Invite_pkey");
 			entity.ToTable("Invite");
 			entity.HasQueryFilter(x => !x.IsDeleted && !x.IsUsed);
+		});
+
+		builder.Entity<PerfumeDocument>(entity => {
+			entity.HasKey(e => e.Id).HasName("PerfumeDocument_pkey");
+			entity.ToTable("PerfumeDocument");
+			entity.HasOne(d => d.Perfume)
+				.WithOne(p => p.PerfumeDocument)
+				.HasForeignKey<PerfumeDocument>(d => d.Id)
+				.HasConstraintName("PerfumeDocument_perfumeId_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
 		base.OnModelCreating(builder);

@@ -1,4 +1,5 @@
-﻿using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Features.Perfumes.Services;
+using PerfumeTracker.Server.Services.Auth;
 using PerfumeTracker.Server.Services.Outbox;
 
 namespace PerfumeTracker.Server.Features.Perfumes;

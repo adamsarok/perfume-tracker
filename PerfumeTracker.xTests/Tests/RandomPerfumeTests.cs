@@ -1,5 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using PerfumeTracker.Server.Features.PerfumeRandoms;
+using PerfumeTracker.Server.Features.Perfumes.Extensions;
+using PerfumeTracker.Server.Features.Perfumes.Services;
+using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;
@@ -41,8 +45,15 @@ public class RandomPerfumeTests {
 	public async Task GetPerfumeSuggestion() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-
-		var handler = new GetRandomPerfumeHandler(context, _fixture.MockSideEffectQueue.Object);
+		var profileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var userProfile = await profileService.GetCurrentUserProfile(CancellationToken.None);
+		var presignedUrlService = scope.ServiceProvider.GetRequiredService<IPresignedUrlService>();
+		var perfume = await context.Perfumes.FirstAsync();
+		var mockRecommender = new Mock<IPerfumeRecommender>();
+		_ = mockRecommender.Setup(x =>
+			x.GetRecommendationsForStrategy(It.IsAny<RecommendationStrategy>(), 1, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new List<PerfumeWithWornStatsDto>() { perfume.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService) });
+		var handler = new GetRandomPerfumeHandler(context, _fixture.MockSideEffectQueue.Object, mockRecommender.Object);
 		var response = await handler.Handle(new GetRandomPerfumeQuery(), CancellationToken.None);
 		Assert.NotNull(response);
 	}

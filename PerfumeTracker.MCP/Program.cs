@@ -14,7 +14,7 @@ builder.Logging.AddConsole(consoleLogOptions => {
 string? conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 
-builder.Services.AddDbContext<PerfumeTrackerContext>(opt => opt.UseNpgsql(conn));
+builder.Services.AddDbContext<PerfumeTrackerContext>(opt => opt.UseNpgsql(conn, o => o.UseVector()));
 builder.Services
 	.AddMcpServer()
 	.WithStdioServerTransport()

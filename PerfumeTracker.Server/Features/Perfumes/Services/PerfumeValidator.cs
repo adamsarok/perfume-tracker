@@ -1,4 +1,4 @@
-﻿namespace PerfumeTracker.Server.Features.Perfumes;
+﻿namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
 public class PerfumeValidator : AbstractValidator<PerfumeUploadDto> {
 	public PerfumeValidator() {

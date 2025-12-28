@@ -1,7 +1,9 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.HttpOverrides;
+using OpenAI;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
+using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Middleware;
@@ -9,6 +11,7 @@ using PerfumeTracker.Server.Services.Achievements;
 using PerfumeTracker.Server.Services.Auth;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Demo;
+using PerfumeTracker.Server.Services.Embedding;
 using PerfumeTracker.Server.Services.Missions;
 using PerfumeTracker.Server.Services.Outbox;
 using PerfumeTracker.Server.Startup;
@@ -16,6 +19,7 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
+using System.Text.Json.Serialization;
 using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
 
@@ -59,7 +63,7 @@ Log.Logger = loggerConfig.CreateLogger();
 builder.Host.UseSerilog();
 
 builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
-	opt.UseNpgsql(conn);
+	opt.UseNpgsql(conn, o => o.UseVector());
 	opt.AddInterceptors(new EntityInterceptor());
 });
 
@@ -69,8 +73,6 @@ Startup.SetupAuthorizations(builder.Services, builder.Configuration);
 
 var assembly = typeof(Program).Assembly;
 builder.Services.AddMediatR(config => {
-	var licenseKey = builder.Configuration.GetValue<string>("Mediatr:LicenseKey");
-	if (!string.IsNullOrWhiteSpace(licenseKey)) config.LicenseKey = licenseKey;
 	config.RegisterServicesFromAssembly(assembly);
 	config.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
@@ -91,17 +93,30 @@ builder.Services.AddOptionsWithValidateOnStart<RateLimitConfiguration>()
 builder.Services.AddOptionsWithValidateOnStart<UserConfiguration>()
 	.Bind(builder.Configuration.GetSection("Users"))
 	.ValidateDataAnnotations();
+builder.Services.AddOptions<OpenAIOptions>()
+	.Bind(builder.Configuration.GetSection("OpenAI"));
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddScoped<UpdateStreakProgressHandler>();
+
+var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
+if (!string.IsNullOrWhiteSpace(openAiApiKey)) {
+	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
+	builder.Services.AddSingleton<IEncoder, Encoder>();
+} else {
+	builder.Services.AddSingleton<IEncoder, NullEncoder>();
+}
+
 builder.Services.AddScoped<ICreateUser, CreateUser>();
 builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
+builder.Services.AddScoped<IPerfumeRecommender, PerfumeRecommender>();
 builder.Services.AddScoped<UploadImageHandler>();
 builder.Services.AddScoped<XPService>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
@@ -110,6 +125,9 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.ConfigureHttpJsonOptions(options => {
+	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 builder.Services.AddCors(options => {
 	var corsConfig = builder.Configuration.GetSection("CORS").Get<CorsConfiguration>();
@@ -127,6 +145,7 @@ builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
 builder.Services.AddHostedService<SideEffectProcessor>();
 
 builder.Services.AddHostedService<OutboxRetryService>();
+builder.Services.AddHostedService<EmbeddingRetryService>();
 builder.Services.AddHostedService<MissionService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
@@ -135,7 +154,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options => {
 	options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
 							  ForwardedHeaders.XForwardedProto |
 							  ForwardedHeaders.XForwardedHost;
-	options.KnownNetworks.Clear();
+	options.KnownIPNetworks.Clear();
 	options.KnownProxies.Clear();
 });
 

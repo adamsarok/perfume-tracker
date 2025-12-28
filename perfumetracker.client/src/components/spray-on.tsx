@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { wearPerfume } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { WandSparkles } from "lucide-react";
+import { SprayCan, WandSparkles } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export interface SprayOnProps {
@@ -12,6 +12,7 @@ export interface SprayOnProps {
   readonly onSuccess: (() => void) | null;
   readonly className: string;
   readonly randomsId: string | null;
+  readonly showFullComponent?: boolean;
 }
 
 export default function SprayOnComponent({
@@ -19,6 +20,7 @@ export default function SprayOnComponent({
   onSuccess,
   className,
   randomsId,
+  showFullComponent = true,
 }: SprayOnProps) {
   const yymmdd = new Date().toISOString().slice(0, 10);
   const [dateStr, setDateStr] = useState<string>(yymmdd);
@@ -49,17 +51,27 @@ export default function SprayOnComponent({
 
   return (
     <div className={"flex items-center space-x-4 " + className}>
-      <Button type="button" color="secondary" onClick={() => onSprayOn()} className="flex-2">
-        <WandSparkles /> Spray On
+      <Button 
+        type="button" 
+        color="secondary" 
+        onClick={() => onSprayOn()} 
+        className="flex-2"
+        aria-label="Spray On"
+      >
+        <SprayCan /> {showFullComponent ? "Spray On" : ""}
       </Button>
-      <Label htmlFor="date">Worn On</Label>
-      <Input
-        type="date"
-        className="flex-1"
-        id="date"
-        value={dateStr}
-        onChange={handleDateChange}
-      />
+      {showFullComponent && (
+        <>
+          <Label htmlFor="date">Worn On</Label>
+          <Input
+            type="date"
+            className="flex-1"
+            id="date"
+            value={dateStr}
+            onChange={handleDateChange}
+          />
+        </>
+      )}
     </div>
   );
 }
