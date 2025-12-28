@@ -23,8 +23,8 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 		var results = await perfumeRecommender.GetRecommendationsForStrategy(RecommendationStrategy.Random, 1, cancellationToken);
 		if (results.Count() == 0) return new GetRandomPerfumeResponse(null, null);
 		var result = results.First();
-		var randoms = await AddRandomPerfume(result.Perfume.Id, userId, cancellationToken);
-		return new GetRandomPerfumeResponse(result.Perfume.Id, randoms.Id);
+		var randoms = await AddRandomPerfume(result.Perfume.Perfume.Id, userId, cancellationToken);
+		return new GetRandomPerfumeResponse(result.Perfume.Perfume.Id, randoms.Id);
 	}
 
 	/// <summary>

@@ -9,22 +9,22 @@ import { showError } from "@/services/toasty-service";
 import { PerfumeRecommendationDTO } from "@/dto/PerfumeRecommendationDTO";
 import { getPerfumeRecommendations } from "@/services/perfume-service";
 import PerfumeRecommendationsCard from "./recommendations-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function RecommendationsList() {
   const [recommendations, setRecommendations] = useState<PerfumeRecommendationDTO[]>([]);
+  const [occasionOrMood, setOccasionOrMood] = useState("");
   const recommendationsCount = 5;
 
-  const refreshList = async () => {
+  const refreshList = async (occasion?: string) => {
     setRecommendations([]);
-    const result = await getPerfumeRecommendations(recommendationsCount);
+    const result = await getPerfumeRecommendations(recommendationsCount, occasion);
     if (result.error || !result.data) {
       showError("Could not load recommendations", result.error ?? "unknown error");
       return;
     }
-    //const newRecommendations = result.data;
-    //newRecommendations.forEach(x => x.eventDate = new Date(x.eventDate));
     setRecommendations(result.data);
-    console.log("Loaded recommendations:", result.data);
   };
 
   useEffect(() => {
@@ -33,6 +33,13 @@ export default function RecommendationsList() {
 
   return (
     <div className="w-full max-w-3xl mx-auto px-2">
+      <Input 
+        placeholder="Summer night..." 
+        className="mb-4" 
+        value={occasionOrMood}
+        onChange={(e) => setOccasionOrMood(e.target.value)}
+      />
+      <Button onClick={() => refreshList(occasionOrMood)} className="mb-4">Recommend</Button>
       <div className="grid grid-cols-1 gap-4">
         {recommendations.map((recommendation) => (
           <PerfumeRecommendationsCard key={recommendation.perfume.perfume.id} 

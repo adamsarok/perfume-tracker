@@ -4,8 +4,8 @@ using PerfumeTracker.Server.Services.Auth;
 namespace PerfumeTracker.Server.Features.Perfumes;
 
 public class GetPerfumeRecommendations {
-	public record GetPerfumeRecommendationsQuery(int Count) : IQuery<IEnumerable<PerfumeRecommendationDto>>;
-	public record PerfumeRecommendationDto(PerfumeWithWornStatsDto perfume, RecommendationStrategy strategy);
+	public record GetPerfumeRecommendationsQuery(int Count, string? OccasionOrMood) : IQuery<IEnumerable<PerfumeRecommendationDto>>;
+	public record PerfumeRecommendationDto(PerfumeWithWornStatsDto Perfume, RecommendationStrategy Strategy);
 	public class GetPerfumeRecommendationsQueryValidator : AbstractValidator<GetPerfumeRecommendationsQuery> {
 		public GetPerfumeRecommendationsQueryValidator() {
 			RuleFor(x => x.Count).InclusiveBetween(1, 20);
@@ -13,8 +13,8 @@ public class GetPerfumeRecommendations {
 	}
 	public class GetPerfumeRecommendationsEndpoint : ICarterModule {
 		public void AddRoutes(IEndpointRouteBuilder app) {
-			app.MapGet("/api/perfumes/recommendations/{count}", async (int count, ISender sender, CancellationToken cancellationToken) => {
-				var result = await sender.Send(new GetPerfumeRecommendationsQuery(count), cancellationToken);
+			app.MapGet("/api/perfumes/recommendations/{count}", async (int count, string? occasionOrMood, ISender sender, CancellationToken cancellationToken) => {
+				var result = await sender.Send(new GetPerfumeRecommendationsQuery(count, occasionOrMood), cancellationToken);
 				return Results.Ok(result);
 			})
 			.WithTags("Perfumes")
@@ -25,20 +25,26 @@ public class GetPerfumeRecommendations {
 
 	public class GetPerfumeRecommendationsHandler(IPerfumeRecommender perfumeRecommender) : IQueryHandler<GetPerfumeRecommendationsQuery, IEnumerable<PerfumeRecommendationDto>> {
 		public async Task<IEnumerable<PerfumeRecommendationDto>> Handle(GetPerfumeRecommendationsQuery request, CancellationToken cancellationToken) {
-			var strategyCnt = Enum.GetValues<RecommendationStrategy>().Length;
-			int cntPerStrategy = (int)Math.Ceiling((double)request.Count / strategyCnt);
-			var recommendations = new List<PerfumeRecommendationDto>();
-			foreach (var strategy in Enum.GetValues<RecommendationStrategy>()) {
-				var recs = await perfumeRecommender.GetRecommendationsForStrategy(strategy, cntPerStrategy, cancellationToken);
-				recommendations.AddRange(recs.Select(x => new PerfumeRecommendationDto(x, strategy)));
-			}
+			IEnumerable<PerfumeRecommendationDto> recommendations;
+			if (string.IsNullOrWhiteSpace(request.OccasionOrMood)) recommendations = await GetAllStrategyRecommendations(request, cancellationToken);
+			else recommendations = await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(request.Count, request.OccasionOrMood, cancellationToken);
 			var dedup = recommendations
-				.GroupBy(x => x.perfume.Perfume.Id)
+				.GroupBy(x => x.Perfume.Perfume.Id)
 				.Select(g => g.First())
 				.ToList();
 			return dedup
 				.OrderBy(_ => Random.Shared.Next())
 				.Take(request.Count);
+		}
+
+		private async Task<IEnumerable<PerfumeRecommendationDto>> GetAllStrategyRecommendations(GetPerfumeRecommendationsQuery request, CancellationToken cancellationToken) {
+			var strategyCnt = Enum.GetValues<RecommendationStrategy>().Length;
+			int cntPerStrategy = (int)Math.Ceiling((double)request.Count / strategyCnt);
+			var recommendations = new List<PerfumeRecommendationDto>();
+			foreach (var strategy in Enum.GetValues<RecommendationStrategy>()) {
+				recommendations.AddRange(await perfumeRecommender.GetRecommendationsForStrategy(strategy, cntPerStrategy, cancellationToken));
+			}
+			return recommendations;
 		}
 	}
 }

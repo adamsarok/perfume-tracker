@@ -12,8 +12,11 @@ export async function getPerfumesFulltext(
   return get<PerfumeWithWornStatsDTO[]>(qry);
 }
 
-export async function getPerfumeRecommendations(count: number): Promise<AxiosResult<PerfumeRecommendationDTO[]>> {
-  const qry = `/perfumes/recommendations/${count}`;
+export async function getPerfumeRecommendations(count: number, occasionOrMood?: string): Promise<AxiosResult<PerfumeRecommendationDTO[]>> {
+  let qry = `/perfumes/recommendations/${count}`;
+  if (occasionOrMood) {
+    qry += `?occasionOrMood=${encodeURIComponent(occasionOrMood)}`;
+  }
   const result = await get<PerfumeRecommendationDTO[]>(qry);
   result.data?.forEach(x => x.perfume.lastWorn = new Date(x.perfume.lastWorn ?? ""));
   return result;

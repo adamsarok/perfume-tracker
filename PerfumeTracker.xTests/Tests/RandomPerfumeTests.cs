@@ -5,6 +5,7 @@ using PerfumeTracker.Server.Features.Perfumes.Extensions;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
+using static PerfumeTracker.Server.Features.Perfumes.GetPerfumeRecommendations;
 
 namespace PerfumeTracker.xTests.Tests;
 
@@ -52,7 +53,9 @@ public class RandomPerfumeTests {
 		var mockRecommender = new Mock<IPerfumeRecommender>();
 		_ = mockRecommender.Setup(x =>
 			x.GetRecommendationsForStrategy(It.IsAny<RecommendationStrategy>(), 1, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new List<PerfumeWithWornStatsDto>() { perfume.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService) });
+			.ReturnsAsync(new List<PerfumeRecommendationDto>() {
+				new PerfumeRecommendationDto(perfume.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.Random)
+			});
 		var handler = new GetRandomPerfumeHandler(context, _fixture.MockSideEffectQueue.Object, mockRecommender.Object);
 		var response = await handler.Handle(new GetRandomPerfumeQuery(), CancellationToken.None);
 		Assert.NotNull(response);
