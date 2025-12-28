@@ -20,17 +20,25 @@ export interface PerfumeRecommendationsCardProps {
   readonly recommendation: PerfumeRecommendationDTO;
 }
 
-const getRecommendationIcon = (type?: string) => {
-  switch (type) {
+const getRecommendationIcon = (type?: string | number) => {
+  // Handle both string names and numeric enum values
+  const typeKey = typeof type === 'number' ? type : type;
+  
+  switch (typeKey) {
     case "ForgottenFavorite":
+    case 0:
       return <Star className="w-5 h-5 text-yellow-500" />;
     case "MoodBased":
+    case 1:
       return <Sparkles className="w-5 h-5 text-pink-500" />;
     case "Seasonal":
+    case 2:
       return <Calendar className="w-5 h-5 text-blue-500" />;
     case "Random":
+    case 3:
       return <Dice5 className="w-5 h-5 text-purple-500" />;
     case "LeastUsed":
+    case 4:
       return <ChartNoAxesCombined className="w-5 h-5 text-gray-500" />;
     default:
       return null;
@@ -69,7 +77,7 @@ export default function PerfumeRecommendationsCard({
                 <AvatarFallback>{avatar}</AvatarFallback>
               </Avatar>
               <div className="text-small leading-none text-default-600">
-                {getRecommendationIcon(recommendation.recommendationStrategy)}
+                {getRecommendationIcon(recommendation.strategy)}
                 <p className="whitespace-normal text-small">{perfume.house} - {perfume.perfumeName}</p>
                 <TooltipProvider>
                   <Tooltip>

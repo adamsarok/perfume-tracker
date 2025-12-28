@@ -24,6 +24,7 @@ export default function RecommendationsList() {
     //const newRecommendations = result.data;
     //newRecommendations.forEach(x => x.eventDate = new Date(x.eventDate));
     setRecommendations(result.data);
+    console.log("Loaded recommendations:", result.data);
   };
 
   useEffect(() => {
