@@ -41,7 +41,7 @@ public class GetPerfumeRecommendations {
 			var strategyCnt = Enum.GetValues<RecommendationStrategy>().Length;
 			int cntPerStrategy = (int)Math.Ceiling((double)request.Count / strategyCnt);
 			var recommendations = new List<PerfumeRecommendationDto>();
-			foreach (var strategy in Enum.GetValues<RecommendationStrategy>()) {
+			foreach (var strategy in Enum.GetValues<RecommendationStrategy>().Except([RecommendationStrategy.MoodOrOccasion])) {
 				recommendations.AddRange(await perfumeRecommender.GetRecommendationsForStrategy(strategy, cntPerStrategy, cancellationToken));
 			}
 			return recommendations;

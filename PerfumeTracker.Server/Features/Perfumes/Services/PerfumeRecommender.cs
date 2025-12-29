@@ -1,4 +1,6 @@
-﻿using PerfumeTracker.Server.Features.Perfumes.Extensions;
+﻿using Microsoft.Extensions.Options;
+using OpenAI.Chat;
+using PerfumeTracker.Server.Features.Perfumes.Extensions;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Embedding;
 using Pgvector.EntityFrameworkCore;
@@ -15,9 +17,14 @@ public enum RecommendationStrategy {
 	MoodOrOccasion      // Based on Mood/Occasion input
 }
 
-public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder, IPresignedUrlService presignedUrlService) : IPerfumeRecommender {
+public class PerfumeRecommender(PerfumeTrackerContext context,
+	IUserProfileService userProfileService,
+	IEncoder encoder,
+	IPresignedUrlService presignedUrlService,
+	IOptions<OpenAIOptions> openAiOptions) : IPerfumeRecommender {
 	private const int RANDOM_SAMPLE_MULTIPLIER = 3;
 	private List<Guid>? _lastWornPerfumeIds;
+
 	private async Task<List<Guid>> GetLastWornPerfumeIdsCached(CancellationToken cancellationToken = default) {
 		if (_lastWornPerfumeIds == null) {
 			_lastWornPerfumeIds = await context
@@ -45,13 +52,13 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 	}
 
 	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForStrategy(RecommendationStrategy strategy, int count, CancellationToken cancellationToken) {
-		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
+		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
 		return strategy switch {
-			RecommendationStrategy.ForgottenFavorite => await GetForgottenFavorites(count, settings, cancellationToken),
-			RecommendationStrategy.SimilarToLastUsed => await GetSimilarToLastUsed(count, settings, cancellationToken),
-			RecommendationStrategy.Seasonal => await GetSeasonal(count, settings, cancellationToken),
-			RecommendationStrategy.Random => await GetRandom(count, settings, cancellationToken),
-			RecommendationStrategy.LeastUsed => await GetLeastUsed(count, settings, cancellationToken),
+			RecommendationStrategy.ForgottenFavorite => await GetForgottenFavorites(count, userProfile, cancellationToken),
+			RecommendationStrategy.SimilarToLastUsed => await GetSimilarToLastUsed(count, userProfile, cancellationToken),
+			RecommendationStrategy.Seasonal => await GetSeasonal(count, userProfile, cancellationToken),
+			RecommendationStrategy.Random => await GetRandom(count, userProfile, cancellationToken),
+			RecommendationStrategy.LeastUsed => await GetLeastUsed(count, userProfile, cancellationToken),
 			_ => throw new ArgumentOutOfRangeException(nameof(strategy))
 		};
 	}
@@ -177,7 +184,29 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.ForgottenFavorite));
 	}
 
-	public Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForOccasionMoodPrompt(int count, string? prompt, CancellationToken cancellationToken) {
-		throw new NotImplementedException();
+	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForOccasionMoodPrompt(int count, string moodOrOccasion, CancellationToken cancellationToken) {
+		string? apiKey = openAiOptions.Value.ApiKey;
+		if (string.IsNullOrWhiteSpace(apiKey)) {
+			throw new InvalidOperationException("OpenAI API key is not configured");
+		}
+		ChatClient client = new(model: openAiOptions.Value.AssistantModel, apiKey: apiKey);
+		var moodSystemPrompt = new SystemChatMessage(
+@"You are a perfume recommendation expert. When given a mood, occasion, or context, respond ONLY with a comma-separated list of perfume notes, accords, and families that match. Do not include explanations, greetings, or any other text. Keep your response concise (maximum 10-15 items). Focus on specific notes (e.g., bergamot, vanilla, oud) and general families (e.g., woody, floral, oriental, fresh, aquatic, citrus, spicy, gourmand). Examples:
+Query: 'summer night' → Response: 'light, citrus, aquatic, jasmine, neroli, marine, fresh, bergamot'
+Query: 'cozy winter evening' → Response: 'warm, amber, vanilla, cinnamon, sandalwood, spicy, gourmand, tonka bean'
+Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, subtle, bergamot, vetiver, musk'");
+		List<ChatMessage> messages = [
+			moodSystemPrompt,
+			new UserChatMessage(moodOrOccasion)
+		];
+		ChatCompletion completion = await client.CompleteChatAsync(messages);
+		var text = completion.Content[0].Text;
+		var embedding = await encoder.GetEmbeddings(text, cancellationToken);
+		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
+		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
+		return result
+			.OrderBy(_ => Random.Shared.Next())
+			.Take(count)
+			.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.MoodOrOccasion));
 	}
 }

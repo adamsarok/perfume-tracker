@@ -1,4 +1,5 @@
 ﻿using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Outbox;
 using static PerfumeTracker.Server.Models.PerfumeEvent;
 
@@ -24,7 +25,7 @@ public class AddPerfumeEventEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.WRITE);
 	}
 }
-public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQueue queue) : ICommandHandler<AddPerfumeEventCommand, PerfumeEventDownloadDto> {
+public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQueue queue, IUserProfileService userProfileService) : ICommandHandler<AddPerfumeEventCommand, PerfumeEventDownloadDto> {
 	public async Task<PerfumeEventDownloadDto> Handle(AddPerfumeEventCommand request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var evt = new PerfumeEvent() {
@@ -51,7 +52,7 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 	async Task HandleWorn(List<OutboxMessage> messages, PerfumeTrackerContext context, PerfumeEvent evt, Perfume perfume,
 			AddPerfumeEventCommand request, Guid userId, CancellationToken cancellationToken) {
 		if (evt.AmountMl == 0) {
-			var settings = await context.UserProfiles.FirstAsync(cancellationToken);
+			var settings = await userProfileService.GetCurrentUserProfile(cancellationToken);
 			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		}
 		if (request.Dto.RandomsId == null) return;

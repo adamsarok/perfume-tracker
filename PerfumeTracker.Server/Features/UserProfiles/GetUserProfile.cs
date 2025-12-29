@@ -1,7 +1,9 @@
 ﻿
 using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Services.Common;
 
 namespace PerfumeTracker.Server.Features.UserProfiles;
+
 public record GetUserProfileQuery() : IQuery<UserProfile>;
 
 public class GetUserProfilesEndpoint : ICarterModule {
@@ -14,8 +16,8 @@ public class GetUserProfilesEndpoint : ICarterModule {
 	}
 }
 
-public class GetUserProfileHandler(PerfumeTrackerContext context) : IQueryHandler<GetUserProfileQuery, UserProfile> {
+public class GetUserProfileHandler(IUserProfileService userProfileService) : IQueryHandler<GetUserProfileQuery, UserProfile> {
 	public async Task<UserProfile> Handle(GetUserProfileQuery request, CancellationToken cancellationToken) {
-		return await context.UserProfiles.FirstAsync();
+		return await userProfileService.GetCurrentUserProfile(cancellationToken);
 	}
 }

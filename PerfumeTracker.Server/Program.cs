@@ -150,6 +150,8 @@ builder.Services.AddHostedService<MissionService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
 
+builder.Services.AddMemoryCache();
+
 builder.Services.Configure<ForwardedHeadersOptions>(options => {
 	options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
 							  ForwardedHeaders.XForwardedProto |
