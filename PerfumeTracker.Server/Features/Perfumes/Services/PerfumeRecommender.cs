@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Perfumes.Extensions;
 using PerfumeTracker.Server.Services.Common;
@@ -200,7 +200,10 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 			moodSystemPrompt,
 			new UserChatMessage(moodOrOccasion)
 		];
-		ChatCompletion completion = await client.CompleteChatAsync(messages);
+		ChatCompletion completion = await client.CompleteChatAsync(messages, cancellationToken: cancellationToken);
+		if (completion.Content == null || completion.Content.Count == 0 || string.IsNullOrWhiteSpace(completion.Content[0].Text)) {
+			throw new InvalidOperationException("OpenAI returned an empty response");
+		}
 		var text = completion.Content[0].Text;
 		var embedding = await encoder.GetEmbeddings(text, cancellationToken);
 		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
