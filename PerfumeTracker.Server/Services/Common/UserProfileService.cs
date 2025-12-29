@@ -1,8 +1,14 @@
-﻿
+﻿using Microsoft.Extensions.Caching.Memory;
+
 namespace PerfumeTracker.Server.Services.Common;
 
-public class UserProfileService(PerfumeTrackerContext context) : IUserProfileService {
+public class UserProfileService(PerfumeTrackerContext context, IMemoryCache memoryCache) : IUserProfileService {
+	private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
 	public async Task<UserProfile> GetCurrentUserProfile(CancellationToken cancellationToken) {
-		return await context.UserProfiles.FirstAsync();
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new InvalidOperationException("No current user ID in context");
+		return await memoryCache.GetOrCreateAsync(userId, async entry => {
+			entry.AbsoluteExpirationRelativeToNow = CacheExpiration;
+			return await context.UserProfiles.FirstAsync(cancellationToken);
+		}) ?? throw new InvalidOperationException("User profile not found");
 	}
 }

@@ -21,10 +21,10 @@ public class GetPerfumesWithWornEndpoint : ICarterModule {
 	}
 }
 
-public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, IPresignedUrlService presignedUrlService)
+public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, IPresignedUrlService presignedUrlService, IUserProfileService userProfileService)
 	: IQueryHandler<GetPerfumesWithWornQuery, List<PerfumeWithWornStatsDto>> {
 	public async Task<List<PerfumeWithWornStatsDto>> Handle(GetPerfumesWithWornQuery request, CancellationToken cancellationToken) {
-		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
+		var settings = await userProfileService.GetCurrentUserProfile(cancellationToken);
 		var normalized = request.FullText?.Trim();
 		var hasQuery = !string.IsNullOrWhiteSpace(normalized);
 		var tsQuery = hasQuery

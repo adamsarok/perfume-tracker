@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { useAuth } from "@/hooks/use-auth";
-import { Star, Sparkles, Calendar, Dice5, ChartNoAxesCombined } from "lucide-react";
+import { Star, Sparkles, Calendar, Dice5, ChartNoAxesCombined, PartyPopper } from "lucide-react";
 import ColorChip from "@/components/color-chip";
 import SprayOnComponent from "@/components/spray-on";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,7 +24,7 @@ const getRecommendationIcon = (type?: string) => {
   switch (type) {
     case "ForgottenFavorite":
       return <Star className="w-5 h-5 text-yellow-500" />;
-    case "MoodBased":
+    case "SimilarToLastUsed":
       return <Sparkles className="w-5 h-5 text-pink-500" />;
     case "Seasonal":
       return <Calendar className="w-5 h-5 text-blue-500" />;
@@ -32,6 +32,8 @@ const getRecommendationIcon = (type?: string) => {
       return <Dice5 className="w-5 h-5 text-purple-500" />;
     case "LeastUsed":
       return <ChartNoAxesCombined className="w-5 h-5 text-gray-500" />;
+    case "MoodOrOccasion":
+      return <PartyPopper className="w-5 h-5 text-gray-500" />;
     default:
       return null;
   }

@@ -1,21 +1,29 @@
-﻿using PerfumeTracker.Server.Features.Perfumes.Extensions;
+﻿using OpenAI.Chat;
+using PerfumeTracker.Server.Features.Perfumes.Extensions;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Embedding;
 using Pgvector.EntityFrameworkCore;
+using static PerfumeTracker.Server.Features.Perfumes.GetPerfumeRecommendations;
 
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
 public enum RecommendationStrategy {
 	ForgottenFavorite,  // High rating, not used recently
-	MoodBased,          // Similar to last 5 used
+	SimilarToLastUsed,  // Similar to last 5 used
 	Seasonal,           // Based on current season
 	Random,             // Random from unused
-	LeastUsed           // Bottom 10% usage
+	LeastUsed,          // Bottom 10% usage
+	MoodOrOccasion      // Based on Mood/Occasion input
 }
 
-public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder, IPresignedUrlService presignedUrlService) : IPerfumeRecommender {
+public class PerfumeRecommender(PerfumeTrackerContext context,
+	IUserProfileService userProfileService,
+	IEncoder encoder,
+	IPresignedUrlService presignedUrlService,
+	ChatClient chatClient) : IPerfumeRecommender {
 	private const int RANDOM_SAMPLE_MULTIPLIER = 3;
 	private List<Guid>? _lastWornPerfumeIds;
+
 	private async Task<List<Guid>> GetLastWornPerfumeIdsCached(CancellationToken cancellationToken = default) {
 		if (_lastWornPerfumeIds == null) {
 			_lastWornPerfumeIds = await context
@@ -42,19 +50,20 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 				.ThenInclude(pt => pt.Tag);
 	}
 
-	public async Task<IEnumerable<PerfumeWithWornStatsDto>> GetRecommendationsForStrategy(RecommendationStrategy strategy, int count, CancellationToken cancellationToken) {
-		var settings = await context.UserProfiles.FirstAsync(cancellationToken);
+	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForStrategy(RecommendationStrategy strategy, int count, CancellationToken cancellationToken) {
+		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
 		return strategy switch {
-			RecommendationStrategy.ForgottenFavorite => await GetForgottenFavorites(count, settings, cancellationToken),
-			RecommendationStrategy.MoodBased => await GetMoodBased(count, settings, cancellationToken),
-			RecommendationStrategy.Seasonal => await GetSeasonal(count, settings, cancellationToken),
-			RecommendationStrategy.Random => await GetRandom(count, settings, cancellationToken),
-			RecommendationStrategy.LeastUsed => await GetLeastUsed(count, settings, cancellationToken),
+			RecommendationStrategy.ForgottenFavorite => await GetForgottenFavorites(count, userProfile, cancellationToken),
+			RecommendationStrategy.SimilarToLastUsed => await GetSimilarToLastUsed(count, userProfile, cancellationToken),
+			RecommendationStrategy.Seasonal => await GetSeasonal(count, userProfile, cancellationToken),
+			RecommendationStrategy.Random => await GetRandom(count, userProfile, cancellationToken),
+			RecommendationStrategy.LeastUsed => await GetLeastUsed(count, userProfile, cancellationToken),
+			RecommendationStrategy.MoodOrOccasion => throw new ArgumentException("Use GetRecommendationsForOccasionMoodPrompt for MoodOrOccasion strategy"),
 			_ => throw new ArgumentOutOfRangeException(nameof(strategy))
 		};
 	}
 
-	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetLeastUsed(int count, UserProfile userProfile, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeRecommendationDto>> GetLeastUsed(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		var worn = await GetLastWornPerfumeIdsCached(cancellationToken);
 		var result = await GetRecommendablePerfumes(userProfile.MinimumRating, worn)
 			.OrderBy(p => p.PerfumeEvents.Count(pe => pe.Type == PerfumeEvent.PerfumeEventType.Worn))
@@ -63,7 +72,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 		return result
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count)
-			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
+			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.LeastUsed));
 	}
 
 	private async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter, CancellationToken cancellationToken) {
@@ -75,20 +84,20 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 			.ToListAsync(cancellationToken);
 	}
 
-	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetRandom(int count, UserProfile userProfile, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeRecommendationDto>> GetRandom(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		var alreadySuggestedIds = await GetAlreadySuggestedRandomPerfumeIds(userProfile.DayFilter, cancellationToken);
 		var all = await GetRecommendablePerfumes(userProfile.MinimumRating, alreadySuggestedIds)
 			.ToListAsync(cancellationToken);
-		if (all.Count == 0) return Enumerable.Empty<PerfumeWithWornStatsDto>();
+		if (all.Count == 0) return Enumerable.Empty<PerfumeRecommendationDto>();
 		var filtered = all.Where(x => !alreadySuggestedIds.Contains(x.Id));
 		if (!filtered.Any()) filtered = all;
 		return filtered
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count)
-			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
+			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.Random));
 	}
 
-	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetSeasonal(int count, UserProfile userProfile, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeRecommendationDto>> GetSeasonal(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		// User might not have logged any tags or comments that indicate seasonality
 		// Query more from DB and ask LLM to help pick?
 		// Hardcode some common seasonal tags?
@@ -103,7 +112,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 		return seasonalTagged
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count)
-			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
+			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.Seasonal));
 	}
 	public enum Seasons { Winter, Spring, Summer, Autumn };
 	public static Seasons Season => DateTime.UtcNow.Month switch {
@@ -124,7 +133,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 		};
 	}
 
-	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetMoodBased(int count, UserProfile userProfile, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeRecommendationDto>> GetSimilarToLastUsed(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		var worn = await GetLastWornPerfumeIdsCached(cancellationToken);
 		var tags = await context.Perfumes
 			.Where(x => worn.Contains(x.Id))
@@ -134,7 +143,8 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 			.ToListAsync(cancellationToken);
 		var flatTags = tags.SelectMany(x => x).Distinct().ToList();
 		var embedding = await encoder.GetEmbeddings(string.Join(" ", flatTags), cancellationToken);
-		return await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
+		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
+		return result.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.SimilarToLastUsed));
 	}
 
 	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetSimilarToEmbedding(int count, UserProfile userProfile,
@@ -161,7 +171,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 		return await GetSimilarToEmbedding(count, userProfile, perfume.Embedding, perfumeId, cancellationToken);
 	}
 
-	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetForgottenFavorites(int count, UserProfile userProfile, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeRecommendationDto>> GetForgottenFavorites(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		// TODO: check if orderby causes performance issues, if so denormalize last worn date into Perfume table
 		var worn = await GetLastWornPerfumeIdsCached(cancellationToken);
 		var result = await GetRecommendablePerfumes(userProfile.MinimumRating, worn)
@@ -171,6 +181,27 @@ public class PerfumeRecommender(PerfumeTrackerContext context, IEncoder encoder,
 		return result
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count)
-			.Select(x => x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService));
+			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.ForgottenFavorite));
+	}
+
+	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForOccasionMoodPrompt(int count, string moodOrOccasion, CancellationToken cancellationToken) {
+		var moodSystemPrompt = new SystemChatMessage(
+@"You are a perfume recommendation expert. When given a mood, occasion, or context, respond ONLY with a comma-separated list of perfume notes, accords, and families that match. Do not include explanations, greetings, or any other text. Keep your response concise (maximum 10-15 items). Focus on specific notes (e.g., bergamot, vanilla, oud) and general families (e.g., woody, floral, oriental, fresh, aquatic, citrus, spicy, gourmand). Examples:
+Query: 'summer night' → Response: 'light, citrus, aquatic, jasmine, neroli, marine, fresh, bergamot'
+Query: 'cozy winter evening' → Response: 'warm, amber, vanilla, cinnamon, sandalwood, spicy, gourmand, tonka bean'
+Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, subtle, bergamot, vetiver, musk'");
+		List<ChatMessage> messages = [
+			moodSystemPrompt,
+			new UserChatMessage(moodOrOccasion)
+		];
+		ChatCompletion completion = await chatClient.CompleteChatAsync(messages, cancellationToken: cancellationToken);
+		if (completion.Content == null || completion.Content.Count == 0 || string.IsNullOrWhiteSpace(completion.Content[0].Text)) {
+			throw new InvalidOperationException("OpenAI returned an empty response");
+		}
+		var text = completion.Content[0].Text;
+		var embedding = await encoder.GetEmbeddings(text, cancellationToken);
+		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
+		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
+		return result.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.MoodOrOccasion));
 	}
 }

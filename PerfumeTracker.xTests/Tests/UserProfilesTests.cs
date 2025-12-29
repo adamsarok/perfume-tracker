@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.UserProfiles;
+using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;
@@ -27,9 +27,9 @@ public class UserProfilesTests {
 	[Fact]
 	public async Task GetUserProfiles() {
 		using var scope = _fixture.Factory.Services.CreateScope();
-		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		
-		var handler = new GetUserProfileHandler(context);
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+
+		var handler = new GetUserProfileHandler(userProfileService);
 		var result = await handler.Handle(new GetUserProfileQuery(), CancellationToken.None);
 		Assert.NotNull(result);
 	}
@@ -38,8 +38,9 @@ public class UserProfilesTests {
 	public async Task UpsertUserProfile() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		
-		var queryHandler = new GetUserProfileHandler(context);
+
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var queryHandler = new GetUserProfileHandler(userProfileService);
 		var existing = await queryHandler.Handle(new GetUserProfileQuery(), CancellationToken.None);
 		var handler = new UpsertUserProfileHandler(context);
 		existing.ShowFemalePerfumes = false;
