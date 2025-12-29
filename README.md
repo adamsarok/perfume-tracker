@@ -62,7 +62,7 @@ services:
           - RateLimits__General=250
           - RateLimits__Auth=20
           - RateLimits__Upload=10
-          - CORS__AllowedOrigins=${SERVER_ADDRESS}
+          - CORS__AllowedOrigins__0=${SERVER_ADDRESS}
           - OpenAI__ApiKey=${OPENAI_API_KEY}
           - OpenAI_AssistantModel=gpt-5-nano-2025-08-07
 
