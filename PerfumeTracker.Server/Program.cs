@@ -1,6 +1,7 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.HttpOverrides;
 using OpenAI;
+using OpenAI.Chat;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Perfumes.Services;
@@ -103,8 +104,10 @@ builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddScoped<UpdateStreakProgressHandler>();
 
 var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
-if (!string.IsNullOrWhiteSpace(openAiApiKey)) {
+var assistantModel = builder.Configuration["OpenAI:AssistantModel"];
+if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assistantModel)) {
 	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
+	builder.Services.AddSingleton<ChatClient>(_ = new ChatClient(model: assistantModel, apiKey: openAiApiKey));
 	builder.Services.AddSingleton<IEncoder, Encoder>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();

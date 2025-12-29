@@ -63,6 +63,9 @@ services:
           - RateLimits__Auth=20
           - RateLimits__Upload=10
           - CORS__AllowedOrigins=${SERVER_ADDRESS}
+          - OpenAI__ApiKey=${OPENAI_API_KEY}
+          - OpenAI_AssistantModel=gpt-5-nano-2025-08-07
+
         restart: unless-stopped
 
     db:

@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using OpenAI.Chat;
+﻿using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Perfumes.Extensions;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Embedding;
@@ -21,7 +20,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 	IUserProfileService userProfileService,
 	IEncoder encoder,
 	IPresignedUrlService presignedUrlService,
-	IOptions<OpenAIOptions> openAiOptions) : IPerfumeRecommender {
+	ChatClient chatClient) : IPerfumeRecommender {
 	private const int RANDOM_SAMPLE_MULTIPLIER = 3;
 	private List<Guid>? _lastWornPerfumeIds;
 
@@ -186,11 +185,6 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 	}
 
 	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForOccasionMoodPrompt(int count, string moodOrOccasion, CancellationToken cancellationToken) {
-		string? apiKey = openAiOptions.Value.ApiKey;
-		if (string.IsNullOrWhiteSpace(apiKey)) {
-			throw new InvalidOperationException("OpenAI API key is not configured");
-		}
-		ChatClient client = new(model: openAiOptions.Value.AssistantModel, apiKey: apiKey);
 		var moodSystemPrompt = new SystemChatMessage(
 @"You are a perfume recommendation expert. When given a mood, occasion, or context, respond ONLY with a comma-separated list of perfume notes, accords, and families that match. Do not include explanations, greetings, or any other text. Keep your response concise (maximum 10-15 items). Focus on specific notes (e.g., bergamot, vanilla, oud) and general families (e.g., woody, floral, oriental, fresh, aquatic, citrus, spicy, gourmand). Examples:
 Query: 'summer night' → Response: 'light, citrus, aquatic, jasmine, neroli, marine, fresh, bergamot'
@@ -200,7 +194,7 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 			moodSystemPrompt,
 			new UserChatMessage(moodOrOccasion)
 		];
-		ChatCompletion completion = await client.CompleteChatAsync(messages, cancellationToken: cancellationToken);
+		ChatCompletion completion = await chatClient.CompleteChatAsync(messages, cancellationToken: cancellationToken);
 		if (completion.Content == null || completion.Content.Count == 0 || string.IsNullOrWhiteSpace(completion.Content[0].Text)) {
 			throw new InvalidOperationException("OpenAI returned an empty response");
 		}
