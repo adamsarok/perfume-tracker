@@ -38,10 +38,10 @@ public class GetPerfumeRecommendations {
 		}
 
 		private async Task<IEnumerable<PerfumeRecommendationDto>> GetAllStrategyRecommendations(GetPerfumeRecommendationsQuery request, CancellationToken cancellationToken) {
-			var strategyCnt = Enum.GetValues<RecommendationStrategy>().Length;
-			int cntPerStrategy = (int)Math.Ceiling((double)request.Count / strategyCnt);
+			var validStrategies = Enum.GetValues<RecommendationStrategy>().Where(s => s != RecommendationStrategy.MoodOrOccasion).ToList();
+			int cntPerStrategy = (int)Math.Ceiling((double)request.Count / validStrategies.Count);
 			var recommendations = new List<PerfumeRecommendationDto>();
-			foreach (var strategy in Enum.GetValues<RecommendationStrategy>().Except([RecommendationStrategy.MoodOrOccasion])) {
+			foreach (var strategy in validStrategies) {
 				recommendations.AddRange(await perfumeRecommender.GetRecommendationsForStrategy(strategy, cntPerStrategy, cancellationToken));
 			}
 			return recommendations;

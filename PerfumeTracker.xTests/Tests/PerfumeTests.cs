@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.PerfumeRatings;
 using PerfumeTracker.Server.Features.Perfumes;
+using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;
@@ -37,9 +38,10 @@ public class PerfumeTests {
 	public async Task GetPerfume() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 
 		var perfume = await context.Perfumes.FirstAsync();
-		var handler = new GetPerfumeHandler(context, new MockPresignedUrlService());
+		var handler = new GetPerfumeHandler(context, new MockPresignedUrlService(), userProfileService);
 		var response = await handler.Handle(new GetPerfumeQuery(perfume.Id), CancellationToken.None);
 		Assert.NotNull(response);
 	}
@@ -48,23 +50,31 @@ public class PerfumeTests {
 	public async Task GetPerfume_NotFound() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 
-		var handler = new GetPerfumeHandler(context, new MockPresignedUrlService());
+		var handler = new GetPerfumeHandler(context, new MockPresignedUrlService(), userProfileService);
 		await Assert.ThrowsAsync<NotFoundException>(async () => await handler.Handle(new GetPerfumeQuery(Guid.NewGuid()), CancellationToken.None));
 	}
 
 	[Fact]
 	public async Task GetPerfumes() {
+		// Arrange
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var handler = new GetPerfumesWithWornHandler(context, new MockPresignedUrlService());
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var handler = new GetPerfumesWithWornHandler(context, new MockPresignedUrlService(), userProfileService);
+
+		// Act
 		var perfumes = await handler.Handle(new GetPerfumesWithWornQuery(), CancellationToken.None);
+
+		// Assert
 		Assert.NotNull(perfumes);
 		Assert.NotEmpty(perfumes);
 	}
 
 	[Fact]
 	public async Task UpdatePerfume() {
+		// Arrange
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var handler = new UpdatePerfumeHandler(context, _fixture.MockSideEffectQueue.Object);
@@ -79,7 +89,11 @@ public class PerfumeTests {
 			perfume.Summer,
 			perfume.Winter,
 			new List<TagDto>() { tag.Adapt<TagDto>() });
+
+		// Act
 		var response = await handler.Handle(new UpdatePerfumeCommand(perfume.Id, dto), CancellationToken.None);
+
+		// Assert
 		Assert.NotNull(response);
 	}
 
@@ -106,11 +120,17 @@ public class PerfumeTests {
 
 	[Fact]
 	public async Task GetFullText() {
+		// Arrange
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var handler = new GetPerfumesWithWornHandler(context, new MockPresignedUrlService());
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var handler = new GetPerfumesWithWornHandler(context, new MockPresignedUrlService(), userProfileService);
 		var perfume = await context.Perfumes.FirstAsync();
+
+		// Act
 		var response = await handler.Handle(new GetPerfumesWithWornQuery(perfume.PerfumeName), CancellationToken.None);
+
+		// Assert
 		Assert.NotNull(response);
 		Assert.NotEmpty(response);
 	}
@@ -146,7 +166,8 @@ public class PerfumeTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var perfume = await context.Perfumes.FirstAsync();
-		var handler = new GetNextPerfumeHandler(context);
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var handler = new GetNextPerfumeHandler(context, userProfileService);
 		var response = await handler.Handle(new GetNextPerfumeIdQuery(perfume.Id), CancellationToken.None);
 		Assert.NotEqual(perfume.Id, response); // Assuming there is more than one perfume, the next perfume ID should be different
 	}
@@ -155,7 +176,8 @@ public class PerfumeTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var perfume = await context.Perfumes.FirstAsync();
-		var handler = new GetPreviousPerfumeHandler(context);
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var handler = new GetPreviousPerfumeHandler(context, userProfileService);
 		var response = await handler.Handle(new GetPreviousPerfumeIdQuery(perfume.Id), CancellationToken.None);
 		Assert.NotEqual(perfume.Id, response); // Assuming there is more than one perfume, the previous perfume ID should be different
 	}

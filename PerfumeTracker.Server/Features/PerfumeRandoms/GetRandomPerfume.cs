@@ -21,7 +21,7 @@ public class GetRandomPerfumeHandler(PerfumeTrackerContext context, ISideEffectQ
 	public async Task<GetRandomPerfumeResponse> Handle(GetRandomPerfumeQuery request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var results = await perfumeRecommender.GetRecommendationsForStrategy(RecommendationStrategy.Random, 1, cancellationToken);
-		if (results.Count() == 0) return new GetRandomPerfumeResponse(null, null);
+		if (!results.Any()) return new GetRandomPerfumeResponse(null, null);
 		var result = results.First();
 		var randoms = await AddRandomPerfume(result.Perfume.Perfume.Id, userId, cancellationToken);
 		return new GetRandomPerfumeResponse(result.Perfume.Perfume.Id, randoms.Id);

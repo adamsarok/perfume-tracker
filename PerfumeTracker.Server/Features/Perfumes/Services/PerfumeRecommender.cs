@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+﻿﻿using Microsoft.Extensions.Options;
 using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Perfumes.Extensions;
 using PerfumeTracker.Server.Services.Common;
@@ -59,6 +59,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 			RecommendationStrategy.Seasonal => await GetSeasonal(count, userProfile, cancellationToken),
 			RecommendationStrategy.Random => await GetRandom(count, userProfile, cancellationToken),
 			RecommendationStrategy.LeastUsed => await GetLeastUsed(count, userProfile, cancellationToken),
+			RecommendationStrategy.MoodOrOccasion => throw new ArgumentException("Use GetRecommendationsForOccasionMoodPrompt for MoodOrOccasion strategy"),
 			_ => throw new ArgumentOutOfRangeException(nameof(strategy))
 		};
 	}
@@ -204,9 +205,6 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 		var embedding = await encoder.GetEmbeddings(text, cancellationToken);
 		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
 		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
-		return result
-			.OrderBy(_ => Random.Shared.Next())
-			.Take(count)
-			.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.MoodOrOccasion));
+		return result.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.MoodOrOccasion));
 	}
 }
