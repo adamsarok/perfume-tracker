@@ -185,8 +185,27 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 	}
 
 	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForOccasionMoodPrompt(int count, string moodOrOccasion, CancellationToken cancellationToken) {
+		if (string.IsNullOrWhiteSpace(moodOrOccasion)) {
+			throw new ArgumentException("Mood or occasion prompt cannot be empty", nameof(moodOrOccasion));
+		}
+		var normalizedPrompt = moodOrOccasion.Trim().ToLowerInvariant();
+		string text = await GetMoodOrOccasionCompletion(normalizedPrompt, cancellationToken);
+		var embedding = await encoder.GetEmbeddings(text, cancellationToken);
+		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
+		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
+		return result.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.MoodOrOccasion));
+	}
+
+	private async Task<string> GetMoodOrOccasionCompletion(string moodOrOccasion, CancellationToken cancellationToken) {
+		// Check cache first
+		var cached = await context.CachedCompletions
+			.FirstOrDefaultAsync(cc => cc.Prompt == moodOrOccasion && cc.CompletionType == CachedCompletion.CompletionTypes.MoodOrOccasionRecommendation, cancellationToken);
+		if (cached != null) {
+			return cached.Response;
+		}
+		// Not cached, call OpenAI
 		var moodSystemPrompt = new SystemChatMessage(
-@"You are a perfume recommendation expert. When given a mood, occasion, or context, respond ONLY with a comma-separated list of perfume notes, accords, and families that match. Do not include explanations, greetings, or any other text. Keep your response concise (maximum 10-15 items). Focus on specific notes (e.g., bergamot, vanilla, oud) and general families (e.g., woody, floral, oriental, fresh, aquatic, citrus, spicy, gourmand). Examples:
+@"You are a perfume recommendation expert. When given a mood, occasion, or context, respond ONLY with a comma-separated list of perfume notes, accords, and families that match. Do not include explanations, greetings, or any other text. You MUST provide between 7-10 items. Focus on specific notes (e.g., bergamot, vanilla, oud) and general families (e.g., woody, floral, oriental, fresh, aquatic, citrus, spicy, gourmand). Examples:
 Query: 'summer night' → Response: 'light, citrus, aquatic, jasmine, neroli, marine, fresh, bergamot'
 Query: 'cozy winter evening' → Response: 'warm, amber, vanilla, cinnamon, sandalwood, spicy, gourmand, tonka bean'
 Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, subtle, bergamot, vetiver, musk'");
@@ -199,9 +218,13 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 			throw new InvalidOperationException("OpenAI returned an empty response");
 		}
 		var text = completion.Content[0].Text;
-		var embedding = await encoder.GetEmbeddings(text, cancellationToken);
-		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
-		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
-		return result.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.MoodOrOccasion));
+		// Cache the result
+		context.CachedCompletions.Add(new CachedCompletion {
+			Prompt = moodOrOccasion,
+			Response = text,
+			CompletionType = CachedCompletion.CompletionTypes.MoodOrOccasionRecommendation,
+		});
+		await context.SaveChangesAsync(cancellationToken);
+		return text;
 	}
 }

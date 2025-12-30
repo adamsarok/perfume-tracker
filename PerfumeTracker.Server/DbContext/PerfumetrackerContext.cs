@@ -30,6 +30,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<UserMission> UserMissions { get; set; }
 	public virtual DbSet<Invite> Invites { get; set; }
 	public virtual DbSet<PerfumeDocument> PerfumeDocuments { get; set; }
+	public virtual DbSet<CachedCompletion> CachedCompletions { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 
@@ -217,6 +218,18 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasForeignKey<PerfumeDocument>(d => d.Id)
 				.HasConstraintName("PerfumeDocument_perfumeId_fkey");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
+
+		builder.Entity<CachedCompletion>(entity => {
+			entity.HasKey(e => e.Id).HasName("CachedCompletion_pkey");
+			entity.HasIndex(e => new { e.UserId, e.CompletionType, e.Prompt })
+				.HasDatabaseName("IX_CachedCompletion_UserId_Type_Prompt")
+				.IsUnique();
+			entity.ToTable("CachedCompletion");
+			entity.HasQueryFilter(x => TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId());
+			entity.Property(e => e.Prompt)
+				.HasMaxLength(2000)
+				.IsRequired();
 		});
 
 		base.OnModelCreating(builder);
