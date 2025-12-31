@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.SignalR;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Features.PerfumeRandoms;
 using PerfumeTracker.Server.Services.Common;
+using static PerfumeTracker.Server.Features.Perfumes.Services.PerfumeRecommender;
 
 namespace PerfumeTracker.Server.Services.Missions;
 
@@ -78,15 +78,15 @@ public class ProgressMissions {
 		}
 	}
 
-	public class PerfumeRandomAcceptedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeRandomAcceptedNotification> {
-		public async Task Handle(PerfumeRandomAcceptedNotification notification, CancellationToken cancellationToken) {
-			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.AcceptRandoms, notification.UserId, cancellationToken);
+	public class PerfumeRecommendationAcceptedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeRecommendationAcceptedNotification> {
+		public async Task Handle(PerfumeRecommendationAcceptedNotification notification, CancellationToken cancellationToken) {
+			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.AcceptRecommendations, notification.UserId, cancellationToken);
 		}
 	}
 
-	public class RandomPerfumeAddedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<RandomPerfumeAddedNotification> {
-		public async Task Handle(RandomPerfumeAddedNotification notification, CancellationToken cancellationToken) {
-			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.GetRandoms, notification.UserId, cancellationToken);
+	public class PerfumeRecommendationsAddedNotificationHandler(UpdateMissionProgressHandler updateMissionProgressHandler) : INotificationHandler<PerfumeRecommendationsAddedNotification> {
+		public async Task Handle(PerfumeRecommendationsAddedNotification notification, CancellationToken cancellationToken) {
+			await updateMissionProgressHandler.UpdateMissionProgress(MissionType.GetRecommendations, notification.UserId, cancellationToken);
 		}
 	}
 

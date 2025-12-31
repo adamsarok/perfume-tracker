@@ -20,12 +20,13 @@ export async function deleteWear(
   return del(`/perfume-events/${encodeURIComponent(id)}`);
 }
 
-export async function wearPerfume(id: string, date: Date, randomsId: string | null) : Promise<AxiosResult<PerfumeWornUploadDTO>> {
+export async function wearPerfume(id: string, date: Date, recommendationId: string | null) : Promise<AxiosResult<PerfumeWornUploadDTO>> {
+  console.log("wearPerfume called with recommendationId:", recommendationId);
   const dto: PerfumeWornUploadDTO = {
     perfumeId: id,
     wornOn: date,
     type: 1,
-    randomsId: randomsId,
+    recommendationId: recommendationId,
   };
   return post<PerfumeWornUploadDTO>(`/perfume-events`, dto);
 }

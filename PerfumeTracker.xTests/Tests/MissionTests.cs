@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Features.PerfumeRandoms;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.Server.Services.Missions;
 using PerfumeTracker.xTests.Fixture;
+using static PerfumeTracker.Server.Features.Perfumes.Services.PerfumeRecommender;
 
 namespace PerfumeTracker.xTests.Tests;
 
@@ -93,10 +93,10 @@ public class MissionTests {
 
 		var xpService = new XPService(context);
 		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(context, _fixture.MockMissionProgressHubContext.Object, xpService);
-		var handler = new ProgressMissions.PerfumeRandomAcceptedNotificationHandler(updateHandler);
-		var notification = new PerfumeRandomAcceptedNotification(Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException());
+		var handler = new ProgressMissions.PerfumeRecommendationAcceptedNotificationHandler(updateHandler);
+		var notification = new PerfumeRecommendationAcceptedNotification(Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
-		AssertProgress(MissionType.AcceptRandoms);
+		AssertProgress(MissionType.AcceptRecommendations);
 	}
 
 	[Fact]
@@ -106,10 +106,10 @@ public class MissionTests {
 
 		var xpService = new XPService(context);
 		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(context, _fixture.MockMissionProgressHubContext.Object, xpService);
-		var handler = new ProgressMissions.RandomPerfumeAddedNotificationHandler(updateHandler);
-		var notification = new RandomPerfumeAddedNotification(Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException());
+		var handler = new ProgressMissions.PerfumeRecommendationsAddedNotificationHandler(updateHandler);
+		var notification = new PerfumeRecommendationsAddedNotification(1, _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException());
 		await handler.Handle(notification, CancellationToken.None);
-		AssertProgress(MissionType.GetRandoms);
+		AssertProgress(MissionType.GetRecommendations);
 	}
 
 	void AssertProgress(MissionType type) {

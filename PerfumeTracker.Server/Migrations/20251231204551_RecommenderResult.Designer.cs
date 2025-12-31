@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -13,9 +14,11 @@ using Pgvector;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumeTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20251231204551_RecommenderResult")]
+    partial class RecommenderResult
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -625,7 +628,7 @@ namespace PerfumeTracker.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("CompletionId")
+                    b.Property<Guid>("CompletionId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -982,7 +985,8 @@ namespace PerfumeTracker.Server.Migrations
                     b.HasOne("PerfumeTracker.Server.Models.CachedCompletion", "CachedCompletion")
                         .WithMany()
                         .HasForeignKey("CompletionId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("PerfumeRecommendation_CompletionId_fkey");
 
                     b.HasOne("PerfumeTracker.Server.Models.Perfume", "Perfume")

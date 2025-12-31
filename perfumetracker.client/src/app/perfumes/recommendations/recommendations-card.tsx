@@ -53,13 +53,12 @@ export default function PerfumeRecommendationsCard({
         .slice(0, 2)
         .join("")
       : perfume.perfumeName.slice(0, 2).toUpperCase();
-
   return (
     <form>
       <Card key={perfume.id} className="w-full perfume-card">
         <CardHeader>
           <a
-            href={`/perfumes/${perfume.id}/`}
+            // href={`/perfumes/${perfume.id}/`}
             className="flex items-center justify-between gap-4"
           >
             <div className="flex items-center space-x-4">
@@ -101,7 +100,7 @@ export default function PerfumeRecommendationsCard({
                     perfumeId={perfume.id}
                     onSuccess={null}
                     className="mb-2 mt-2"
-                    randomsId={null}
+                    recommendationId={recommendation.recommendationId}
                     showFullComponent={false}
                   ></SprayOnComponent>
           </a>

@@ -11,7 +11,7 @@ export interface SprayOnProps {
   readonly perfumeId: string | undefined;
   readonly onSuccess: (() => void) | null;
   readonly className: string;
-  readonly randomsId: string | null;
+  readonly recommendationId: string | null;
   readonly showFullComponent?: boolean;
 }
 
@@ -19,7 +19,7 @@ export default function SprayOnComponent({
   perfumeId,
   onSuccess,
   className,
-  randomsId,
+  recommendationId,
   showFullComponent = true,
 }: SprayOnProps) {
   const yymmdd = new Date().toISOString().slice(0, 10);
@@ -30,7 +30,7 @@ export default function SprayOnComponent({
   };
 
   const auth = useAuth();
-
+  console.log("recommendationId in SprayOnComponent:", recommendationId);
   const onSprayOn = async () => {
     if (auth.guardAction()) return;
     if (perfumeId) {
@@ -41,7 +41,7 @@ export default function SprayOnComponent({
       } else {
         date = new Date();
       }
-      const result = await wearPerfume(perfumeId, date, randomsId);
+      const result = await wearPerfume(perfumeId, date, recommendationId);
       if (result.ok) {
         showSuccess("Smell on!");
         if (onSuccess) onSuccess();

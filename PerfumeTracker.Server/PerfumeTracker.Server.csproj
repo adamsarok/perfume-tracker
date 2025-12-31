@@ -31,10 +31,10 @@
     <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
-    <PackageReference Include="AWSSDK.S3" Version="4.0.14.3" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.16.1" />
     <PackageReference Include="Carter" Version="10.0.0" />
-    <PackageReference Include="Magick.NET-Q8-x64" Version="14.10.0" />
-    <PackageReference Include="Magick.NET.Core" Version="14.10.0" />
+    <PackageReference Include="Magick.NET-Q8-x64" Version="14.10.1" />
+    <PackageReference Include="Magick.NET.Core" Version="14.10.1" />
     <PackageReference Include="Mapster" Version="7.4.0" />
     <PackageReference Include="MediatR" Version="[12.5.0]" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.1" />

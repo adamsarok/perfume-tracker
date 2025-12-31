@@ -36,8 +36,6 @@ public abstract class DbFixture : IAsyncLifetime {
 	public Faker<PerfumeTag> PerfumeTagFaker { get; }
 	public Faker<PerfumeEvent> PerfumeEventFaker { get; }
 	public Faker<PerfumeRating> PerfumeRatingFaker { get; }
-	public Faker<PerfumeRandoms> PerfumeRandomsFaker { get; }
-	public Faker<Recommendation> RecommendationFaker { get; }
 	public Faker<Achievement> AchievementFaker { get; }
 	public Faker<UserAchievement> UserAchievementFaker { get; }
 	public Faker<Mission> MissionFaker { get; }
@@ -152,24 +150,6 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pr => pr.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
 			.RuleFor(pr => pr.UpdatedAt, f => DateTime.UtcNow)
 			.RuleFor(pr => pr.IsDeleted, false);
-
-		PerfumeRandomsFaker = new Faker<PerfumeRandoms>()
-			.RuleFor(pr => pr.Id, f => Guid.NewGuid())
-			.RuleFor(pr => pr.PerfumeId, f => Guid.NewGuid())
-			.RuleFor(pr => pr.IsAccepted, f => f.Random.Bool(0.3f))
-			.RuleFor(pr => pr.UserId, tenantId)
-			.RuleFor(pr => pr.CreatedAt, f => f.Date.RecentOffset(30).UtcDateTime)
-			.RuleFor(pr => pr.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(pr => pr.IsDeleted, false);
-
-		RecommendationFaker = new Faker<Recommendation>()
-			.RuleFor(r => r.Id, f => Guid.NewGuid())
-			.RuleFor(r => r.Query, f => f.Lorem.Sentence(5))
-			.RuleFor(r => r.Recommendations, f => f.Lorem.Paragraph())
-			.RuleFor(r => r.UserId, tenantId)
-			.RuleFor(r => r.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
-			.RuleFor(r => r.UpdatedAt, f => DateTime.UtcNow)
-			.RuleFor(r => r.IsDeleted, false);
 
 		AchievementFaker = new Faker<Achievement>()
 			.RuleFor(a => a.Id, f => Guid.NewGuid())
@@ -384,38 +364,6 @@ public abstract class DbFixture : IAsyncLifetime {
 		await context.Database.ExecuteSqlRawAsync(sql);
 		var result = GeneratePerfumeRatings(count, perfumeId);
 		await context.Set<PerfumeRating>().AddRangeAsync(result);
-		await context.SaveChangesAsync();
-		return result;
-	}
-
-	public async Task<List<PerfumeRandoms>> SeedPerfumeRandoms(int count) {
-		using var scope = Factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var sql = "truncate table \"public\".\"PerfumeRandom\" cascade;";
-		var perfumes = GeneratePerfumes(count);
-		await context.Perfumes.AddRangeAsync(perfumes);
-		await context.SaveChangesAsync();
-		await context.Database.ExecuteSqlRawAsync(sql);
-		var result = PerfumeRandomsFaker.Clone()
-			.RuleFor(pr => pr.UserId, TenantProvider.MockTenantId!.Value)
-			.Generate(count);
-		for (int i = 0; i < count; i++) {
-			result[i].PerfumeId = perfumes[i].Id;
-		}
-		await context.Set<PerfumeRandoms>().AddRangeAsync(result);
-		await context.SaveChangesAsync();
-		return result;
-	}
-
-	public async Task<List<Recommendation>> SeedRecommendations(int count) {
-		using var scope = Factory.Services.CreateScope();
-		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var sql = "truncate table \"public\".\"Recommendation\" cascade; ";
-		await context.Database.ExecuteSqlRawAsync(sql);
-		var result = RecommendationFaker.Clone()
-			.RuleFor(r => r.UserId, TenantProvider.MockTenantId!.Value)
-			.Generate(count);
-		await context.Set<Recommendation>().AddRangeAsync(result);
 		await context.SaveChangesAsync();
 		return result;
 	}

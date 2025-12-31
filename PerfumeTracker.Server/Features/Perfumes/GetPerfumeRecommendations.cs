@@ -5,7 +5,7 @@ namespace PerfumeTracker.Server.Features.Perfumes;
 
 public class GetPerfumeRecommendations {
 	public record GetPerfumeRecommendationsQuery(int Count, string? OccasionOrMood) : IQuery<IEnumerable<PerfumeRecommendationDto>>;
-	public record PerfumeRecommendationDto(PerfumeWithWornStatsDto Perfume, RecommendationStrategy Strategy);
+	public record PerfumeRecommendationDto(Guid RecommnedationId, PerfumeWithWornStatsDto Perfume, RecommendationStrategy Strategy);
 	public class GetPerfumeRecommendationsQueryValidator : AbstractValidator<GetPerfumeRecommendationsQuery> {
 		public GetPerfumeRecommendationsQueryValidator() {
 			RuleFor(x => x.Count).InclusiveBetween(1, 20);
@@ -25,26 +25,8 @@ public class GetPerfumeRecommendations {
 
 	public class GetPerfumeRecommendationsHandler(IPerfumeRecommender perfumeRecommender) : IQueryHandler<GetPerfumeRecommendationsQuery, IEnumerable<PerfumeRecommendationDto>> {
 		public async Task<IEnumerable<PerfumeRecommendationDto>> Handle(GetPerfumeRecommendationsQuery request, CancellationToken cancellationToken) {
-			IEnumerable<PerfumeRecommendationDto> recommendations;
-			if (string.IsNullOrWhiteSpace(request.OccasionOrMood)) recommendations = await GetAllStrategyRecommendations(request, cancellationToken);
-			else recommendations = await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(request.Count, request.OccasionOrMood, cancellationToken);
-			var dedup = recommendations
-				.GroupBy(x => x.Perfume.Perfume.Id)
-				.Select(g => g.First())
-				.ToList();
-			return dedup
-				.OrderBy(_ => Random.Shared.Next())
-				.Take(request.Count);
-		}
-
-		private async Task<IEnumerable<PerfumeRecommendationDto>> GetAllStrategyRecommendations(GetPerfumeRecommendationsQuery request, CancellationToken cancellationToken) {
-			var validStrategies = Enum.GetValues<RecommendationStrategy>().Where(s => s != RecommendationStrategy.MoodOrOccasion).ToList();
-			int cntPerStrategy = (int)Math.Ceiling((double)request.Count / validStrategies.Count);
-			var recommendations = new List<PerfumeRecommendationDto>();
-			foreach (var strategy in validStrategies) {
-				recommendations.AddRange(await perfumeRecommender.GetRecommendationsForStrategy(strategy, cntPerStrategy, cancellationToken));
-			}
-			return recommendations;
+			if (string.IsNullOrWhiteSpace(request.OccasionOrMood)) return await perfumeRecommender.GetAllStrategyRecommendations(request.Count, cancellationToken);
+			return await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(request.Count, request.OccasionOrMood, cancellationToken);
 		}
 	}
 }

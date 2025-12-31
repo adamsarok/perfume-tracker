@@ -21,12 +21,11 @@ public class OutboxFixture : DbFixture {
 		var userId = TenantProvider.GetCurrentUserId() ?? throw new InvalidOperationException("MockTenantProvider userId is null");
 
 		var perfumes = await SeedPerfumes(3);
-		var randoms = await SeedPerfumeRandoms(1);
 		var events = await SeedPerfumeEvents(1, perfumes[2].Id);
 
 		var outboxMessages = new OutboxMessage[3] {
 			OutboxMessage.From(new PerfumeAddedNotification(perfumes[0].Id, userId)),
-			OutboxMessage.From(new PerfumeRandomAcceptedNotification(perfumes[1].Id, Guid.NewGuid())),
+			OutboxMessage.From(new PerfumeRecommendationAcceptedNotification(perfumes[1].Id, Guid.NewGuid())),
 			OutboxMessage.From(new PerfumeEventAddedNotification(Guid.NewGuid(), perfumes[2].Id, userId, PerfumeEvent.PerfumeEventType.Worn)),
 		};
 

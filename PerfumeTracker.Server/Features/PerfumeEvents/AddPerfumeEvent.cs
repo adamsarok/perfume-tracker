@@ -5,10 +5,10 @@ using static PerfumeTracker.Server.Models.PerfumeEvent;
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
 
-public record PerfumeEventUploadDto(Guid PerfumeId, DateTime? WornOn, PerfumeEventType Type, decimal? Amount, Guid? RandomsId);
+public record PerfumeEventUploadDto(Guid PerfumeId, DateTime? WornOn, PerfumeEventType Type, decimal? Amount, Guid? RecommendationId);
 public record AddPerfumeEventCommand(PerfumeEventUploadDto Dto) : ICommand<PerfumeEventDownloadDto>;
 public record PerfumeEventAddedNotification(Guid PerfumeEventId, Guid PerfumeId, Guid UserId, PerfumeEvent.PerfumeEventType Type) : IUserNotification;
-public record PerfumeRandomAcceptedNotification(Guid PerfumeId, Guid UserId) : IUserNotification;
+public record PerfumeRecommendationAcceptedNotification(Guid RecommendationId, Guid UserId) : IUserNotification;
 public class AddPerfumeEventCommandValidator : AbstractValidator<AddPerfumeEventCommand> {
 	public AddPerfumeEventCommandValidator() {
 		RuleFor(x => x.Dto.PerfumeId).NotEmpty();
@@ -55,9 +55,9 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 			var settings = await userProfileService.GetCurrentUserProfile(cancellationToken);
 			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		}
-		if (request.Dto.RandomsId == null) return;
-		messages.Add(OutboxMessage.From(new PerfumeRandomAcceptedNotification(perfume.Id, userId)));
-		var randoms = await context.PerfumeRandoms.FindAsync(request.Dto.RandomsId);
-		if (randoms != null) randoms.IsAccepted = true;
+		if (request.Dto.RecommendationId == null) return;
+		messages.Add(OutboxMessage.From(new PerfumeRecommendationAcceptedNotification(perfume.Id, userId)));
+		var recommendation = await context.PerfumeRecommendations.FindAsync(request.Dto.RecommendationId);
+		if (recommendation != null) recommendation.IsAccepted = true;
 	}
 }

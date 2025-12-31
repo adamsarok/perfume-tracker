@@ -16,11 +16,9 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	}
 	public virtual DbSet<UserStreak> UserStreaks { get; set; }
 	public virtual DbSet<Perfume> Perfumes { get; set; }
-	public virtual DbSet<PerfumeRandoms> PerfumeRandoms { get; set; }
 	public virtual DbSet<PerfumeTag> PerfumeTags { get; set; }
 	public virtual DbSet<PerfumeEvent> PerfumeEvents { get; set; }
 	public virtual DbSet<PerfumeRating> PerfumeRatings { get; set; }
-	public virtual DbSet<Recommendation> Recommendations { get; set; }
 	public virtual DbSet<Tag> Tags { get; set; }
 	public virtual DbSet<Achievement> Achievements { get; set; }
 	public virtual DbSet<UserAchievement> UserAchievements { get; set; }
@@ -31,6 +29,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<Invite> Invites { get; set; }
 	public virtual DbSet<PerfumeDocument> PerfumeDocuments { get; set; }
 	public virtual DbSet<CachedCompletion> CachedCompletions { get; set; }
+	public virtual DbSet<PerfumeRecommendation> PerfumeRecommendations { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 
@@ -105,18 +104,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		builder.Entity<PerfumeRandoms>(entity => {
-			entity.HasKey(e => e.Id).HasName("PerfumeRandom_pkey");
-
-			entity.ToTable("PerfumeRandom");
-
-			entity.HasOne(d => d.Perfume)
-				.WithMany(p => p.PerfumeRandoms)
-				.HasForeignKey(d => d.PerfumeId)
-				.HasConstraintName("PerfumeRandom_perfumeId_fkey");
-			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
-		});
-
 		builder.Entity<PerfumeTag>(entity => {
 			entity.HasKey(e => e.Id).HasName("PerfumeTag_pkey");
 
@@ -158,16 +145,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.WithMany(p => p.PerfumeRatings)
 				.HasForeignKey(d => d.PerfumeId)
 				.HasConstraintName("PerfumeRating_perfumeId_fkey");
-			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
-		});
-
-		builder.Entity<Recommendation>(entity => {
-			entity.HasKey(e => e.Id).HasName("Recommendation_pkey");
-
-			entity.ToTable("Recommendation");
-
-			entity.Property(e => e.CreatedAt)
-				.HasDefaultValueSql("CURRENT_TIMESTAMP");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
@@ -230,6 +207,22 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.Property(e => e.Prompt)
 				.HasMaxLength(2000)
 				.IsRequired();
+		});
+
+		builder.Entity<PerfumeRecommendation>(entity => {
+			entity.HasKey(e => e.Id).HasName("PerfumeRecommendation_pkey");
+			entity.ToTable("PerfumeRecommendation");
+			entity.HasOne(d => d.Perfume)
+				.WithMany(p => p.PerfumeRecommendations)
+				.HasForeignKey(d => d.PerfumeId)
+				.HasConstraintName("PerfumeRecommendation_PerfumeId_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+			entity.HasOne(d => d.CachedCompletion)
+				.WithMany()
+				.HasForeignKey(d => d.CompletionId)
+				.OnDelete(DeleteBehavior.SetNull)
+				.IsRequired(false)
+				.HasConstraintName("PerfumeRecommendation_CompletionId_fkey");
 		});
 
 		base.OnModelCreating(builder);

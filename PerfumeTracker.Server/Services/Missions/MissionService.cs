@@ -71,17 +71,17 @@ public class MissionService(IServiceProvider serviceProvider, ILogger<MissionSer
 					RequiredCount = 5,
 					XP = 75
 				},
-				MissionType.GetRandoms => new Mission {
+				MissionType.GetRecommendations => new Mission {
 					Name = "Adventurer",
-					Description = "Get 15 random perfume suggestions",
-					Type = MissionType.GetRandoms,
-					RequiredCount = 15,
+					Description = "Get 50 perfume suggestions",
+					Type = MissionType.GetRecommendations,
+					RequiredCount = 50,
 					XP = 50
 				},
-				MissionType.AcceptRandoms => new Mission {
+				MissionType.AcceptRecommendations => new Mission {
 					Name = "Lady Luck",
 					Description = "Take a chance! Accept 3 perfume suggestions",
-					Type = MissionType.AcceptRandoms,
+					Type = MissionType.AcceptRecommendations,
 					RequiredCount = 3,
 					XP = 100
 				},

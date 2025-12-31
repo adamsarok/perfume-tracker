@@ -50,7 +50,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 				.ThenInclude(pt => pt.Tag);
 	}
 
-	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForStrategy(RecommendationStrategy strategy, int count, CancellationToken cancellationToken) {
+	private async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForStrategy(RecommendationStrategy strategy, int count, CancellationToken cancellationToken) {
 		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
 		return strategy switch {
 			RecommendationStrategy.ForgottenFavorite => await GetForgottenFavorites(count, userProfile, cancellationToken),
@@ -72,13 +72,13 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 		return result
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count)
-			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.LeastUsed));
+			.Select(x => new PerfumeRecommendationDto(Guid.Empty, x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.LeastUsed));
 	}
 
 	private async Task<List<Guid>> GetAlreadySuggestedRandomPerfumeIds(int daysFilter, CancellationToken cancellationToken) {
 		return await context
-			.PerfumeRandoms
-			.Where(x => x.CreatedAt >= DateTime.UtcNow.AddDays(-daysFilter))
+			.PerfumeRecommendations
+			.Where(x => x.CreatedAt >= DateTime.UtcNow.AddDays(-daysFilter) && x.Strategy == RecommendationStrategy.Random)
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.ToListAsync(cancellationToken);
@@ -94,7 +94,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 		return filtered
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count)
-			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.Random));
+			.Select(x => new PerfumeRecommendationDto(Guid.Empty, x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.Random));
 	}
 
 	private async Task<IEnumerable<PerfumeRecommendationDto>> GetSeasonal(int count, UserProfile userProfile, CancellationToken cancellationToken) {
@@ -112,7 +112,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 		return seasonalTagged
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count)
-			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.Seasonal));
+			.Select(x => new PerfumeRecommendationDto(Guid.Empty, x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.Seasonal));
 	}
 	public enum Seasons { Winter, Spring, Summer, Autumn };
 	public static Seasons Season => DateTime.UtcNow.Month switch {
@@ -144,7 +144,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 		var flatTags = tags.SelectMany(x => x).Distinct().ToList();
 		var embedding = await encoder.GetEmbeddings(string.Join(" ", flatTags), cancellationToken);
 		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
-		return result.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.SimilarToLastUsed));
+		return result.Select(x => new PerfumeRecommendationDto(Guid.Empty, x, RecommendationStrategy.SimilarToLastUsed));
 	}
 
 	private async Task<IEnumerable<PerfumeWithWornStatsDto>> GetSimilarToEmbedding(int count, UserProfile userProfile,
@@ -181,27 +181,15 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 		return result
 			.OrderBy(_ => Random.Shared.Next())
 			.Take(count)
-			.Select(x => new PerfumeRecommendationDto(x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.ForgottenFavorite));
+			.Select(x => new PerfumeRecommendationDto(Guid.Empty, x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.ForgottenFavorite));
 	}
 
-	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForOccasionMoodPrompt(int count, string moodOrOccasion, CancellationToken cancellationToken) {
-		if (string.IsNullOrWhiteSpace(moodOrOccasion)) {
-			throw new ArgumentException("Mood or occasion prompt cannot be empty", nameof(moodOrOccasion));
-		}
-		var normalizedPrompt = moodOrOccasion.Trim().ToLowerInvariant();
-		string text = await GetMoodOrOccasionCompletion(normalizedPrompt, cancellationToken);
-		var embedding = await encoder.GetEmbeddings(text, cancellationToken);
-		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
-		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
-		return result.Select(x => new PerfumeRecommendationDto(x, RecommendationStrategy.MoodOrOccasion));
-	}
-
-	private async Task<string> GetMoodOrOccasionCompletion(string moodOrOccasion, CancellationToken cancellationToken) {
+	private async Task<CachedCompletion> GetMoodOrOccasionCompletion(string moodOrOccasion, CancellationToken cancellationToken) {
 		// Check cache first
 		var cached = await context.CachedCompletions
 			.FirstOrDefaultAsync(cc => cc.Prompt == moodOrOccasion && cc.CompletionType == CachedCompletion.CompletionTypes.MoodOrOccasionRecommendation, cancellationToken);
 		if (cached != null) {
-			return cached.Response;
+			return cached;
 		}
 		// Not cached, call OpenAI
 		var moodSystemPrompt = new SystemChatMessage(
@@ -219,12 +207,64 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 		}
 		var text = completion.Content[0].Text;
 		// Cache the result
-		context.CachedCompletions.Add(new CachedCompletion {
+		var cachedCompletion = new CachedCompletion {
 			Prompt = moodOrOccasion,
 			Response = text,
 			CompletionType = CachedCompletion.CompletionTypes.MoodOrOccasionRecommendation,
-		});
+		};
+		context.CachedCompletions.Add(cachedCompletion);
 		await context.SaveChangesAsync(cancellationToken);
-		return text;
+		return cachedCompletion;
+	}
+
+	public record PerfumeRecommendationsAddedNotification(int Count, Guid UserId) : IUserNotification;
+	public async Task<IEnumerable<PerfumeRecommendationDto>> GetAllStrategyRecommendations(int count, CancellationToken cancellationToken) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new InvalidOperationException("No current user");
+		var validStrategies = Enum.GetValues<RecommendationStrategy>().Where(s => s != RecommendationStrategy.MoodOrOccasion).ToList();
+		int cntPerStrategy = (int)Math.Ceiling((double)count / validStrategies.Count);
+		var recommendations = new List<PerfumeRecommendationDto>();
+		foreach (var strategy in validStrategies) {
+			recommendations.AddRange(await GetRecommendationsForStrategy(strategy, cntPerStrategy, cancellationToken));
+		}
+		var dedup = recommendations
+			.GroupBy(x => x.Perfume.Perfume.Id)
+			.Select(g => g.First())
+			.ToList();
+		return await PersistRecommendations(dedup, count);
+	}
+	public async Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForOccasionMoodPrompt(int count, string moodOrOccasion, CancellationToken cancellationToken) {
+		if (string.IsNullOrWhiteSpace(moodOrOccasion)) {
+			throw new ArgumentException("Mood or occasion prompt cannot be empty", nameof(moodOrOccasion));
+		}
+		var normalizedPrompt = moodOrOccasion.Trim().ToLowerInvariant();
+		var completion = await GetMoodOrOccasionCompletion(normalizedPrompt, cancellationToken);
+		var embedding = await encoder.GetEmbeddings(completion.Response, cancellationToken);
+		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
+		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
+		var recommendations = result.Select(x => new PerfumeRecommendationDto(Guid.Empty, x, RecommendationStrategy.MoodOrOccasion));
+		return await PersistRecommendations(recommendations, count, completion.Id);
+	}
+
+	private async Task<IEnumerable<PerfumeRecommendationDto>> PersistRecommendations(IEnumerable<PerfumeRecommendationDto> recommendations, int count, Guid? completionId = null) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new InvalidOperationException("No current user");
+		List<PerfumeRecommendationDto> result = new();
+		var limited = recommendations
+			.OrderBy(_ => Random.Shared.Next())
+			.Take(count);
+		foreach (var recommendation in limited) {
+			var rec = new PerfumeRecommendation {
+				PerfumeId = recommendation.Perfume.Perfume.Id,
+				Strategy = recommendation.Strategy,
+			};
+			if (completionId != null) {
+				rec.CompletionId = completionId.Value;
+			}
+			context.PerfumeRecommendations.Add(rec);
+			result.Add(recommendation with { RecommnedationId = rec.Id });
+		}
+		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeRecommendationsAddedNotification(count, userId)));
+		await context.SaveChangesAsync();
+		return result;
 	}
 }
+

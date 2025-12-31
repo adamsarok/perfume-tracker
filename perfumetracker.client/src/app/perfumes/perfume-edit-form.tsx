@@ -497,7 +497,7 @@ export default function PerfumeEditForm({
                 perfumeId={perfume?.perfume.id}
                 onSuccess={null}
                 className="w-full"
-                randomsId={randomsId}
+                recommendationId={null}
               ></SprayOnComponent>
               <Separator className="mb-2 mt-2"></Separator>
             </div>

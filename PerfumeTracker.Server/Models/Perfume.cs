@@ -12,10 +12,9 @@ public partial class Perfume : UserEntity {
 	public bool Summer { get; set; }
 	public bool Winter { get; set; }
 	public NpgsqlTsVector FullText { get; set; } = null!;
-	public virtual ICollection<PerfumeRandoms> PerfumeRandoms { get; } = [];
+	public virtual ICollection<PerfumeRecommendation> PerfumeRecommendations { get; } = [];
 	public virtual ICollection<PerfumeTag> PerfumeTags { get; } = [];
 	public virtual ICollection<PerfumeEvent> PerfumeEvents { get; } = [];
 	public virtual ICollection<PerfumeRating> PerfumeRatings { get; } = [];
-
 	public virtual PerfumeDocument? PerfumeDocument { get; set; }
 }
