@@ -53,6 +53,7 @@ export default function PerfumeRecommendationsCard({
         .slice(0, 2)
         .join("")
       : perfume.perfumeName.slice(0, 2).toUpperCase();
+
   return (
     <form>
       <Card key={perfume.id} className="w-full perfume-card">

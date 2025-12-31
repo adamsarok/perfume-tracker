@@ -21,7 +21,6 @@ export async function deleteWear(
 }
 
 export async function wearPerfume(id: string, date: Date, recommendationId: string | null) : Promise<AxiosResult<PerfumeWornUploadDTO>> {
-  console.log("wearPerfume called with recommendationId:", recommendationId);
   const dto: PerfumeWornUploadDTO = {
     perfumeId: id,
     wornOn: date,

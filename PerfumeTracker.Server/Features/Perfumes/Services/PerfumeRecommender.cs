@@ -260,7 +260,7 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 				rec.CompletionId = completionId.Value;
 			}
 			context.PerfumeRecommendations.Add(rec);
-			result.Add(recommendation with { RecommnedationId = rec.Id });
+			result.Add(recommendation with { RecommendationId = rec.Id });
 		}
 		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeRecommendationsAddedNotification(count, userId)));
 		await context.SaveChangesAsync();

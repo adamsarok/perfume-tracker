@@ -5,7 +5,7 @@ namespace PerfumeTracker.Server.Features.Perfumes;
 
 public class GetPerfumeRecommendations {
 	public record GetPerfumeRecommendationsQuery(int Count, string? OccasionOrMood) : IQuery<IEnumerable<PerfumeRecommendationDto>>;
-	public record PerfumeRecommendationDto(Guid RecommnedationId, PerfumeWithWornStatsDto Perfume, RecommendationStrategy Strategy);
+	public record PerfumeRecommendationDto(Guid RecommendationId, PerfumeWithWornStatsDto Perfume, RecommendationStrategy Strategy);
 	public class GetPerfumeRecommendationsQueryValidator : AbstractValidator<GetPerfumeRecommendationsQuery> {
 		public GetPerfumeRecommendationsQueryValidator() {
 			RuleFor(x => x.Count).InclusiveBetween(1, 20);

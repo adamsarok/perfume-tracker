@@ -30,7 +30,6 @@ export default function SprayOnComponent({
   };
 
   const auth = useAuth();
-  console.log("recommendationId in SprayOnComponent:", recommendationId);
   const onSprayOn = async () => {
     if (auth.guardAction()) return;
     if (perfumeId) {
