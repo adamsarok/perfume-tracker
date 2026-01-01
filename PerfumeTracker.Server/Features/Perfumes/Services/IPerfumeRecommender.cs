@@ -2,8 +2,10 @@
 
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
+public record PerfumeRecommendationStats(RecommendationStrategy Strategy, int TotalRecommendations, int AcceptedRecommendations);
 public interface IPerfumeRecommender {
 	Task<IEnumerable<PerfumeRecommendationDto>> GetRecommendationsForOccasionMoodPrompt(int count, string prompt, CancellationToken cancellationToken);
 	Task<IEnumerable<PerfumeWithWornStatsDto>> GetSimilar(Guid perfumeId, int count, UserProfile userProfile, CancellationToken cancellationToken);
 	Task<IEnumerable<PerfumeRecommendationDto>> GetAllStrategyRecommendations(int count, CancellationToken cancellationToken);
+	Task<IEnumerable<PerfumeRecommendationStats>> GetRecommendationStats(CancellationToken cancellationToken);
 }

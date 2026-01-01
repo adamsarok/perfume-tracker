@@ -266,5 +266,16 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 		await context.SaveChangesAsync();
 		return result;
 	}
+
+	public async Task<IEnumerable<PerfumeRecommendationStats>> GetRecommendationStats(CancellationToken cancellationToken) {
+		return await context.PerfumeRecommendations
+			.GroupBy(pr => pr.Strategy)
+			.Select(g => new PerfumeRecommendationStats(
+				Strategy: g.Key,
+				TotalRecommendations: g.Count(),
+				AcceptedRecommendations: g.Where(x => x.IsAccepted).Count()
+			))
+			.ToListAsync(cancellationToken);
+	}
 }
 
