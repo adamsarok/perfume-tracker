@@ -2,9 +2,16 @@
 
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
-public class PerfumeIdentifier(ChatClient chatClient) : IPerfumeIdentifier {
+public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext context) : IPerfumeIdentifier {
 	public async Task<IdentifiedPerfume> GetIdentifiedPerfumeAsync(string house, string perfumeName, CancellationToken cancellationToken) {
-		var messages = new List<ChatMessage> {
+		string promptKey = $"{house}::{perfumeName}";
+		string completionText = string.Empty;
+		var cached = await context.CachedCompletions
+			.FirstOrDefaultAsync(cc => cc.Prompt == promptKey && cc.CompletionType == CachedCompletion.CompletionTypes.IdentifyPerfume, cancellationToken);
+		if (cached != null) {
+			completionText = cached.Response;
+		} else {
+			var messages = new List<ChatMessage> {
 			new SystemChatMessage(
 				"""
 				You are a perfume expert. Given a perfume house and name, identify the perfume's family and notes.
@@ -20,10 +27,10 @@ public class PerfumeIdentifier(ChatClient chatClient) : IPerfumeIdentifier {
 			)
 		};
 
-		var chatCompletionOptions = new ChatCompletionOptions {
-			ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-				jsonSchemaFormatName: "identified_perfume",
-				jsonSchema: BinaryData.FromString("""
+			var chatCompletionOptions = new ChatCompletionOptions {
+				ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+					jsonSchemaFormatName: "identified_perfume",
+					jsonSchema: BinaryData.FromString("""
 				{
 					"type": "object",
 					"properties": {
@@ -55,19 +62,27 @@ public class PerfumeIdentifier(ChatClient chatClient) : IPerfumeIdentifier {
 					"additionalProperties": false
 				}
 				"""),
-				jsonSchemaIsStrict: true
-			)
-		};
+					jsonSchemaIsStrict: true
+				)
+			};
 
-		var completion = await chatClient.CompleteChatAsync(messages, chatCompletionOptions, cancellationToken);
+			var completion = await chatClient.CompleteChatAsync(messages, chatCompletionOptions, cancellationToken);
+			completionText = completion.Value.Content[0].Text;
+			context.CachedCompletions.Add(new CachedCompletion {
+				Prompt = promptKey,
+				CompletionType = CachedCompletion.CompletionTypes.IdentifyPerfume,
+				Response = completionText,
+				CreatedAt = DateTime.UtcNow
+			});
+			await context.SaveChangesAsync(cancellationToken);
+		}
 
 		var result = System.Text.Json.JsonSerializer.Deserialize<IdentifiedPerfume>(
-			completion.Value.Content[0].Text,
+			completionText,
 			new System.Text.Json.JsonSerializerOptions {
 				PropertyNameCaseInsensitive = true
 			}
 		);
-
 
 		return result ?? throw new InvalidOperationException("Failed to parse OpenAI response");
 	}

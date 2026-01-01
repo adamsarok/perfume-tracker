@@ -68,6 +68,7 @@ const formSchema = z.object({
       message: "Perfume must be at least 1 characters.",
     })
     .trim(),
+  family: z.string().trim(),
   amount: z.coerce.number().min(0).max(200),
   mlLeft: z.coerce.number().min(0).max(200),
   winter: z.boolean(),
@@ -129,6 +130,7 @@ export default function PerfumeEditForm({
     defaultValues: {
       house: "",
       perfume: "",
+      family: "",
       amount: 0,
       mlLeft: 0,
       winter: true,
@@ -145,6 +147,7 @@ export default function PerfumeEditForm({
       form.reset({
         house: perfume.perfume.house,
         perfume: perfume.perfume.perfumeName,
+        family: perfume.perfume.family,
         amount: perfume.perfume.ml,
         mlLeft: perfume.perfume.mlLeft,
         winter: perfume.perfume.winter,
@@ -156,7 +159,7 @@ export default function PerfumeEditForm({
       });
     }
   }, [perfume, form]);
-
+  
   const router = useRouter();
 
   async function loadPerfume(perfume: PerfumeWithWornStatsDTO | null) {
@@ -219,6 +222,7 @@ export default function PerfumeEditForm({
       id: perfumeId,
       house: values.house,
       perfumeName: values.perfume,
+      family: values.family,
       ml: values.amount,
       mlLeft: values.mlLeft,
       summer: values.summer,
@@ -320,6 +324,50 @@ export default function PerfumeEditForm({
     
     setIdentifiedPerfume(result.data);
     setShowIdentifyDialog(true);
+  };
+
+  // Accept identified perfume data
+  const handleAcceptIdentifiedData = async () => {
+    if (!identifiedPerfume || !perfume) return;
+    
+    // Update family in form
+    form.setValue("family", identifiedPerfume.family);
+    
+    // Convert notes to tags - add to existing tags without deleting old ones
+    const existingTags = perfume.perfume.tags;
+    const newTags: TagDTO[] = [...existingTags]; // Start with existing tags
+    
+    for (const note of identifiedPerfume.notes) {
+      // Check if tag already exists in perfume's tags
+      const alreadyHasTag = existingTags.some(tag => 
+        tag.tagName.toLowerCase() === note.toLowerCase()
+      );
+      
+      if (!alreadyHasTag) {
+        // Find matching tag in all available tags
+        const matchingTag = allTags.find(tag => 
+          tag.tagName.toLowerCase() === note.toLowerCase()
+        );
+        if (matchingTag) {
+          console.log("Adding new tag:", note);
+          newTags.push(matchingTag);
+        }
+      }
+    }
+    
+    // Update perfume with new tags (useEffect will update the chip clouds automatically)
+    setPerfume({
+      ...perfume,
+      perfume: {
+        ...perfume.perfume,
+        family: identifiedPerfume.family,
+        tags: newTags,
+      },
+    } as PerfumeWithWornStatsDTO);
+
+    setShowIdentifyDialog(false);
+
+    showSuccess("Perfume data updated from identification");
   };
 
   // Navigation handlers
@@ -438,6 +486,21 @@ export default function PerfumeEditForm({
                       <FormLabel>Perfume</FormLabel>
                       <FormControl>
                         <Input placeholder="Perfume" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex w-full space-x-2">
+                <FormField
+                  control={form.control}
+                  name="family"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Family</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Family" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -587,6 +650,19 @@ export default function PerfumeEditForm({
               <div>
                 <Label className="font-semibold">Confidence Score:</Label>
                 <p className="text-sm">{(identifiedPerfume.confidenceScore * 100).toFixed(1)}%</p>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowIdentifyDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAcceptIdentifiedData}
+                >
+                  Accept
+                </Button>
               </div>
             </div>
           )}
