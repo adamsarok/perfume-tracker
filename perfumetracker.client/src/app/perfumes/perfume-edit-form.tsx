@@ -41,7 +41,10 @@ import { AxiosResult, get } from "@/services/axios-service";
 import { useAuth } from "@/hooks/use-auth";
 import PerfumeRatings from "./perfume-ratings";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";
-import { getIdentifiedPerfume, IdentifiedPerfumeDTO } from "@/services/perfume-identify-service";
+import {
+  getIdentifiedPerfume,
+  IdentifiedPerfumeDTO,
+} from "@/services/perfume-identify-service";
 import {
   Dialog,
   DialogContent,
@@ -91,7 +94,8 @@ export default function PerfumeEditForm({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [showUploadButtons, setShowUploadButtons] = useState(false);
   const [showIdentifyDialog, setShowIdentifyDialog] = useState(false);
-  const [identifiedPerfume, setIdentifiedPerfume] = useState<IdentifiedPerfumeDTO | null>(null);
+  const [identifiedPerfume, setIdentifiedPerfume] =
+    useState<IdentifiedPerfumeDTO | null>(null);
   const [isIdentifying, setIsIdentifying] = useState(false);
 
   const auth = useAuth();
@@ -159,7 +163,7 @@ export default function PerfumeEditForm({
       });
     }
   }, [perfume, form]);
-  
+
   const router = useRouter();
 
   async function loadPerfume(perfume: PerfumeWithWornStatsDTO | null) {
@@ -294,7 +298,7 @@ export default function PerfumeEditForm({
         showError("Could not get presigned url", result.error);
         return;
       }
-      setPerfume(prev =>
+      setPerfume((prev) =>
         prev
           ? {
               ...prev,
@@ -308,20 +312,24 @@ export default function PerfumeEditForm({
 
   // Identify perfume handler
   const handleIdentifyPerfume = async () => {
-    if (!perfume?.perfume.house || !perfume?.perfume.perfumeName) {
+    const formValues = form.getValues();
+    if (!formValues.house || !formValues.perfume) {
       showError("Missing data", "House and perfume name are required");
       return;
     }
-    
+
     setIsIdentifying(true);
-    const result = await getIdentifiedPerfume(perfume.perfume.house, perfume.perfume.perfumeName);
+    const result = await getIdentifiedPerfume(
+      formValues.house,
+      formValues.perfume
+    );
     setIsIdentifying(false);
-    
+
     if (result.error || !result.data) {
       showError("Identification failed", result.error ?? "unknown error");
       return;
     }
-    
+
     setIdentifiedPerfume(result.data);
     setShowIdentifyDialog(true);
   };
@@ -329,24 +337,24 @@ export default function PerfumeEditForm({
   // Accept identified perfume data
   const handleAcceptIdentifiedData = async () => {
     if (!identifiedPerfume || !perfume) return;
-    
+
     // Update family in form
     form.setValue("family", identifiedPerfume.family);
-    
+
     // Convert notes to tags - add to existing tags without deleting old ones
     const existingTags = perfume.perfume.tags;
     const newTags: TagDTO[] = [...existingTags]; // Start with existing tags
-    
+
     for (const note of identifiedPerfume.notes) {
       // Check if tag already exists in perfume's tags
-      const alreadyHasTag = existingTags.some(tag => 
-        tag.tagName.toLowerCase() === note.toLowerCase()
+      const alreadyHasTag = existingTags.some(
+        (tag) => tag.tagName.toLowerCase() === note.toLowerCase()
       );
-      
+
       if (!alreadyHasTag) {
         // Find matching tag in all available tags
-        const matchingTag = allTags.find(tag => 
-          tag.tagName.toLowerCase() === note.toLowerCase()
+        const matchingTag = allTags.find(
+          (tag) => tag.tagName.toLowerCase() === note.toLowerCase()
         );
         if (matchingTag) {
           console.log("Adding new tag:", note);
@@ -354,7 +362,7 @@ export default function PerfumeEditForm({
         }
       }
     }
-    
+
     // Update perfume with new tags (useEffect will update the chip clouds automatically)
     setPerfume({
       ...perfume,
@@ -611,7 +619,7 @@ export default function PerfumeEditForm({
         </form>
         {perfume && <PerfumeRatings perfume={perfume}></PerfumeRatings>}
       </Form>
-      
+
       <Dialog open={showIdentifyDialog} onOpenChange={setShowIdentifyDialog}>
         <DialogContent>
           <DialogHeader>
@@ -649,7 +657,9 @@ export default function PerfumeEditForm({
               </div>
               <div>
                 <Label className="font-semibold">Confidence Score:</Label>
-                <p className="text-sm">{(identifiedPerfume.confidenceScore * 100).toFixed(1)}%</p>
+                <p className="text-sm">
+                  {(identifiedPerfume.confidenceScore * 100).toFixed(1)}%
+                </p>
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <Button
@@ -658,11 +668,7 @@ export default function PerfumeEditForm({
                 >
                   Cancel
                 </Button>
-                <Button
-                  onClick={handleAcceptIdentifiedData}
-                >
-                  Accept
-                </Button>
+                <Button onClick={handleAcceptIdentifiedData}>Accept</Button>
               </div>
             </div>
           )}
