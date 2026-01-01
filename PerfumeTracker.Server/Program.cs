@@ -123,6 +123,7 @@ builder.Services.AddScoped<UploadImageHandler>();
 builder.Services.AddScoped<IXPService, XPService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<IPerfumeIdentifier, PerfumeIdentifier>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
@@ -193,6 +194,11 @@ app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthCh
 	ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
+
+using (var scope = app.Services.CreateScope()) {
+	var test = scope.ServiceProvider.GetRequiredService<IPerfumeIdentifier>();
+	var result = await test.GetIdentifiedPerfumeAsync("Amouage", "Reflection Man", CancellationToken.None);
+}
 
 await app.RunAsync();
 
