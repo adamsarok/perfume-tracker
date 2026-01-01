@@ -46,13 +46,6 @@ export default function StatsPage() {
 
     return (
         <div className="p-6 space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">User Statistics</h1>
-                <p className="text-muted-foreground">Overview of your perfume collection and usage</p>
-            </div>
-
-            <Separator />
-
             {/* Overview Stats */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
@@ -60,7 +53,7 @@ export default function StatsPage() {
                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Perfumes</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.perfumesCount}</div>
+                        <div className="text-xl font-bold">{stats.perfumesCount}</div>
                     </CardContent>
                 </Card>
 
@@ -69,7 +62,7 @@ export default function StatsPage() {
                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Wears</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.wearCount}</div>
+                        <div className="text-xl font-bold">{stats.wearCount}</div>
                     </CardContent>
                 </Card>
 
@@ -78,7 +71,7 @@ export default function StatsPage() {
                         <CardTitle className="text-sm font-medium text-muted-foreground">Current Streak</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.currentStreak ?? "N/A"}</div>
+                        <div className="text-xl font-bold">{stats.currentStreak ?? "0"} days</div>
                     </CardContent>
                 </Card>
 
@@ -87,16 +80,16 @@ export default function StatsPage() {
                         <CardTitle className="text-sm font-medium text-muted-foreground">Best Streak</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.bestStreak ?? "N/A"}</div>
+                        <div className="text-xl font-bold">{stats.bestStreak ?? "N/A"} days</div>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Dates and Progress */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Start Date</CardTitle>
+                        <CardTitle className="text-sm font-medium text-muted-foreground">First Wear</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-lg font-semibold">{formatDate(stats.startDate)}</div>
@@ -112,23 +105,6 @@ export default function StatsPage() {
                     </CardContent>
                 </Card>
 
-                {stats.level !== null && (
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Level & XP</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-lg font-semibold">
-                                Level {stats.level} • {stats.xp?.toLocaleString()} XP
-                            </div>
-                            {stats.xpMultiplier && (
-                                <div className="text-sm text-muted-foreground">
-                                    {stats.xpMultiplier}x multiplier
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
             </div>
 
             {/* Collection Stats */}
@@ -224,7 +200,7 @@ export default function StatsPage() {
                                     <p className="font-medium">{rec.strategy}</p>
                                     <div className="text-right">
                                         <p className="font-semibold">
-                                            {rec.acceptedRecommendations} / {rec.totalRecommendations}
+                                            {rec.totalRecommendations} / {rec.acceptedRecommendations} accepted
                                         </p>
                                         <p className="text-sm text-muted-foreground">
                                             {rec.totalRecommendations > 0 

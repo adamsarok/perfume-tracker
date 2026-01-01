@@ -18,9 +18,6 @@ public record UserStatsResponse(
 	IEnumerable<FavoriteTagDto> FavoriteTags,
 	int? CurrentStreak,
 	int? BestStreak,
-	long? XP,
-	int? Level,
-	decimal? XPMultiplier,
 	IEnumerable<PerfumeRecommendationStats> RecommendationStats
 );
 public record FavoritePerfumeDto(Guid Id, string House, string PerfumeName, decimal AverageRating, int WearCount);
@@ -67,7 +64,9 @@ public class GetCurrentUserStatsHandler(
 		}
 
 		// Get perfume count and total ML
-		var perfumes = await context.Perfumes.ToListAsync(cancellationToken);
+		var perfumes = await context.Perfumes
+			.Where(x => x.MlLeft > 0)
+			.ToListAsync(cancellationToken);
 		var perfumesCount = perfumes.Count;
 		var totalPerfumesMl = perfumes.Sum(p => p.Ml);
 		var totalPerfumesMlLeft = perfumes.Sum(p => p.MlLeft);
@@ -88,22 +87,30 @@ public class GetCurrentUserStatsHandler(
 			.ToListAsync(cancellationToken);
 
 		// Get favorite tags (top 10 by wear count)
-		var tagGroups = await context.PerfumeTags
+		var tagData = await context.PerfumeTags
 			.Include(pt => pt.Tag)
 			.Include(pt => pt.Perfume)
 			.Where(pt => pt.Perfume.WearCount > 0)
-			.GroupBy(pt => new { pt.Tag.Id, pt.Tag.TagName, pt.Tag.Color })
-			.OrderByDescending(pt => pt.Sum(s => s.Perfume.WearCount))
-			.Take(10)
+			.Select(pt => new {
+				pt.Tag.Id,
+				pt.Tag.TagName,
+				pt.Tag.Color,
+				pt.Perfume.WearCount,
+				pt.Perfume.Ml
+			})
 			.ToListAsync(cancellationToken);
 
-		var favoriteTags = tagGroups.Select(g => new FavoriteTagDto(
+		var favoriteTags = tagData
+			.GroupBy(pt => new { pt.Id, pt.TagName, pt.Color })
+			.Select(g => new FavoriteTagDto(
 				g.Key.Id,
 				g.Key.TagName,
 				g.Key.Color,
-				g.Sum(pt => pt.Perfume.WearCount),
-				g.Sum(pt => pt.Perfume.Ml)
-			));
+				g.Sum(pt => pt.WearCount),
+				g.Sum(pt => pt.Ml)
+			))
+			.OrderByDescending(tag => tag.WearCount)
+			.Take(10);
 
 		// Get streak information
 		int? currentStreak = null;
@@ -118,16 +125,6 @@ public class GetCurrentUserStatsHandler(
 		if (allStreaks.Any()) {
 			bestStreak = allStreaks.Max(s => s.Progress);
 		}
-
-		// Get XP information
-		long? xp = null;
-		int? level = null;
-		decimal? xpMultiplier = null;
-		var xpResult = await xpService.GetUserXP(userId, cancellationToken);
-		xp = xpResult.Xp;
-		level = xpResult.Level;
-		xpMultiplier = xpResult.XpMultiplier;
-
 
 		// Get recommendation stats
 		var recommendationStats = await perfumeRecommender.GetRecommendationStats(cancellationToken);
@@ -145,9 +142,6 @@ public class GetCurrentUserStatsHandler(
 			FavoriteTags: favoriteTags,
 			CurrentStreak: currentStreak,
 			BestStreak: bestStreak,
-			XP: xp,
-			Level: level,
-			XPMultiplier: xpMultiplier,
 			RecommendationStats: recommendationStats
 		);
 	}

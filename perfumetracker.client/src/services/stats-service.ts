@@ -40,8 +40,5 @@ export interface UserStatsDTO {
   favoriteTags: FavoriteTagDTO[];
   currentStreak: number | null;
   bestStreak: number | null;
-  xp: number | null;
-  level: number | null;
-  xpMultiplier: number | null;
   recommendationStats: PerfumeRecommendationStatsDTO[];
 }
