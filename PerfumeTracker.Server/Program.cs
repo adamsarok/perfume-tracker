@@ -195,11 +195,6 @@ app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthCh
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
 
-using (var scope = app.Services.CreateScope()) {
-	var test = scope.ServiceProvider.GetRequiredService<IPerfumeIdentifier>();
-	var result = await test.GetIdentifiedPerfumeAsync("Amouage", "Reflection Man", CancellationToken.None);
-}
-
 await app.RunAsync();
 
 #pragma warning disable S1118 // Utility classes should not have public constructors

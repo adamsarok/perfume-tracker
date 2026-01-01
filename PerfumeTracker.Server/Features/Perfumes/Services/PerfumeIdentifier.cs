@@ -6,7 +6,15 @@ public class PerfumeIdentifier(ChatClient chatClient) : IPerfumeIdentifier {
 	public async Task<IdentifiedPerfume> GetIdentifiedPerfumeAsync(string house, string perfumeName, CancellationToken cancellationToken) {
 		var messages = new List<ChatMessage> {
 			new SystemChatMessage(
-				"You are a perfume expert. Given a perfume house and name, identify the perfume's family (e.g., Fougere, Floral, Woody, Oriental, Fresh) and list its main notes (e.g., Cardamom, Leather, Jasmine Sambac, Amber)."
+				"""
+				You are a perfume expert. Given a perfume house and name, identify the perfume's family and notes.
+				
+				IMPORTANT: 
+				- Only provide information if you are confident this perfume exists.
+				- If you're not sure or the perfume doesn't exist, set confidenceScore to 0.0.
+				- Base your confidence on your knowledge of real, commercially available perfumes.
+				- Confidence scale: 0.0 (not confident/doesn't exist) to 1.0 (very confident/well-known perfume).
+				"""
 			),
 			new UserChatMessage(
 				$"Identify the perfume: House: {house}, Name: {perfumeName}"
@@ -30,7 +38,7 @@ public class PerfumeIdentifier(ChatClient chatClient) : IPerfumeIdentifier {
 						},
 						"family": {
 							"type": "string",
-							"description": "The perfume family (e.g., Fougere, Floral, Woody, Oriental, Fresh)"
+							"description": "The perfume family (e.g., Fougere, Floral, Woody, Oriental, Fresh, Leather)"
 						},
 						"notes": {
 							"type": "array",
@@ -38,9 +46,13 @@ public class PerfumeIdentifier(ChatClient chatClient) : IPerfumeIdentifier {
 								"type": "string"
 							},
 							"description": "List of main perfume notes"
+						},
+						"confidenceScore": {
+							"type": "number",
+							"description": "Confidence that this perfume exists and the information is accurate (0.0 to 1.0)"
 						}
 					},
-					"required": ["house", "perfumeName", "family", "notes"],
+					"required": ["house", "perfumeName", "family", "notes", "confidenceScore"],
 					"additionalProperties": false
 				}
 				"""),
