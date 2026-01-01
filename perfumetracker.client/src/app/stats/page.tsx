@@ -214,6 +214,30 @@ export default function StatsPage() {
                     </CardContent>
                 </Card>
             )}
+
+            {/* Rating Spread */}
+            {stats.ratingSpread && stats.ratingSpread.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Rating Distribution</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {stats.ratingSpread.map((rating, index) => (
+                                <div key={index} className="flex justify-between items-center border-b pb-2">
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-medium">⭐ {rating.rating.toFixed(1)}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold">{rating.perfumeCount} perfumes</p>
+                                        <p className="text-sm text-muted-foreground">{rating.totalMl.toFixed(1)} ml</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }

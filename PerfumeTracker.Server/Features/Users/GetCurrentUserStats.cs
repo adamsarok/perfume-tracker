@@ -18,10 +18,12 @@ public record UserStatsResponse(
 	IEnumerable<FavoriteTagDto> FavoriteTags,
 	int? CurrentStreak,
 	int? BestStreak,
-	IEnumerable<PerfumeRecommendationStats> RecommendationStats
+	IEnumerable<PerfumeRecommendationStats> RecommendationStats,
+	IEnumerable<RatingSpreadDto> RatingSpread
 );
 public record FavoritePerfumeDto(Guid Id, string House, string PerfumeName, decimal AverageRating, int WearCount);
 public record FavoriteTagDto(Guid Id, string TagName, string Color, int WearCount, decimal TotalMl);
+public record RatingSpreadDto(decimal Rating, int PerfumeCount, decimal TotalMl);
 
 public class GetCurrentUserStatsEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
@@ -129,6 +131,25 @@ public class GetCurrentUserStatsHandler(
 		// Get recommendation stats
 		var recommendationStats = await perfumeRecommender.GetRecommendationStats(cancellationToken);
 
+		// Get rating spread (rounded to 0.5 increments)
+		var ratingSpread = await context.Perfumes
+			.Where(p => p.AverageRating > 0)
+			.Select(p => new {
+				p.AverageRating,
+				p.MlLeft
+			})
+			.ToListAsync(cancellationToken);
+
+		var ratingSpreadGrouped = ratingSpread
+			.GroupBy(p => Math.Round(p.AverageRating * 2, MidpointRounding.AwayFromZero) / 2)
+			.Select(g => new RatingSpreadDto(
+				g.Key,
+				g.Count(),
+				g.Sum(p => p.MlLeft)
+			))
+			.OrderByDescending(r => r.Rating)
+			.ToList();
+
 		return new UserStatsResponse(
 			StartDate: startDate,
 			LastWear: lastWear,
@@ -142,7 +163,8 @@ public class GetCurrentUserStatsHandler(
 			FavoriteTags: favoriteTags,
 			CurrentStreak: currentStreak,
 			BestStreak: bestStreak,
-			RecommendationStats: recommendationStats
+			RecommendationStats: recommendationStats,
+			RatingSpread: ratingSpreadGrouped
 		);
 	}
 }

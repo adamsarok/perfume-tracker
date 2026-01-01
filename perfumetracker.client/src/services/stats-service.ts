@@ -27,6 +27,12 @@ export interface PerfumeRecommendationStatsDTO {
   acceptedRecommendations: number;
 }
 
+export interface RatingSpreadDto {
+  rating: number;
+  perfumeCount: number;
+  totalMl: number;
+}
+
 export interface UserStatsDTO {
   startDate: string | null;
   lastWear: string | null;
@@ -41,4 +47,5 @@ export interface UserStatsDTO {
   currentStreak: number | null;
   bestStreak: number | null;
   recommendationStats: PerfumeRecommendationStatsDTO[];
+  ratingSpread: RatingSpreadDto[];
 }
