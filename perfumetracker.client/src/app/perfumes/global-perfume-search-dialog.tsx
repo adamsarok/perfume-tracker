@@ -83,9 +83,9 @@ export default function GlobalPerfumeSearchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>Search Global Perfume Database</DialogTitle>
+          <DialogTitle>Search Perfume Database</DialogTitle>
           <DialogDescription>
-            Search from 27,000+ perfumes. Enter house name or perfume name.
+            Search from perfume database. Enter house name or perfume name.
           </DialogDescription>
         </DialogHeader>
 

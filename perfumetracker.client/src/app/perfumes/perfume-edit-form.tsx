@@ -566,7 +566,7 @@ export default function PerfumeEditForm({
                 />
               </div>
               <Separator className="mb-2"></Separator>
-              <div className="flex mb-2 justify-center w-full">
+              <div className="flex mb-2 justify-center w-full space-x-2">
                 <Button color="primary" className="w-full" type="submit">
                   <Save /> {perfume ? "Update" : "Insert"}
                 </Button>
@@ -584,7 +584,7 @@ export default function PerfumeEditForm({
                   button2text="Cancel"
                 ></MessageBox>
               </div>
-              <div className="flex mb-2 justify-center w-full">
+              <div className="flex mb-2 justify-center w-full space-x-2">
                 <Button
                   type="button"
                   variant="default"
@@ -593,7 +593,7 @@ export default function PerfumeEditForm({
                   disabled={!!perfumeId} // Disable if editing existing perfume
                 >
                   <Search className="mr-2" />
-                  Search Global Database
+                  Search Database
                 </Button>
                 <Button
                   type="button"

@@ -42,12 +42,12 @@ export default function MessageBox({
   onButton2,
 }: MessageBoxProps) {
   return (
-    <div>
+    <div className={className}>
       <Dialog>
         <DialogTrigger asChild>
           <Button
             type="button"
-            className={className}
+            className="w-full"
             color={modalButtonColor}
           >
             {startContent} {modalButtonText}
