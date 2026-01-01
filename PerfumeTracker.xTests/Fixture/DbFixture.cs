@@ -94,6 +94,10 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(p => p.Id, f => Guid.NewGuid())
 			.RuleFor(p => p.House, f => f.Company.CompanyName())
 			.RuleFor(p => p.PerfumeName, f => f.Commerce.ProductName())
+			.RuleFor(p => p.Family, f => f.PickRandom(new[] {
+				"Floral", "Woody", "Oriental", "Fresh", "Fruity", "Citrus",
+				"Spicy", "Aquatic", "Green", "Leather", "Gourmand", "Aromatic"
+			}))
 			.RuleFor(p => p.Ml, f => f.PickRandom(new[] { 5m, 10m, 30m, 50m, 75m, 100m }))
 			.RuleFor(p => p.MlLeft, (f, p) => f.Random.Decimal(0, p.Ml))
 			.RuleFor(p => p.ImageObjectKeyNew, f => f.Random.Bool(0.3f) ? Guid.NewGuid() : null)

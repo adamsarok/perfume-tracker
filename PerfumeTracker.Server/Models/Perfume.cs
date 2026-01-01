@@ -3,6 +3,7 @@
 public partial class Perfume : UserEntity {
 	public string House { get; set; } = null!;
 	public string PerfumeName { get; set; } = null!;
+	public string Family { get; set; } = null!;
 	public decimal Ml { get; set; }
 	public decimal MlLeft { get; set; }
 	public decimal AverageRating { get; set; }

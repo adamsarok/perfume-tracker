@@ -5,6 +5,7 @@ export interface PerfumeDTO {
     id: string;
     house: string;
     perfumeName: string;
+    family: string;
     ml: number;
     mlLeft: number;
     imageObjectKey: string;

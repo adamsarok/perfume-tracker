@@ -35,12 +35,23 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "../../components/ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { Save, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Save, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { getTags } from "@/services/tag-service";
 import { AxiosResult, get } from "@/services/axios-service";
 import { useAuth } from "@/hooks/use-auth";
 import PerfumeRatings from "./perfume-ratings";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";
+import {
+  getIdentifiedPerfume,
+  IdentifiedPerfumeDTO,
+} from "@/services/perfume-identify-service";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -60,6 +71,7 @@ const formSchema = z.object({
       message: "Perfume must be at least 1 characters.",
     })
     .trim(),
+  family: z.string().trim(),
   amount: z.coerce.number().min(0).max(200),
   mlLeft: z.coerce.number().min(0).max(200),
   winter: z.boolean(),
@@ -81,6 +93,10 @@ export default function PerfumeEditForm({
   const [bottomChipProps, setBottomChipProps] = useState<ChipProp[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [showUploadButtons, setShowUploadButtons] = useState(false);
+  const [showIdentifyDialog, setShowIdentifyDialog] = useState(false);
+  const [identifiedPerfume, setIdentifiedPerfume] =
+    useState<IdentifiedPerfumeDTO | null>(null);
+  const [isIdentifying, setIsIdentifying] = useState(false);
 
   const auth = useAuth();
 
@@ -118,6 +134,7 @@ export default function PerfumeEditForm({
     defaultValues: {
       house: "",
       perfume: "",
+      family: "",
       amount: 0,
       mlLeft: 0,
       winter: true,
@@ -134,6 +151,7 @@ export default function PerfumeEditForm({
       form.reset({
         house: perfume.perfume.house,
         perfume: perfume.perfume.perfumeName,
+        family: perfume.perfume.family,
         amount: perfume.perfume.ml,
         mlLeft: perfume.perfume.mlLeft,
         winter: perfume.perfume.winter,
@@ -208,6 +226,7 @@ export default function PerfumeEditForm({
       id: perfumeId,
       house: values.house,
       perfumeName: values.perfume,
+      family: values.family,
       ml: values.amount,
       mlLeft: values.mlLeft,
       summer: values.summer,
@@ -279,7 +298,7 @@ export default function PerfumeEditForm({
         showError("Could not get presigned url", result.error);
         return;
       }
-      setPerfume(prev =>
+      setPerfume((prev) =>
         prev
           ? {
               ...prev,
@@ -289,6 +308,74 @@ export default function PerfumeEditForm({
       );
       setImageUrl(result.data);
     }
+  };
+
+  // Identify perfume handler
+  const handleIdentifyPerfume = async () => {
+    const formValues = form.getValues();
+    if (!formValues.house || !formValues.perfume) {
+      showError("Missing data", "House and perfume name are required");
+      return;
+    }
+
+    setIsIdentifying(true);
+    const result = await getIdentifiedPerfume(
+      formValues.house,
+      formValues.perfume
+    );
+    setIsIdentifying(false);
+
+    if (result.error || !result.data) {
+      showError("Identification failed", result.error ?? "unknown error");
+      return;
+    }
+
+    setIdentifiedPerfume(result.data);
+    setShowIdentifyDialog(true);
+  };
+
+  // Accept identified perfume data
+  const handleAcceptIdentifiedData = async () => {
+    if (!identifiedPerfume || !perfume) return;
+
+    // Update family in form
+    form.setValue("family", identifiedPerfume.family);
+
+    // Convert notes to tags - add to existing tags without deleting old ones
+    const existingTags = perfume.perfume.tags;
+    const newTags: TagDTO[] = [...existingTags]; // Start with existing tags
+
+    for (const note of identifiedPerfume.notes) {
+      // Check if tag already exists in perfume's tags
+      const alreadyHasTag = existingTags.some(
+        (tag) => tag.tagName.toLowerCase() === note.toLowerCase()
+      );
+
+      if (!alreadyHasTag) {
+        // Find matching tag in all available tags
+        const matchingTag = allTags.find(
+          (tag) => tag.tagName.toLowerCase() === note.toLowerCase()
+        );
+        if (matchingTag) {
+          console.log("Adding new tag:", note);
+          newTags.push(matchingTag);
+        }
+      }
+    }
+
+    // Update perfume with new tags (useEffect will update the chip clouds automatically)
+    setPerfume({
+      ...perfume,
+      perfume: {
+        ...perfume.perfume,
+        family: identifiedPerfume.family,
+        tags: newTags,
+      },
+    } as PerfumeWithWornStatsDTO);
+
+    setShowIdentifyDialog(false);
+
+    showSuccess("Perfume data updated from identification");
   };
 
   // Navigation handlers
@@ -416,6 +503,21 @@ export default function PerfumeEditForm({
               <div className="flex w-full space-x-2">
                 <FormField
                   control={form.control}
+                  name="family"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Family</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Family" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex w-full space-x-2">
+                <FormField
+                  control={form.control}
                   name="amount"
                   render={({ field }) => (
                     <FormItem className="w-64">
@@ -473,6 +575,18 @@ export default function PerfumeEditForm({
                   button2text="Cancel"
                 ></MessageBox>
               </div>
+              <div className="flex mb-2 justify-center w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleIdentifyPerfume}
+                  disabled={isIdentifying || !perfume}
+                >
+                  <Eye className="mr-2" />
+                  {isIdentifying ? "Identifying..." : "Identify Perfume"}
+                </Button>
+              </div>
 
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2 w-full">
@@ -505,6 +619,61 @@ export default function PerfumeEditForm({
         </form>
         {perfume && <PerfumeRatings perfume={perfume}></PerfumeRatings>}
       </Form>
+
+      <Dialog open={showIdentifyDialog} onOpenChange={setShowIdentifyDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Identified Perfume Details</DialogTitle>
+            <DialogDescription>
+              Information retrieved about this perfume
+            </DialogDescription>
+          </DialogHeader>
+          {identifiedPerfume && (
+            <div className="space-y-4">
+              <div>
+                <Label className="font-semibold">House:</Label>
+                <p className="text-sm">{identifiedPerfume.house}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Perfume:</Label>
+                <p className="text-sm">{identifiedPerfume.perfumeName}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Family:</Label>
+                <p className="text-sm">{identifiedPerfume.family}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Notes:</Label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {identifiedPerfume.notes.map((note, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-sm"
+                    >
+                      {note}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label className="font-semibold">Confidence Score:</Label>
+                <p className="text-sm">
+                  {(identifiedPerfume.confidenceScore * 100).toFixed(1)}%
+                </p>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowIdentifyDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleAcceptIdentifiedData}>Accept</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
