@@ -32,7 +32,7 @@ public class GetNextPerfumeHandler(PerfumeTrackerContext context, IUserProfileSe
 				.Where(x =>
 					(string.Compare(x.House, from.House) > 0 ||
 					(x.House == from.House && string.Compare(x.PerfumeName, from.PerfumeName) > 0))
-					&& x.Ml > 0
+					&& x.MlLeft > 0
 					&& (!x.PerfumeRatings.Any() || x.PerfumeRatings.Average(x => x.Rating) >= settings.MinimumRating)
 				)
 				.OrderBy(x => x.House)
@@ -55,7 +55,7 @@ public class GetPreviousPerfumeHandler(PerfumeTrackerContext context, IUserProfi
 				.Where(x =>
 					(string.Compare(x.House, from.House) < 0 ||
 					(x.House == from.House && string.Compare(x.PerfumeName, from.PerfumeName) < 0))
-					&& x.Ml > 0
+					&& x.MlLeft > 0
 					&& (!x.PerfumeRatings.Any() || x.PerfumeRatings.Average(x => x.Rating) >= settings.MinimumRating)
 				)
 				.OrderByDescending(x => x.House)

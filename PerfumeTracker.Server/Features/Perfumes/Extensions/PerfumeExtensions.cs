@@ -6,7 +6,6 @@ public static class PerfumeExtensions {
 	public static PerfumeWithWornStatsDto ToPerfumeWithWornStatsDto(this Perfume p, UserProfile userProfile, IPresignedUrlService presignedUrlService) {
 		decimal burnRatePerYearMl = 0;
 		decimal yearsLeft = 0;
-		p.MlLeft = Math.Max(0, p.PerfumeEvents.Sum(e => e.AmountMl));
 		var worns = p.PerfumeEvents.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn).ToList();
 		if (p.MlLeft > 0 && worns.Any()) {
 			var firstWorn = worns.Min(x => x.CreatedAt);
