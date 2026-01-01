@@ -81,8 +81,9 @@ public class PerfumeTests {
 		var handler = new UpdatePerfumeHandler(context, _fixture.MockSideEffectQueue.Object);
 		var perfume = await context.Perfumes.FirstAsync();
 		var tag = await context.Tags.FirstAsync();
-		var dto = new PerfumeUploadDto(perfume.House,
-			perfume.PerfumeName,
+		var dto = new PerfumeUploadDto(House: perfume.House,
+			PerfumeName: perfume.PerfumeName,
+			Family: perfume.Family,
 			perfume.Ml,
 			perfume.MlLeft,
 			perfume.Autumn,
