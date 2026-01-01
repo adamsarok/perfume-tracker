@@ -9,10 +9,6 @@ public partial class Perfume : UserEntity {
 	public decimal AverageRating { get; set; }
 	public int WearCount { get; set; }
 	public Guid? ImageObjectKeyNew { get; set; } = null!;
-	public bool Autumn { get; set; }
-	public bool Spring { get; set; }
-	public bool Summer { get; set; }
-	public bool Winter { get; set; }
 	public NpgsqlTsVector FullText { get; set; } = null!;
 	public virtual ICollection<PerfumeRecommendation> PerfumeRecommendations { get; } = [];
 	public virtual ICollection<PerfumeTag> PerfumeTags { get; } = [];

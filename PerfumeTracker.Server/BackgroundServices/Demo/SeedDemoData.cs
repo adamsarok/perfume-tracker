@@ -48,10 +48,6 @@ public static class SeedDemoData {
 			Family = "Fresh Aromatic",
 			Ml = 100,
 			MlLeft = 85,
-			Autumn = true,
-			Spring = true,
-			Summer = true,
-			Winter = true
 		};
 		Perfume tobacco = new() {
 			UserId = demoUserId,
@@ -60,10 +56,6 @@ public static class SeedDemoData {
 			Family = "Tobacco Oriental",
 			Ml = 50,
 			MlLeft = 45,
-			Autumn = true,
-			Spring = false,
-			Summer = false,
-			Winter = true
 		};
 		Perfume cool = new() {
 			UserId = demoUserId,
@@ -72,10 +64,6 @@ public static class SeedDemoData {
 			Family = "Fresh Citrus",
 			Ml = 100,
 			MlLeft = 60,
-			Autumn = false,
-			Spring = true,
-			Summer = true,
-			Winter = false
 		};
 		Perfume nocturne = new() {
 			UserId = demoUserId,
@@ -84,10 +72,6 @@ public static class SeedDemoData {
 			Family = "Oriental Gourmand",
 			Ml = 100,
 			MlLeft = 80,
-			Autumn = true,
-			Spring = false,
-			Summer = false,
-			Winter = true
 		};
 		Perfume bergamot = new() {
 			UserId = demoUserId,
@@ -96,10 +80,6 @@ public static class SeedDemoData {
 			Family = "Fresh Citrus",
 			Ml = 100,
 			MlLeft = 90,
-			Autumn = false,
-			Spring = true,
-			Summer = true,
-			Winter = false
 		};
 		await context.Perfumes.AddRangeAsync(azure, tobacco, cool, bergamot, nocturne);
 

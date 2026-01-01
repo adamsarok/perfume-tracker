@@ -30,6 +30,9 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<PerfumeDocument> PerfumeDocuments { get; set; }
 	public virtual DbSet<CachedCompletion> CachedCompletions { get; set; }
 	public virtual DbSet<PerfumeRecommendation> PerfumeRecommendations { get; set; }
+	public virtual DbSet<GlobalPerfume> GlobalPerfumes { get; set; }
+	public virtual DbSet<GlobalTag> GlobalTags { get; set; }
+	public virtual DbSet<GlobalPerfumeTag> GlobalPerfumeTags { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 
@@ -80,17 +83,9 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasKey(e => e.Id).HasName("Perfume_pkey");
 
 			entity.ToTable("Perfume");
-			entity.Property(e => e.Autumn)
-				.HasDefaultValue(true);
 			entity.Property(e => e.ImageObjectKeyNew);
 			entity.Property(e => e.Ml)
 				.HasDefaultValue(2);
-			entity.Property(e => e.Spring)
-				.HasDefaultValue(true);
-			entity.Property(e => e.Summer)
-				.HasDefaultValue(true);
-			entity.Property(e => e.Winter)
-				.HasDefaultValue(true);
 			entity.HasGeneratedTsVectorColumn(
 				p => p.FullText,
 				"simple",
@@ -224,6 +219,52 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.IsRequired(false)
 				.HasConstraintName("PerfumeRecommendation_CompletionId_fkey");
 		});
+
+		builder.Entity<GlobalTag>(entity => {
+			entity.HasKey(e => e.Id).HasName("GlobalTag_pkey");
+
+			entity.ToTable("GlobalTag");
+
+			entity.HasIndex(e => new { e.TagName }, "Global_tag_key")
+				.HasFilter(@"""IsDeleted"" = FALSE")
+				.IsUnique();
+			entity.HasQueryFilter(x => !x.IsDeleted);
+		});
+
+		builder.Entity<GlobalPerfume>(entity => {
+			entity.HasKey(e => e.Id).HasName("GlobalPerfume_pkey");
+
+			entity.ToTable("GlobalPerfume");
+			entity.Property(e => e.ImageObjectKeyNew);
+			entity.HasGeneratedTsVectorColumn(
+				p => p.FullText,
+				"simple",
+				p => new { p.PerfumeName, p.House })
+				.HasIndex(p => p.FullText)
+				.HasMethod("GIN");
+			entity
+				.HasIndex(p => new { p.House, p.PerfumeName })
+				.HasFilter(@"""IsDeleted"" = FALSE")
+				.IsUnique();
+			entity.HasQueryFilter(x => !x.IsDeleted);
+		});
+
+		builder.Entity<GlobalPerfumeTag>(entity => {
+			entity.HasKey(e => e.Id).HasName("GlobalPerfumeTag_pkey");
+
+			entity.ToTable("GlobalPerfumeTag");
+
+			entity.HasOne(d => d.GlobalPerfume).WithMany(p => p.GlobalPerfumeTags)
+				.HasForeignKey(d => d.PerfumeId)
+				.HasConstraintName("GlobalPerfumeTag_perfumeId_fkey");
+
+			entity.HasOne(d => d.GlobalTag).WithMany(p => p.GlobalPerfumeTags)
+				.HasForeignKey(d => d.TagId)
+				.OnDelete(DeleteBehavior.Restrict)
+				.HasConstraintName("GlobalPerfumeTag_tagId_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted);
+		});
+
 
 		base.OnModelCreating(builder);
 	}

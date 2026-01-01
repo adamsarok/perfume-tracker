@@ -86,10 +86,6 @@ public class PerfumeTests {
 			Family: perfume.Family,
 			perfume.Ml,
 			perfume.MlLeft,
-			perfume.Autumn,
-			perfume.Spring,
-			perfume.Summer,
-			perfume.Winter,
 			new List<TagDto>() { tag.Adapt<TagDto>() });
 
 		// Act

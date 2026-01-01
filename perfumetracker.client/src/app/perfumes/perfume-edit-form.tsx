@@ -35,7 +35,14 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "../../components/ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { Save, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import {
+  Save,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Search,
+} from "lucide-react";
 import { getTags } from "@/services/tag-service";
 import { AxiosResult, get } from "@/services/axios-service";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,6 +59,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
+import GlobalPerfumeSearchDialog from "./global-perfume-search-dialog";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -97,6 +105,7 @@ export default function PerfumeEditForm({
   const [identifiedPerfume, setIdentifiedPerfume] =
     useState<IdentifiedPerfumeDTO | null>(null);
   const [isIdentifying, setIsIdentifying] = useState(false);
+  const [showGlobalSearchDialog, setShowGlobalSearchDialog] = useState(false);
 
   const auth = useAuth();
 
@@ -557,12 +566,12 @@ export default function PerfumeEditForm({
                 />
               </div>
               <Separator className="mb-2"></Separator>
-              <div className="flex mb-2 justify-between w-full">
-                <Button color="primary" className="w-32" type="submit">
+              <div className="flex mb-2 justify-center w-full">
+                <Button color="primary" className="w-full" type="submit">
                   <Save /> {perfume ? "Update" : "Insert"}
                 </Button>
                 <MessageBox
-                  className="w-32"
+                  className="w-full"
                   startContent={<Trash2 />}
                   modalButtonColor="danger"
                   modalButtonText="Delete"
@@ -576,6 +585,16 @@ export default function PerfumeEditForm({
                 ></MessageBox>
               </div>
               <div className="flex mb-2 justify-center w-full">
+                <Button
+                  type="button"
+                  variant="default"
+                  className="w-full"
+                  onClick={() => setShowGlobalSearchDialog(true)}
+                  disabled={!!perfumeId} // Disable if editing existing perfume
+                >
+                  <Search className="mr-2" />
+                  Search Global Database
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -674,6 +693,12 @@ export default function PerfumeEditForm({
           )}
         </DialogContent>
       </Dialog>
+
+      <GlobalPerfumeSearchDialog
+        open={showGlobalSearchDialog}
+        onOpenChange={setShowGlobalSearchDialog}
+        onPerfumeAdded={(id) => reload(id)}
+      />
     </div>
   );
 }
