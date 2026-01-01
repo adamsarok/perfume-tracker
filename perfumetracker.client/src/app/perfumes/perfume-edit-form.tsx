@@ -35,12 +35,20 @@ import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { Label } from "../../components/ui/label";
 import { format } from "date-fns";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { Save, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Save, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { getTags } from "@/services/tag-service";
 import { AxiosResult, get } from "@/services/axios-service";
 import { useAuth } from "@/hooks/use-auth";
 import PerfumeRatings from "./perfume-ratings";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";
+import { getIdentifiedPerfume, IdentifiedPerfumeDTO } from "@/services/perfume-identify-service";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
 
 interface PerfumeEditFormProps {
   readonly perfumeId: string;
@@ -81,6 +89,9 @@ export default function PerfumeEditForm({
   const [bottomChipProps, setBottomChipProps] = useState<ChipProp[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [showUploadButtons, setShowUploadButtons] = useState(false);
+  const [showIdentifyDialog, setShowIdentifyDialog] = useState(false);
+  const [identifiedPerfume, setIdentifiedPerfume] = useState<IdentifiedPerfumeDTO | null>(null);
+  const [isIdentifying, setIsIdentifying] = useState(false);
 
   const auth = useAuth();
 
@@ -291,6 +302,26 @@ export default function PerfumeEditForm({
     }
   };
 
+  // Identify perfume handler
+  const handleIdentifyPerfume = async () => {
+    if (!perfume?.perfume.house || !perfume?.perfume.perfumeName) {
+      showError("Missing data", "House and perfume name are required");
+      return;
+    }
+    
+    setIsIdentifying(true);
+    const result = await getIdentifiedPerfume(perfume.perfume.house, perfume.perfume.perfumeName);
+    setIsIdentifying(false);
+    
+    if (result.error || !result.data) {
+      showError("Identification failed", result.error ?? "unknown error");
+      return;
+    }
+    
+    setIdentifiedPerfume(result.data);
+    setShowIdentifyDialog(true);
+  };
+
   // Navigation handlers
   const handlePrev = async () => {
     if (!perfume?.perfume.id) return;
@@ -473,6 +504,18 @@ export default function PerfumeEditForm({
                   button2text="Cancel"
                 ></MessageBox>
               </div>
+              <div className="flex mb-2 justify-center w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleIdentifyPerfume}
+                  disabled={isIdentifying || !perfume}
+                >
+                  <Eye className="mr-2" />
+                  {isIdentifying ? "Identifying..." : "Identify Perfume"}
+                </Button>
+              </div>
 
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2 w-full">
@@ -505,6 +548,50 @@ export default function PerfumeEditForm({
         </form>
         {perfume && <PerfumeRatings perfume={perfume}></PerfumeRatings>}
       </Form>
+      
+      <Dialog open={showIdentifyDialog} onOpenChange={setShowIdentifyDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Identified Perfume Details</DialogTitle>
+            <DialogDescription>
+              Information retrieved about this perfume
+            </DialogDescription>
+          </DialogHeader>
+          {identifiedPerfume && (
+            <div className="space-y-4">
+              <div>
+                <Label className="font-semibold">House:</Label>
+                <p className="text-sm">{identifiedPerfume.house}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Perfume:</Label>
+                <p className="text-sm">{identifiedPerfume.perfumeName}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Family:</Label>
+                <p className="text-sm">{identifiedPerfume.family}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Notes:</Label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {identifiedPerfume.notes.map((note, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-sm"
+                    >
+                      {note}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label className="font-semibold">Confidence Score:</Label>
+                <p className="text-sm">{(identifiedPerfume.confidenceScore * 100).toFixed(1)}%</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -10,7 +10,6 @@ public class PerfumeIdentifier(ChatClient chatClient) : IPerfumeIdentifier {
 				You are a perfume expert. Given a perfume house and name, identify the perfume's family and notes.
 				
 				IMPORTANT: 
-				- Only provide information if you are confident this perfume exists.
 				- If you're not sure or the perfume doesn't exist, set confidenceScore to 0.0.
 				- Base your confidence on your knowledge of real, commercially available perfumes.
 				- Confidence scale: 0.0 (not confident/doesn't exist) to 1.0 (very confident/well-known perfume).
@@ -68,6 +67,7 @@ public class PerfumeIdentifier(ChatClient chatClient) : IPerfumeIdentifier {
 				PropertyNameCaseInsensitive = true
 			}
 		);
+
 
 		return result ?? throw new InvalidOperationException("Failed to parse OpenAI response");
 	}
