@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.PerfumeRatings;
+using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 using PerfumeTracker.Server.Features.Perfumes;
 using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
@@ -139,9 +140,10 @@ public class PerfumeTests {
 	public async Task AddPerfumeRating() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var ratingService = scope.ServiceProvider.GetRequiredService<IRatingService>();
 		var perfume = await context.Perfumes.FirstAsync();
 		var dto = new PerfumeRatingUploadDto(perfume.Id, 5, "Nice perfume!");
-		var handler = new AddPerfumeRatingHandler(context);
+		var handler = new AddPerfumeRatingHandler(ratingService);
 		var response = await handler.Handle(new AddPerfumeRatingCommand(dto), CancellationToken.None);
 		Assert.NotNull(response);
 	}
@@ -150,12 +152,13 @@ public class PerfumeTests {
 	public async Task DeletePerfumeRating() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var ratingService = scope.ServiceProvider.GetRequiredService<IRatingService>();
 		var perfume = await context.Perfumes.FirstAsync();
 		var dto = new PerfumeRatingUploadDto(perfume.Id, 5, "Nice perfume!");
-		var handler = new AddPerfumeRatingHandler(context);
+		var handler = new AddPerfumeRatingHandler(ratingService);
 		var rating = await handler.Handle(new AddPerfumeRatingCommand(dto), CancellationToken.None);
 
-		var deleteHandler = new DeletePerfumeRatingHandler(context);
+		var deleteHandler = new DeletePerfumeRatingHandler(ratingService);
 		rating = await deleteHandler.Handle(new DeletePerfumeRatingCommand(rating.PerfumeId, rating.Id), CancellationToken.None);
 		Assert.NotNull(rating);
 		Assert.True(rating.IsDeleted);

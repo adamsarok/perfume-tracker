@@ -1,4 +1,5 @@
-﻿using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Features.PerfumeRatings.Services;
+using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
 
@@ -13,13 +14,9 @@ public class DeletePerfumeRatingEndpoint : ICarterModule {
 			.RequireAuthorization(Policies.WRITE);
 	}
 }
-public class DeletePerfumeRatingHandler(PerfumeTrackerContext context) : ICommandHandler<DeletePerfumeRatingCommand, PerfumeRatingDownloadDto> {
+public class DeletePerfumeRatingHandler(IRatingService ratingService) : ICommandHandler<DeletePerfumeRatingCommand, PerfumeRatingDownloadDto> {
 	public async Task<PerfumeRatingDownloadDto> Handle(DeletePerfumeRatingCommand request, CancellationToken cancellationToken) {
-		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
-		var rating = await context.PerfumeRatings.FindAsync([request.RatingId], cancellationToken) ?? throw new NotFoundException("PerfumeRatings", request.RatingId);
-		if (rating.PerfumeId != request.PerfumeId) throw new BadRequestException("PerfumeRating does not belong to selected Perfume");
-		rating.IsDeleted = true;
-		await context.SaveChangesAsync();
+		var rating = await ratingService.DeletePerfumeRating(request.RatingId, cancellationToken);
 		return rating.Adapt<PerfumeRatingDownloadDto>();
 	}
 }

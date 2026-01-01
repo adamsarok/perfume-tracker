@@ -6,7 +6,7 @@ import {
     NavigationMenuList,
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import { Brain, Cake, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react"
+import { Brain, Cake, ChartNoAxesCombined, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react"
 import Link from "next/link"
 
 export default function AppNavigationMenu() {
@@ -77,6 +77,22 @@ export default function AppNavigationMenu() {
                                         </div>
                                         <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
                                             Browse your perfume collection
+                                        </p>
+                                    </Link>
+                                </NavigationMenuLink>
+                            </li>
+                            <li>
+                                <NavigationMenuLink asChild>
+                                    <Link
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        href="/stats"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <ChartNoAxesCombined className="h-4 w-4" />
+                                            <div className="text-sm font-medium leading-none">Stats</div>
+                                        </div>
+                                        <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
+                                            View your perfume statistics
                                         </p>
                                     </Link>
                                 </NavigationMenuLink>

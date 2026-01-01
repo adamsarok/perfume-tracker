@@ -5,6 +5,8 @@ public partial class Perfume : UserEntity {
 	public string PerfumeName { get; set; } = null!;
 	public decimal Ml { get; set; }
 	public decimal MlLeft { get; set; }
+	public decimal AverageRating { get; set; }
+	public int WearCount { get; set; }
 	public Guid? ImageObjectKeyNew { get; set; } = null!;
 	public bool Autumn { get; set; }
 	public bool Spring { get; set; }

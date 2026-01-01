@@ -5,6 +5,7 @@ using OpenAI.Chat;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Common.Services;
+using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
@@ -119,8 +120,9 @@ builder.Services.AddScoped<ISeedUsers, SeedUsers>();
 builder.Services.AddScoped<IPresignedUrlService, PresignedUrlService>();
 builder.Services.AddScoped<IPerfumeRecommender, PerfumeRecommender>();
 builder.Services.AddScoped<UploadImageHandler>();
-builder.Services.AddScoped<XPService>();
+builder.Services.AddScoped<IXPService, XPService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 
