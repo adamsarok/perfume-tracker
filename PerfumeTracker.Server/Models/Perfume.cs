@@ -4,8 +4,9 @@ public partial class Perfume : UserEntity {
 	public string House { get; set; } = null!;
 	public string PerfumeName { get; set; } = null!;
 	public decimal Ml { get; set; }
-	[NotMapped]
 	public decimal MlLeft { get; set; }
+	public decimal AverageRating { get; set; }
+	public int WearCount { get; set; }
 	public Guid? ImageObjectKeyNew { get; set; } = null!;
 	public bool Autumn { get; set; }
 	public bool Spring { get; set; }

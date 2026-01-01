@@ -35,13 +35,17 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 			Type = request.Dto.Type
 		};
 		context.PerfumeEvents.Add(evt);
-		var perfume = await context.Perfumes.FindAsync([evt.PerfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", evt.PerfumeId);
+		var perfume = await context
+			.Perfumes
+			.Include(x => x.PerfumeEvents)
+			.FirstOrDefaultAsync(x => x.Id == evt.PerfumeId, cancellationToken) ?? throw new NotFoundException("Perfumes", evt.PerfumeId);
 		List<OutboxMessage> messages = [];
 		messages.Add(OutboxMessage.From(new PerfumeEventAddedNotification(evt.Id, evt.PerfumeId, userId, evt.Type)));
 		if (evt.Type == PerfumeEventType.Worn)
 			await HandleWorn(messages, context, evt, perfume!, request, userId, cancellationToken);
 
 		await context.OutboxMessages.AddRangeAsync(messages, cancellationToken);
+		perfume.MlLeft = Math.Max(0, perfume.PerfumeEvents.Sum(e => e.AmountMl));
 		await context.SaveChangesAsync(cancellationToken);
 		foreach (var message in messages) {
 			queue.Enqueue(message);

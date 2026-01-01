@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using PerfumeTracker.Server.Features.Common.Services;
 using PerfumeTracker.Server.Features.Users;
-using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;
@@ -31,7 +31,7 @@ public class UserTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
-		var xpService = new XPService(context);
+		var xpService = scope.ServiceProvider.GetRequiredService<IXPService>();
 		var handler = new GetCurrentUserXPHandler(context, xpService);
 		var result = await handler.Handle(new UserXPQuery(), CancellationToken.None);
 		Assert.NotNull(result);

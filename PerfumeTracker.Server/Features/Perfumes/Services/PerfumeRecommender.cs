@@ -40,7 +40,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 
 	private IQueryable<Perfume> GetRecommendablePerfumes(decimal minimumRating, List<Guid> lastWornPerfumeIds) {
 		return context.Perfumes
-			.Where(p => p.Ml > 0
+			.Where(p => p.MlLeft > 0
 				&& p.PerfumeRatings.Any()
 				&& p.PerfumeRatings.Average(pr => pr.Rating) >= minimumRating
 				&& !lastWornPerfumeIds.Contains(p.Id))
@@ -265,6 +265,17 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 		context.OutboxMessages.Add(OutboxMessage.From(new PerfumeRecommendationsAddedNotification(count, userId)));
 		await context.SaveChangesAsync();
 		return result;
+	}
+
+	public async Task<IEnumerable<PerfumeRecommendationStats>> GetRecommendationStats(CancellationToken cancellationToken) {
+		return await context.PerfumeRecommendations
+			.GroupBy(pr => pr.Strategy)
+			.Select(g => new PerfumeRecommendationStats(
+				Strategy: g.Key,
+				TotalRecommendations: g.Count(),
+				AcceptedRecommendations: g.Where(x => x.IsAccepted).Count()
+			))
+			.ToListAsync(cancellationToken);
 	}
 }
 

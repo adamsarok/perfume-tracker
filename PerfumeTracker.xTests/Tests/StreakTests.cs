@@ -2,9 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using PerfumeTracker.Server.Features.Common.Services;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Streaks;
-using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
 using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
 
