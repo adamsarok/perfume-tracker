@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
+using PerfumeTracker.Server.Features.Common.Services;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Services.Common;
 using static PerfumeTracker.Server.Features.Perfumes.Services.PerfumeRecommender;
 
 namespace PerfumeTracker.Server.Services.Missions;
@@ -90,7 +90,7 @@ public class ProgressMissions {
 		}
 	}
 
-	public class UpdateMissionProgressHandler(PerfumeTrackerContext context, IHubContext<MissionProgressHub> missionProgressHub, XPService xPService) {
+	public class UpdateMissionProgressHandler(PerfumeTrackerContext context, IHubContext<MissionProgressHub> missionProgressHub, IXPService xPService) {
 		public async Task UpdateMissionProgress(MissionType type, Guid userId, CancellationToken cancellationToken) {
 			var now = DateTime.UtcNow;
 			var userMission = await context.UserMissions
@@ -112,8 +112,8 @@ public class ProgressMissions {
 				userMission.Progress += 1;
 
 				if (userMission.Progress >= mission.RequiredCount) {
-					var multiplier = await xPService.GetXPMultiplier(cancellationToken, userMission.UserId);
-					userMission.XP_Awarded = (int)(userMission.Mission.XP * multiplier.XpMultiplier);
+					var streak = await xPService.GetUserStreak(userMission.UserId, cancellationToken);
+					userMission.XP_Awarded = (int)(userMission.Mission.XP * streak.XpMultiplier);
 					userMission.IsCompleted = true;
 					userMission.CompletedAt = now;
 				}

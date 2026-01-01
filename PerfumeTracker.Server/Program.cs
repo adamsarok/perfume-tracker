@@ -4,6 +4,7 @@ using OpenAI;
 using OpenAI.Chat;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
+using PerfumeTracker.Server.Features.Common.Services;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
