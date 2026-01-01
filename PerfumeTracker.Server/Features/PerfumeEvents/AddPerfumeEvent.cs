@@ -45,7 +45,7 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 			await HandleWorn(messages, context, evt, perfume!, request, userId, cancellationToken);
 
 		await context.OutboxMessages.AddRangeAsync(messages, cancellationToken);
-		perfume.MlLeft = Math.Max(0, perfume.PerfumeEvents.Sum(e => e.AmountMl) + evt.AmountMl);
+		perfume.MlLeft = Math.Max(0, perfume.PerfumeEvents.Sum(e => e.AmountMl));
 		await context.SaveChangesAsync(cancellationToken);
 		foreach (var message in messages) {
 			queue.Enqueue(message);
