@@ -27,7 +27,7 @@ public class RatingService(PerfumeTrackerContext context) : IRatingService {
 	private async Task UpdatePerfume(Guid perfumeId, CancellationToken cancellationToken) {
 		var perfume = await context.Perfumes.FindAsync([perfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", perfumeId);
 		perfume.AverageRating = await context.PerfumeRatings
-			.Where(r => r.PerfumeId == perfumeId)
-			.AverageAsync(r => r.Rating, cancellationToken);
+			.Where(r => r.PerfumeId == perfumeId && !r.IsDeleted)
+			.AverageAsync(r => (decimal?)r.Rating, cancellationToken) ?? 0;
 	}
 }
