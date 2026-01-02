@@ -57,6 +57,13 @@ public class PerfumeIdentifierBackgroundService(
 			try {
 				await ProcessPerfume(context, perfume, perfumeIdentifier, cancellationToken);
 			} catch (Exception ex) {
+				try {
+					perfume.IsIdentifyBackfillFailed = true;
+					await context.SaveChangesAsync(cancellationToken);
+				} catch (Exception saveEx) {
+					logger.LogError(saveEx, "Failed to save IdentifyBackfillError for perfume {PerfumeId} ({House} - {Name})",
+						perfume.Id, perfume.House, perfume.PerfumeName);
+				}
 				logger.LogError(ex, "Failed to identify perfume {PerfumeId} ({House} - {Name})",
 					perfume.Id, perfume.House, perfume.PerfumeName);
 			}
@@ -362,7 +369,7 @@ public class PerfumeIdentifierBackgroundService(
 	}
 
 	private string GenerateColorForTag(string tagName) {
-		// Generate a consistent color based on tag name hash
+		// Generate a color based on tag name hash
 		var hash = tagName.GetHashCode();
 		var r = (hash & 0xFF0000) >> 16;
 		var g = (hash & 0x00FF00) >> 8;
