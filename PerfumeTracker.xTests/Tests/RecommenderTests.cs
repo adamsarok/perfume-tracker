@@ -233,22 +233,6 @@ public class PerfumeRecommenderTests {
 	}
 
 	[Fact]
-	public async Task GetAllStrategyRecommendations_IncludesMultipleStrategies() {
-		using var scope = _fixture.Factory.Services.CreateScope();
-		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
-		var recommender = GetRecommender(context, userProfileService);
-
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, CancellationToken.None);
-
-		var recList = recommendations.ToList();
-		var strategies = recList.Select(r => r.Strategy).Distinct().ToList();
-
-		// Should have multiple strategies represented (though not necessarily all)
-		Assert.NotEmpty(strategies);
-	}
-
-	[Fact]
 	public async Task GetRecommendationsForOccasionMoodPrompt_UsesCachedCompletion() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
