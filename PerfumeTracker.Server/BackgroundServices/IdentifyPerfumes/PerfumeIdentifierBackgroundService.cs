@@ -294,19 +294,22 @@ public class PerfumeIdentifierBackgroundService(
 		foreach (var note in identified.Notes) {
 			if (string.IsNullOrWhiteSpace(note)) continue;
 
+			// Convert to PascalCase
+			var pascalCaseNote = ToPascalCase(note);
+
 			// Check if user already has this tag
 			var userTag = await context.Tags
 				.IgnoreQueryFilters()
 				.FirstOrDefaultAsync(t =>
 					t.UserId == perfume.UserId &&
-					t.TagName == note,
+					t.TagName == pascalCaseNote,
 					cancellationToken);
 
 			if (userTag == null) {
 				// Create user tag with a default color
 				userTag = new Tag {
-					TagName = note,
-					Color = GenerateColorForTag(note),
+					TagName = pascalCaseNote,
+					Color = GenerateColorForTag(pascalCaseNote),
 					UserId = perfume.UserId
 				};
 				context.Tags.Add(userTag);
@@ -329,6 +332,16 @@ public class PerfumeIdentifierBackgroundService(
 				});
 			}
 		}
+	}
+
+	private string ToPascalCase(string text) {
+		if (string.IsNullOrWhiteSpace(text)) return text;
+
+		var words = text.Split(new[] { ' ', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+		var result = string.Join(" ", words.Select(word =>
+			char.ToUpper(word[0]) + word.Substring(1).ToLower()));
+
+		return result;
 	}
 
 	private string GenerateColorForTag(string tagName) {
