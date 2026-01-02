@@ -82,10 +82,6 @@ const formSchema = z.object({
   family: z.string().trim(),
   amount: z.coerce.number().min(0).max(200),
   mlLeft: z.coerce.number().min(0).max(200),
-  winter: z.boolean(),
-  summer: z.boolean(),
-  autumn: z.boolean(),
-  spring: z.boolean(),
   imageObjectKey: z.string().nullable(),
   imageUrl: z.string(),
 });
@@ -146,10 +142,6 @@ export default function PerfumeEditForm({
       family: "",
       amount: 0,
       mlLeft: 0,
-      winter: true,
-      summer: true,
-      autumn: true,
-      spring: true,
       imageObjectKey: "",
       imageUrl: "",
     },
@@ -163,10 +155,6 @@ export default function PerfumeEditForm({
         family: perfume.perfume.family,
         amount: perfume.perfume.ml,
         mlLeft: perfume.perfume.mlLeft,
-        winter: perfume.perfume.winter,
-        summer: perfume.perfume.summer,
-        autumn: perfume.perfume.autumn,
-        spring: perfume.perfume.spring,
         imageObjectKey: perfume.perfume.imageObjectKey ?? "",
         imageUrl: perfume.perfume.imageUrl,
       });
@@ -239,10 +227,6 @@ export default function PerfumeEditForm({
       family: values.family,
       ml: values.amount,
       mlLeft: values.mlLeft,
-      summer: values.summer,
-      winter: values.winter,
-      autumn: values.autumn,
-      spring: values.spring,
       tags: perfume?.perfume.tags ?? [],
     };
     let result: AxiosResult<PerfumeDTO>;

@@ -1,6 +1,8 @@
-﻿namespace PerfumeTracker.Server.Features.PerfumeRatings.Services;
+﻿using PerfumeTracker.Server.Features.Outbox;
 
-public class RatingService(PerfumeTrackerContext context) : IRatingService {
+namespace PerfumeTracker.Server.Features.PerfumeRatings.Services;
+
+public class RatingService(PerfumeTrackerContext context, ISideEffectQueue queue) : IRatingService {
 	public async Task<PerfumeRating> AddPerfumeRating(Guid PerfumeId, decimal Rating, string Comment, CancellationToken cancellationToken) {
 		if (context.TenantProvider?.GetCurrentUserId() == null) throw new TenantNotSetException();
 		var evt = new PerfumeRating {
@@ -12,7 +14,6 @@ public class RatingService(PerfumeTrackerContext context) : IRatingService {
 		context.PerfumeRatings.Add(evt);
 		await context.SaveChangesAsync(cancellationToken);
 		await UpdatePerfume(PerfumeId, cancellationToken);
-		await context.SaveChangesAsync(cancellationToken);
 		return evt;
 	}
 
@@ -22,7 +23,6 @@ public class RatingService(PerfumeTrackerContext context) : IRatingService {
 		rating.IsDeleted = true;
 		await context.SaveChangesAsync(cancellationToken);
 		await UpdatePerfume(rating.PerfumeId, cancellationToken);
-		await context.SaveChangesAsync(cancellationToken);
 		return rating;
 	}
 
@@ -31,5 +31,9 @@ public class RatingService(PerfumeTrackerContext context) : IRatingService {
 		perfume.AverageRating = await context.PerfumeRatings
 			.Where(r => r.PerfumeId == perfumeId)
 			.AverageAsync(r => (decimal?)r.Rating, cancellationToken) ?? 0;
+		var message = OutboxMessage.From(new PerfumeUpdatedNotification(perfumeId, perfume.UserId));
+		context.OutboxMessages.Add(message);
+		await context.SaveChangesAsync(cancellationToken);
+		queue.Enqueue(message);
 	}
 }

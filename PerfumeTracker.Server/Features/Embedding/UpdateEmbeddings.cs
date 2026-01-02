@@ -3,7 +3,7 @@
 namespace PerfumeTracker.Server.Features.Embedding;
 
 public class UpdateEmbeddings {
-	public class PPerfumeAddedNotificationHandler(PerfumeTrackerContext context, IEncoder encoder) : INotificationHandler<PerfumeAddedNotification> {
+	public class PerfumeAddedNotificationHandler(PerfumeTrackerContext context, IEncoder encoder) : INotificationHandler<PerfumeAddedNotification> {
 		public async Task Handle(PerfumeAddedNotification notification, CancellationToken cancellationToken) {
 			await UpdatePerfumeEmbedding(notification.PerfumeId, context, encoder, cancellationToken);
 		}
@@ -15,13 +15,14 @@ public class UpdateEmbeddings {
 	}
 	private static async Task UpdatePerfumeEmbedding(Guid perfumeId, PerfumeTrackerContext context, IEncoder encoder, CancellationToken cancellationToken) {
 		var perfume = await context.Perfumes
+			.IgnoreQueryFilters()
 			.Include(p => p.PerfumeTags).ThenInclude(pt => pt.Tag)
 			.Include(p => p.PerfumeRatings)
 			.Include(p => p.PerfumeEvents)
 			.FirstOrDefaultAsync(p => p.Id == perfumeId, cancellationToken);
 		if (perfume == null) return;
 		var text = perfume.GetTextForEmbedding();
-		var document = await context.PerfumeDocuments.FirstOrDefaultAsync(d => d.Id == perfumeId, cancellationToken);
+		var document = await context.PerfumeDocuments.IgnoreQueryFilters().FirstOrDefaultAsync(d => d.Id == perfumeId, cancellationToken);
 		if (document == null) {
 			var embedding = await encoder.GetEmbeddings(text, cancellationToken);
 			document = new PerfumeDocument {
