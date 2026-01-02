@@ -1,6 +1,6 @@
 ﻿namespace PerfumeTracker.Server.Services.Outbox;
 
-public class OutboxRetryService(IServiceProvider sp, ILogger<OutboxRetryService> logger, ISideEffectQueue queue) : BackgroundService {
+public class OutboxBackgroundService(IServiceProvider sp, ILogger<OutboxBackgroundService> logger, ISideEffectQueue queue) : BackgroundService {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 		while (!stoppingToken.IsCancellationRequested) {
 			await RetryMessages(stoppingToken);

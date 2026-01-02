@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using OpenAI;
 using OpenAI.Chat;
 using PerfumeTracker.Server;
+using PerfumeTracker.Server.BackgroundServices.IdentifyPerfumes;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Common.Services;
 using PerfumeTracker.Server.Features.PerfumeRatings.Services;
@@ -149,11 +150,12 @@ builder.Services.AddCors(options => {
 });
 
 builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
-builder.Services.AddHostedService<SideEffectProcessor>();
 
-builder.Services.AddHostedService<OutboxRetryService>();
-builder.Services.AddHostedService<EmbeddingRetryService>();
-builder.Services.AddHostedService<MissionService>();
+builder.Services.AddHostedService<SideEffectBackgroundService>();
+builder.Services.AddHostedService<OutboxBackgroundService>();
+builder.Services.AddHostedService<EmbeddingBackgroundService>();
+builder.Services.AddHostedService<MissionBackgroundService>();
+builder.Services.AddHostedService<PerfumeIdentifierBackgroundService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
 

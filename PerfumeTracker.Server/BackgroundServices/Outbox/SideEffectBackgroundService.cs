@@ -9,7 +9,7 @@ using System;
 /// 2. SideEffectProcessor immediately handles message from channel and marks the corresponding Outbox record processed
 /// 3. OutboxService is responsible for error handling and cleanup. If the app shuts down or processing errors out, Outbox records a requeued 
 /// </summary>
-public class SideEffectProcessor(ISideEffectQueue queue, IServiceProvider serviceProvider, ILogger<SideEffectProcessor> logger) : BackgroundService {
+public class SideEffectBackgroundService(ISideEffectQueue queue, IServiceProvider serviceProvider, ILogger<SideEffectBackgroundService> logger) : BackgroundService {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 		await foreach (var message in queue.Reader.ReadAllAsync(stoppingToken)) {
 			try {

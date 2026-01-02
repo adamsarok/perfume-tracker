@@ -1,6 +1,6 @@
 namespace PerfumeTracker.Server.Services.Missions;
 
-public class MissionService(IServiceProvider serviceProvider, ILogger<MissionService> logger) : BackgroundService {
+public class MissionBackgroundService(IServiceProvider serviceProvider, ILogger<MissionBackgroundService> logger) : BackgroundService {
 	private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1);
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
