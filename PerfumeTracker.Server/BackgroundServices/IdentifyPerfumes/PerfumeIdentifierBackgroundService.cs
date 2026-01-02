@@ -294,6 +294,13 @@ public class PerfumeIdentifierBackgroundService(
 		foreach (var note in identified.Notes) {
 			if (string.IsNullOrWhiteSpace(note)) continue;
 
+			// Skip if contains special characters (except hyphen) or has more than 2 words
+			if (!IsValidTag(note)) {
+				logger.LogWarning("Skipping invalid tag '{Tag}' for perfume {House} - {Name}",
+					note, perfume.House, perfume.PerfumeName);
+				continue;
+			}
+
 			// Convert to PascalCase
 			var pascalCaseNote = ToPascalCase(note);
 
@@ -332,6 +339,21 @@ public class PerfumeIdentifierBackgroundService(
 				});
 			}
 		}
+	}
+
+	private bool IsValidTag(string tag) {
+		// Check for special characters (allow letters, numbers, spaces, and hyphens only)
+		if (!System.Text.RegularExpressions.Regex.IsMatch(tag, @"^[a-zA-Z0-9\s\-]+$")) {
+			return false;
+		}
+
+		// Count words (split by space or hyphen)
+		var words = tag.Split(new[] { ' ', '-' }, StringSplitOptions.RemoveEmptyEntries);
+		if (words.Length > 2) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private string ToPascalCase(string text) {

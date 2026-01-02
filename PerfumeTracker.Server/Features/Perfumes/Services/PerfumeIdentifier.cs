@@ -7,7 +7,10 @@ public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext cont
 		string promptKey = $"{house}::{perfumeName}";
 		string completionText = string.Empty;
 		var cached = await context.CachedCompletions
-			.FirstOrDefaultAsync(cc => cc.Prompt == promptKey && cc.CompletionType == CachedCompletion.CompletionTypes.IdentifyPerfume, cancellationToken);
+			.IgnoreQueryFilters()
+			.FirstOrDefaultAsync(cc => cc.Prompt == promptKey
+				&& cc.CompletionType == CachedCompletion.CompletionTypes.IdentifyPerfume
+				&& cc.UserId == userId, cancellationToken);
 		if (cached != null) {
 			completionText = cached.Response;
 		} else {
