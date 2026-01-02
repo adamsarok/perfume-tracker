@@ -1,8 +1,9 @@
 ﻿using Amazon.S3;
 using ImageMagick;
 using Microsoft.Extensions.Options;
-using PerfumeTracker.Server.Services.Auth;
-using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Common;
+
 namespace PerfumeTracker.Server.Features.R2;
 
 public record UploadResponse(Guid Guid);

@@ -1,4 +1,5 @@
-﻿using PerfumeTracker.Server.Services.Common;
+﻿using PerfumeTracker.Server.Features.Common;
+using System.Text;
 
 namespace PerfumeTracker.Server.Features.Perfumes.Extensions;
 
@@ -44,5 +45,35 @@ public static class PerfumeExtensions {
 			p.AverageRating,
 			lastComment
 		);
+	}
+	public static string GetTextForEmbedding(this Perfume perfume) {
+		var sb = new StringBuilder(); // only add fields which are not available in perfume. Eg House can be searched in Perfume - sentiment based on all tags & comments can not
+		if (!string.IsNullOrWhiteSpace(perfume.Family)) {
+			sb.Append($"Family: {perfume.Family}. ");
+		}
+
+		if (perfume.PerfumeTags.Any()) {
+			sb.Append($"Notes: {string.Join(", ", perfume.PerfumeTags.Select(pt => pt.Tag.TagName))}. ");
+		}
+
+		if (perfume.PerfumeRatings.Any()) {
+			sb.Append($"Rating: {perfume.PerfumeRatings.Average(x => x.Rating).ToString("0.#")}/10 points. ");
+			sb.Append($"User comments: ");
+			var comments = perfume.PerfumeRatings
+				.Where(r => !string.IsNullOrWhiteSpace(r.Comment))
+				.OrderByDescending(r => r.UpdatedAt)
+				.Take(10)
+				.Select(r => r.Comment);
+			if (comments.Any()) {
+				sb.Append($"{string.Join(". ", comments)}. ");
+			}
+		}
+
+		var wearEvents = perfume.PerfumeEvents.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn);
+		if (wearEvents.Any()) {
+			sb.Append($"Worn {wearEvents.Count()} times, last on {wearEvents.Max(x => x.EventDate).ToString("yyyy-MM-dd")}.");
+		}
+
+		return sb.ToString();
 	}
 }

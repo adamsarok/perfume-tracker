@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Features.Embedding;
 using PerfumeTracker.Server.Features.Perfumes.Services;
-using PerfumeTracker.Server.Services.Common;
-using PerfumeTracker.Server.Services.Embedding;
 using PerfumeTracker.xTests.Fixture;
 using Pgvector;
 

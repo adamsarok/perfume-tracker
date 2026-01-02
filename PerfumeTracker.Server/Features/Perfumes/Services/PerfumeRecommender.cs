@@ -1,7 +1,7 @@
 ﻿using OpenAI.Chat;
+using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Features.Embedding;
 using PerfumeTracker.Server.Features.Perfumes.Extensions;
-using PerfumeTracker.Server.Services.Common;
-using PerfumeTracker.Server.Services.Embedding;
 using Pgvector.EntityFrameworkCore;
 using static PerfumeTracker.Server.Features.Perfumes.GetPerfumeRecommendations;
 

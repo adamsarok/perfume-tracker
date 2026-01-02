@@ -1,5 +1,5 @@
-﻿using PerfumeTracker.Server.Services.Auth;
-using PerfumeTracker.Server.Services.Outbox;
+﻿using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Outbox;
 
 namespace PerfumeTracker.Server.Features.GlobalPerfumes;
 

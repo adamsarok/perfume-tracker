@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Users;
-using PerfumeTracker.Server.Services.Auth;
 using System.Security.Claims;
 
 namespace PerfumeTracker.Server.Startup;

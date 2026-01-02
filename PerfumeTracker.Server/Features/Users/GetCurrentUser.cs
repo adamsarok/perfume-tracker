@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Features.Auth;
 using System.Security.Claims;
 
 namespace PerfumeTracker.Server.Features.Users;

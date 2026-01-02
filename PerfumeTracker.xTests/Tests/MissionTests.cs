@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.Common.Services;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.PerfumeEvents;
-using PerfumeTracker.Server.Services.Missions;
 using PerfumeTracker.xTests.Fixture;
 using static PerfumeTracker.Server.Features.Perfumes.Services.PerfumeRecommender;
 

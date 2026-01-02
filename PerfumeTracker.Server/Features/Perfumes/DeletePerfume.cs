@@ -1,4 +1,4 @@
-﻿using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Features.Auth;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 public record DeletePerfumeCommand(Guid Id) : ICommand<PerfumeDto>;
