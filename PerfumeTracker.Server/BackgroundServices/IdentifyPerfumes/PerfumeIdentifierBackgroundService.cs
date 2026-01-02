@@ -127,8 +127,10 @@ public class PerfumeIdentifierBackgroundService(
 		}
 
 		// Try fuzzy search using full text search
+		// Remove all special characters from search text
 		var searchText = $"{perfume.House} {perfume.PerfumeName}";
-		var normalized = searchText.Trim();
+		var cleanedSearchText = System.Text.RegularExpressions.Regex.Replace(searchText, @"[^a-zA-Z0-9\s]", " ");
+		var normalized = cleanedSearchText.Trim();
 		var tsQuery = string.Join(" & ", normalized
 			.Split(' ', StringSplitOptions.RemoveEmptyEntries)
 			.Select(t => $"{t}:*"));
@@ -173,13 +175,6 @@ public class PerfumeIdentifierBackgroundService(
 				System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 		}
 
-		// Remove common noise words
-		//var noiseWords = new[] { "for", "men", "women", "homme", "femme", "unisex" };
-		//var words = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-		//.Where(w => !noiseWords.Contains(w))
-		//.ToArray();
-
-		//return string.Join(" ", words);
 		return normalized;
 	}
 
