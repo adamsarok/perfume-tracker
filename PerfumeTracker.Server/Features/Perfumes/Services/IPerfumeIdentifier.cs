@@ -8,5 +8,5 @@ public record IdentifiedPerfume(
 	double ConfidenceScore);
 
 public interface IPerfumeIdentifier {
-	Task<IdentifiedPerfume> GetIdentifiedPerfumeAsync(string house, string perfumeName, CancellationToken cancellationToken);
+	Task<IdentifiedPerfume> GetIdentifiedPerfumeAsync(string house, string perfumeName, Guid userId, CancellationToken cancellationToken);
 }

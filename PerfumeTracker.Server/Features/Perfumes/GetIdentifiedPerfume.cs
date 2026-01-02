@@ -28,9 +28,10 @@ public class GetIdentifiedPerfumeEndpoint : ICarterModule {
 	}
 }
 
-public class GetIdentifiedPerfumeHandler(IPerfumeIdentifier perfumeIdentifier)
+public class GetIdentifiedPerfumeHandler(IPerfumeIdentifier perfumeIdentifier, PerfumeTrackerContext context)
 	: IQueryHandler<GetIdentifiedPerfumeQuery, IdentifiedPerfume> {
 	public async Task<IdentifiedPerfume> Handle(GetIdentifiedPerfumeQuery request, CancellationToken cancellationToken) {
-		return await perfumeIdentifier.GetIdentifiedPerfumeAsync(request.House, request.PerfumeName, cancellationToken);
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
+		return await perfumeIdentifier.GetIdentifiedPerfumeAsync(request.House, request.PerfumeName, userId, cancellationToken);
 	}
 }

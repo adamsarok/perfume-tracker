@@ -219,7 +219,7 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 
 	public record PerfumeRecommendationsAddedNotification(int Count, Guid UserId) : IUserNotification;
 	public async Task<IEnumerable<PerfumeRecommendationDto>> GetAllStrategyRecommendations(int count, CancellationToken cancellationToken) {
-		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new InvalidOperationException("No current user");
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		var validStrategies = Enum.GetValues<RecommendationStrategy>().Where(s => s != RecommendationStrategy.MoodOrOccasion).ToList();
 		int cntPerStrategy = (int)Math.Ceiling((double)count / validStrategies.Count);
 		var recommendations = new List<PerfumeRecommendationDto>();
@@ -246,7 +246,7 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 	}
 
 	private async Task<IEnumerable<PerfumeRecommendationDto>> PersistRecommendations(IEnumerable<PerfumeRecommendationDto> recommendations, int count, Guid? completionId = null) {
-		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new InvalidOperationException("No current user");
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		List<PerfumeRecommendationDto> result = new();
 		var limited = recommendations
 			.OrderBy(_ => Random.Shared.Next())
