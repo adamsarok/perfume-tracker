@@ -15,5 +15,10 @@ public partial class Perfume : UserEntity {
 	public virtual ICollection<PerfumeEvent> PerfumeEvents { get; } = [];
 	public virtual ICollection<PerfumeRating> PerfumeRatings { get; } = [];
 	public virtual PerfumeDocument? PerfumeDocument { get; set; }
-	public bool IsIdentifyBackfillFailed { get; set; }
+	public PerfumeIdentifiedStatuses PerfumeIdentifiedStatus { get; set; } = PerfumeIdentifiedStatuses.NotIdentified;
+	public enum PerfumeIdentifiedStatuses {
+		NotIdentified = 0,
+		Identified = 1,
+		IdentificationFailed = 2
+	}
 }

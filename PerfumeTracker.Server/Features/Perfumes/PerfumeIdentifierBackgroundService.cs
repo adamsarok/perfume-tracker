@@ -40,7 +40,7 @@ public class PerfumeIdentifierBackgroundService(
 		var perfumesNeedingIdentification = await context.Perfumes
 			.IgnoreQueryFilters()
 			.Where(p => !p.IsDeleted
-				&& !p.IsIdentifyBackfillFailed
+				&& p.PerfumeIdentifiedStatus == Perfume.PerfumeIdentifiedStatuses.NotIdentified
 				&& p.MlLeft > 0
 				&& (string.IsNullOrEmpty(p.Family) || p.PerfumeTags.Count < MIN_TAG_COUNT))
 			.Include(p => p.PerfumeTags)
@@ -58,7 +58,7 @@ public class PerfumeIdentifierBackgroundService(
 				await ProcessPerfume(context, perfume, perfumeIdentifier, cancellationToken);
 			} catch (Exception ex) {
 				try {
-					perfume.IsIdentifyBackfillFailed = true;
+					perfume.PerfumeIdentifiedStatus = Perfume.PerfumeIdentifiedStatuses.IdentificationFailed;
 					await context.SaveChangesAsync(cancellationToken);
 				} catch (Exception saveEx) {
 					logger.LogError(saveEx, "Failed to save IdentifyBackfillError for perfume {PerfumeId} ({House} - {Name})",
@@ -108,7 +108,7 @@ public class PerfumeIdentifierBackgroundService(
 		// Step 3: No good match found, mark as failed
 		logger.LogWarning("No good match found for {House} - {Name}, marking as failed",
 			perfume.House, perfume.PerfumeName);
-		perfume.IsIdentifyBackfillFailed = true;
+		perfume.PerfumeIdentifiedStatus = Perfume.PerfumeIdentifiedStatuses.IdentificationFailed;
 		await context.SaveChangesAsync(cancellationToken);
 	}
 
@@ -279,6 +279,7 @@ public class PerfumeIdentifierBackgroundService(
 				});
 			}
 		}
+		perfume.PerfumeIdentifiedStatus = Perfume.PerfumeIdentifiedStatuses.Identified;
 	}
 
 	private async Task ApplyIdentifiedPerfumeData(
@@ -341,6 +342,7 @@ public class PerfumeIdentifierBackgroundService(
 				});
 			}
 		}
+		perfume.PerfumeIdentifiedStatus = Perfume.PerfumeIdentifiedStatuses.Identified;
 	}
 
 	private bool IsValidTag(string tag) {
