@@ -1,6 +1,6 @@
 ﻿
 
-using PerfumeTracker.Server.Services.Auth;
+using PerfumeTracker.Server.Features.Auth;
 
 namespace PerfumeTracker.Server.Features.Tags;
 public record GetTagStatsQuery() : IQuery<List<TagStatDto>>;

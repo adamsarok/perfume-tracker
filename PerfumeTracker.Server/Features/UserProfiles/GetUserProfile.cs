@@ -1,6 +1,6 @@
 ﻿
-using PerfumeTracker.Server.Services.Auth;
-using PerfumeTracker.Server.Services.Common;
+using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Common;
 
 namespace PerfumeTracker.Server.Features.UserProfiles;
 

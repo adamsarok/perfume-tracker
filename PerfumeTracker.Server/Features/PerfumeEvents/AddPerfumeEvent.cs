@@ -1,6 +1,6 @@
-﻿using PerfumeTracker.Server.Services.Auth;
-using PerfumeTracker.Server.Services.Common;
-using PerfumeTracker.Server.Services.Outbox;
+﻿using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Features.Outbox;
 using static PerfumeTracker.Server.Models.PerfumeEvent;
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;

@@ -6,7 +6,7 @@ using PerfumeTracker.Server.Features.Common.Services;
 using PerfumeTracker.Server.Features.PerfumeEvents;
 using PerfumeTracker.Server.Features.Streaks;
 using PerfumeTracker.xTests.Fixture;
-using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
+using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
 
 namespace PerfumeTracker.xTests.Tests;
 

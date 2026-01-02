@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.Users;
-using PerfumeTracker.Server.Services.Auth;
-using PerfumeTracker.Server.Services.Common;
-using PerfumeTracker.Server.Services.Outbox;
-using static PerfumeTracker.Server.Services.Missions.ProgressMissions;
-using static PerfumeTracker.Server.Services.Streaks.ProgressStreaks;
+using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
+using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace PerfumeTracker.xTests.Fixture;

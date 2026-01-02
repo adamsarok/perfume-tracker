@@ -1,5 +1,5 @@
+using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Perfumes.Services;
-using PerfumeTracker.Server.Services.Auth;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 
@@ -28,9 +28,10 @@ public class GetIdentifiedPerfumeEndpoint : ICarterModule {
 	}
 }
 
-public class GetIdentifiedPerfumeHandler(IPerfumeIdentifier perfumeIdentifier)
+public class GetIdentifiedPerfumeHandler(IPerfumeIdentifier perfumeIdentifier, PerfumeTrackerContext context)
 	: IQueryHandler<GetIdentifiedPerfumeQuery, IdentifiedPerfume> {
 	public async Task<IdentifiedPerfume> Handle(GetIdentifiedPerfumeQuery request, CancellationToken cancellationToken) {
-		return await perfumeIdentifier.GetIdentifiedPerfumeAsync(request.House, request.PerfumeName, cancellationToken);
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
+		return await perfumeIdentifier.GetIdentifiedPerfumeAsync(request.House, request.PerfumeName, userId, cancellationToken);
 	}
 }

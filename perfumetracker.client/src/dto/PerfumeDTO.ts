@@ -10,10 +10,6 @@ export interface PerfumeDTO {
     mlLeft: number;
     imageObjectKey: string;
     imageUrl: string;
-    autumn: boolean;
-    spring: boolean;
-    summer: boolean;
-    winter: boolean;
     tags: TagDTO[];
     ratings: PerfumeRatingDownloadDTO[];
 }

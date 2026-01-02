@@ -1,5 +1,5 @@
-﻿using PerfumeTracker.Server.Features.PerfumeRatings.Services;
-using PerfumeTracker.Server.Services.Auth;
+﻿using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 
 namespace PerfumeTracker.Server.Features.PerfumeRatings;
 

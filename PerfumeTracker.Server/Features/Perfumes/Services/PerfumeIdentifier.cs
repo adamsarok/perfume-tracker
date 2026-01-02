@@ -3,11 +3,14 @@
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
 public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext context) : IPerfumeIdentifier {
-	public async Task<IdentifiedPerfume> GetIdentifiedPerfumeAsync(string house, string perfumeName, CancellationToken cancellationToken) {
+	public async Task<IdentifiedPerfume> GetIdentifiedPerfumeAsync(string house, string perfumeName, Guid userId, CancellationToken cancellationToken) {
 		string promptKey = $"{house}::{perfumeName}";
 		string completionText = string.Empty;
 		var cached = await context.CachedCompletions
-			.FirstOrDefaultAsync(cc => cc.Prompt == promptKey && cc.CompletionType == CachedCompletion.CompletionTypes.IdentifyPerfume, cancellationToken);
+			.IgnoreQueryFilters()
+			.FirstOrDefaultAsync(cc => cc.Prompt == promptKey
+				&& cc.CompletionType == CachedCompletion.CompletionTypes.IdentifyPerfume
+				&& cc.UserId == userId, cancellationToken);
 		if (cached != null) {
 			completionText = cached.Response;
 		} else {
@@ -72,7 +75,8 @@ public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext cont
 				Prompt = promptKey,
 				CompletionType = CachedCompletion.CompletionTypes.IdentifyPerfume,
 				Response = completionText,
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = DateTime.UtcNow,
+				UserId = userId,
 			});
 			await context.SaveChangesAsync(cancellationToken);
 		}

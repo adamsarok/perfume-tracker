@@ -488,6 +488,9 @@ namespace PerfumeTracker.Server.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsIdentifyBackfillFailed")
+                        .HasColumnType("boolean");
+
                     b.Property<decimal>("Ml")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("numeric")

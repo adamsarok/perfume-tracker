@@ -15,4 +15,5 @@ public partial class Perfume : UserEntity {
 	public virtual ICollection<PerfumeEvent> PerfumeEvents { get; } = [];
 	public virtual ICollection<PerfumeRating> PerfumeRatings { get; } = [];
 	public virtual PerfumeDocument? PerfumeDocument { get; set; }
+	public bool IsIdentifyBackfillFailed { get; set; }
 }

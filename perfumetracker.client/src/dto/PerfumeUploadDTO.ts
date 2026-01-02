@@ -7,9 +7,5 @@ export interface PerfumeUploadDTO {
     family: string;
     ml: number;
     mlLeft: number;
-    autumn: boolean;
-    spring: boolean;
-    summer: boolean;
-    winter: boolean;
     tags: TagDTO[]
 }

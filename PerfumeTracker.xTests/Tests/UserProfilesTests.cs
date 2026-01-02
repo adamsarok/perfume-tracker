@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.UserProfiles;
-using PerfumeTracker.Server.Services.Common;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;

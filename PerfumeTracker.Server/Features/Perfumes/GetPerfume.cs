@@ -1,6 +1,6 @@
-﻿using PerfumeTracker.Server.Features.Perfumes.Extensions;
-using PerfumeTracker.Server.Services.Auth;
-using PerfumeTracker.Server.Services.Common;
+﻿using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Common;
+using PerfumeTracker.Server.Features.Perfumes.Extensions;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 
