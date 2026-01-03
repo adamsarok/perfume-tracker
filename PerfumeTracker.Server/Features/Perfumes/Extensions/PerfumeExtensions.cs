@@ -47,35 +47,35 @@ public static class PerfumeExtensions {
 		);
 	}
 
-	public static PerfumeLlmDto ToPerfumeLlmDto(this Perfume p) {
-		var lastComment = p.PerfumeRatings.Any()
-			? p.PerfumeRatings.OrderByDescending(x => x.RatingDate).First().Comment
-			: null;
+	//public static PerfumeLlmDto ToPerfumeLlmDto(this Perfume p) {
+	//	var lastComment = p.PerfumeRatings.Any()
+	//		? p.PerfumeRatings.OrderByDescending(x => x.RatingDate).First().Comment
+	//		: null;
 
-		return new PerfumeLlmDto(
-			Id: p.Id,
-			House: p.House,
-			PerfumeName: p.PerfumeName,
-			Family: p.Family,
-			Rating: p.AverageRating,
-			TimesWorn: p.WearCount,
-			Tags: [.. p.PerfumeTags.Select(pt => pt.Tag.TagName)],
-			LastComment: lastComment
-		);
-	}
+	//	return new PerfumeLlmDto(
+	//		Id: p.Id,
+	//		House: p.House,
+	//		PerfumeName: p.PerfumeName,
+	//		Family: p.Family,
+	//		Rating: p.AverageRating,
+	//		TimesWorn: p.WearCount,
+	//		Tags: [.. p.PerfumeTags.Select(pt => pt.Tag.TagName)],
+	//		LastComment: lastComment
+	//	);
+	//}
 
-	public static PerfumeLlmDto ToPerfumeLlmDto(this PerfumeWithWornStatsDto p) {
-		return new PerfumeLlmDto(
-			Id: p.Perfume.Id,
-			House: p.Perfume.House,
-			PerfumeName: p.Perfume.PerfumeName,
-			Family: p.Perfume.Family,
-			Rating: p.averageRating,
-			TimesWorn: p.WornTimes,
-			Tags: [.. p.Perfume.Tags.Select(t => t.TagName)],
-			LastComment: p.lastComment
-		);
-	}
+	//public static PerfumeLlmDto ToPerfumeLlmDto(this PerfumeWithWornStatsDto p) {
+	//	return new PerfumeLlmDto(
+	//		Id: p.Perfume.Id,
+	//		House: p.Perfume.House,
+	//		PerfumeName: p.Perfume.PerfumeName,
+	//		Family: p.Perfume.Family,
+	//		Rating: p.AverageRating,
+	//		TimesWorn: p.WornTimes,
+	//		Tags: [.. p.Perfume.Tags.Select(t => t.TagName)],
+	//		LastComment: p.LastComment
+	//	);
+	//}
 
 	public static string GetTextForEmbedding(this Perfume perfume) {
 		var sb = new StringBuilder(); // only add fields which are not available in perfume. Eg House can be searched in Perfume - sentiment based on all tags & comments can not
