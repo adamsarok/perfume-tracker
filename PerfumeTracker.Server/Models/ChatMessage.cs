@@ -1,3 +1,5 @@
+using OpenAI.Chat;
+
 namespace PerfumeTracker.Server.Models;
 
 public class ChatMessage : UserEntity {
@@ -7,6 +9,6 @@ public class ChatMessage : UserEntity {
 	public required string Content { get; set; }
 	public string? ToolCallId { get; set; }
 	public string? ToolName { get; set; }
-	public string? ToolArguments { get; set; }
 	public int MessageIndex { get; set; }
+	public ChatFinishReason? ChatFinishReason { get; set; }
 }

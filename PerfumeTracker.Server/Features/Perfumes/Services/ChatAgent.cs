@@ -98,7 +98,7 @@ public class ChatAgent(
 		var userMessage = new UserChatMessage(request.UserMessage);
 		chatHistory.Add(userMessage);
 
-		await SaveChatMessage(conversation.Id, "user", request.UserMessage, chatHistory.Count - 1, cancellationToken);
+		await SaveChatMessage(conversation.Id, "user", request.UserMessage, chatHistory.Count - 1, cancellationToken, null);
 
 		var options = new ChatCompletionOptions();
 		options.Tools.Add(SearchOwnedPerfumesByCharacteristicsTool);
@@ -118,7 +118,7 @@ public class ChatAgent(
 			switch (completion.Value.FinishReason) {
 				case ChatFinishReason.Stop:
 					var responseMessage = completion.Value.Content[0].Text;
-					await SaveChatMessage(conversation.Id, "assistant", responseMessage, chatHistory.Count, cancellationToken);
+					await SaveChatMessage(conversation.Id, "assistant", responseMessage, chatHistory.Count, cancellationToken, completion.Value.FinishReason);
 					return new ChatAgentResponse(conversation.Id, responseMessage, recommendedPerfumes);
 
 				case ChatFinishReason.ToolCalls:
@@ -133,7 +133,7 @@ public class ChatAgent(
 							toolResult = $"Error: {ex.Message}";
 						}
 						chatHistory.Add(new ToolChatMessage(toolCall.Id, toolResult));
-						await SaveChatMessage(conversation.Id, "tool", toolResult, chatHistory.Count - 1, cancellationToken, toolCall.Id, toolCall.FunctionName);
+						await SaveChatMessage(conversation.Id, "tool", toolResult, chatHistory.Count - 1, cancellationToken, null, toolCall.Id, toolCall.FunctionName);
 					}
 
 					requiresAnotherIteration = true;
@@ -273,7 +273,7 @@ IMPORTANT TOOL USAGE RULES:
    - Perfumes that complement what they already love
    - Make sure to suggest perfumes they DON'T already own, based on the collection above
    - If the user asks for 10 recommendations, search 50 perfumes with check_perfume_ownership and filter out owned ones
-   - If you cannt find enough recommendations in 2 tries, provide any recommendations you already found
+   - Provide recommendations after ONLY ONE tool call
 
 Available tools (for OWNED perfumes only):
 - search_owned_perfumes_by_characteristics: Simple 1-3 word searches in owned collection (e.g., "vanilla", "summer", "woody fresh")
@@ -340,7 +340,28 @@ Be conversational, friendly, and knowledgeable. When recommending NEW perfumes t
 					chatHistory.Add(new UserChatMessage(msg.Content));
 					break;
 				case "assistant":
-					if (!string.IsNullOrEmpty(msg.ToolCallId)) {
+					if (msg.ChatFinishReason == ChatFinishReason.ToolCalls) {
+						// Deserialize the tool calls structure we saved
+						var toolCallsData = JsonSerializer.Deserialize<JsonElement>(msg.Content);
+						if (toolCallsData.ValueKind == JsonValueKind.Array) {
+							var toolCalls = new List<ChatToolCall>();
+							foreach (var tcElement in toolCallsData.EnumerateArray()) {
+								var id = tcElement.GetProperty("Id").GetString();
+								var kind = tcElement.GetProperty("Kind");
+								var functionName = tcElement.GetProperty("FunctionName").GetString();
+								var functionArguments = tcElement.GetProperty("FunctionArguments").GetRawText();
+
+								if (id != null && functionName != null && functionArguments != null) {
+									toolCalls.Add(ChatToolCall.CreateFunctionToolCall(id, functionName, BinaryData.FromString(functionArguments)));
+								}
+							}
+
+							if (toolCalls.Count > 0) {
+								chatHistory.Add(new AssistantChatMessage((IEnumerable<ChatToolCall>)toolCalls));
+								break;
+							}
+						}
+						// If we can't parse tool calls, fall through to regular message
 						chatHistory.Add(new AssistantChatMessage(msg.Content));
 					} else {
 						chatHistory.Add(new AssistantChatMessage(msg.Content));
@@ -357,7 +378,7 @@ Be conversational, friendly, and knowledgeable. When recommending NEW perfumes t
 		return chatHistory;
 	}
 
-	private async Task SaveChatMessage(Guid conversationId, string role, string content, int index, CancellationToken cancellationToken, string? toolCallId = null, string? toolName = null) {
+	private async Task SaveChatMessage(Guid conversationId, string role, string content, int index, CancellationToken cancellationToken, ChatFinishReason? chatFinishReason, string? toolCallId = null, string? toolName = null) {
 		var message = new Models.ChatMessage {
 			ConversationId = conversationId,
 			Role = role,
@@ -365,28 +386,24 @@ Be conversational, friendly, and knowledgeable. When recommending NEW perfumes t
 			MessageIndex = index,
 			ToolCallId = toolCallId,
 			ToolName = toolName,
-			UserId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException()
+			UserId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException(),
+			ChatFinishReason = chatFinishReason
 		};
 		context.Add(message);
 		await context.SaveChangesAsync(cancellationToken);
 	}
 
 	private async Task SaveAssistantMessageWithTools(Guid conversationId, ChatCompletion completion, int index, CancellationToken cancellationToken) {
-		var toolCallsJson = JsonSerializer.Serialize(completion.ToolCalls.Select(tc => new {
-			id = tc.Id,
-			type = tc.Kind.ToString(),
-			function = new {
-				name = tc.FunctionName,
-				arguments = tc.FunctionArguments.ToString()
-			}
-		}));
+		// IEnumerable<ChatToolCall> toolCalls
+		var toolCallsJson = JsonSerializer.Serialize(completion.ToolCalls);
 
 		var message = new Models.ChatMessage {
 			ConversationId = conversationId,
 			Role = "assistant",
 			Content = toolCallsJson,
 			MessageIndex = index,
-			UserId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException()
+			UserId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException(),
+			ChatFinishReason = ChatFinishReason.ToolCalls
 		};
 		context.Add(message);
 		await context.SaveChangesAsync(cancellationToken);
