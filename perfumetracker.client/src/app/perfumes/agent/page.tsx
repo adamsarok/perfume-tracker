@@ -56,19 +56,19 @@ export default function ChatAgentPage() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Show recommended perfumes if available
-      if (response.recommendedPerfumes && response.recommendedPerfumes.length > 0) {
-        const perfumeList = response.recommendedPerfumes
-          .map((p) => `• ${p.name || p.title || "Unknown perfume"}`)
-          .join("\n");
+      // // Show recommended perfumes if available
+      // if (response.recommendedPerfumes && response.recommendedPerfumes.length > 0) {
+      //   const perfumeList = response.recommendedPerfumes
+      //     .map((p) => `• ${p.name || p.title || "Unknown perfume"}`)
+      //     .join("\n");
         
-        const recommendationMessage: Message = {
-          role: "assistant",
-          content: `📋 Recommended Perfumes:\n${perfumeList}`,
-        };
+      //   const recommendationMessage: Message = {
+      //     role: "assistant",
+      //     content: `📋 Recommended Perfumes:\n${perfumeList}`,
+      //   };
         
-        setMessages((prev) => [...prev, recommendationMessage]);
-      }
+      //   setMessages((prev) => [...prev, recommendationMessage]);
+      // }
     } catch (error) {
       console.error("Error chatting with agent:", error);
       const errorMessage: Message = {

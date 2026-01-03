@@ -111,7 +111,6 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
 	builder.Services.AddSingleton<ChatClient>(_ = new ChatClient(model: assistantModel, apiKey: openAiApiKey));
 	builder.Services.AddSingleton<IEncoder, Encoder>();
-	builder.Services.AddSingleton<IChatAgent, ChatAgent>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();
 }
@@ -125,7 +124,10 @@ builder.Services.AddScoped<IXPService, XPService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IPerfumeIdentifier, PerfumeIdentifier>();
+builder.Services.AddSingleton<ISystemPromptCache, SystemPromptCache>();
+builder.Services.AddScoped<IChatAgent, ChatAgent>();
 builder.Services.AddCarter();
+
 builder.Services.AddSignalR();
 
 builder.Services.AddHealthChecks()

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Caching.Memory;
 using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Perfumes.Extensions;
@@ -12,7 +11,17 @@ public class ChatAgent(
 	ChatClient chatClient,
 	IPerfumeRecommender perfumeRecommender,
 	IUserProfileService userProfileService,
-	IMemoryCache memoryCache) : IChatAgent {
+	ISystemPromptCache promptCache) : IChatAgent {
+
+	private class PerfumeEqualityComparer : IEqualityComparer<(Guid Id, string House, string PerfumeName, decimal AverageRating)> {
+		public bool Equals((Guid Id, string House, string PerfumeName, decimal AverageRating) x, (Guid Id, string House, string PerfumeName, decimal AverageRating) y) {
+			return x.Id == y.Id;
+		}
+
+		public int GetHashCode((Guid Id, string House, string PerfumeName, decimal AverageRating) obj) {
+			return obj.Id.GetHashCode();
+		}
+	}
 
 	private static readonly ChatTool SearchOwnedPerfumesByCharacteristicsTool = ChatTool.CreateFunctionTool(
 		functionName: "search_owned_perfumes_by_characteristics",
@@ -144,8 +153,7 @@ public class ChatAgent(
 	}
 
 	private async Task<string?> GetSystemPrompt(Guid userId, CancellationToken cancellationToken) {
-		return await memoryCache.GetOrCreateAsync($"system_prompt::{userId}", async entry => {
-			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
+		return await promptCache.GetOrBuildSystemPromptAsync(userId, async () => {
 			return await BuildSystemPrompt(cancellationToken);
 		});
 	}
@@ -186,40 +194,76 @@ public class ChatAgent(
 		}
 	}
 
-	private async Task<string> GetUserStats(CancellationToken cancellationToken) {
+	private async Task<UserStatsResponse> GetUserStats(CancellationToken cancellationToken) {
 		var handler = new Features.Users.GetCurrentUserStatsHandler(
 			context,
 			perfumeRecommender,
 			null! // XPService not needed for ToLlmString
 		);
-		var stats = await handler.Handle(new UserStatsQuery(), cancellationToken);
-		return stats.ToLlmString();
+		return await handler.Handle(new UserStatsQuery(), cancellationToken);
 	}
 
 	private async Task<string> BuildSystemPrompt(CancellationToken cancellationToken) {
 		var faves = await context
 			.Perfumes
 			.AsNoTracking()
-			.Take(250)
 			.OrderByDescending(p => p.AverageRating)
+			.Take(500)
+			.Select(x => new {
+				x.Id,
+				x.House,
+				x.PerfumeName,
+				x.AverageRating
+			})
 			.ToListAsync(cancellationToken);
+
 		var hates = await context
 			.Perfumes
 			.AsNoTracking()
+			.OrderBy(p => p.AverageRating)
 			.Take(50)
-			.OrderByDescending(p => p.AverageRating)
+			.Select(x => new {
+				x.Id,
+				x.House,
+				x.PerfumeName,
+				x.AverageRating
+			})
 			.ToListAsync(cancellationToken);
-		var dedup = faves.Union(hates).ToList();
-		StringBuilder collection = new StringBuilder();
+
+		// Convert anonymous types to tuples after materialization
+		var favesTuples = faves.Select(x => (x.Id, x.House, x.PerfumeName, x.AverageRating)).ToList();
+		var hatesTuples = hates.Select(x => (x.Id, x.House, x.PerfumeName, x.AverageRating)).ToList();
+
+		var dedup = favesTuples
+			.Union(hatesTuples, new PerfumeEqualityComparer())
+			.OrderByDescending(x => x.AverageRating)
+			.ToList();
+
+		var stats = await GetUserStats(cancellationToken);
+		StringBuilder sb = new StringBuilder();
+
+		sb.AppendLine($"User's FAVORITE perfume notes:");
+		foreach (var note in stats.FavoriteTags) {
+			sb.AppendLine($"{note.TagName}");
+		}
+
+		sb.AppendLine($"User's OWNED perfumes:");
 		foreach (var perfume in dedup) {
-			collection.AppendLine($"{perfume.House} - {perfume.PerfumeName} rated {perfume.AverageRating}");
+			var sentiment = perfume.AverageRating switch {
+				<= 2.0m => "Hate",
+				<= 6.0m => "Dislike",
+				< 8.0m => "Neutral",
+				<= 8.5m => "Like",
+				_ => "Love"
+			};
+			sb.AppendLine($"{perfume.House} - {perfume.PerfumeName} ({sentiment}, rated {perfume.AverageRating:F1})");
 		}
 		return $"""
 You are a helpful perfume assistant. You help users explore their perfume collection, make recommendations, and answer questions about fragrances.
 
 You have access to the user's perfume collection:
 
-{collection.ToString()}
+{sb.ToString()}
 
 IMPORTANT TOOL USAGE RULES:
 1. The available tools ONLY search perfumes the user ALREADY OWNS - they cannot find new perfumes to buy
@@ -227,7 +271,7 @@ IMPORTANT TOOL USAGE RULES:
    - User's favorite notes/tags from their collection
    - Their highest-rated perfume families
    - Perfumes that complement what they already love
-   - Make sure to suggest perfumes they DON'T already own - use the tool search_owned_perfumes_by_name to make sure you recommend NEW perfumes
+   - Make sure to suggest perfumes they DON'T already own, based on the collection above
 
 Available tools (for OWNED perfumes only):
 - search_owned_perfumes_by_characteristics: Simple 1-3 word searches in owned collection (e.g., "vanilla", "summer", "woody fresh")
