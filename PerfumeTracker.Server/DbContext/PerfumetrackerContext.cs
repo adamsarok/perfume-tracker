@@ -33,6 +33,8 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<GlobalPerfume> GlobalPerfumes { get; set; }
 	public virtual DbSet<GlobalTag> GlobalTags { get; set; }
 	public virtual DbSet<GlobalPerfumeTag> GlobalPerfumeTags { get; set; }
+	public virtual DbSet<ChatConversation> ChatConversations { get; set; }
+	public virtual DbSet<ChatMessage> ChatMessages { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 
@@ -265,6 +267,28 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted);
 		});
 
+		builder.Entity<ChatConversation>(entity => {
+			entity.HasKey(e => e.Id).HasName("ChatConversation_pkey");
+			entity.ToTable("ChatConversation");
+			entity.HasMany(e => e.Messages)
+				.WithOne(m => m.Conversation)
+				.HasForeignKey(m => m.ConversationId)
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("ChatConversation_Messages_fkey");
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
+
+		builder.Entity<ChatMessage>(entity => {
+			entity.HasKey(e => e.Id).HasName("ChatMessage_pkey");
+			entity.ToTable("ChatMessage");
+			entity.HasOne(e => e.Conversation)
+				.WithMany(c => c.Messages)
+				.HasForeignKey(e => e.ConversationId)
+				.HasConstraintName("ChatMessage_ConversationId_fkey");
+			entity.HasIndex(e => new { e.ConversationId, e.MessageIndex })
+				.HasDatabaseName("IX_ChatMessage_ConversationId_MessageIndex");
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
 
 		base.OnModelCreating(builder);
 	}

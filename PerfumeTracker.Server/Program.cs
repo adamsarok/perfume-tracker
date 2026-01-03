@@ -124,6 +124,7 @@ builder.Services.AddScoped<IXPService, XPService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IPerfumeIdentifier, PerfumeIdentifier>();
+builder.Services.AddScoped<IChatAgent, ChatAgent>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 

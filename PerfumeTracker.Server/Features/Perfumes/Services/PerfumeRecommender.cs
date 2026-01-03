@@ -197,7 +197,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 Query: 'summer night' → Response: 'light, citrus, aquatic, jasmine, neroli, marine, fresh, bergamot'
 Query: 'cozy winter evening' → Response: 'warm, amber, vanilla, cinnamon, sandalwood, spicy, gourmand, tonka bean'
 Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, subtle, bergamot, vetiver, musk'");
-		List<ChatMessage> messages = [
+		List<OpenAI.Chat.ChatMessage> messages = [
 			moodSystemPrompt,
 			new UserChatMessage(moodOrOccasion)
 		];

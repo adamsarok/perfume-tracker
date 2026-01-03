@@ -1,0 +1,10 @@
+namespace PerfumeTracker.Server.Features.Perfumes.Services;
+
+public record ChatAgentRequest(Guid? ConversationId, string UserMessage);
+public record ChatAgentResponse(Guid ConversationId, string AssistantMessage, IEnumerable<PerfumeWithWornStatsDto>? RecommendedPerfumes = null);
+
+public interface IChatAgent {
+	Task<ChatAgentResponse> ChatAsync(ChatAgentRequest request, CancellationToken cancellationToken);
+	Task<Models.ChatConversation?> GetConversationAsync(Guid conversationId, CancellationToken cancellationToken);
+	Task<IEnumerable<Models.ChatConversation>> GetUserConversationsAsync(CancellationToken cancellationToken);
+}
