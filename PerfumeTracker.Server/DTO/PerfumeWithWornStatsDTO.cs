@@ -2,8 +2,8 @@
 	public record PerfumeWithWornStatsDto(PerfumeDto Perfume,
 		int WornTimes,
 		DateTime? LastWorn,
-		decimal burnRatePerYearMl,
-		decimal yearsLeft,
-		decimal averageRating,
-		string lastComment);
+		decimal BurnRatePerYearMl,
+		decimal YearsLeft,
+		decimal AverageRating,
+		string LastComment);
 }

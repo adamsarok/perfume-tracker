@@ -1,6 +1,5 @@
 using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Common;
-using PerfumeTracker.Server.Features.Perfumes.Extensions;
 using PerfumeTracker.Server.Features.Users;
 using System.Text;
 
@@ -12,16 +11,6 @@ public class ChatAgent(
 	IPerfumeRecommender perfumeRecommender,
 	IUserProfileService userProfileService,
 	ISystemPromptCache promptCache) : IChatAgent {
-
-	private class PerfumeEqualityComparer : IEqualityComparer<(Guid Id, string House, string PerfumeName, decimal AverageRating)> {
-		public bool Equals((Guid Id, string House, string PerfumeName, decimal AverageRating) x, (Guid Id, string House, string PerfumeName, decimal AverageRating) y) {
-			return x.Id == y.Id;
-		}
-
-		public int GetHashCode((Guid Id, string House, string PerfumeName, decimal AverageRating) obj) {
-			return obj.Id.GetHashCode();
-		}
-	}
 
 	private static readonly ChatTool SearchOwnedPerfumesByCharacteristicsTool = ChatTool.CreateFunctionTool(
 		functionName: "search_owned_perfumes_by_characteristics",
@@ -66,6 +55,42 @@ public class ChatAgent(
 		""")
 	);
 
+	private static readonly ChatTool CheckPerfumeOwnershipTool = ChatTool.CreateFunctionTool(
+		functionName: "check_perfume_ownership",
+		functionDescription: "Check if user already owns specific perfumes by house and name. Use this BEFORE recommending new perfumes to buy. Returns which perfumes from the list are already owned.",
+		functionParameters: BinaryData.FromString("""
+		{
+			"type": "object",
+			"properties": {
+				"perfumes": {
+					"type": "array",
+					"description": "List of perfumes to check ownership for",
+					"items": {
+						"type": "object",
+						"properties": {
+							"house": {
+								"type": "string",
+								"description": "Perfume house/brand name"
+							},
+							"name": {
+								"type": "string",
+								"description": "Perfume name"
+							}
+						},
+						"required": ["house", "name"]
+					}
+				}
+			},
+			"required": ["perfumes"],
+			"additionalProperties": false
+		}
+		""")
+	);
+	private class PerfumeOwnershipCheck {
+		public string House { get; set; } = string.Empty;
+		public string Name { get; set; } = string.Empty;
+	}
+
 	public async Task<ChatAgentResponse> ChatAsync(ChatAgentRequest request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 
@@ -100,6 +125,7 @@ public class ChatAgent(
 		var options = new ChatCompletionOptions();
 		options.Tools.Add(SearchOwnedPerfumesByCharacteristicsTool);
 		options.Tools.Add(SearchOwnedPerfumesByNameTool);
+		options.Tools.Add(CheckPerfumeOwnershipTool);
 
 		IEnumerable<PerfumeWithWornStatsDto>? recommendedPerfumes = null;
 		bool requiresAnotherIteration = true;
@@ -126,9 +152,7 @@ public class ChatAgent(
 						string toolResult;
 						try {
 							var perfumes = await ExecuteToolCall(toolCall, cancellationToken);
-							recommendedPerfumes = perfumes;
-							var llmPerfumes = perfumes.Select(p => p.ToPerfumeLlmDto());
-							toolResult = JsonSerializer.Serialize(llmPerfumes, new JsonSerializerOptions {
+							toolResult = JsonSerializer.Serialize(perfumes, new JsonSerializerOptions {
 								WriteIndented = false
 							});
 						} catch (Exception ex) {
@@ -158,7 +182,14 @@ public class ChatAgent(
 		});
 	}
 
-	private async Task<IEnumerable<PerfumeWithWornStatsDto>> ExecuteToolCall(ChatToolCall toolCall, CancellationToken cancellationToken) {
+	public record PerfumeLlmDto(
+		string House,
+		string PerfumeName,
+		decimal Rating
+	);
+
+
+	private async Task<IEnumerable<PerfumeLlmDto>> ExecuteToolCall(ChatToolCall toolCall, CancellationToken cancellationToken) {
 		var arguments = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(toolCall.FunctionArguments.ToString());
 		if (arguments == null) throw new InvalidOperationException("Failed to parse tool arguments");
 
@@ -167,7 +198,7 @@ public class ChatAgent(
 				var prompt = arguments["prompt"].GetString() ?? throw new ArgumentException("Missing prompt");
 				var count = arguments.TryGetValue("count", out var countElement) ? countElement.GetInt32() : 5;
 				var recommendations = await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(count, prompt, cancellationToken);
-				return recommendations.Select(r => r.Perfume);
+				return recommendations.Select(r => new PerfumeLlmDto(r.Perfume.Perfume.House, r.Perfume.Perfume.PerfumeName, r.Perfume.AverageRating));
 
 			case "search_owned_perfumes_by_name":
 				var query = arguments["query"].GetString() ?? throw new ArgumentException("Missing query");
@@ -183,11 +214,46 @@ public class ChatAgent(
 					.ThenInclude(x => x.Tag)
 					.Include(x => x.PerfumeRatings)
 					.Where(p => p.FullText.Matches(EF.Functions.ToTsQuery(tsQuery)))
-					.Select(p => p.ToPerfumeWithWornStatsDto(userProfile, null!))
+					.Select(r => new PerfumeLlmDto(r.House, r.PerfumeName, r.AverageRating))
 					.Take(10)
 					.AsSplitQuery()
 					.AsNoTracking()
 					.ToListAsync();
+			case "check_perfume_ownership":
+				var perfumesToCheck = arguments["perfumes"].Deserialize<List<PerfumeOwnershipCheck>>();
+				if (perfumesToCheck == null) throw new ArgumentException("Missing perfumes");
+
+				var ownedPerfumes = await context.Perfumes
+					.AsNoTracking()
+					.Select(r => new PerfumeLlmDto(r.House, r.PerfumeName, r.AverageRating))
+					.ToListAsync(cancellationToken);
+
+				var results = perfumesToCheck.Select(check => {
+					var searchText = $"{check.House} {check.Name}".ToLowerInvariant();
+
+					var exactMatch = ownedPerfumes.FirstOrDefault(owned =>
+						owned.House.Equals(check.House, StringComparison.OrdinalIgnoreCase) &&
+						owned.PerfumeName.Equals(check.Name, StringComparison.OrdinalIgnoreCase));
+
+					if (exactMatch != null) return exactMatch;
+
+					var fuzzyMatch = ownedPerfumes
+						.Select(owned => new {
+							owned.House,
+							owned.PerfumeName,
+							houseScore = CalculateSimilarity(check.House.ToLowerInvariant(), owned.House.ToLowerInvariant()),
+							nameScore = CalculateSimilarity(check.Name.ToLowerInvariant(), owned.PerfumeName.ToLowerInvariant())
+						})
+						.Where(m => (m.houseScore > 0.7 && m.nameScore > 0.7))
+						.OrderByDescending(m => m.houseScore + m.nameScore)
+						.FirstOrDefault();
+
+					if (fuzzyMatch != null) return fuzzyMatch;
+
+					return null;
+				}).ToList();
+
+				return results.Where(x => x == null);
 
 			default:
 				throw new InvalidOperationException($"Unknown tool: {toolCall.FunctionName}");
@@ -208,7 +274,7 @@ public class ChatAgent(
 			.Perfumes
 			.AsNoTracking()
 			.OrderByDescending(p => p.AverageRating)
-			.Take(500)
+			.Take(20)
 			.Select(x => new {
 				x.Id,
 				x.House,
@@ -216,28 +282,6 @@ public class ChatAgent(
 				x.AverageRating
 			})
 			.ToListAsync(cancellationToken);
-
-		var hates = await context
-			.Perfumes
-			.AsNoTracking()
-			.OrderBy(p => p.AverageRating)
-			.Take(50)
-			.Select(x => new {
-				x.Id,
-				x.House,
-				x.PerfumeName,
-				x.AverageRating
-			})
-			.ToListAsync(cancellationToken);
-
-		// Convert anonymous types to tuples after materialization
-		var favesTuples = faves.Select(x => (x.Id, x.House, x.PerfumeName, x.AverageRating)).ToList();
-		var hatesTuples = hates.Select(x => (x.Id, x.House, x.PerfumeName, x.AverageRating)).ToList();
-
-		var dedup = favesTuples
-			.Union(hatesTuples, new PerfumeEqualityComparer())
-			.OrderByDescending(x => x.AverageRating)
-			.ToList();
 
 		var stats = await GetUserStats(cancellationToken);
 		StringBuilder sb = new StringBuilder();
@@ -247,16 +291,9 @@ public class ChatAgent(
 			sb.AppendLine($"{note.TagName}");
 		}
 
-		sb.AppendLine($"User's OWNED perfumes:");
-		foreach (var perfume in dedup) {
-			var sentiment = perfume.AverageRating switch {
-				<= 2.0m => "Hate",
-				<= 6.0m => "Dislike",
-				< 8.0m => "Neutral",
-				<= 8.5m => "Like",
-				_ => "Love"
-			};
-			sb.AppendLine($"{perfume.House} - {perfume.PerfumeName} ({sentiment}, rated {perfume.AverageRating:F1})");
+		sb.AppendLine($"User's FAVORITE perfumes:");
+		foreach (var perfume in faves) {
+			sb.AppendLine($"{perfume.House} - {perfume.PerfumeName} rated {perfume.AverageRating:F1})");
 		}
 		return $"""
 You are a helpful perfume assistant. You help users explore their perfume collection, make recommendations, and answer questions about fragrances.
@@ -286,6 +323,40 @@ When tools return perfumes, they include:
 
 Be conversational, friendly, and knowledgeable. When recommending NEW perfumes to try, use your perfume knowledge to suggest complementary scents based on their preferences, but make sure they're not already in their collection.
 """;
+	}
+
+	private static double CalculateSimilarity(string source, string target) {
+		if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(target)) return 0;
+		if (source == target) return 1.0;
+
+		var sourceLength = source.Length;
+		var targetLength = target.Length;
+		var distance = LevenshteinDistance(source, target);
+
+		return 1.0 - (double)distance / Math.Max(sourceLength, targetLength);
+	}
+
+	private static int LevenshteinDistance(string source, string target) {
+		if (string.IsNullOrEmpty(source)) return target?.Length ?? 0;
+		if (string.IsNullOrEmpty(target)) return source.Length;
+
+		var sourceLength = source.Length;
+		var targetLength = target.Length;
+		var distance = new int[sourceLength + 1, targetLength + 1];
+
+		for (var i = 0; i <= sourceLength; distance[i, 0] = i++) { }
+		for (var j = 0; j <= targetLength; distance[0, j] = j++) { }
+
+		for (var i = 1; i <= sourceLength; i++) {
+			for (var j = 1; j <= targetLength; j++) {
+				var cost = (target[j - 1] == source[i - 1]) ? 0 : 1;
+				distance[i, j] = Math.Min(
+					Math.Min(distance[i - 1, j] + 1, distance[i, j - 1] + 1),
+					distance[i - 1, j - 1] + cost);
+			}
+		}
+
+		return distance[sourceLength, targetLength];
 	}
 
 	private async Task<List<OpenAI.Chat.ChatMessage>> GetChatHistory(Models.ChatConversation conversation, CancellationToken cancellationToken) {
