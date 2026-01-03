@@ -8,7 +8,9 @@ using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Common.Services;
+using PerfumeTracker.Server.Features.Demo;
 using PerfumeTracker.Server.Features.Embedding;
+using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 using PerfumeTracker.Server.Features.Perfumes.Services;
@@ -23,8 +25,6 @@ using Serilog.Sinks.PostgreSQL;
 using System.Text.Json.Serialization;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
-using PerfumeTracker.Server.Features.Missions;
-using PerfumeTracker.Server.Features.Demo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -111,6 +111,7 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
 	builder.Services.AddSingleton<ChatClient>(_ = new ChatClient(model: assistantModel, apiKey: openAiApiKey));
 	builder.Services.AddSingleton<IEncoder, Encoder>();
+	builder.Services.AddSingleton<IChatAgent, ChatAgent>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();
 }
@@ -124,7 +125,6 @@ builder.Services.AddScoped<IXPService, XPService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IPerfumeIdentifier, PerfumeIdentifier>();
-builder.Services.AddScoped<IChatAgent, ChatAgent>();
 builder.Services.AddCarter();
 builder.Services.AddSignalR();
 

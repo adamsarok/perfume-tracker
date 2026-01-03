@@ -1,7 +1,9 @@
+using Microsoft.Extensions.Caching.Memory;
 using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Perfumes.Extensions;
 using PerfumeTracker.Server.Features.Users;
+using System.Text;
 
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
@@ -9,7 +11,8 @@ public class ChatAgent(
 	PerfumeTrackerContext context,
 	ChatClient chatClient,
 	IPerfumeRecommender perfumeRecommender,
-	IUserProfileService userProfileService) : IChatAgent {
+	IUserProfileService userProfileService,
+	IMemoryCache memoryCache) : IChatAgent {
 
 	private static readonly ChatTool SearchOwnedPerfumesByCharacteristicsTool = ChatTool.CreateFunctionTool(
 		functionName: "search_owned_perfumes_by_characteristics",
@@ -65,9 +68,9 @@ public class ChatAgent(
 				.Include(c => c.Messages)
 				.FirstOrDefaultAsync(c => c.Id == request.ConversationId.Value, cancellationToken)
 				?? throw new NotFoundException($"Conversation {request.ConversationId.Value} not found");
-			chatHistory = await GetChatHistory(conversation);
+			chatHistory = await GetChatHistory(conversation, cancellationToken);
 		} else {
-			var userStats = await GetUserStats(cancellationToken);
+			//var userStats = await GetUserStats(cancellationToken);
 			conversation = new Models.ChatConversation {
 				UserId = userId,
 				Title = request.UserMessage.Length > 50 ? request.UserMessage[..50] + "..." : request.UserMessage
@@ -75,7 +78,8 @@ public class ChatAgent(
 			context.Add(conversation);
 			await context.SaveChangesAsync(cancellationToken);
 
-			var systemPrompt = BuildSystemPrompt(userStats);
+			string? systemPrompt = await GetSystemPrompt(userId, cancellationToken);
+
 			chatHistory = [new SystemChatMessage(systemPrompt)];
 		}
 
@@ -139,6 +143,13 @@ public class ChatAgent(
 		throw new InvalidOperationException("Maximum iterations reached without completion");
 	}
 
+	private async Task<string?> GetSystemPrompt(Guid userId, CancellationToken cancellationToken) {
+		return await memoryCache.GetOrCreateAsync($"system_prompt::{userId}", async entry => {
+			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
+			return await BuildSystemPrompt(cancellationToken);
+		});
+	}
+
 	private async Task<IEnumerable<PerfumeWithWornStatsDto>> ExecuteToolCall(ChatToolCall toolCall, CancellationToken cancellationToken) {
 		var arguments = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(toolCall.FunctionArguments.ToString());
 		if (arguments == null) throw new InvalidOperationException("Failed to parse tool arguments");
@@ -185,13 +196,30 @@ public class ChatAgent(
 		return stats.ToLlmString();
 	}
 
-	private string BuildSystemPrompt(string userStats) {
+	private async Task<string> BuildSystemPrompt(CancellationToken cancellationToken) {
+		var faves = await context
+			.Perfumes
+			.AsNoTracking()
+			.Take(250)
+			.OrderByDescending(p => p.AverageRating)
+			.ToListAsync(cancellationToken);
+		var hates = await context
+			.Perfumes
+			.AsNoTracking()
+			.Take(50)
+			.OrderByDescending(p => p.AverageRating)
+			.ToListAsync(cancellationToken);
+		var dedup = faves.Union(hates).ToList();
+		StringBuilder collection = new StringBuilder();
+		foreach (var perfume in dedup) {
+			collection.AppendLine($"{perfume.House} - {perfume.PerfumeName} rated {perfume.AverageRating}");
+		}
 		return $"""
 You are a helpful perfume assistant. You help users explore their perfume collection, make recommendations, and answer questions about fragrances.
 
-You have access to the user's perfume collection statistics:
+You have access to the user's perfume collection:
 
-{userStats}
+{collection.ToString()}
 
 IMPORTANT TOOL USAGE RULES:
 1. The available tools ONLY search perfumes the user ALREADY OWNS - they cannot find new perfumes to buy
@@ -216,14 +244,16 @@ Be conversational, friendly, and knowledgeable. When recommending NEW perfumes t
 """;
 	}
 
-	private async Task<List<OpenAI.Chat.ChatMessage>> GetChatHistory(Models.ChatConversation conversation) {
+	private async Task<List<OpenAI.Chat.ChatMessage>> GetChatHistory(Models.ChatConversation conversation, CancellationToken cancellationToken) {
 		var messages = conversation.Messages
 			.OrderBy(m => m.MessageIndex)
 			.ToList();
 
 		var chatHistory = new List<OpenAI.Chat.ChatMessage>();
-		var userStats = await GetUserStats(default);
-		chatHistory.Add(new SystemChatMessage(BuildSystemPrompt(userStats)));
+		//var userStats = await GetUserStats(default);
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
+		string? systemPrompt = await GetSystemPrompt(userId, cancellationToken);
+		chatHistory.Add(new SystemChatMessage(systemPrompt));
 
 		foreach (var msg in messages) {
 			switch (msg.Role) {
