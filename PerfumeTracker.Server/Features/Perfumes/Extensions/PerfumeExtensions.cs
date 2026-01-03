@@ -33,7 +33,7 @@ public static class PerfumeExtensions {
 				p.Ml,
 				p.MlLeft,
 				p.ImageObjectKeyNew,
-				presignedUrlService.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET)?.ToString() ?? "",
+				presignedUrlService?.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET)?.ToString() ?? "",
 				[.. p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id, tag.Tag.IsDeleted))],
 				p.IsDeleted,
 				[.. p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(r.PerfumeId, r.Id, r.Rating, r.Comment, r.RatingDate, r.IsDeleted))]

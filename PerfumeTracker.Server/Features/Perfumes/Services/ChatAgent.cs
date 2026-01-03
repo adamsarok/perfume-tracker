@@ -11,20 +11,20 @@ public class ChatAgent(
 	IPerfumeRecommender perfumeRecommender,
 	IUserProfileService userProfileService) : IChatAgent {
 
-	private static readonly ChatTool SearchByOccasionMoodTool = ChatTool.CreateFunctionTool(
-		functionName: "search_perfumes_by_occasion_mood_notes",
-		functionDescription: "Search for perfume recommendations based on mood, occasion, tags, notes, or comments. Use this when the user asks for perfumes suitable for specific situations, seasons, or characteristics.",
+	private static readonly ChatTool SearchOwnedPerfumesByCharacteristicsTool = ChatTool.CreateFunctionTool(
+		functionName: "search_owned_perfumes_by_characteristics",
+		functionDescription: "Search ONLY perfumes the user already OWNS by simple characteristics like notes, moods, or seasons. LIMITATIONS: (1) Only searches user's OWNED collection, NOT new perfumes. (2) Only handles simple 1-3 word queries like 'vanilla', 'summer night', 'spicy amber'.",
 		functionParameters: BinaryData.FromString("""
 		{
 			"type": "object",
 			"properties": {
 				"prompt": {
 					"type": "string",
-					"description": "The mood, occasion, season, or perfume characteristics to search for (e.g., 'summer night', 'formal meeting', 'spicy amber')"
+					"description": "Simple 1-3 word characteristic to search (e.g., 'vanilla', 'summer', 'woody fresh', 'cozy'). Must be a simple note, mood, or season - NOT a complex question."
 				},
 				"count": {
 					"type": "integer",
-					"description": "Number of recommendations to return (1-10)",
+					"description": "Number of perfumes to return (1-10)",
 					"minimum": 1,
 					"maximum": 10,
 					"default": 5
@@ -36,16 +36,16 @@ public class ChatAgent(
 		""")
 	);
 
-	private static readonly ChatTool SearchByNameTool = ChatTool.CreateFunctionTool(
-		functionName: "search_perfumes_by_name",
-		functionDescription: "Search for perfumes by name or brand/house. Use this when the user asks about specific perfume names or brands.",
+	private static readonly ChatTool SearchOwnedPerfumesByNameTool = ChatTool.CreateFunctionTool(
+		functionName: "search_owned_perfumes_by_name",
+		functionDescription: "Search ONLY perfumes the user already OWNS by perfume name or brand. LIMITATIONS: (1) Only searches user's OWNED collection, NOT new perfumes. (2) Only for finding specific perfumes by name. (3) Cannot recommend NEW perfumes to buy.",
 		functionParameters: BinaryData.FromString("""
 		{
 			"type": "object",
 			"properties": {
 				"query": {
 					"type": "string",
-					"description": "The perfume name or house/brand to search for"
+					"description": "The perfume name or house/brand to search in user's owned collection"
 				}
 			},
 			"required": ["query"],
@@ -85,8 +85,8 @@ public class ChatAgent(
 		await SaveChatMessage(conversation.Id, "user", request.UserMessage, chatHistory.Count - 1, cancellationToken);
 
 		var options = new ChatCompletionOptions();
-		options.Tools.Add(SearchByOccasionMoodTool);
-		options.Tools.Add(SearchByNameTool);
+		options.Tools.Add(SearchOwnedPerfumesByCharacteristicsTool);
+		options.Tools.Add(SearchOwnedPerfumesByNameTool);
 
 		IEnumerable<PerfumeWithWornStatsDto>? recommendedPerfumes = null;
 		bool requiresAnotherIteration = true;
@@ -115,8 +115,8 @@ public class ChatAgent(
 							var perfumes = await ExecuteToolCall(toolCall, cancellationToken);
 							recommendedPerfumes = perfumes;
 							var llmPerfumes = perfumes.Select(p => p.ToPerfumeLlmDto());
-							toolResult = JsonSerializer.Serialize(llmPerfumes, new JsonSerializerOptions { 
-								WriteIndented = false 
+							toolResult = JsonSerializer.Serialize(llmPerfumes, new JsonSerializerOptions {
+								WriteIndented = false
 							});
 						} catch (Exception ex) {
 							toolResult = $"Error: {ex.Message}";
@@ -144,13 +144,13 @@ public class ChatAgent(
 		if (arguments == null) throw new InvalidOperationException("Failed to parse tool arguments");
 
 		switch (toolCall.FunctionName) {
-			case "search_perfumes_by_occasion_mood_notes":
+			case "search_owned_perfumes_by_characteristics":
 				var prompt = arguments["prompt"].GetString() ?? throw new ArgumentException("Missing prompt");
 				var count = arguments.TryGetValue("count", out var countElement) ? countElement.GetInt32() : 5;
 				var recommendations = await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(count, prompt, cancellationToken);
 				return recommendations.Select(r => r.Perfume);
 
-			case "search_perfumes_by_name":
+			case "search_owned_perfumes_by_name":
 				var query = arguments["query"].GetString() ?? throw new ArgumentException("Missing query");
 				var tsQuery = string.Join(" & ", query!
 					.Split(' ', StringSplitOptions.RemoveEmptyEntries)
@@ -193,21 +193,26 @@ You have access to the user's perfume collection statistics:
 
 {userStats}
 
-When the user asks for recommendations or searches, use the available tools:
-- search_perfumes_by_occasion_mood_notes: For mood-based, occasion-based, or characteristic-based searches (e.g., "summer night", "formal meeting", "spicy amber")
-- search_perfumes_by_name: For searching by perfume name or brand
+IMPORTANT TOOL USAGE RULES:
+1. The available tools ONLY search perfumes the user ALREADY OWNS - they cannot find new perfumes to buy
+2. For NEW perfume recommendations (e.g., "recommend new perfumes to try"):
+   - User's favorite notes/tags from their collection
+   - Their highest-rated perfume families
+   - Perfumes that complement what they already love
+   - Make sure to suggest perfumes they DON'T already own - use the tool search_owned_perfumes_by_name to make sure you recommend NEW perfumes
 
-The tools return perfumes with these fields:
-- Id: Unique identifier
-- House: Brand/maker name
-- PerfumeName: Name of the perfume
-- Family: Perfume family (e.g., Floral, Woody, Oriental, Fresh)
+Available tools (for OWNED perfumes only):
+- search_owned_perfumes_by_characteristics: Simple 1-3 word searches in owned collection (e.g., "vanilla", "summer", "woody fresh")
+- search_owned_perfumes_by_name: Find specific perfumes by name/brand in owned collection
+
+When tools return perfumes, they include:
+- Id, House, PerfumeName, Family
 - Rating: User's rating (0-10)
-- TimesWorn: How many times the user has worn this perfume
-- Tags: Notes and characteristics (e.g., ["vanilla", "amber", "spicy"])
-- LastComment: User's most recent comment about the perfume
+- TimesWorn: How many times worn
+- Tags: Notes and characteristics
+- LastComment: User's most recent comment
 
-Be conversational, friendly, and knowledgeable about perfumes. When you provide recommendations, explain why they might be a good fit based on the user's preferences, rating history, and the perfume's characteristics.
+Be conversational, friendly, and knowledgeable. When recommending NEW perfumes to try, use your perfume knowledge to suggest complementary scents based on their preferences, but make sure they're not already in their collection.
 """;
 	}
 
