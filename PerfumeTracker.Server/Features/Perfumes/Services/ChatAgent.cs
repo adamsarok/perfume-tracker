@@ -1,5 +1,4 @@
 using OpenAI.Chat;
-using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Users;
 using System.Text;
 
@@ -9,7 +8,6 @@ public class ChatAgent(
 	PerfumeTrackerContext context,
 	ChatClient chatClient,
 	IPerfumeRecommender perfumeRecommender,
-	IUserProfileService userProfileService,
 	ISystemPromptCache promptCache) : IChatAgent {
 
 	private static readonly ChatTool SearchOwnedPerfumesByCharacteristicsTool = ChatTool.CreateFunctionTool(
@@ -36,24 +34,6 @@ public class ChatAgent(
 		}
 		""")
 	);
-
-	//private static readonly ChatTool SearchOwnedPerfumesByNameTool = ChatTool.CreateFunctionTool(
-	//	functionName: "search_owned_perfumes_by_name",
-	//	functionDescription: "Search ONLY perfumes the user already OWNS by perfume name or brand. LIMITATIONS: (1) Only searches user's OWNED collection, NOT new perfumes. (2) Only for finding specific perfumes by name. (3) Cannot recommend NEW perfumes to buy.",
-	//	functionParameters: BinaryData.FromString("""
-	//	{
-	//		"type": "object",
-	//		"properties": {
-	//			"query": {
-	//				"type": "string",
-	//				"description": "The perfume name or house/brand to search in user's owned collection"
-	//			}
-	//		},
-	//		"required": ["query"],
-	//		"additionalProperties": false
-	//	}
-	//	""")
-	//);
 
 	private static readonly ChatTool CheckPerfumeOwnershipTool = ChatTool.CreateFunctionTool(
 		functionName: "check_perfume_ownership",
@@ -103,7 +83,6 @@ public class ChatAgent(
 				?? throw new NotFoundException($"Conversation {request.ConversationId.Value} not found");
 			chatHistory = await GetChatHistory(conversation, cancellationToken);
 		} else {
-			//var userStats = await GetUserStats(cancellationToken);
 			conversation = new Models.ChatConversation {
 				UserId = userId,
 				Title = request.UserMessage.Length > 50 ? request.UserMessage[..50] + "..." : request.UserMessage
@@ -123,7 +102,6 @@ public class ChatAgent(
 
 		var options = new ChatCompletionOptions();
 		options.Tools.Add(SearchOwnedPerfumesByCharacteristicsTool);
-		//options.Tools.Add(SearchOwnedPerfumesByNameTool);
 		options.Tools.Add(CheckPerfumeOwnershipTool);
 
 		IEnumerable<PerfumeWithWornStatsDto>? recommendedPerfumes = null;
@@ -294,6 +272,8 @@ IMPORTANT TOOL USAGE RULES:
    - Their highest-rated perfume families
    - Perfumes that complement what they already love
    - Make sure to suggest perfumes they DON'T already own, based on the collection above
+   - If the user asks for 10 recommendations, search 50 perfumes with check_perfume_ownership and filter out owned ones
+   - If you cannt find enough recommendations in 2 tries, provide any recommendations you already found
 
 Available tools (for OWNED perfumes only):
 - search_owned_perfumes_by_characteristics: Simple 1-3 word searches in owned collection (e.g., "vanilla", "summer", "woody fresh")
@@ -350,7 +330,6 @@ Be conversational, friendly, and knowledgeable. When recommending NEW perfumes t
 			.ToList();
 
 		var chatHistory = new List<OpenAI.Chat.ChatMessage>();
-		//var userStats = await GetUserStats(default);
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		string? systemPrompt = await GetSystemPrompt(userId, cancellationToken);
 		chatHistory.Add(new SystemChatMessage(systemPrompt));
