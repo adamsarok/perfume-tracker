@@ -114,15 +114,10 @@ public class ChatAgent(
 						try {
 							var perfumes = await ExecuteToolCall(toolCall, cancellationToken);
 							recommendedPerfumes = perfumes;
-							toolResult = JsonSerializer.Serialize(perfumes.Select(p => new {
-								id = p.Perfume.Id,
-								house = p.Perfume.House,
-								perfumeName = p.Perfume.PerfumeName,
-								family = p.Perfume.Family,
-								rating = p.averageRating,
-								wearCount = p.WornTimes,
-								mlLeft = p.Perfume.MlLeft
-							}));
+							var llmPerfumes = perfumes.Select(p => p.ToPerfumeLlmDto());
+							toolResult = JsonSerializer.Serialize(llmPerfumes, new JsonSerializerOptions { 
+								WriteIndented = false 
+							});
 						} catch (Exception ex) {
 							toolResult = $"Error: {ex.Message}";
 						}
@@ -199,10 +194,20 @@ You have access to the user's perfume collection statistics:
 {userStats}
 
 When the user asks for recommendations or searches, use the available tools:
-- search_perfumes_by_occasion_mood: For mood-based, occasion-based, or characteristic-based searches
+- search_perfumes_by_occasion_mood_notes: For mood-based, occasion-based, or characteristic-based searches (e.g., "summer night", "formal meeting", "spicy amber")
 - search_perfumes_by_name: For searching by perfume name or brand
 
-Be conversational, friendly, and knowledgeable about perfumes. When you provide recommendations, explain why they might be a good fit based on the user's preferences and history.
+The tools return perfumes with these fields:
+- Id: Unique identifier
+- House: Brand/maker name
+- PerfumeName: Name of the perfume
+- Family: Perfume family (e.g., Floral, Woody, Oriental, Fresh)
+- Rating: User's rating (0-10)
+- TimesWorn: How many times the user has worn this perfume
+- Tags: Notes and characteristics (e.g., ["vanilla", "amber", "spicy"])
+- LastComment: User's most recent comment about the perfume
+
+Be conversational, friendly, and knowledgeable about perfumes. When you provide recommendations, explain why they might be a good fit based on the user's preferences, rating history, and the perfume's characteristics.
 """;
 	}
 
