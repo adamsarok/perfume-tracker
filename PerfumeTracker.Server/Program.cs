@@ -16,6 +16,7 @@ using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.R2;
+using PerfumeTracker.Server.Features.Tags;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Middleware;
@@ -162,6 +163,7 @@ builder.Services.AddHostedService<OutboxBackgroundService>();
 builder.Services.AddHostedService<EmbeddingBackgroundService>();
 builder.Services.AddHostedService<MissionBackgroundService>();
 builder.Services.AddHostedService<PerfumeIdentifierBackgroundService>();
+builder.Services.AddHostedService<TagBackfillBackgroundService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
 

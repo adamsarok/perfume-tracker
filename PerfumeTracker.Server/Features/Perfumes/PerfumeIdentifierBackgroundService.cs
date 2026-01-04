@@ -256,7 +256,7 @@ public class PerfumeIdentifierBackgroundService(
 				// Create user tag from global tag
 				userTag = new Tag {
 					TagName = globalPerfumeTag.GlobalTag.TagName,
-					Color = GenerateColorForTag(globalPerfumeTag.GlobalTag.TagName),
+					Color = null,
 					UserId = perfume.UserId
 				};
 				context.Tags.Add(userTag);
@@ -319,7 +319,7 @@ public class PerfumeIdentifierBackgroundService(
 				// Create user tag with a default color
 				userTag = new Tag {
 					TagName = pascalCaseNote,
-					Color = GenerateColorForTag(pascalCaseNote),
+					Color = null,
 					UserId = perfume.UserId
 				};
 				context.Tags.Add(userTag);
@@ -368,20 +368,5 @@ public class PerfumeIdentifierBackgroundService(
 			char.ToUpper(word[0]) + word.Substring(1).ToLower()));
 
 		return result;
-	}
-
-	private string GenerateColorForTag(string tagName) {
-		// Generate a color based on tag name hash
-		var hash = tagName.GetHashCode();
-		var r = (hash & 0xFF0000) >> 16;
-		var g = (hash & 0x00FF00) >> 8;
-		var b = hash & 0x0000FF;
-
-		// Ensure colors are not too dark
-		r = Math.Max(r, 100);
-		g = Math.Max(g, 100);
-		b = Math.Max(b, 100);
-
-		return $"#{r:X2}{g:X2}{b:X2}";
 	}
 }

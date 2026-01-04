@@ -41,9 +41,10 @@ public class SearchGlobalPerfumesHandler(PerfumeTrackerContext context)
 			p.Family,
 			p.GlobalPerfumeTags.Select(pt => new TagDto(
 				pt.GlobalTag.TagName,
-				pt.GlobalTag.Color,
+				null,
 				pt.GlobalTag.Id,
-				pt.GlobalTag.IsDeleted
+				pt.GlobalTag.IsDeleted,
+				null
 			)).ToList()
 		)).ToList();
 	}
