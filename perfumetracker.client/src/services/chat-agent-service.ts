@@ -8,7 +8,6 @@ export interface ChatAgentRequest {
 export interface ChatAgentResponse {
   conversationId: string;
   assistantMessage: string;
-  recommendedPerfumes?: any[] | null;
 }
 
 export interface ChatMessage {

@@ -33,7 +33,6 @@ public class ChatAgent(
 		options.Tools.Add(ChatAgentTools.SearchOwnedPerfumesByCharacteristicsTool);
 		options.Tools.Add(ChatAgentTools.CheckPerfumeOwnershipTool);
 
-		IEnumerable<PerfumeWithWornStatsDto>? recommendedPerfumes = null;
 		bool requiresAnotherIteration = true;
 		int iteration = 0;
 
@@ -54,7 +53,7 @@ public class ChatAgent(
 				case ChatFinishReason.Stop:
 					var responseMessage = completion.Value.Content[0].Text;
 					await SaveChatMessage(conversation.Id, "assistant", responseMessage, chatHistory.Count, cancellationToken, completion.Value.FinishReason);
-					return new ChatAgentResponse(conversation.Id, responseMessage, recommendedPerfumes);
+					return new ChatAgentResponse(conversation.Id, responseMessage);
 				case ChatFinishReason.ToolCalls:
 					await HandleToolCalls(userId, conversation, chatHistory, completion, cancellationToken);
 					requiresAnotherIteration = true;

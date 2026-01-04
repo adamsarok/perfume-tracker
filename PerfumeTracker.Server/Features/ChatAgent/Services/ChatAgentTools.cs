@@ -89,8 +89,6 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 			.ToListAsync(cancellationToken);
 
 		var results = perfumesToCheck.Select<PerfumeOwnershipCheckQuery, PerfumeOwnershipCheckResult>(check => {
-			var searchText = $"{check.House} {check.Name}".ToLowerInvariant();
-
 			var exactMatch = ownedPerfumes.FirstOrDefault(owned =>
 				owned.House.Equals(check.House, StringComparison.OrdinalIgnoreCase) &&
 				owned.PerfumeName.Equals(check.Name, StringComparison.OrdinalIgnoreCase));

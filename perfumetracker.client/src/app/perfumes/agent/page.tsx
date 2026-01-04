@@ -56,7 +56,12 @@ export default function ChatAgentPage() {
     setToolCallProgress((prev) => ({ ...prev, message }));
   };
   const stopProgressTimer = () => {
-    setToolCallProgress((prev) => ({ ...prev, message: 'Agent is idle.', isActive: false, startTime: null }));
+    setToolCallProgress((prev) => ({
+      ...prev,
+      message: "Agent is idle.",
+      isActive: false,
+      startTime: null,
+    }));
   };
 
   const handleSend = async () => {
@@ -107,45 +112,51 @@ export default function ChatAgentPage() {
 
   useEffect(() => {
     let connection: signalR.HubConnection | null = null;
-    let cancelled = false;
+
+    let isMounted = true;
     (async () => {
+      if (!isMounted) return;
+
       const apiUrl = await initializeApiUrl();
+
       if (!apiUrl) {
         console.error("API URL not configured");
         return;
       }
+
+      if (!isMounted) return;
+
       connection = new signalR.HubConnectionBuilder()
         .withUrl(`${apiUrl}/hubs/chat-progress`)
         .withAutomaticReconnect()
         .build();
+
       interface ProgressMsg {
         message: string;
       }
       connection.on("ProgressMsg", (notification: ProgressMsg) => {
         setProgressMessage(notification.message);
       });
+
+      if (!isMounted) {
+        await connection.stop();
+        return;
+      }
+
       try {
         await connection.start();
         console.log("SignalR Connected");
       } catch (err) {
         console.error("SignalR Connection Error: ", err);
       }
-      if (cancelled && connection) {
-        try {
-          await connection.stop();
-        } catch (error) {
-          console.error("SignalR Disconnected: ", error);
-        }
-      }
     })();
+
     return () => {
-      cancelled = true;
+      isMounted = false;
       if (connection) {
-        try {
-          connection.stop();
-        } catch (error) {
+        connection.stop().catch((error) => {
           console.error("SignalR Disconnected: ", error);
-        }
+        });
       }
     };
   }, []);
@@ -178,9 +189,7 @@ export default function ChatAgentPage() {
 
       {toolCallProgress.isActive && (
         <div className="mb-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-center justify-between">
-          <span>
-            {toolCallProgress.message}
-          </span>
+          <span>{toolCallProgress.message}</span>
           <span className="font-mono font-semibold">
             {elapsedTime.toFixed(1)}s
           </span>
