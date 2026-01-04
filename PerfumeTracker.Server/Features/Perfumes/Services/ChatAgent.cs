@@ -109,12 +109,18 @@ public class ChatAgent(
 
 		IEnumerable<PerfumeWithWornStatsDto>? recommendedPerfumes = null;
 		bool requiresAnotherIteration = true;
-		int maxIterations = 5;
+		int maxIterations = 2;
 		int iteration = 0;
+		bool hasCalledTools = false;
 
 		while (requiresAnotherIteration && iteration < maxIterations) {
 			iteration++;
 			requiresAnotherIteration = false;
+
+			// After first tool call, disable tools to force final answer
+			if (hasCalledTools) {
+				options = new ChatCompletionOptions();
+			}
 
 			await hubContext.Clients.User(userId.ToString())
 				.SendAsync("ProgressMsg", new { Message = $"Agent is thinking... {iteration}/{maxIterations} iterations." });
@@ -127,6 +133,7 @@ public class ChatAgent(
 					return new ChatAgentResponse(conversation.Id, responseMessage, recommendedPerfumes);
 
 				case ChatFinishReason.ToolCalls:
+					hasCalledTools = true;
 					await hubContext.Clients.User(userId.ToString())
 						.SendAsync("ProgressMsg", new { Message = $"Agent is making {completion.Value.ToolCalls.Count} tool call(s)." });
 					chatHistory.Add(new AssistantChatMessage(completion.Value));
@@ -142,6 +149,10 @@ public class ChatAgent(
 						chatHistory.Add(new ToolChatMessage(toolCall.Id, toolResult));
 						await SaveChatMessage(conversation.Id, "tool", toolResult, chatHistory.Count - 1, cancellationToken, null, toolCall.Id, toolCall.FunctionName);
 					}
+
+					// Add explicit instruction to respond now
+					chatHistory.Add(new UserChatMessage("Based on the tool results above, provide your final answer to the user now. Do not call any more tools."));
+					await SaveChatMessage(conversation.Id, "user", "Based on the tool results above, provide your final answer to the user now. Do not call any more tools.", chatHistory.Count - 1, cancellationToken, null);
 
 					requiresAnotherIteration = true;
 					break;
@@ -272,15 +283,16 @@ You have access to the user's perfume collection:
 
 {sb.ToString()}
 
-IMPORTANT TOOL USAGE RULES:
-1. The available tools ONLY search perfumes the user ALREADY OWNS - they cannot find new perfumes to buy
-2. For NEW perfume recommendations (e.g., "recommend new perfumes to try"):
-   - User's favorite notes/tags from their collection
-   - Their highest-rated perfume families
-   - Perfumes that complement what they already love
-   - Make sure to suggest perfumes they DON'T already own, based on the collection above
-   - If the user asks for 10 recommendations, search 50 perfumes with check_perfume_ownership and filter out owned ones
-   - Provide recommendations after ONLY ONE tool call
+CRITICAL TOOL USAGE RULES - READ CAREFULLY:
+1. You can call tools ONLY ONCE per user request - after receiving tool results, you MUST provide your final answer immediately
+2. The available tools ONLY search perfumes the user ALREADY OWNS - they cannot find new perfumes to buy
+3. For NEW perfume recommendations (e.g., "recommend new perfumes to try"):
+   - Use your perfume knowledge and the user's favorite notes/tags above
+   - Suggest perfumes that complement their collection
+   - Call check_perfume_ownership with a large batch (30-50 perfumes) in ONE tool call
+   - Filter out owned ones and present the remaining recommendations
+   - DO NOT make multiple tool calls - batch everything into ONE call
+4. After ANY tool call returns results, provide your final answer immediately - no additional tool calls
 
 Available tools (for OWNED perfumes only):
 - search_owned_perfumes_by_characteristics: Simple 1-3 word searches in owned collection (e.g., "vanilla", "summer", "woody fresh")
@@ -293,7 +305,7 @@ When tools return perfumes, they include:
 - Tags: Notes and characteristics
 - LastComment: User's most recent comment
 
-Be conversational, friendly, and knowledgeable. When recommending NEW perfumes to try, use your perfume knowledge to suggest complementary scents based on their preferences, but make sure they're not already in their collection.
+Be conversational, friendly, and knowledgeable. Remember: ONE tool call round only, then provide your final answer.
 """;
 	}
 

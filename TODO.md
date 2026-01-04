@@ -12,9 +12,9 @@ public static class QueryExtensions {
         where T : IUserOwned => 
         query.Where(e => e.UserId == tenant.GetUserId());
 }
-- [ ] build a chat agent with the following tools: 
+- [x] build a chat agent with the following tools: 
 1. SearchPerfumes(string query) -> get by house/name
 2. GetRecommendations(string mood/occasion) -> semantic search, tags, etc.
 3. GetUserStats() → UserStatistics -> profiling?
-- [ ] or a simpler "try" feature which forwards stats to GPT then shows response, 10 new perfumes to try?
-- [ ] streaming responses from OpenAI, show Tool Calls etc.
+- [ ] streaming responses from OpenAI?
+- [ ] way to select & reload previous conversations
