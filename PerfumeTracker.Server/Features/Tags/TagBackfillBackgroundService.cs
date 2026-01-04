@@ -14,7 +14,7 @@ public class TagBackfillBackgroundService(IServiceProvider sp, ChatClient chatCl
 				bool hasUpdates = await BackfillBatch(stoppingToken);
 				await Task.Delay(hasUpdates ? TimeSpan.FromSeconds(5) : TimeSpan.FromMinutes(60), stoppingToken);
 			} catch (Exception ex) {
-				logger.LogError(ex, "Error processing embeddings");
+				logger.LogError(ex, "Error processing tags");
 				await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken);
 			}
 		}
