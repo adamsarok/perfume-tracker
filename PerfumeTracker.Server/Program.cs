@@ -16,6 +16,7 @@ using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.R2;
+using PerfumeTracker.Server.Features.Tags;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Middleware;
@@ -113,6 +114,10 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
 	builder.Services.AddSingleton<ChatClient>(_ = new ChatClient(model: assistantModel, apiKey: openAiApiKey));
 	builder.Services.AddSingleton<IEncoder, Encoder>();
+	// Following services require a valid OpenAI api key, do not start them otherwise
+	builder.Services.AddHostedService<EmbeddingBackgroundService>();
+	builder.Services.AddHostedService<PerfumeIdentifierBackgroundService>();
+	builder.Services.AddHostedService<TagBackfillBackgroundService>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();
 }
@@ -159,9 +164,7 @@ builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
 
 builder.Services.AddHostedService<SideEffectBackgroundService>();
 builder.Services.AddHostedService<OutboxBackgroundService>();
-builder.Services.AddHostedService<EmbeddingBackgroundService>();
 builder.Services.AddHostedService<MissionBackgroundService>();
-builder.Services.AddHostedService<PerfumeIdentifierBackgroundService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
 

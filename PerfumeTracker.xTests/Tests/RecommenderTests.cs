@@ -40,7 +40,8 @@ public class PerfumeRecommenderFixture : DbFixture {
 				Color = "#000000",
 				UserId = TenantProvider.MockTenantId!.Value,
 				CreatedAt = DateTime.UtcNow,
-				UpdatedAt = DateTime.UtcNow
+				UpdatedAt = DateTime.UtcNow,
+				Description = $"{tagName} scent"
 			});
 		}
 		await context.Tags.AddRangeAsync(tags);
