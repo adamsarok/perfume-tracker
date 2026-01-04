@@ -249,7 +249,7 @@ export default function ChatAgentPage() {
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
           className="flex-1 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           rows={3}
