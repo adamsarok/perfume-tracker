@@ -1,14 +1,17 @@
+using Microsoft.AspNetCore.SignalR;
 using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Users;
 using System.Text;
 
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
+public class ChatProgressHub : Hub;
 public class ChatAgent(
 	PerfumeTrackerContext context,
 	ChatClient chatClient,
 	IPerfumeRecommender perfumeRecommender,
-	ISystemPromptCache promptCache) : IChatAgent {
+	ISystemPromptCache promptCache,
+	IHubContext<ChatProgressHub> hubContext) : IChatAgent {
 
 	private static readonly ChatTool SearchOwnedPerfumesByCharacteristicsTool = ChatTool.CreateFunctionTool(
 		functionName: "search_owned_perfumes_by_characteristics",
@@ -113,6 +116,8 @@ public class ChatAgent(
 			iteration++;
 			requiresAnotherIteration = false;
 
+			await hubContext.Clients.User(userId.ToString())
+				.SendAsync("ProgressMsg", new { Message = $"Agent is thinking... {iteration}/{maxIterations} iterations." });
 			var completion = await chatClient.CompleteChatAsync(chatHistory, options, cancellationToken);
 
 			switch (completion.Value.FinishReason) {
@@ -122,6 +127,8 @@ public class ChatAgent(
 					return new ChatAgentResponse(conversation.Id, responseMessage, recommendedPerfumes);
 
 				case ChatFinishReason.ToolCalls:
+					await hubContext.Clients.User(userId.ToString())
+						.SendAsync("ProgressMsg", new { Message = $"Agent is making {completion.Value.ToolCalls.Count} tool call(s)." });
 					chatHistory.Add(new AssistantChatMessage(completion.Value));
 					await SaveAssistantMessageWithTools(conversation.Id, completion.Value, chatHistory.Count - 1, cancellationToken);
 

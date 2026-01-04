@@ -198,6 +198,7 @@ app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthCh
 	ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
+app.MapHub<ChatProgressHub>("/api/hubs/chat-progress");
 
 await app.RunAsync();
 

@@ -5,6 +5,8 @@ import {
   chatWithAgent,
   ChatAgentResponse,
 } from "@/services/chat-agent-service";
+import { initializeApiUrl } from "@/services/axios-service";
+import * as signalR from "@microsoft/signalr";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,6 +18,12 @@ export default function ChatAgentPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [toolCallProgress, setToolCallProgress] = useState<{
+    isActive: boolean;
+    message: string;
+    startTime: number | null;
+  }>({ isActive: false, message: "", startTime: null });
+  const [elapsedTime, setElapsedTime] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -25,6 +33,31 @@ export default function ChatAgentPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Timer for elapsed time during tool calls
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (toolCallProgress.isActive && toolCallProgress.startTime) {
+      interval = setInterval(() => {
+        setElapsedTime((Date.now() - toolCallProgress.startTime!) / 1000);
+      }, 100);
+    } else {
+      setElapsedTime(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [toolCallProgress.isActive, toolCallProgress.startTime]);
+
+  const startProgressTimer = (message: string) => {
+    setToolCallProgress({ isActive: true, message, startTime: Date.now() });
+  };
+  const setProgressMessage = (message: string) => {
+    setToolCallProgress((prev) => ({ ...prev, message }));
+  };
+  const stopProgressTimer = () => {
+    setToolCallProgress((prev) => ({ ...prev, message: 'Agent is idle.', isActive: false, startTime: null }));
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -39,10 +72,14 @@ export default function ChatAgentPage() {
     setIsLoading(true);
 
     try {
+      startProgressTimer("Agent is thinking...");
+
       const response: ChatAgentResponse = await chatWithAgent({
         conversationId: conversationId,
         message: input,
       });
+
+      stopProgressTimer();
 
       // Update conversation ID if this is the first message
       if (!conversationId) {
@@ -55,20 +92,6 @@ export default function ChatAgentPage() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-
-      // // Show recommended perfumes if available
-      // if (response.recommendedPerfumes && response.recommendedPerfumes.length > 0) {
-      //   const perfumeList = response.recommendedPerfumes
-      //     .map((p) => `• ${p.name || p.title || "Unknown perfume"}`)
-      //     .join("\n");
-        
-      //   const recommendationMessage: Message = {
-      //     role: "assistant",
-      //     content: `📋 Recommended Perfumes:\n${perfumeList}`,
-      //   };
-        
-      //   setMessages((prev) => [...prev, recommendationMessage]);
-      // }
     } catch (error) {
       console.error("Error chatting with agent:", error);
       const errorMessage: Message = {
@@ -76,10 +99,56 @@ export default function ChatAgentPage() {
         content: "Sorry, I encountered an error. Please try again.",
       };
       setMessages((prev) => [...prev, errorMessage]);
+      stopProgressTimer();
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    let connection: signalR.HubConnection | null = null;
+    let cancelled = false;
+    (async () => {
+      const apiUrl = await initializeApiUrl();
+      if (!apiUrl) {
+        console.error("API URL not configured");
+        return;
+      }
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${apiUrl}/hubs/chat-progress`)
+        .withAutomaticReconnect()
+        .build();
+      interface ProgressMsg {
+        message: string;
+      }
+      connection.on("ProgressMsg", (notification: ProgressMsg) => {
+        setProgressMessage(notification.message);
+      });
+      try {
+        await connection.start();
+        console.log("SignalR Connected");
+      } catch (err) {
+        console.error("SignalR Connection Error: ", err);
+      }
+      if (cancelled && connection) {
+        try {
+          await connection.stop();
+        } catch (error) {
+          console.error("SignalR Disconnected: ", error);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (connection) {
+        try {
+          connection.stop();
+        } catch (error) {
+          console.error("SignalR Disconnected: ", error);
+        }
+      }
+    };
+  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -92,6 +161,7 @@ export default function ChatAgentPage() {
     setMessages([]);
     setConversationId(null);
     setInput("");
+    stopProgressTimer();
   };
 
   return (
@@ -106,13 +176,24 @@ export default function ChatAgentPage() {
         </button>
       </div>
 
+      {toolCallProgress.isActive && (
+        <div className="mb-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-center justify-between">
+          <span>
+            {toolCallProgress.message}
+          </span>
+          <span className="font-mono font-semibold">
+            {elapsedTime.toFixed(1)}s
+          </span>
+        </div>
+      )}
+
       <div className="flex-1 max-h-[60vh] overflow-y-auto mb-4 border rounded-lg p-4 bg-gray-50">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">
             <p className="text-lg">Welcome to the Perfume Agent! 👋</p>
             <p className="mt-2">
-              Ask me anything about perfumes, and I&lsquo;ll help you find the perfect
-              scent.
+              Ask me anything about perfumes, and I&lsquo;ll help you find the
+              perfect scent.
             </p>
           </div>
         ) : (
