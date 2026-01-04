@@ -53,6 +53,22 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        href="/perfumes/agent"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Brain className="h-4 w-4" />
+                                            <div className="text-sm font-medium leading-none">Perfume Agent</div>
+                                        </div>
+                                        <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
+                                            Chat with Perfume Agent
+                                        </p>
+                                    </Link>
+                                </NavigationMenuLink>
+                            </li>
+                            <li>
+                                <NavigationMenuLink asChild>
+                                    <Link
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         href="/perfumes/new-perfume"
                                     >
                                         <div className="flex items-center gap-2">

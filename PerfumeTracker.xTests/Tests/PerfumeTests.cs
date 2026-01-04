@@ -3,6 +3,7 @@ using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.PerfumeRatings;
 using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 using PerfumeTracker.Server.Features.Perfumes;
+using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;

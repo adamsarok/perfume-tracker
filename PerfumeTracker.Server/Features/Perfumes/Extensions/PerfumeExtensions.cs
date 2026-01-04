@@ -33,7 +33,7 @@ public static class PerfumeExtensions {
 				p.Ml,
 				p.MlLeft,
 				p.ImageObjectKeyNew,
-				presignedUrlService.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET)?.ToString() ?? "",
+				presignedUrlService?.GetUrl(p.ImageObjectKeyNew, Amazon.S3.HttpVerb.GET)?.ToString() ?? "",
 				[.. p.PerfumeTags.Select(tag => new TagDto(tag.Tag.TagName, tag.Tag.Color, tag.Tag.Id, tag.Tag.IsDeleted))],
 				p.IsDeleted,
 				[.. p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(r.PerfumeId, r.Id, r.Rating, r.Comment, r.RatingDate, r.IsDeleted))]
@@ -46,6 +46,37 @@ public static class PerfumeExtensions {
 			lastComment
 		);
 	}
+
+	//public static PerfumeLlmDto ToPerfumeLlmDto(this Perfume p) {
+	//	var lastComment = p.PerfumeRatings.Any()
+	//		? p.PerfumeRatings.OrderByDescending(x => x.RatingDate).First().Comment
+	//		: null;
+
+	//	return new PerfumeLlmDto(
+	//		Id: p.Id,
+	//		House: p.House,
+	//		PerfumeName: p.PerfumeName,
+	//		Family: p.Family,
+	//		Rating: p.AverageRating,
+	//		TimesWorn: p.WearCount,
+	//		Tags: [.. p.PerfumeTags.Select(pt => pt.Tag.TagName)],
+	//		LastComment: lastComment
+	//	);
+	//}
+
+	//public static PerfumeLlmDto ToPerfumeLlmDto(this PerfumeWithWornStatsDto p) {
+	//	return new PerfumeLlmDto(
+	//		Id: p.Perfume.Id,
+	//		House: p.Perfume.House,
+	//		PerfumeName: p.Perfume.PerfumeName,
+	//		Family: p.Perfume.Family,
+	//		Rating: p.AverageRating,
+	//		TimesWorn: p.WornTimes,
+	//		Tags: [.. p.Perfume.Tags.Select(t => t.TagName)],
+	//		LastComment: p.LastComment
+	//	);
+	//}
+
 	public static string GetTextForEmbedding(this Perfume perfume) {
 		var sb = new StringBuilder(); // only add fields which are not available in perfume. Eg House can be searched in Perfume - sentiment based on all tags & comments can not
 		if (!string.IsNullOrWhiteSpace(perfume.Family)) {

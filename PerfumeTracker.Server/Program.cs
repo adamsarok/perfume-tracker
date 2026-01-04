@@ -6,14 +6,18 @@ using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.ChatAgent.Services;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Common.Services;
+using PerfumeTracker.Server.Features.Demo;
 using PerfumeTracker.Server.Features.Embedding;
+using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Users;
+using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Startup;
 using Serilog;
@@ -23,8 +27,6 @@ using Serilog.Sinks.PostgreSQL;
 using System.Text.Json.Serialization;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
-using PerfumeTracker.Server.Features.Missions;
-using PerfumeTracker.Server.Features.Demo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -124,7 +126,12 @@ builder.Services.AddScoped<IXPService, XPService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IPerfumeIdentifier, PerfumeIdentifier>();
+builder.Services.AddSingleton<ISystemPromptCache, SystemPromptCache>();
+builder.Services.AddScoped<IChatAgent, ChatAgent>();
+builder.Services.AddScoped<IChatAgentTools, ChatAgentTools>();
+builder.Services.AddScoped<IUserStatsService, UserStatsService>();
 builder.Services.AddCarter();
+
 builder.Services.AddSignalR();
 
 builder.Services.AddHealthChecks()
@@ -195,6 +202,7 @@ app.UseHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthCh
 	ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
+app.MapHub<ChatProgressHub>("/api/hubs/chat-progress");
 
 await app.RunAsync();
 

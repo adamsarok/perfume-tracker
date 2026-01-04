@@ -12,3 +12,9 @@ public static class QueryExtensions {
         where T : IUserOwned => 
         query.Where(e => e.UserId == tenant.GetUserId());
 }
+- [x] build a chat agent with the following tools: 
+1. SearchPerfumes(string query) -> get by house/name
+2. GetRecommendations(string mood/occasion) -> semantic search, tags, etc.
+3. GetUserStats() → UserStatistics -> profiling?
+- [ ] streaming responses from OpenAI?
+- [ ] way to select & reload previous conversations

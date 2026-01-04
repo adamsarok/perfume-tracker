@@ -14,7 +14,7 @@ public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext cont
 		if (cached != null) {
 			completionText = cached.Response;
 		} else {
-			var messages = new List<ChatMessage> {
+			var messages = new List<OpenAI.Chat.ChatMessage> {
 			new SystemChatMessage(
 				"""
 				You are a perfume expert. Given a perfume house and name, identify the perfume's family and notes.
