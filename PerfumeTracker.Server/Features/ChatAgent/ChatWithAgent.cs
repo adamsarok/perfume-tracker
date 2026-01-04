@@ -1,7 +1,7 @@
 ﻿using PerfumeTracker.Server.Features.Auth;
-using PerfumeTracker.Server.Features.Perfumes.Services;
+using PerfumeTracker.Server.Features.ChatAgent.Services;
 
-namespace PerfumeTracker.Server.Features.Perfumes;
+namespace PerfumeTracker.Server.Features.ChatAgent;
 
 public record ChatWithAgentCommand(Guid? ConversationId, string Message) : ICommand<ChatAgentResponse>;
 public record GetConversationQuery(Guid ConversationId) : IQuery<Models.ChatConversation?>;

@@ -1,4 +1,4 @@
-namespace PerfumeTracker.Server.Features.Perfumes.Services;
+namespace PerfumeTracker.Server.Features.ChatAgent.Services;
 
 public record ChatAgentRequest(Guid? ConversationId, string UserMessage);
 public record ChatAgentResponse(Guid ConversationId, string AssistantMessage, IEnumerable<PerfumeWithWornStatsDto>? RecommendedPerfumes = null);
