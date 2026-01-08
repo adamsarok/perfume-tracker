@@ -4,6 +4,7 @@ import { ImageGuidDTO } from "@/dto/ImageGuidDTO";
 import { AxiosResult, del, get, post, put } from "./axios-service";
 import { PerfumeDTO } from "@/dto/PerfumeDTO";
 import { PerfumeRecommendationDTO } from "@/dto/PerfumeRecommendationDTO";
+import { RecommendationStrategy } from "@/dto/RecommendationStrategy";
 
 export async function getPerfumesFulltext(
   fulltext: string
@@ -12,12 +13,17 @@ export async function getPerfumesFulltext(
   return get<PerfumeWithWornStatsDTO[]>(qry);
 }
 
-export async function getPerfumeRecommendations(count: number, occasionOrMood?: string): Promise<AxiosResult<PerfumeRecommendationDTO[]>> {
-  let qry = `/perfumes/recommendations/${count}`;
-  if (occasionOrMood) {
-    qry += `?occasionOrMood=${encodeURIComponent(occasionOrMood)}`;
-  }
-  const result = await get<PerfumeRecommendationDTO[]>(qry);
+export async function getPerfumeRecommendations(
+  count: number, 
+  occasionOrMood?: string, 
+  strategies?: RecommendationStrategy[]
+): Promise<AxiosResult<PerfumeRecommendationDTO[]>> {
+  const qry = `/perfumes/recommendations/${count}`;
+  const body = {
+    occasionOrMood: occasionOrMood || null,
+    strategies: strategies || null
+  };
+  const result = await post<PerfumeRecommendationDTO[]>(qry, body);
   result.data?.forEach(x => x.perfume.lastWorn = new Date(x.perfume.lastWorn ?? ""));
   return result;
 }

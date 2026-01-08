@@ -217,7 +217,7 @@ public class PerfumeRecommenderTests {
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var recommender = GetRecommender(context, userProfileService);
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(5, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(5, null, CancellationToken.None);
 
 		Assert.NotNull(recommendations);
 		var recList = recommendations.ToList();
@@ -424,7 +424,7 @@ public class PerfumeRecommenderTests {
 		context.PerfumeRatings.Add(lowRating);
 		await context.SaveChangesAsync();
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, CancellationToken.None);
 
 		// Low rated perfume should not appear in recommendations
 		Assert.DoesNotContain(recommendations, r => r.Perfume.Perfume.Id == lowRatedPerfume.Id);
@@ -451,7 +451,7 @@ public class PerfumeRecommenderTests {
 			.Take(5)
 			.ToListAsync();
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, CancellationToken.None);
 
 		// Recently worn perfumes should not appear in most recommendation strategies
 		// (except ForgottenFavorite which specifically targets old but highly rated perfumes)
@@ -488,7 +488,7 @@ public class PerfumeRecommenderTests {
 		context.PerfumeRatings.Add(rating);
 		await context.SaveChangesAsync();
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, CancellationToken.None);
 
 		// Empty perfume should not appear in recommendations
 		Assert.DoesNotContain(recommendations, r => r.Perfume.Perfume.Id == emptyPerfume.Id);
@@ -501,7 +501,7 @@ public class PerfumeRecommenderTests {
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var recommender = GetRecommender(context, userProfileService);
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, CancellationToken.None);
 
 		var recList = recommendations.ToList();
 		var perfumeIds = recList.Select(r => r.Perfume.Perfume.Id).ToList();
