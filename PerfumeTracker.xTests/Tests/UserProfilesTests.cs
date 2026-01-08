@@ -42,7 +42,7 @@ public class UserProfilesTests {
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var queryHandler = new GetUserProfileHandler(userProfileService);
 		var existing = await queryHandler.Handle(new GetUserProfileQuery(), CancellationToken.None);
-		var handler = new UpsertUserProfileHandler(context);
+		var handler = new UpsertUserProfileHandler(context, userProfileService);
 		existing.ShowFemalePerfumes = false;
 		var result = await handler.Handle(new UpsertUserProfileCommand(existing), CancellationToken.None);
 		Assert.NotNull(result);

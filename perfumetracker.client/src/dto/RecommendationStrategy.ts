@@ -1,10 +1,10 @@
 export enum RecommendationStrategy {
-  ForgottenFavorite = 0,
-  SimilarToLastUsed = 1,
-  Seasonal = 2,
-  Random = 3,
-  LeastUsed = 4,
-  MoodOrOccasion = 5
+  ForgottenFavorite = "ForgottenFavorite",
+  SimilarToLastUsed = "SimilarToLastUsed",
+  Seasonal = "Seasonal",
+  Random = "Random",
+  LeastUsed = "LeastUsed",
+  MoodOrOccasion = "MoodOrOccasion"
 }
 
 export const RecommendationStrategyLabels: Record<RecommendationStrategy, string> = {

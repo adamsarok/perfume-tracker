@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RecommendationStrategy, RecommendationStrategyLabels } from "@/dto/RecommendationStrategy";
+import { getUserProfile, updateUserProfile } from "@/services/user-profiles-service";
+import { getRecommendationIcon } from "./recommendation-icons";
 
 export default function RecommendationsList() {
   const [recommendations, setRecommendations] = useState<
@@ -33,7 +35,32 @@ export default function RecommendationsList() {
     RecommendationStrategy.LeastUsed
   ];
 
-  const refreshList = async (occasion?: string) => {
+  const loadUserProfile = async () => {
+    const result = await getUserProfile();
+    if (result.data?.preferredRecommendationStrategies && result.data.preferredRecommendationStrategies.length > 0) {
+      setSelectedStrategies(result.data.preferredRecommendationStrategies);
+    }
+  };
+
+  const refreshList = async (occasion?: string, savePreferences: boolean = false) => {
+    // Save preferences if requested
+    console.log("Save: " + savePreferences);
+    if (savePreferences) {
+      const profileResult = await getUserProfile();
+      console.log(selectedStrategies);
+      console.log(profileResult);
+      if (profileResult.data) {
+        const updatedProfile = {
+          ...profileResult.data,
+          preferredRecommendationStrategies: selectedStrategies
+        };
+        const updateResult = await updateUserProfile(updatedProfile);
+        if (updateResult.error) {
+          showError("Could not save preferences", updateResult.error);
+        }
+      }
+    }
+
     const result = await getPerfumeRecommendations(
       recommendationsCount,
       occasion,
@@ -60,10 +87,32 @@ export default function RecommendationsList() {
   };
 
   useEffect(() => {
-    const loadRecommendations = async () => {
-      await refreshList();
+    const loadData = async () => {
+      const profileResult = await getUserProfile();
+      console.log(profileResult);
+      if (profileResult.data?.preferredRecommendationStrategies && profileResult.data.preferredRecommendationStrategies.length > 0) {
+        setSelectedStrategies(profileResult.data.preferredRecommendationStrategies);
+        // Use the loaded strategies for the initial recommendations
+        console.log(selectedStrategies);
+        const result = await getPerfumeRecommendations(
+          recommendationsCount,
+          undefined,
+          profileResult.data.preferredRecommendationStrategies
+        );
+        if (result.error || !result.data) {
+          showError(
+            "Could not load recommendations",
+            result.error ?? "unknown error"
+          );
+          return;
+        }
+        setRecommendations(result.data);
+      } else {
+        // Use default strategies if no preferences found
+        await refreshList();
+      }
     };
-    loadRecommendations();
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -83,7 +132,7 @@ export default function RecommendationsList() {
                 htmlFor={`strategy-${strategy}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
               >
-                {RecommendationStrategyLabels[strategy]}
+                {RecommendationStrategyLabels[strategy]} {getRecommendationIcon(strategy)}
               </label>
             </div>
           ))}
@@ -101,7 +150,7 @@ export default function RecommendationsList() {
           value={occasionOrMood}
           onChange={(e) => setOccasionOrMood(e.target.value)}
         />
-        <Button onClick={() => refreshList(occasionOrMood)} className="mb-4">
+        <Button onClick={() => refreshList(occasionOrMood, true)} className="mb-4">
           Recommend
         </Button>
       </div>

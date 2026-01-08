@@ -1,7 +1,8 @@
 ﻿
 using PerfumeTracker.Server.Features.Auth;
-
+using PerfumeTracker.Server.Features.Common;
 namespace PerfumeTracker.Server.Features.UserProfiles;
+
 public record class UpsertUserProfileCommand(UserProfile UserProfile) : ICommand<UserProfile>;
 public class UpsertUserProfileValidator : AbstractValidator<UpsertUserProfileCommand> {
 	public UpsertUserProfileValidator() {
@@ -32,15 +33,18 @@ public class UpsertUserProfilesModule : ICarterModule {
 	}
 }
 
-public class UpsertUserProfileHandler(PerfumeTrackerContext context) : ICommandHandler<UpsertUserProfileCommand, UserProfile> {
+public class UpsertUserProfileHandler(PerfumeTrackerContext context, IUserProfileService userProfileService) : ICommandHandler<UpsertUserProfileCommand, UserProfile> {
 	public async Task<UserProfile> Handle(UpsertUserProfileCommand request, CancellationToken cancellationToken) {
+		var profile = request.UserProfile;
+		profile.PreferredRecommendationStrategies = profile.PreferredRecommendationStrategies.Distinct().ToList();
 		var found = await context.UserProfiles.FirstOrDefaultAsync(cancellationToken);
 		if (found != null) {
-			context.Entry(found).CurrentValues.SetValues(request.UserProfile);
+			context.Entry(found).CurrentValues.SetValues(profile);
 		} else {
-			await context.UserProfiles.AddAsync(request.UserProfile, cancellationToken);
+			await context.UserProfiles.AddAsync(profile, cancellationToken);
 		}
 		await context.SaveChangesAsync(cancellationToken);
-		return found ?? request.UserProfile;
+		userProfileService.InvalidateCache();
+		return found ?? profile;
 	}
 }

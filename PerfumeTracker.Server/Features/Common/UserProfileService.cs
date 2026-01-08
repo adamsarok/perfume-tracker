@@ -11,4 +11,9 @@ public class UserProfileService(PerfumeTrackerContext context, IMemoryCache memo
 			return await context.UserProfiles.FirstAsync(cancellationToken);
 		}) ?? throw new InvalidOperationException("User profile not found");
 	}
+
+	public void InvalidateCache() {
+		var userId = context.TenantProvider?.GetCurrentUserId();
+		if (userId != null) memoryCache.Remove(userId);
+	}
 }
