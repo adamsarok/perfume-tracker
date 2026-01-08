@@ -3,9 +3,7 @@
 namespace PerfumeTracker.Server.Models;
 
 public class UserProfile : Entity {
-	public UserProfile() { }
-	public UserProfile(Guid userId, string userName, string email) {
-		Id = userId;
+	public UserProfile() {
 		MinimumRating = 8;
 		DayFilter = 30;
 		ShowFemalePerfumes = true;

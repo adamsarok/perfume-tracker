@@ -47,8 +47,6 @@ export default function RecommendationsList() {
     console.log("Save: " + savePreferences);
     if (savePreferences) {
       const profileResult = await getUserProfile();
-      console.log(selectedStrategies);
-      console.log(profileResult);
       if (profileResult.data) {
         const updatedProfile = {
           ...profileResult.data,
@@ -93,7 +91,6 @@ export default function RecommendationsList() {
       if (profileResult.data?.preferredRecommendationStrategies && profileResult.data.preferredRecommendationStrategies.length > 0) {
         setSelectedStrategies(profileResult.data.preferredRecommendationStrategies);
         // Use the loaded strategies for the initial recommendations
-        console.log(selectedStrategies);
         const result = await getPerfumeRecommendations(
           recommendationsCount,
           undefined,
