@@ -1,4 +1,5 @@
 import { AxiosResult, get, put } from "./axios-service";
+import { RecommendationStrategy } from "@/dto/RecommendationStrategy";
 
 export interface UserProfile {
   minimumRating: number;
@@ -8,6 +9,7 @@ export interface UserProfile {
   showFemalePerfumes: boolean;
   sprayAmountFullSizeMl: number;
   sprayAmountSamplesMl: number;
+  preferredRecommendationStrategies: RecommendationStrategy[];
 }
 
 export async function getUserProfile(): Promise<AxiosResult<UserProfile>> {

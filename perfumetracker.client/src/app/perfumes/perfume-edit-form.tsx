@@ -218,7 +218,6 @@ export default function PerfumeEditForm({
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Submitting form with values:", values);
     if (auth.guardAction()) return;
     const perf: PerfumeUploadDTO = {
       id: perfumeId,
@@ -351,7 +350,6 @@ export default function PerfumeEditForm({
           (tag) => tag.tagName.toLowerCase() === note.toLowerCase()
         );
         if (matchingTag) {
-          console.log("Adding new tag:", note);
           newTags.push(matchingTag);
         }
       }

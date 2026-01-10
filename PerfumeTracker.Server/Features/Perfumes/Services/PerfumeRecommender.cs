@@ -217,9 +217,8 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 	}
 
 	public record PerfumeRecommendationsAddedNotification(int Count, Guid UserId) : IUserNotification;
-	public async Task<IEnumerable<PerfumeRecommendationDto>> GetAllStrategyRecommendations(int count, CancellationToken cancellationToken) {
-		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
-		var validStrategies = Enum.GetValues<RecommendationStrategy>().Where(s => s != RecommendationStrategy.MoodOrOccasion).ToList();
+	public async Task<IEnumerable<PerfumeRecommendationDto>> GetAllStrategyRecommendations(int count, List<RecommendationStrategy>? strategies, CancellationToken cancellationToken) {
+		var validStrategies = strategies ?? Enum.GetValues<RecommendationStrategy>().Where(s => s != RecommendationStrategy.MoodOrOccasion).ToList();
 		int cntPerStrategy = (int)Math.Ceiling((double)count / validStrategies.Count);
 		var recommendations = new List<PerfumeRecommendationDto>();
 		foreach (var strategy in validStrategies) {
