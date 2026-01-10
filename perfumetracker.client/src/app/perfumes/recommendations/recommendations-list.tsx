@@ -35,16 +35,8 @@ export default function RecommendationsList() {
     RecommendationStrategy.LeastUsed
   ];
 
-  const loadUserProfile = async () => {
-    const result = await getUserProfile();
-    if (result.data?.preferredRecommendationStrategies && result.data.preferredRecommendationStrategies.length > 0) {
-      setSelectedStrategies(result.data.preferredRecommendationStrategies);
-    }
-  };
-
   const refreshList = async (occasion?: string, savePreferences: boolean = false) => {
     // Save preferences if requested
-    console.log("Save: " + savePreferences);
     if (savePreferences) {
       const profileResult = await getUserProfile();
       if (profileResult.data) {
@@ -87,7 +79,6 @@ export default function RecommendationsList() {
   useEffect(() => {
     const loadData = async () => {
       const profileResult = await getUserProfile();
-      console.log(profileResult);
       if (profileResult.data?.preferredRecommendationStrategies && profileResult.data.preferredRecommendationStrategies.length > 0) {
         setSelectedStrategies(profileResult.data.preferredRecommendationStrategies);
         // Use the loaded strategies for the initial recommendations
