@@ -121,7 +121,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		var prompt = arguments["prompt"].GetString() ?? throw new ArgumentException("Missing prompt");
 		var count = arguments.TryGetValue("count", out var countElement) ? countElement.GetInt32() : 5;
 		var recommendations = await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(count, prompt, cancellationToken);
-		var perfumes = recommendations.Select(r => new PerfumeLlmDto(r.Perfume.Perfume.House, r.Perfume.Perfume.PerfumeName, r.Perfume.AverageRating));
+		var perfumes = recommendations.Select(r => new PerfumeLlmDto(r.Perfume.Perfume.House, r.Perfume.Perfume.PerfumeName, r.Perfume.Perfume.AverageRating));
 		return JsonSerializer.Serialize(perfumes, new JsonSerializerOptions {
 			WriteIndented = false
 		});

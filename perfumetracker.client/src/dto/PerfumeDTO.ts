@@ -12,4 +12,5 @@ export interface PerfumeDTO {
     imageUrl: string;
     tags: TagDTO[];
     ratings: PerfumeRatingDownloadDTO[];
+    wearCount: number | undefined;
 }
