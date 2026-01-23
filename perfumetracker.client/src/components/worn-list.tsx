@@ -67,7 +67,7 @@ export default function WornList({ refreshTrigger }: WornListProps) {
     <div className="w-full max-w-3xl mx-auto px-2">
       <div className="grid grid-cols-1 gap-4">
         {worns.map((worn) => (
-          <PerfumeCard key={worn.id} worn={worn}></PerfumeCard>
+          <PerfumeCard key={worn.id} worn={worn} onDelete={refreshList}></PerfumeCard>
         ))}
       </div>
       {cursor !== null && (

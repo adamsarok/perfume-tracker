@@ -18,10 +18,12 @@ import { useAuth } from "@/hooks/use-auth";
 
 export interface PerfumeCardProps {
   readonly worn: PerfumeWornDTO;
+  readonly onDelete?: () => void;
 }
 
 export default function PerfumeCard({
-  worn
+  worn,
+  onDelete
 }: PerfumeCardProps) {
   const auth = useAuth();
   if (!worn) return <div></div>;
@@ -34,12 +36,16 @@ export default function PerfumeCard({
         .join("")
       : worn.perfumeName.slice(0, 2).toUpperCase();
 
-  const handlePressStart = async (id: string) => {
+  const handlePressStart = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (auth.guardAction()) return;
     const result = await deleteWear(id);
-    if (result.ok) showSuccess("Worn deleted");
+    if (result.ok) {
+      showSuccess("Worn deleted");
+      onDelete?.();
+    }
     else showError(`Worn delete failed: ${result.error ?? "unknown error"}`);
-    //TODO: revalidatepath
   };
 
   return (
@@ -88,8 +94,8 @@ export default function PerfumeCard({
               color="danger"
               className="w-9 h-8 p-0 flex-shrink-0"
               size="sm"
-              onClick={() => {
-                handlePressStart(worn.id);
+              onClick={(e) => {
+                handlePressStart(e, worn.id);
               }}
             >
               X

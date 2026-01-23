@@ -55,6 +55,7 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 
 	async Task HandleWorn(List<OutboxMessage> messages, PerfumeTrackerContext context, PerfumeEvent evt, Perfume perfume,
 			AddPerfumeEventCommand request, Guid userId, CancellationToken cancellationToken) {
+		perfume.WearCount += 1;
 		if (evt.AmountMl == 0) {
 			var settings = await userProfileService.GetCurrentUserProfile(cancellationToken);
 			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);

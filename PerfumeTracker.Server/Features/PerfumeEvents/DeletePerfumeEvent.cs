@@ -18,6 +18,8 @@ public class DeletePerfumeEventHandler(PerfumeTrackerContext context) : ICommand
 	public async Task<PerfumeEventDownloadDto> Handle(DeletePerfumeEventCommand request, CancellationToken cancellationToken) {
 		var w = await context.PerfumeEvents.FindAsync([request.Id], cancellationToken) ?? throw new NotFoundException("PerfumeEvents", request.Id);
 		w.IsDeleted = true;
+		var perfume = await context.Perfumes.FindAsync([w.PerfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", w.PerfumeId);
+		perfume.WearCount = Math.Max(0, perfume.WearCount - 1);
 		await context.SaveChangesAsync(cancellationToken);
 		return w.Adapt<PerfumeEventDownloadDto>();
 	}
