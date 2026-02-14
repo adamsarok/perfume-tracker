@@ -47,7 +47,7 @@ public class PerfumeWornTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
 		var handler = new GetWornPerfumesHandler(context, new MockPresignedUrlService());
-		var result = await handler.Handle(new GetWornPerfumesQuery(0, 20), CancellationToken.None);
+		var result = await handler.Handle(new GetWornPerfumesQuery(0, 20), TestContext.Current.CancellationToken);
 		Assert.NotNull(result);
 		Assert.NotEmpty(result);
 	}
@@ -57,9 +57,9 @@ public class PerfumeWornTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
-		var worn = await context.PerfumeEvents.FirstAsync();
+		var worn = await context.PerfumeEvents.FirstAsync(TestContext.Current.CancellationToken);
 		var handler = new DeletePerfumeEventHandler(context);
-		var result = await handler.Handle(new DeletePerfumeEventCommand(worn.Id), CancellationToken.None);
+		var result = await handler.Handle(new DeletePerfumeEventCommand(worn.Id), TestContext.Current.CancellationToken);
 		Assert.True(result.IsDeleted);
 	}
 
@@ -69,10 +69,10 @@ public class PerfumeWornTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 
-		var perfume = await context.Perfumes.Skip(2).FirstAsync();
+		var perfume = await context.Perfumes.Skip(2).FirstAsync(TestContext.Current.CancellationToken);
 		var dto = new PerfumeEventUploadDto(perfume.Id, DateTime.UtcNow, PerfumeEvent.PerfumeEventType.Worn, 0.05m, Guid.NewGuid());
 		var handler = new AddPerfumeEventHandler(context, _fixture.MockSideEffectQueue.Object, userProfileService);
-		var result = await handler.Handle(new AddPerfumeEventCommand(dto), CancellationToken.None);
-		Assert.True(await context.PerfumeEvents.AnyAsync(x => x.Id == result.Id));
+		var result = await handler.Handle(new AddPerfumeEventCommand(dto), TestContext.Current.CancellationToken);
+		Assert.True(await context.PerfumeEvents.AnyAsync(x => x.Id == result.Id, TestContext.Current.CancellationToken));
 	}
 }

@@ -42,9 +42,9 @@ public class PerfumeTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 
-		var perfume = await context.Perfumes.FirstAsync();
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 		var handler = new GetPerfumeHandler(context, new MockPresignedUrlService(), userProfileService);
-		var response = await handler.Handle(new GetPerfumeQuery(perfume.Id), CancellationToken.None);
+		var response = await handler.Handle(new GetPerfumeQuery(perfume.Id), TestContext.Current.CancellationToken);
 		Assert.NotNull(response);
 	}
 
@@ -55,7 +55,7 @@ public class PerfumeTests {
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 
 		var handler = new GetPerfumeHandler(context, new MockPresignedUrlService(), userProfileService);
-		await Assert.ThrowsAsync<NotFoundException>(async () => await handler.Handle(new GetPerfumeQuery(Guid.NewGuid()), CancellationToken.None));
+		await Assert.ThrowsAsync<NotFoundException>(async () => await handler.Handle(new GetPerfumeQuery(Guid.NewGuid()), TestContext.Current.CancellationToken));
 	}
 
 	[Fact]
@@ -67,7 +67,7 @@ public class PerfumeTests {
 		var handler = new GetPerfumesWithWornHandler(context, new MockPresignedUrlService(), userProfileService);
 
 		// Act
-		var perfumes = await handler.Handle(new GetPerfumesWithWornQuery(), CancellationToken.None);
+		var perfumes = await handler.Handle(new GetPerfumesWithWornQuery(), TestContext.Current.CancellationToken);
 
 		// Assert
 		Assert.NotNull(perfumes);
@@ -80,8 +80,8 @@ public class PerfumeTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var handler = new UpdatePerfumeHandler(context, _fixture.MockSideEffectQueue.Object);
-		var perfume = await context.Perfumes.FirstAsync();
-		var tag = await context.Tags.FirstAsync();
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
+		var tag = await context.Tags.FirstAsync(TestContext.Current.CancellationToken);
 		var dto = new PerfumeUploadDto(House: perfume.House,
 			PerfumeName: perfume.PerfumeName,
 			Family: perfume.Family,
@@ -90,7 +90,7 @@ public class PerfumeTests {
 			new List<TagDto>() { tag.Adapt<TagDto>() });
 
 		// Act
-		var response = await handler.Handle(new UpdatePerfumeCommand(perfume.Id, dto), CancellationToken.None);
+		var response = await handler.Handle(new UpdatePerfumeCommand(perfume.Id, dto), TestContext.Current.CancellationToken);
 
 		// Assert
 		Assert.NotNull(response);
@@ -101,8 +101,8 @@ public class PerfumeTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var handler = new DeletePerfumeHandler(context);
-		var perfume = await context.Perfumes.FirstAsync();
-		var result = await handler.Handle(new DeletePerfumeCommand(perfume.Id), CancellationToken.None);
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
+		var result = await handler.Handle(new DeletePerfumeCommand(perfume.Id), TestContext.Current.CancellationToken);
 		Assert.True(result.IsDeleted);
 	}
 
@@ -113,7 +113,7 @@ public class PerfumeTests {
 		var perfumes = _fixture.GeneratePerfumes(1);
 		var dto = perfumes[0].Adapt<PerfumeUploadDto>();
 		var handler = new AddPerfumeHandler(context, _fixture.MockSideEffectQueue.Object);
-		var response = await handler.Handle(new AddPerfumeCommand(dto), CancellationToken.None);
+		var response = await handler.Handle(new AddPerfumeCommand(dto), TestContext.Current.CancellationToken);
 		Assert.NotNull(response);
 	}
 
@@ -124,10 +124,10 @@ public class PerfumeTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var handler = new GetPerfumesWithWornHandler(context, new MockPresignedUrlService(), userProfileService);
-		var perfume = await context.Perfumes.FirstAsync();
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 
 		// Act
-		var response = await handler.Handle(new GetPerfumesWithWornQuery(perfume.PerfumeName), CancellationToken.None);
+		var response = await handler.Handle(new GetPerfumesWithWornQuery(perfume.PerfumeName), TestContext.Current.CancellationToken);
 
 		// Assert
 		Assert.NotNull(response);
@@ -139,10 +139,10 @@ public class PerfumeTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var ratingService = scope.ServiceProvider.GetRequiredService<IRatingService>();
-		var perfume = await context.Perfumes.FirstAsync();
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 		var dto = new PerfumeRatingUploadDto(perfume.Id, 5, "Nice perfume!");
 		var handler = new AddPerfumeRatingHandler(ratingService);
-		var response = await handler.Handle(new AddPerfumeRatingCommand(dto), CancellationToken.None);
+		var response = await handler.Handle(new AddPerfumeRatingCommand(dto), TestContext.Current.CancellationToken);
 		Assert.NotNull(response);
 	}
 
@@ -151,13 +151,13 @@ public class PerfumeTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var ratingService = scope.ServiceProvider.GetRequiredService<IRatingService>();
-		var perfume = await context.Perfumes.FirstAsync();
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 		var dto = new PerfumeRatingUploadDto(perfume.Id, 5, "Nice perfume!");
 		var handler = new AddPerfumeRatingHandler(ratingService);
-		var rating = await handler.Handle(new AddPerfumeRatingCommand(dto), CancellationToken.None);
+		var rating = await handler.Handle(new AddPerfumeRatingCommand(dto), TestContext.Current.CancellationToken);
 
 		var deleteHandler = new DeletePerfumeRatingHandler(ratingService);
-		rating = await deleteHandler.Handle(new DeletePerfumeRatingCommand(rating.PerfumeId, rating.Id), CancellationToken.None);
+		rating = await deleteHandler.Handle(new DeletePerfumeRatingCommand(rating.PerfumeId, rating.Id), TestContext.Current.CancellationToken);
 		Assert.NotNull(rating);
 		Assert.True(rating.IsDeleted);
 	}
@@ -166,20 +166,20 @@ public class PerfumeTests {
 	public async Task GetNextPerfume() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var perfume = await context.Perfumes.FirstAsync();
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var handler = new GetNextPerfumeHandler(context, userProfileService);
-		var response = await handler.Handle(new GetNextPerfumeIdQuery(perfume.Id), CancellationToken.None);
+		var response = await handler.Handle(new GetNextPerfumeIdQuery(perfume.Id), TestContext.Current.CancellationToken);
 		Assert.NotEqual(perfume.Id, response); // Assuming there is more than one perfume, the next perfume ID should be different
 	}
 	[Fact]
 	public async Task GetPreviousPerfume() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var perfume = await context.Perfumes.FirstAsync();
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var handler = new GetPreviousPerfumeHandler(context, userProfileService);
-		var response = await handler.Handle(new GetPreviousPerfumeIdQuery(perfume.Id), CancellationToken.None);
+		var response = await handler.Handle(new GetPreviousPerfumeIdQuery(perfume.Id), TestContext.Current.CancellationToken);
 		Assert.NotEqual(perfume.Id, response); // Assuming there is more than one perfume, the previous perfume ID should be different
 	}
 }

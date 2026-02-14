@@ -238,7 +238,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(i => i.IsDeleted, false);
 	}
 
-	public async Task InitializeAsync() {
+	public async ValueTask InitializeAsync() {
 		// Run once before all tests in this collection
 		using var scope = Factory.Services.CreateScope();
 		using var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
@@ -263,7 +263,7 @@ public abstract class DbFixture : IAsyncLifetime {
 		await SeedTestData(context);
 	}
 
-	public async Task DisposeAsync() {
+	public async ValueTask DisposeAsync() {
 		await Factory.DisposeAsync();
 	}
 

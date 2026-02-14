@@ -87,6 +87,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 
 		// Add ratings to perfumes (all above minimum rating threshold)
 		foreach (var perfume in perfumes) {
+			perfume.AverageRating = 8.5m;
 			var rating = new PerfumeRating {
 				Id = Guid.NewGuid(),
 				PerfumeId = perfume.Id,
@@ -217,7 +218,7 @@ public class PerfumeRecommenderTests {
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var recommender = GetRecommender(context, userProfileService);
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(5, null, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(5, null, TestContext.Current.CancellationToken);
 
 		Assert.NotNull(recommendations);
 		var recList = recommendations.ToList();
@@ -225,11 +226,11 @@ public class PerfumeRecommenderTests {
 		Assert.True(recList.Count <= 5);
 
 		// Verify recommendations were persisted
-		var persistedRecs = await context.PerfumeRecommendations.ToListAsync();
+		var persistedRecs = await context.PerfumeRecommendations.ToListAsync(TestContext.Current.CancellationToken);
 		Assert.NotEmpty(persistedRecs);
 
 		// Verify outbox message was created
-		var outboxMessages = await context.OutboxMessages.ToListAsync();
+		var outboxMessages = await context.OutboxMessages.ToListAsync(TestContext.Current.CancellationToken);
 		Assert.Contains(outboxMessages, msg => msg.EventType.Contains("PerfumeRecommendationsAddedNotification"));
 	}
 
@@ -243,9 +244,9 @@ public class PerfumeRecommenderTests {
 		// Clear any existing cached completions for this test
 		var existingCompletions = await context.CachedCompletions
 			.Where(cc => cc.Prompt == "test mood")
-			.ToListAsync();
+			.ToListAsync(TestContext.Current.CancellationToken);
 		context.CachedCompletions.RemoveRange(existingCompletions);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 		// Add a cached completion
 		var cachedCompletion = new CachedCompletion {
@@ -257,12 +258,12 @@ public class PerfumeRecommenderTests {
 			UpdatedAt = DateTime.UtcNow
 		};
 		context.CachedCompletions.Add(cachedCompletion);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 		var recommendations = await recommender.GetRecommendationsForOccasionMoodPrompt(
 			3,
 			"test mood",
-			CancellationToken.None);
+			TestContext.Current.CancellationToken);
 
 		Assert.NotNull(recommendations);
 		var recList = recommendations.ToList();
@@ -278,7 +279,7 @@ public class PerfumeRecommenderTests {
 		var recommender = GetRecommender(context, userProfileService);
 
 		await Assert.ThrowsAsync<ArgumentException>(async () =>
-			await recommender.GetRecommendationsForOccasionMoodPrompt(3, "", CancellationToken.None));
+			await recommender.GetRecommendationsForOccasionMoodPrompt(3, "", TestContext.Current.CancellationToken));
 	}
 
 	[Fact]
@@ -286,15 +287,15 @@ public class PerfumeRecommenderTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
-		var userProfile = await userProfileService.GetCurrentUserProfile(CancellationToken.None);
+		var userProfile = await userProfileService.GetCurrentUserProfile(TestContext.Current.CancellationToken);
 		var recommender = GetRecommender(context, userProfileService);
 
 		// Get a perfume with embedding
 		var perfumeWithEmbedding = await context.PerfumeDocuments
-			.FirstOrDefaultAsync(pd => pd.Embedding != null);
+			.FirstOrDefaultAsync(pd => pd.Embedding != null, TestContext.Current.CancellationToken);
 		Assert.NotNull(perfumeWithEmbedding);
 
-		var similar = await recommender.GetSimilar(perfumeWithEmbedding.Id, 3, userProfile, CancellationToken.None);
+		var similar = await recommender.GetSimilar(perfumeWithEmbedding.Id, 3, userProfile, TestContext.Current.CancellationToken);
 
 		Assert.NotNull(similar);
 		var similarList = similar.ToList();
@@ -307,10 +308,10 @@ public class PerfumeRecommenderTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
-		var userProfile = await userProfileService.GetCurrentUserProfile(CancellationToken.None);
+		var userProfile = await userProfileService.GetCurrentUserProfile(TestContext.Current.CancellationToken);
 		var recommender = GetRecommender(context, userProfileService);
 
-		var similar = await recommender.GetSimilar(Guid.NewGuid(), 3, userProfile, CancellationToken.None);
+		var similar = await recommender.GetSimilar(Guid.NewGuid(), 3, userProfile, TestContext.Current.CancellationToken);
 
 		Assert.NotNull(similar);
 		Assert.Empty(similar);
@@ -324,12 +325,12 @@ public class PerfumeRecommenderTests {
 		var recommender = GetRecommender(context, userProfileService);
 
 		// Clear any existing recommendations from previous tests
-		var existingRecs = await context.PerfumeRecommendations.ToListAsync();
+		var existingRecs = await context.PerfumeRecommendations.ToListAsync(TestContext.Current.CancellationToken);
 		context.PerfumeRecommendations.RemoveRange(existingRecs);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 		// Create some test recommendations
-		var perfume = await context.Perfumes.FirstAsync();
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 		var recommendation1 = new PerfumeRecommendation {
 			PerfumeId = perfume.Id,
 			Strategy = RecommendationStrategy.Random,
@@ -356,9 +357,9 @@ public class PerfumeRecommenderTests {
 		};
 
 		context.PerfumeRecommendations.AddRange(recommendation1, recommendation2, recommendation3);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-		var stats = await recommender.GetRecommendationStats(CancellationToken.None);
+		var stats = await recommender.GetRecommendationStats(TestContext.Current.CancellationToken);
 
 		Assert.NotNull(stats);
 		var statsList = stats.ToList();
@@ -383,11 +384,11 @@ public class PerfumeRecommenderTests {
 		var recommender = GetRecommender(context, userProfileService);
 
 		// Clear any existing recommendations
-		var existingRecs = await context.PerfumeRecommendations.ToListAsync();
+		var existingRecs = await context.PerfumeRecommendations.ToListAsync(TestContext.Current.CancellationToken);
 		context.PerfumeRecommendations.RemoveRange(existingRecs);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-		var stats = await recommender.GetRecommendationStats(CancellationToken.None);
+		var stats = await recommender.GetRecommendationStats(TestContext.Current.CancellationToken);
 
 		Assert.NotNull(stats);
 		Assert.Empty(stats);
@@ -401,16 +402,16 @@ public class PerfumeRecommenderTests {
 		var recommender = GetRecommender(context, userProfileService);
 
 		// Update user profile to have a higher minimum rating
-		var userProfile = await userProfileService.GetCurrentUserProfile(CancellationToken.None);
+		var userProfile = await userProfileService.GetCurrentUserProfile(TestContext.Current.CancellationToken);
 		userProfile.MinimumRating = 7.0m;
 		context.UserProfiles.Update(userProfile);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 		// Create a perfume with low rating
 		var lowRatedPerfume = _fixture.GeneratePerfumes(1)[0];
 		lowRatedPerfume.Ml = 50;
 		context.Perfumes.Add(lowRatedPerfume);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 		var lowRating = new PerfumeRating {
 			Id = Guid.NewGuid(),
@@ -422,9 +423,9 @@ public class PerfumeRecommenderTests {
 			UpdatedAt = DateTime.UtcNow
 		};
 		context.PerfumeRatings.Add(lowRating);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, TestContext.Current.CancellationToken);
 
 		// Low rated perfume should not appear in recommendations
 		Assert.DoesNotContain(recommendations, r => r.Perfume.Perfume.Id == lowRatedPerfume.Id);
@@ -432,7 +433,7 @@ public class PerfumeRecommenderTests {
 		// Reset user profile
 		userProfile.MinimumRating = 0;
 		context.UserProfiles.Update(userProfile);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -449,9 +450,9 @@ public class PerfumeRecommenderTests {
 			.Select(x => x.PerfumeId)
 			.Distinct()
 			.Take(5)
-			.ToListAsync();
+			.ToListAsync(TestContext.Current.CancellationToken);
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, TestContext.Current.CancellationToken);
 
 		// Recently worn perfumes should not appear in most recommendation strategies
 		// (except ForgottenFavorite which specifically targets old but highly rated perfumes)
@@ -474,7 +475,7 @@ public class PerfumeRecommenderTests {
 		emptyPerfume.Ml = 10;
 		emptyPerfume.MlLeft = 0;
 		context.Perfumes.Add(emptyPerfume);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 		var rating = new PerfumeRating {
 			Id = Guid.NewGuid(),
@@ -486,9 +487,9 @@ public class PerfumeRecommenderTests {
 			UpdatedAt = DateTime.UtcNow
 		};
 		context.PerfumeRatings.Add(rating);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, TestContext.Current.CancellationToken);
 
 		// Empty perfume should not appear in recommendations
 		Assert.DoesNotContain(recommendations, r => r.Perfume.Perfume.Id == emptyPerfume.Id);
@@ -501,7 +502,7 @@ public class PerfumeRecommenderTests {
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var recommender = GetRecommender(context, userProfileService);
 
-		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, CancellationToken.None);
+		var recommendations = await recommender.GetAllStrategyRecommendations(10, null, TestContext.Current.CancellationToken);
 
 		var recList = recommendations.ToList();
 		var perfumeIds = recList.Select(r => r.Perfume.Perfume.Id).ToList();
@@ -516,15 +517,15 @@ public class PerfumeRecommenderTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
-		var userProfile = await userProfileService.GetCurrentUserProfile(CancellationToken.None);
+		var userProfile = await userProfileService.GetCurrentUserProfile(TestContext.Current.CancellationToken);
 		var recommender = GetRecommender(context, userProfileService);
 
 		// Get a perfume with embedding
 		var sourcePerfume = await context.PerfumeDocuments
-			.FirstOrDefaultAsync(pd => pd.Embedding != null);
+			.FirstOrDefaultAsync(pd => pd.Embedding != null, TestContext.Current.CancellationToken);
 		Assert.NotNull(sourcePerfume);
 
-		var similar = await recommender.GetSimilar(sourcePerfume.Id, 10, userProfile, CancellationToken.None);
+		var similar = await recommender.GetSimilar(sourcePerfume.Id, 10, userProfile, TestContext.Current.CancellationToken);
 
 		// Source perfume should never appear in its own similar recommendations
 		Assert.DoesNotContain(similar, s => s.Perfume.Id == sourcePerfume.Id);

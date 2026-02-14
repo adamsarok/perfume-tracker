@@ -54,8 +54,8 @@ public class MissionTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
 		var handler = new GenerateMissions(context);
-		await handler.Handle(new GenerateMissionCommand(), CancellationToken.None);
-		var userMissions = await context.UserMissions.ToListAsync();
+		await handler.Handle(new GenerateMissionCommand(), TestContext.Current.CancellationToken);
+		var userMissions = await context.UserMissions.ToListAsync(TestContext.Current.CancellationToken);
 		Assert.NotEmpty(userMissions);
 	}
 
@@ -65,9 +65,9 @@ public class MissionTests {
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
 		var handlerc = new GenerateMissions(context);
-		await handlerc.Handle(new GenerateMissionCommand(), CancellationToken.None);
+		await handlerc.Handle(new GenerateMissionCommand(), TestContext.Current.CancellationToken);
 		var handler = new GetActiveMissionsHandler(context);
-		var result = await handler.Handle(new GetActiveMissionsQuery(), CancellationToken.None);
+		var result = await handler.Handle(new GetActiveMissionsQuery(), TestContext.Current.CancellationToken);
 		Assert.NotNull(result);
 		Assert.NotEmpty(result);
 	}
@@ -80,7 +80,7 @@ public class MissionTests {
 		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(context, _fixture.MockMissionProgressHubContext.Object, xpService);
 		var handler = new ProgressMissions.PerfumeEventNotificationHandler(context, updateHandler);
 		var notification = new PerfumeEventAddedNotification(Guid.NewGuid(), Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException(), PerfumeEvent.PerfumeEventType.Worn);
-		await handler.Handle(notification, CancellationToken.None);
+		await handler.Handle(notification, TestContext.Current.CancellationToken);
 		AssertProgress(MissionType.WearDifferentPerfumes);
 	}
 
@@ -93,7 +93,7 @@ public class MissionTests {
 		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(context, _fixture.MockMissionProgressHubContext.Object, xpService);
 		var handler = new ProgressMissions.PerfumeRecommendationAcceptedNotificationHandler(updateHandler);
 		var notification = new PerfumeRecommendationAcceptedNotification(Guid.NewGuid(), _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException());
-		await handler.Handle(notification, CancellationToken.None);
+		await handler.Handle(notification, TestContext.Current.CancellationToken);
 		AssertProgress(MissionType.AcceptRecommendations);
 	}
 
@@ -105,7 +105,7 @@ public class MissionTests {
 		var updateHandler = new ProgressMissions.UpdateMissionProgressHandler(context, _fixture.MockMissionProgressHubContext.Object, xpService);
 		var handler = new ProgressMissions.PerfumeRecommendationsAddedNotificationHandler(updateHandler);
 		var notification = new PerfumeRecommendationsAddedNotification(1, _fixture.TenantProvider.MockTenantId ?? throw new TenantNotSetException());
-		await handler.Handle(notification, CancellationToken.None);
+		await handler.Handle(notification, TestContext.Current.CancellationToken);
 		AssertProgress(MissionType.GetRecommendations);
 	}
 

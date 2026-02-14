@@ -307,3 +307,5 @@ next-env.d.ts
 
 *.xls
 docker-compose.override.yml
+
+settings.local.json

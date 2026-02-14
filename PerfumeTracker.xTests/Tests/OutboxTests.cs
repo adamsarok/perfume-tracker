@@ -50,11 +50,11 @@ public class OutboxTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
-		var outboxMessage = await context.OutboxMessages.Skip(1).FirstAsync();
+		var outboxMessage = await context.OutboxMessages.Skip(1).FirstAsync(TestContext.Current.CancellationToken);
 		var channel = scope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
 		channel.Enqueue(outboxMessage);
-		await Task.Delay(1000);
-		var msg = await context.OutboxMessages.FindAsync([outboxMessage.Id]);
+		await Task.Delay(1000, TestContext.Current.CancellationToken);
+		var msg = await context.OutboxMessages.FindAsync([outboxMessage.Id], TestContext.Current.CancellationToken);
 		Assert.NotNull(msg);
 		Assert.NotNull(msg.ProcessedAt);
 	}
@@ -76,7 +76,7 @@ public class OutboxTests {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
-		var outboxMessage = await context.OutboxMessages.FirstAsync();
+		var outboxMessage = await context.OutboxMessages.FirstAsync(TestContext.Current.CancellationToken);
 		var channel = scope.ServiceProvider.GetRequiredService<ISideEffectQueue>();
 		channel.Enqueue(outboxMessage);
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
@@ -88,7 +88,7 @@ public class OutboxTests {
 		}
 
 		public async Task Test_ProcessMessages() {
-			await RetryMessages(CancellationToken.None);
+			await RetryMessages(TestContext.Current.CancellationToken);
 		}
 	}
 }

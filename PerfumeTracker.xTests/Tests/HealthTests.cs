@@ -22,10 +22,10 @@ public class HealthTests {
 	[Fact]
 	public async Task GetHealth() {
 		var client = _fixture.Factory.CreateClient();
-		var response = await client.GetAsync($"/api/health");
+		var response = await client.GetAsync($"/api/health", TestContext.Current.CancellationToken);
 		response.EnsureSuccessStatusCode();
 
-		var result = await response.Content.ReadFromJsonAsync<HealthCheckDto>();
+		var result = await response.Content.ReadFromJsonAsync<HealthCheckDto>(cancellationToken: TestContext.Current.CancellationToken);
 		Assert.NotNull(result);
 		Assert.Equal("Healthy", result.status);
 		Assert.Equal("Healthy", result.entries.npgsql.status);
