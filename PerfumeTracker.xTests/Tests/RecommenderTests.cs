@@ -21,8 +21,11 @@ public class PerfumeRecommenderFixture : DbFixture {
 	}
 
 	public async override Task SeedTestData(PerfumeTrackerContext context) {
-		// Seed user profile
-		await SeedUserProfile();
+		// Seed user profile with a low minimum rating so all perfumes are recommendable
+		var userProfile = await SeedUserProfile();
+		userProfile.MinimumRating = 0;
+		context.UserProfiles.Update(userProfile);
+		await context.SaveChangesAsync();
 
 		// Clear and seed tags with seasonal keywords
 		var sql = "truncate table \"public\".\"Tag\" cascade; ";
@@ -56,29 +59,34 @@ public class PerfumeRecommenderFixture : DbFixture {
 		// High-rated perfume not worn recently (for ForgottenFavorite)
 		var forgottenFav = GeneratePerfumes(1)[0];
 		forgottenFav.Ml = 50;
+		forgottenFav.MlLeft = 50;
 		perfumes.Add(forgottenFav);
 
 		// Recently worn perfumes
 		var recentlyWorn = GeneratePerfumes(5);
 		foreach (var p in recentlyWorn) {
 			p.Ml = 50;
+			p.MlLeft = 50;
 			perfumes.Add(p);
 		}
 
 		// Least used perfume
 		var leastUsed = GeneratePerfumes(1)[0];
 		leastUsed.Ml = 50;
+		leastUsed.MlLeft = 50;
 		perfumes.Add(leastUsed);
 
 		// Seasonal perfume
 		var seasonalPerfume = GeneratePerfumes(1)[0];
 		seasonalPerfume.Ml = 50;
+		seasonalPerfume.MlLeft = 50;
 		perfumes.Add(seasonalPerfume);
 
 		// Random recommendation candidates
 		var randomCandidates = GeneratePerfumes(5);
 		foreach (var p in randomCandidates) {
 			p.Ml = 50;
+			p.MlLeft = 50;
 			perfumes.Add(p);
 		}
 
