@@ -241,6 +241,25 @@ public class PerfumeRecommenderTests {
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var recommender = GetRecommender(context, userProfileService);
 
+		// Ensure there's a recommandable perfume with an embedding that hasn't been worn recently
+		var unwornPerfume = _fixture.GeneratePerfumes(1)[0];
+		unwornPerfume.Ml = 100;
+		unwornPerfume.MlLeft = 100;
+		unwornPerfume.AverageRating = 9.0m;
+		context.Perfumes.Add(unwornPerfume);
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+		var doc = new PerfumeDocument {
+			Id = unwornPerfume.Id,
+			Text = "Mood test perfume - citrus fresh light",
+			Embedding = new Vector(Enumerable.Range(0, 1536).Select(i => (float)i / 1536).ToArray()),
+			UserId = _fixture.TenantProvider.MockTenantId!.Value,
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow
+		};
+		context.PerfumeDocuments.Add(doc);
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
 		// Clear any existing cached completions for this test
 		var existingCompletions = await context.CachedCompletions
 			.Where(cc => cc.Prompt == "test mood")

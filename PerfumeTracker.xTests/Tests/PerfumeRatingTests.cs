@@ -9,10 +9,13 @@ namespace PerfumeTracker.xTests.Tests;
 public class PerfumeRatingCollection : ICollectionFixture<PerfumeRatingFixture>;
 
 public class PerfumeRatingFixture : DbFixture {
+	public Guid SeededPerfumeWithRatingsId { get; private set; }
+
 	public PerfumeRatingFixture() : base() { }
 
 	public async override Task SeedTestData(PerfumeTrackerContext context) {
 		var perfumes = await SeedPerfumes(2);
+		SeededPerfumeWithRatingsId = perfumes[0].Id;
 		// Seed some ratings for the first perfume
 		var ratings = GeneratePerfumeRatings(3, perfumes[0].Id);
 		await context.PerfumeRatings.AddRangeAsync(ratings);
@@ -29,15 +32,14 @@ public class PerfumeRatingTests {
 	public async Task GetPerfumeRatings_ReturnsRatingsForPerfume() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 		var handler = new GetPerfumeRatingHandler(context);
 
 		var ratings = await handler.Handle(
-			new GetPerfumeRatingQuery(perfume.Id),
+			new GetPerfumeRatingQuery(_fixture.SeededPerfumeWithRatingsId),
 			TestContext.Current.CancellationToken);
 
 		Assert.NotNull(ratings);
-		Assert.True(ratings.Count() > 3);
+		Assert.True(ratings.Count >= 3, $"Expected at least 3 ratings, got {ratings.Count}");
 	}
 
 	[Fact]
