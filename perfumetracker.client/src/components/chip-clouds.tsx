@@ -6,6 +6,7 @@ import ColorChip, { ChipProp } from "./color-chip";
 import { TagDTO } from "@/dto/TagDTO";
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 
 export interface ChipCloudProps {
@@ -41,6 +42,7 @@ export default function ChipClouds({
 
   const [topChips, setTopChips] = useState(topChipProps);
   const [bottomChips, setBottomChips] = useState(bottomChipProps);
+  const [search, setSearch] = useState("");
 
   const handleTopChipClick = (chip: ChipProp) => {
     setTopChips(topChips.filter((x) => x.name !== chip.name));
@@ -50,6 +52,7 @@ export default function ChipClouds({
   const handleBottomChipClick = (chip: ChipProp) => {
     setTopChips([...topChips, chip]);
     setBottomChips(bottomChips.filter((x) => x.name !== chip.name));
+    setSearch("");
     selectChip(chip.name);
   };
 
@@ -69,14 +72,22 @@ export default function ChipClouds({
         <DrawerTrigger asChild>
           <Button className="ml-1 mt-2 h-6 px-2 py-0 text-xs">Add Tags</Button>
         </DrawerTrigger>
-        <DrawerContent className="max-h-64">
+        <DrawerContent className="max-h-72">
           <DrawerTitle>Available tags:</DrawerTitle>
-          <ScrollArea className="rounded-md border h-64">
+          <Input
+            placeholder="Search tags..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="mx-2 my-1 w-auto"
+            autoFocus
+          />
+          <ScrollArea className="rounded-md border h-52">
             <div className="flex flex-wrap min-h-[50px]">
               <div key="New" className="ml-1 mt-2 cursor-pointer">
                 <TagAddModal tagAdded={handleModalClose} />
               </div>
               {bottomChips.concat(dividers)
+                .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
                 .toSorted((a, b) => a.name.localeCompare(b.name))
                 .map((c) => (
                   <div key={c.name} className="ml-1 mt-2 cursor-pointer">
