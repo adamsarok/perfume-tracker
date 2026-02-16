@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { AlertCircle } from "lucide-react";
 import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { deleteWear } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
@@ -27,6 +28,7 @@ export default function PerfumeCard({
 }: PerfumeCardProps) {
   const auth = useAuth();
   if (!worn) return <div></div>;
+  const isNsfw = worn.perfumeTags?.some((t) => t.tagName.toUpperCase() === "NSFW");
   const avatar =
     worn.perfumeName.split(" ").length > 1
       ? worn.perfumeName
@@ -69,8 +71,9 @@ export default function PerfumeCard({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <p className="mt-2 text-small tracking-tight text-default-400">
+                      <p className="mt-2 text-small tracking-tight text-default-400 flex items-center">
                         {`Worn on: ${worn.eventDate?.toDateString()}`}
+                        {isNsfw && <AlertCircle className="ml-1 text-red-500" size={16} />}
                       </p>
                     </TooltipTrigger>
                     <TooltipContent>
