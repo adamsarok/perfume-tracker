@@ -70,13 +70,13 @@ jobs:
     - name: Build React app
       working-directory: ./perfumetracker.client
       env:
-        DATABASE_URL: "postgresql://localhost:9999/placeholder"
+        VITE_PERFUMETRACKER_API_ADDRESS: "/api"
       run: npm run build
     
     - name: Build and push React app Docker image
       uses: docker/build-push-action@v6
       env:
-        DATABASE_URL: "postgresql://localhost:9999/placeholder"
+        VITE_PERFUMETRACKER_API_ADDRESS: "/api"
       with:
         context: ./perfumetracker.client
         file: ./perfumetracker.client/Dockerfile
