@@ -5,12 +5,12 @@
     "compounds": [
       {
         "name": "Launch Client and Server",
-        "configurations": ["Launch NextJS Client", "Launch ASP.NET Core Server"]
+        "configurations": ["Launch React Client", "Launch ASP.NET Core Server"]
       }
     ],
     "configurations": [
       {
-        "name": "Launch NextJS Client",
+        "name": "Launch React Client",
         "type": "node-terminal",
         "request": "launch",
         "cwd": "${workspaceFolder}/perfumetracker.client",

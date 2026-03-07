@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint .",
-    "test": "vitest"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -28,6 +27,8 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-stately/data": "^3.13.1",
+    "@tanstack/react-query": "^5.62.0",
+    "@tanstack/react-router": "^1.95.0",
     "@tanstack/react-table": "^8.20.6",
     "axios": "^1.12.0",
     "chart.js": "^4.4.4",
@@ -35,11 +36,8 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
-    "eslint": "^9",
     "framer-motion": "^12.19.2",
     "lucide-react": "^0.453.0",
-    "next": "^16.1.6",
-    "next-themes": "^0.4.4",
     "openai": "^4.56.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
@@ -55,8 +53,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/react": "^16.3.0",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^20",
     "@types/react": "19.2.2",
@@ -65,14 +61,12 @@
     "@typescript-eslint/parser": "^8.46.2",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.0.1",
-    "baseline-browser-mapping": "^2.9.11",
-    "eslint-config-next": "^16.1.6",
-    "jsdom": "^25.0.0",
+    "eslint": "^9",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.46.2",
-    "vitest": "^3.0.5"
+    "vite": "^6.0.0"
   },
   "overrides": {
     "@types/react": "19.2.2",

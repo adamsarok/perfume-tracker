@@ -1,12 +1,8 @@
-"use client";
-
 import { getCurrentUserStats, UserStatsDTO } from "@/services/stats-service";
 import { useEffect, useState } from "react";
 import { showError } from "@/services/toasty-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-
-export const dynamic = 'force-dynamic'
 
 export default function StatsPage() {
     const [stats, setStats] = useState<UserStatsDTO | null>(null);
@@ -170,8 +166,8 @@ export default function StatsPage() {
                             {stats.favoriteTags.map((tag) => (
                                 <div key={tag.id} className="flex justify-between items-center border-b pb-2">
                                     <div className="flex items-center gap-2">
-                                        <div 
-                                            className="w-4 h-4 rounded-full" 
+                                        <div
+                                            className="w-4 h-4 rounded-full"
                                             style={{ backgroundColor: tag.color }}
                                         />
                                         <p className="font-medium">{tag.tagName}</p>
@@ -203,8 +199,8 @@ export default function StatsPage() {
                                             {rec.totalRecommendations} / {rec.acceptedRecommendations} accepted
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {rec.totalRecommendations > 0 
-                                                ? `${((rec.acceptedRecommendations / rec.totalRecommendations) * 100).toFixed(1)}%` 
+                                            {rec.totalRecommendations > 0
+                                                ? `${((rec.acceptedRecommendations / rec.totalRecommendations) * 100).toFixed(1)}%`
                                                 : "0%"}
                                         </p>
                                     </div>
@@ -238,6 +234,8 @@ export default function StatsPage() {
                     </CardContent>
                 </Card>
             )}
+
+            <Separator />
         </div>
     );
 }

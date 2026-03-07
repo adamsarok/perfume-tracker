@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -14,8 +12,6 @@ import {
 import { showError, showSuccess } from "@/services/toasty-service";
 import { CircleX, SaveIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-
-export const dynamic = "force-dynamic";
 
 export default function SettingsPage() {
   const auth = useAuth();

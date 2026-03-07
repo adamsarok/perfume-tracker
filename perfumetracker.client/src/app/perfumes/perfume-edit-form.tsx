@@ -1,10 +1,8 @@
-"use client";
-
 import { useCallback, useEffect, useState } from "react";
 import ChipClouds from "../../components/chip-clouds";
 import { ChipProp } from "../../components/color-chip";
 import MessageBox from "../../components/message-box";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import UploadComponent from "../../components/upload-component";
 import SprayOnComponent from "../../components/spray-on";
 import { Button } from "../../components/ui/button";
@@ -88,7 +86,7 @@ const formSchema = z.object({
 
 export default function PerfumeEditForm({
   perfumeId,
-  randomsId,
+  randomsId: _randomsId,
 }: PerfumeEditFormProps) {
   const [allTags, setAllTags] = useState<TagDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -161,7 +159,7 @@ export default function PerfumeEditForm({
     }
   }, [perfume, form]);
 
-  const router = useRouter();
+  const navigate = useNavigate();
 
   async function loadPerfume(perfume: PerfumeWithWornStatsDTO | null) {
     try {
@@ -241,9 +239,9 @@ export default function PerfumeEditForm({
 
   const reload = useCallback(
     (id: string | undefined) => {
-      if (id) router.push(`/perfumes/${id}`);
+      if (id) navigate({ to: '/perfumes/$id', params: { id } });
     },
-    [router]
+    [navigate]
   );
 
   const selectChip = (chip: string) => {
@@ -276,7 +274,7 @@ export default function PerfumeEditForm({
       if (result.error) showError("Perfume deletion failed", result.error);
       else {
         showSuccess("Perfume deleted!");
-        router.push("/");
+        navigate({ to: '/' });
       }
     }
   };
@@ -378,7 +376,7 @@ export default function PerfumeEditForm({
       showError("Could not load perfume", prev.error ?? "unknown error");
       return;
     }
-    router.push(`/perfumes/${prev.data}`);
+    navigate({ to: '/perfumes/$id', params: { id: prev.data } });
   };
 
   const handleNext = async () => {
@@ -388,7 +386,7 @@ export default function PerfumeEditForm({
       showError("Could not load perfume", next.error ?? "unknown error");
       return;
     }
-    router.push(`/perfumes/${next.data}`);
+    navigate({ to: '/perfumes/$id', params: { id: next.data } });
   };
 
   if (isLoading) {

@@ -110,11 +110,11 @@ export default function PerfumeWornTable({
   useEffect(() => {
     list.reload();
     setIsChipCloudVisible(selected === "tag-filter");
-  }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selected]);
 
   useEffect(() => {
     list.reload();
-  }, [tags]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tags]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {

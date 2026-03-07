@@ -59,7 +59,7 @@ export const PerfumeRatingColumns = (deletePerfumeRating: (perfumeId: string, ra
         },
     },
     {   accessorKey: "delete",
-        header: ({ column }) => {
+        header: () => {
             return "";
         },
         cell: ({ row }) => {

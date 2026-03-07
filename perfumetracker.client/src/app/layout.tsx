@@ -1,8 +1,5 @@
-"use client";
-
-import "./globals.css";
 import { Toaster } from "sonner";
-import { usePathname, useRouter } from "next/navigation";
+import { useNavigate, useRouterState, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,9 +19,9 @@ import { LogOut } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { showError } from "@/services/toasty-service";
 
-function LayoutContent({ children }: { readonly children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
+export default function RootLayout() {
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [hasMounted, setHasMounted] = useState(false);
   const { user, isLoading, setUser, setLoading, clearUser } = useUserStore();
   const [xp, setXp] = useState<UserXPResponse | null>(null);
@@ -92,19 +89,19 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
           setUser(currentUserResult.data);
         } else {
           if (pathname !== "/login" && pathname !== "/register") {
-            router.push("/login");
+            navigate({ to: "/login" });
           }
           return;
         }
         if (pathname === "/login" || pathname === "/register") {
-          router.push("/");
+          navigate({ to: "/" });
         }
         await generateMissions();
       } catch (error) {
         if (!hasMounted) return;
         console.error("Auth check failed:", error);
         if (pathname !== "/login" && pathname !== "/register") {
-          router.push("/login");
+          navigate({ to: "/login" });
         }
       } finally {
         if (hasMounted) {
@@ -141,7 +138,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
       toast.error("Error during logout: " + result.error);
     }
     clearUser();
-    router.push("/login");
+    navigate({ to: "/login" });
   };
 
   if (isLoading && pathname !== "/login" && pathname !== "/register") {
@@ -153,7 +150,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
   }
 
   if (pathname === "/login" || pathname === "/register") {
-    return <>{children}</>;
+    return <Outlet />;
   }
 
   return (
@@ -204,7 +201,7 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
       </nav>
       <main className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="max-w-lg mx-auto px-4">
-          {children}
+          <Outlet />
           <Toaster
             visibleToasts={5}
             position="top-right"
@@ -214,19 +211,5 @@ function LayoutContent({ children }: { readonly children: React.ReactNode }) {
         </div>
       </main>
     </div>
-  );
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body>
-        <LayoutContent>{children}</LayoutContent>
-      </body>
-    </html>
   );
 }

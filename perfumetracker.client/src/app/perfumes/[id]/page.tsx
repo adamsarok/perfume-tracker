@@ -1,14 +1,7 @@
+import { useParams } from "@tanstack/react-router";
 import PerfumeEditForm from "@/app/perfumes/perfume-edit-form";
 
-export const dynamic = 'force-dynamic'
-
-interface EditPerfumePageProps {
-    readonly params: Promise<{
-        id: string
-    }>
-}
-
-export default async function EditPerfumePage(props: EditPerfumePageProps) {
-    const params = await props.params;
-    return <PerfumeEditForm perfumeId={params.id} randomsId={null}></PerfumeEditForm>
+export default function EditPerfumePage() {
+  const { id } = useParams({ from: '/perfumes/$id' });
+  return <PerfumeEditForm key={id} perfumeId={id} randomsId={null} />;
 }

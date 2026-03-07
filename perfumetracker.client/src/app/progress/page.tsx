@@ -1,12 +1,8 @@
-"use client";
-
 import { getActiveMissions } from "@/services/mission-service";
 import ProgressComponent from "./progress-component";
 import { UserMissionDto } from "@/dto/MissionDto";
 import { useEffect, useState } from "react";
 import { showError } from "@/services/toasty-service";
-
-export const dynamic = 'force-dynamic'
 
 export default function ProgressPage() {
     const [missions, setMissions] = useState<UserMissionDto[]>([]);

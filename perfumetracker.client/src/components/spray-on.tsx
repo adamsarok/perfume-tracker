@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { wearPerfume } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
-import { SprayCan, WandSparkles } from "lucide-react";
+import { SprayCan } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export interface SprayOnProps {

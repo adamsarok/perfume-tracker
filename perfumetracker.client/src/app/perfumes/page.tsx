@@ -1,5 +1,3 @@
-"use client";
-
 import PerfumeWornTable from "./perfume-worn-table";
 import { Separator } from "@/components/ui/separator";
 import { getUserProfile, UserProfile } from "@/services/user-profiles-service";
@@ -8,9 +6,7 @@ import { useEffect, useState } from "react";
 import { TagDTO } from "@/dto/TagDTO";
 import { showError } from "@/services/toasty-service";
 
-export const dynamic = 'force-dynamic'
-
-export default function StatsPage() {
+export default function PerfumesPage() {
     const [tags, setTags] = useState<TagDTO[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
@@ -18,7 +14,7 @@ export default function StatsPage() {
         const fetchData = async () => {
             try {
             const tagsResult = await getTags();
-            if (tagsResult.error || !tagsResult.data) { 
+            if (tagsResult.error || !tagsResult.data) {
                 setTags([]);
                 showError("Could not load tags", tagsResult.error ?? "unknown error");
                 return;

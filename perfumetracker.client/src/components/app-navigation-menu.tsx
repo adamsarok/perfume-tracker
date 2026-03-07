@@ -7,7 +7,7 @@ import {
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 import { Brain, Cake, ChartNoAxesCombined, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@tanstack/react-router"
 
 export default function AppNavigationMenu() {
     return (
@@ -21,7 +21,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-4 no-underline outline-none focus:shadow-md"
-                                        href="/"
+                                        to="/"
                                     >
                                         <House className="h-5 w-5" />
                                         <div className="mb-1 mt-3 text-base font-medium">
@@ -37,7 +37,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                        href="/perfumes/recommendations"
+                                        to="/perfumes/recommendations"
                                     >
                                         <div className="flex items-center gap-2">
                                             <Cake className="h-4 w-4" />
@@ -53,7 +53,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                        href="/perfumes/agent"
+                                        to="/perfumes/agent"
                                     >
                                         <div className="flex items-center gap-2">
                                             <Brain className="h-4 w-4" />
@@ -69,7 +69,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                        href="/perfumes/new-perfume"
+                                        to="/perfumes/new-perfume"
                                     >
                                         <div className="flex items-center gap-2">
                                             <Plus className="h-4 w-4" />
@@ -85,7 +85,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                        href="/perfumes"
+                                        to="/perfumes"
                                     >
                                         <div className="flex items-center gap-2">
                                             <List className="h-4 w-4" />
@@ -101,7 +101,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                        href="/stats"
+                                        to="/stats"
                                     >
                                         <div className="flex items-center gap-2">
                                             <ChartNoAxesCombined className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                        href="/tags"
+                                        to="/tags"
                                     >
                                         <div className="flex items-center gap-2">
                                             <Tag className="h-4 w-4" />
@@ -133,7 +133,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                        href="/progress"
+                                        to="/progress"
                                     >
                                         <div className="flex items-center gap-2">
                                             <ListChecks className="h-4 w-4" />
@@ -149,7 +149,7 @@ export default function AppNavigationMenu() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                        href="/settings"
+                                        to="/settings"
                                     >
                                         <div className="flex items-center gap-2">
                                             <Settings className="h-4 w-4" />

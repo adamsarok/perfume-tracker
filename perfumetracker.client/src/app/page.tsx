@@ -1,13 +1,9 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import PerfumeSelector from "../components/perfume-selector";
 import WornList from "@/components/worn-list";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { getPerfumes } from "@/services/perfume-service";
 import { showError } from "@/services/toasty-service";
-
-export const dynamic = 'force-dynamic'
 
 export default function Home() {
   const [perfumes, setPerfumes] = useState<PerfumeWithWornStatsDTO[]>([]);

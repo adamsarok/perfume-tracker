@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Perfume Tracker is a full-stack web app for tracking and analyzing a perfume collection with AI-powered recommendations. Two separate projects in one repo:
 
 - **Backend:** ASP.NET Core 10 (C#) Web API in `PerfumeTracker.Server/`
-- **Frontend:** Next.js 15 (React 19, TypeScript) in `perfumetracker.client/`
+- **Frontend:** React 19, TypeScript in `perfumetracker.client/`
 - **Tests:** xUnit v3 integration tests in `PerfumeTracker.xTests/`
 - **Database:** PostgreSQL 16+ with pgvector extension
 - **Solution file:** `PerfumeTracker.sln`
@@ -21,7 +21,7 @@ dotnet run --project PerfumeTracker.Server      # Run API server
 dotnet ef database update --project PerfumeTracker.Server  # Apply migrations
 ```
 
-### Frontend (Next.js)
+### Frontend (React)
 ```bash
 cd perfumetracker.client
 npm install --legacy-peer-deps                  # Install deps (legacy flag required)
@@ -72,7 +72,7 @@ Key features: `Perfumes/`, `Auth/`, `ChatAgent/`, `Embedding/`, `Tags/`, `Missio
 - SignalR hubs for real-time push (missions, chat progress)
 - DTOs in `DTO/`, models in `Models/`, migrations in `Migrations/`
 
-### Frontend — Next.js App Router
+### Frontend — React + Tanstack Router
 
 - Pages under `src/app/` using App Router with `"use client"` directives for interactive components
 - Reusable UI components in `src/components/ui/` (Radix UI primitives + Tailwind)

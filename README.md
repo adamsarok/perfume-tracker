@@ -16,7 +16,7 @@ Perfume Tracker is a NextJS app which lets you track, review, and analyze your p
 ✅ Random Picks → Get a random perfume choice, find that one bottle that you forget to wear.
 
 ## Tech Stack
-- Frontend: Next.js 15
+- Frontend: React 19 + Vite
 - Backend: ASP.NET Core 9
 - Database: PostgreSQL
 - Storage: Cloudflare R2
@@ -32,7 +32,7 @@ services:
         ports:
           - 3000:3000
         environment:
-          - NEXT_PUBLIC_PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080
+          - VITE_PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080
         restart: unless-stopped
 
     perfume-tracker-api:
