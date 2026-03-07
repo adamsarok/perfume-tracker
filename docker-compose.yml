@@ -3,13 +3,12 @@ services:
     image: adamsarok/perfume-tracker
     ports:
       - 3000:3000
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - VITE_PERFUMETRACKER_API_ADDRESS=${PERFUMETRACKER_API_ADDRESS}
     restart: unless-stopped
     build:
        context: ./perfumetracker.client/
        dockerfile: Dockerfile
+       args:
+         VITE_PERFUMETRACKER_API_ADDRESS: ${PERFUMETRACKER_API_ADDRESS}
   perfume-tracker-api:
     image: adamsarok/perfume-tracker-api
     ports:
