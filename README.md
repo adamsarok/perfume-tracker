@@ -1,6 +1,6 @@
 ## What is Perfume Tracker?
 
-Perfume Tracker is a NextJS app which lets you track, review, and analyze your perfume collection with AI-powered recommendations.   
+Perfume Tracker lets you track, review, and analyze your perfume collection with AI-powered recommendations.   
 
 ![screenshot](https://raw.githubusercontent.com/adamsarok/perfume-tracker/refs/heads/main/screenshot.jpg)
 ## Features
@@ -17,7 +17,7 @@ Perfume Tracker is a NextJS app which lets you track, review, and analyze your p
 
 ## Tech Stack
 - Frontend: React 19 + Vite
-- Backend: ASP.NET Core 9
+- Backend: ASP.NET Core 10
 - Database: PostgreSQL
 - Storage: Cloudflare R2
 
@@ -31,8 +31,6 @@ services:
         image: adamsarok/perfume-tracker
         ports:
           - 3000:3000
-        environment:
-          - VITE_PERFUMETRACKER_API_ADDRESS=http://perfume-tracker-api:8080
         restart: unless-stopped
 
     perfume-tracker-api:
