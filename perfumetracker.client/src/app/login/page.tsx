@@ -1,11 +1,8 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { loginDemoUser, loginUser } from "@/services/user-service";
 import { initializeApiUrl } from "@/services/axios-service";
 
@@ -13,7 +10,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +19,7 @@ export default function LoginPage() {
     if (result.error || !result.data) {
       setError("Login failed: " + (result.error ?? "unknown error"));
     } else {
-      router.push("/"); // Redirect to home page after successful login
+      navigate({ to: "/" });
     }
   };
 
@@ -33,7 +30,7 @@ export default function LoginPage() {
     if (result.error || !result.data) {
       setError("Login failed: " + (result.error ?? "unknown error"));
     } else {
-      router.push("/"); // Redirect to home page after successful login
+      navigate({ to: "/" });
     }
   };
 
@@ -112,7 +109,7 @@ export default function LoginPage() {
 
           <div className="flex justify-evenly">
             <Button type="submit">Sign in</Button>
-            <Link href="/register" passHref>
+            <Link to="/register">
               <Button variant="outline" type="button">
                 Register
               </Button>

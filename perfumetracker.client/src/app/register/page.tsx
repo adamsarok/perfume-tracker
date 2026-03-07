@@ -1,7 +1,5 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,7 +16,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [passwordsMatch, setPasswordsMatch] = useState(true);
   const [inviteOnlyRegistration, setInviteOnlyRegistration] = useState<boolean | undefined>(true);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -50,7 +48,7 @@ export default function RegisterPage() {
 
     try {
       await registerUser(email.trim(), password, userName.trim(), inviteCode.trim());
-      router.push("/"); // Redirect to home page after successful registration
+      navigate({ to: "/" });
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -172,4 +170,4 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-} 
+}

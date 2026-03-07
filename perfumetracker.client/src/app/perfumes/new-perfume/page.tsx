@@ -1,10 +1,8 @@
-"use client";
-
 import PerfumeEditForm from "@/app/perfumes/perfume-edit-form";
 
 export default function NewPerfumePage() {
-    return <PerfumeEditForm 
-        perfumeId={""} 
+    return <PerfumeEditForm
+        perfumeId={""}
         randomsId={null}
     />;
 }

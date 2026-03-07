@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import { showError } from "@/services/toasty-service";
 import { PerfumeRecommendationDTO } from "@/dto/PerfumeRecommendationDTO";
