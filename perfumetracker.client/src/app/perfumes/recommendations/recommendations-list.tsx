@@ -99,7 +99,6 @@ export default function RecommendationsList() {
       }
     };
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

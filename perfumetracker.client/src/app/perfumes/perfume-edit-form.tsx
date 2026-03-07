@@ -86,7 +86,7 @@ const formSchema = z.object({
 
 export default function PerfumeEditForm({
   perfumeId,
-  randomsId,
+  randomsId: _randomsId,
 }: PerfumeEditFormProps) {
   const [allTags, setAllTags] = useState<TagDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);

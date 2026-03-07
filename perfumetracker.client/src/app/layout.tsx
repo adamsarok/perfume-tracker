@@ -116,7 +116,7 @@ export default function RootLayout() {
     }
 
     checkAuth();
-  }, [pathname, hasMounted, setUser, setLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pathname, hasMounted, setUser, setLoading]);
 
   useEffect(() => {
     const fetchUserXP = async () => {

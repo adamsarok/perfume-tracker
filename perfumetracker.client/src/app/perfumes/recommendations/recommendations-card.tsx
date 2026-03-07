@@ -8,14 +8,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { showError, showSuccess } from "@/services/toasty-service";
-import { useAuth } from "@/hooks/use-auth";
-import { Star, Sparkles, Calendar, Dice5, ChartNoAxesCombined, PartyPopper } from "lucide-react";
+import { getRecommendationIcon } from "./recommendation-icons";
 import ColorChip from "@/components/color-chip";
 import SprayOnComponent from "@/components/spray-on";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PerfumeRecommendationDTO } from "@/dto/PerfumeRecommendationDTO";
-import { getRecommendationIcon } from "./recommendation-icons";
 
 export interface PerfumeRecommendationsCardProps {
   readonly recommendation: PerfumeRecommendationDTO;
@@ -25,7 +22,6 @@ export interface PerfumeRecommendationsCardProps {
 export default function PerfumeRecommendationsCard({
   recommendation,
 }: PerfumeRecommendationsCardProps) {
-  const auth = useAuth();
   if (!recommendation) return <div></div>;
   const perfume = recommendation.perfume.perfume;
   const avatar =
