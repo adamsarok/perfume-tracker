@@ -3,5 +3,5 @@ import PerfumeEditForm from "@/app/perfumes/perfume-edit-form";
 
 export default function EditPerfumePage() {
   const { id } = useParams({ from: '/perfumes/$id' });
-  return <PerfumeEditForm perfumeId={id} randomsId={null} />;
+  return <PerfumeEditForm key={id} perfumeId={id} randomsId={null} />;
 }
