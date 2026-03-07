@@ -67,21 +67,15 @@ jobs:
       working-directory: ./perfumetracker.client
       run: npm ci --legacy-peer-deps
       
-    - name: Build React app
-      working-directory: ./perfumetracker.client
-      env:
-        VITE_PERFUMETRACKER_API_ADDRESS: "/api"
-      run: npm run build
-    
     - name: Build and push React app Docker image
       uses: docker/build-push-action@v6
-      env:
-        VITE_PERFUMETRACKER_API_ADDRESS: "/api"
       with:
         context: ./perfumetracker.client
         file: ./perfumetracker.client/Dockerfile
         push: true
         tags: adamsarok/perfume-tracker:latest
+        build-args: |
+          VITE_PERFUMETRACKER_API_ADDRESS=/api
         
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v5
