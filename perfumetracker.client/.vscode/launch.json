@@ -1,10 +1,10 @@
 {
     "version": "0.2.0",
     "debug.startView": "default",
-    "debug.defaultLaunchConfiguration": "Launch NextJS Client",
+    "debug.defaultLaunchConfiguration": "Launch React Client",
     "configurations": [
       {
-        "name": "Launch NextJS Client",
+        "name": "Launch React Client",
         "type": "node-terminal",
         "request": "launch",
         "cwd": "${workspaceFolder}",
