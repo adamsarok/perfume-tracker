@@ -8,6 +8,7 @@ public partial class Perfume : UserEntity {
 	public decimal MlLeft { get; set; }
 	public decimal AverageRating { get; set; }
 	public int WearCount { get; set; }
+	public DateTime? LastWorn { get; set; }
 	public Guid? ImageObjectKeyNew { get; set; } = null!;
 	public NpgsqlTsVector FullText { get; set; } = null!;
 	public virtual ICollection<PerfumeRecommendation> PerfumeRecommendations { get; } = [];

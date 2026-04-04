@@ -21,7 +21,8 @@ export default function RecommendationsList() {
     RecommendationStrategy.SimilarToLastUsed,
     RecommendationStrategy.Seasonal,
     RecommendationStrategy.Random,
-    RecommendationStrategy.LeastUsed
+    RecommendationStrategy.LeastUsed,
+    RecommendationStrategy.LongestTimeAgo,
   ]);
   const recommendationsCount = 5;
 
@@ -30,7 +31,8 @@ export default function RecommendationsList() {
     RecommendationStrategy.SimilarToLastUsed,
     RecommendationStrategy.Seasonal,
     RecommendationStrategy.Random,
-    RecommendationStrategy.LeastUsed
+    RecommendationStrategy.LeastUsed,
+    RecommendationStrategy.LongestTimeAgo,
   ];
 
   const refreshList = async (occasion?: string, savePreferences: boolean = false) => {

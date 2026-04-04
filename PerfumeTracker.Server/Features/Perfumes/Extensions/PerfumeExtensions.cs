@@ -38,9 +38,9 @@ public static class PerfumeExtensions {
 				p.IsDeleted,
 				[.. p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(r.PerfumeId, r.Id, r.Rating, r.Comment, r.RatingDate, r.IsDeleted))],
 				p.WearCount,
-				p.AverageRating
+				p.AverageRating,
+				p.LastWorn
 			),
-			worns.Any() ? worns.Max(x => x.CreatedAt) : null,
 			burnRatePerYearMl,
 			yearsLeft,
 			lastComment

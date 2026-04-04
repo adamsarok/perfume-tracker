@@ -13,4 +13,5 @@ export interface PerfumeDTO {
     tags: TagDTO[];
     ratings: PerfumeRatingDownloadDTO[];
     wearCount: number | undefined;
+    lastWorn: Date | undefined;
 }

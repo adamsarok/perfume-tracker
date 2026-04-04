@@ -13,7 +13,8 @@ public enum RecommendationStrategy {
 	Seasonal,           // Based on current season
 	Random,             // Random from unused
 	LeastUsed,          // Bottom 10% usage
-	MoodOrOccasion      // Based on Mood/Occasion input
+	MoodOrOccasion,     // Based on Mood/Occasion input
+	LongestTimeAgo,     // Used the longest time ago (or never used)
 }
 
 public class PerfumeRecommender(PerfumeTrackerContext context,
@@ -57,9 +58,22 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 			RecommendationStrategy.Seasonal => await GetSeasonal(count, userProfile, cancellationToken),
 			RecommendationStrategy.Random => await GetRandom(count, userProfile, cancellationToken),
 			RecommendationStrategy.LeastUsed => await GetLeastUsed(count, userProfile, cancellationToken),
+			RecommendationStrategy.LongestTimeAgo => await GetLongestTimeAgo(count, userProfile, cancellationToken),
 			RecommendationStrategy.MoodOrOccasion => throw new ArgumentException("Use GetRecommendationsForOccasionMoodPrompt for MoodOrOccasion strategy"),
 			_ => throw new ArgumentOutOfRangeException(nameof(strategy))
 		};
+	}
+
+	private async Task<IEnumerable<PerfumeRecommendationDto>> GetLongestTimeAgo(int count, UserProfile userProfile, CancellationToken cancellationToken) {
+		var worn = await GetLastWornPerfumeIdsCached(cancellationToken);
+		var result = await GetRecommendablePerfumes(userProfile.MinimumRating, worn)
+			.OrderBy(p => p.LastWorn)
+			.Take(count * RANDOM_SAMPLE_MULTIPLIER)
+			.ToListAsync(cancellationToken);
+		return result
+			.OrderBy(_ => Random.Shared.Next())
+			.Take(count)
+			.Select(x => new PerfumeRecommendationDto(Guid.Empty, x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.LongestTimeAgo));
 	}
 
 	private async Task<IEnumerable<PerfumeRecommendationDto>> GetLeastUsed(int count, UserProfile userProfile, CancellationToken cancellationToken) {
