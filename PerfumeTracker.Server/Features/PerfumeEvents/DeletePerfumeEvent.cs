@@ -20,6 +20,9 @@ public class DeletePerfumeEventHandler(PerfumeTrackerContext context) : ICommand
 		w.IsDeleted = true;
 		var perfume = await context.Perfumes.FindAsync([w.PerfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", w.PerfumeId);
 		perfume.WearCount = Math.Max(0, perfume.WearCount - 1);
+		perfume.LastWorn = await context.PerfumeEvents
+			.Where(e => e.PerfumeId == w.PerfumeId && !e.IsDeleted && e.Type == PerfumeEvent.PerfumeEventType.Worn)
+			.MaxAsync(e => (DateTime?)e.EventDate, cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);
 		return w.Adapt<PerfumeEventDownloadDto>();
 	}
