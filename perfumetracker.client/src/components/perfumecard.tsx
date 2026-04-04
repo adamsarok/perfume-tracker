@@ -72,7 +72,7 @@ export default function PerfumeCard({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="mt-2 text-small tracking-tight text-default-400 flex items-center">
-                        {`Worn on: ${worn.eventDate?.toDateString()}`}
+                        {`Worn on: ${worn.eventDate ? new Date(worn.eventDate).toDateString() : "Never"}`}
                         {isNsfw && <AlertCircle className="ml-1 text-red-500" size={16} />}
                       </p>
                     </TooltipTrigger>

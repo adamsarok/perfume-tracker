@@ -24,7 +24,6 @@ export default function WornList({ refreshTrigger }: WornListProps) {
       return;
     }
     const newWorns = result.data;
-    newWorns.forEach(x => x.eventDate = new Date(x.eventDate));
     if (newWorns.length > 0) {
       const lastWorn = newWorns[newWorns.length - 1];
       setCursor(lastWorn.sequenceNumber);
@@ -41,7 +40,6 @@ export default function WornList({ refreshTrigger }: WornListProps) {
       return;
     }
     const newWorns = result.data;
-    newWorns.forEach(x => x.eventDate = new Date(x.eventDate));
     if (newWorns.length > 0) {
       const lastWorn = newWorns[newWorns.length - 1];
       setCursor(lastWorn.sequenceNumber);
