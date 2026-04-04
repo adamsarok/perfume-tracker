@@ -56,7 +56,7 @@ export default function PerfumeRecommendationsCard({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="mt-2 text-small tracking-tight text-default-400">
-                        {`Worn on: ${recommendation.perfume.lastWorn?.toDateString()}`}
+                        {`Worn on: ${recommendation.perfume.perfume.lastWorn ? new Date(recommendation.perfume.perfume.lastWorn).toDateString() : "Never"}`}
                       </p>
                     </TooltipTrigger>
                     <TooltipContent>

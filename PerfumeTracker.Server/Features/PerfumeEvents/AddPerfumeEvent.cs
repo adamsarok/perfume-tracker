@@ -56,6 +56,9 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 	async Task HandleWorn(List<OutboxMessage> messages, PerfumeTrackerContext context, PerfumeEvent evt, Perfume perfume,
 			AddPerfumeEventCommand request, Guid userId, CancellationToken cancellationToken) {
 		perfume.WearCount += 1;
+		if (perfume.LastWorn == null || evt.EventDate > perfume.LastWorn) // we can log backdated wear events, which are older than last wear
+			perfume.LastWorn = evt.EventDate;
+
 		if (evt.AmountMl == 0) {
 			var settings = await userProfileService.GetCurrentUserProfile(cancellationToken);
 			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);

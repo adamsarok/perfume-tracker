@@ -4,7 +4,8 @@ export enum RecommendationStrategy {
   Seasonal = "Seasonal",
   Random = "Random",
   LeastUsed = "LeastUsed",
-  MoodOrOccasion = "MoodOrOccasion"
+  MoodOrOccasion = "MoodOrOccasion",
+  LongestTimeAgo = "LongestTimeAgo"
 }
 
 export const RecommendationStrategyLabels: Record<RecommendationStrategy, string> = {
@@ -13,5 +14,6 @@ export const RecommendationStrategyLabels: Record<RecommendationStrategy, string
   [RecommendationStrategy.Seasonal]: "Seasonal",
   [RecommendationStrategy.Random]: "Random",
   [RecommendationStrategy.LeastUsed]: "Least Used",
-  [RecommendationStrategy.MoodOrOccasion]: "Mood or Occasion"
+  [RecommendationStrategy.MoodOrOccasion]: "Mood or Occasion",
+  [RecommendationStrategy.LongestTimeAgo]: "Longest Ago",
 };

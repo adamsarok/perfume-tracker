@@ -1,5 +1,5 @@
 import { RecommendationStrategy } from "@/dto/RecommendationStrategy";
-import { Calendar, ChartNoAxesCombined, Dice5, PartyPopper, Sparkles, Star } from "lucide-react";
+import { Calendar, ChartNoAxesCombined, Clock, Dice5, PartyPopper, Sparkles, Star } from "lucide-react";
 
 export const getRecommendationIcon = (type?: RecommendationStrategy) => { 
   switch (type) {
@@ -15,6 +15,8 @@ export const getRecommendationIcon = (type?: RecommendationStrategy) => {
       return <ChartNoAxesCombined className="w-5 h-5 text-gray-500" />;
     case RecommendationStrategy.MoodOrOccasion:
       return <PartyPopper className="w-5 h-5 text-gray-500" />;
+    case RecommendationStrategy.LongestTimeAgo:
+      return <Clock className="w-5 h-5 text-gray-500" />;
     default:
       return null;
   }
