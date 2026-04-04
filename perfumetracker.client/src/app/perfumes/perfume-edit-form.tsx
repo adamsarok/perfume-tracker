@@ -591,8 +591,8 @@ export default function PerfumeEditForm({
               <Separator className="mb-2"></Separator>
               <div className="flex items-center space-x-4 mb-2 mt-2 w-full">
                 <Label>{`Last worn: ${
-                  perfume?.lastWorn
-                    ? format(new Date(perfume?.lastWorn), "yyyy.MM.dd")
+                  perfume?.perfume.lastWorn
+                    ? format(new Date(perfume?.perfume.lastWorn), "yyyy.MM.dd")
                     : ""
                 }`}</Label>
                 <Separator orientation="vertical" className="h-6" />

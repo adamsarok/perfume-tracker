@@ -41,7 +41,7 @@ export default function PerfumeWornTable({
         ml: x.perfume.mlLeft,
         rating: x.averageRating,
         wornTimes: x.perfume.wearCount,
-        lastWorn: x.lastWorn,
+        lastWorn: x.perfume.lastWorn,
         tags: x.perfume.tags,
         burnRatePerYearMl: x.burnRatePerYearMl,
       }));

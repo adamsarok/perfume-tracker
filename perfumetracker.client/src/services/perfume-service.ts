@@ -24,7 +24,6 @@ export async function getPerfumeRecommendations(
     strategies: strategies || null
   };
   const result = await post<PerfumeRecommendationDTO[]>(qry, body);
-  result.data?.forEach(x => x.perfume.perfume.lastWorn = new Date(x.perfume.perfume.lastWorn ?? ""));
   return result;
 }
 

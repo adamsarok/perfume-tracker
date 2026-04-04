@@ -67,7 +67,8 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 	private async Task<IEnumerable<PerfumeRecommendationDto>> GetLongestTimeAgo(int count, UserProfile userProfile, CancellationToken cancellationToken) {
 		var worn = await GetLastWornPerfumeIdsCached(cancellationToken);
 		var result = await GetRecommendablePerfumes(userProfile.MinimumRating, worn)
-			.OrderBy(p => p.LastWorn)
+			.OrderBy(p => p.LastWorn == null ? 0 : 1)
+			.ThenBy(p => p.LastWorn)
 			.Take(count * RANDOM_SAMPLE_MULTIPLIER)
 			.ToListAsync(cancellationToken);
 		return result

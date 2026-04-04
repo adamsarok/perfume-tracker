@@ -12,7 +12,7 @@ export interface PerfumeListDTO {
   ml: number;
   rating: number;
   wornTimes: number | undefined;
-  lastWorn: Date | undefined;
+  lastWorn: string | undefined;
   tags: TagDTO[];
   burnRatePerYearMl: number;
 }
