@@ -78,6 +78,7 @@ const formSchema = z.object({
     })
     .trim(),
   family: z.string().trim(),
+  parfumeur: z.string().trim(),
   amount: z.coerce.number().min(0).max(200),
   mlLeft: z.coerce.number().min(0).max(200),
   imageObjectKey: z.string().nullable(),
@@ -138,6 +139,7 @@ export default function PerfumeEditForm({
       house: "",
       perfume: "",
       family: "",
+      parfumeur: "",
       amount: 0,
       mlLeft: 0,
       imageObjectKey: "",
@@ -151,6 +153,7 @@ export default function PerfumeEditForm({
         house: perfume.perfume.house,
         perfume: perfume.perfume.perfumeName,
         family: perfume.perfume.family,
+        parfumeur: perfume.perfume.parfumeur,
         amount: perfume.perfume.ml,
         mlLeft: perfume.perfume.mlLeft,
         imageObjectKey: perfume.perfume.imageObjectKey ?? "",
@@ -222,6 +225,7 @@ export default function PerfumeEditForm({
       house: values.house,
       perfumeName: values.perfume,
       family: values.family,
+      parfumeur: values.parfumeur,
       ml: values.amount,
       mlLeft: values.mlLeft,
       tags: perfume?.perfume.tags ?? [],
@@ -495,10 +499,23 @@ export default function PerfumeEditForm({
                   control={form.control}
                   name="family"
                   render={({ field }) => (
-                    <FormItem className="w-full">
+                    <FormItem className="w-64">
                       <FormLabel>Family</FormLabel>
                       <FormControl>
                         <Input placeholder="Family" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="parfumeur"
+                  render={({ field }) => (
+                    <FormItem className="w-64">
+                      <FormLabel>Parfumeur</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Parfumeur" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

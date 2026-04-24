@@ -52,6 +52,7 @@ public class AddPerfumeFromGlobalHandler(PerfumeTrackerContext context, ISideEff
 			House = globalPerfume.House,
 			PerfumeName = globalPerfume.PerfumeName,
 			Family = globalPerfume.Family,
+			Parfumeur = "",
 			Ml = request.Ml,
 			MlLeft = request.MlLeft,
 			ImageObjectKeyNew = globalPerfume.ImageObjectKeyNew,

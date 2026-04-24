@@ -6,6 +6,7 @@ public record PerfumeDto(Guid Id,
 	string House,
 	string PerfumeName,
 	string Family,
+	string Parfumeur,
 	decimal Ml,
 	decimal MlLeft,
 	Guid? ImageObjectKey,
@@ -17,5 +18,5 @@ public record PerfumeDto(Guid Id,
 	decimal AverageRating,
 	DateTime? LastWorn
 	);
-public record PerfumeUploadDto(string House, string PerfumeName, string Family, decimal Ml, decimal MlLeft, List<TagDto> Tags);
+public record PerfumeUploadDto(string House, string PerfumeName, string Family, string Parfumeur, decimal Ml, decimal MlLeft, List<TagDto> Tags);
 
