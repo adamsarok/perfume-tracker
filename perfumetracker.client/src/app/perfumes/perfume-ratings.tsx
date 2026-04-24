@@ -39,7 +39,7 @@ export default function PerfumeRatings({ perfume }: PerfumeRatingFormProps) {
         resolver: zodResolver(formSchema),
         defaultValues: {
             comment: perfume.lastComment ?? "",
-            rating: perfume.averageRating ?? 0,
+            rating: perfume.perfume.averageRating ?? 0,
         },
     });
 

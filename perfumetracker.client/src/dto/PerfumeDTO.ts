@@ -13,5 +13,6 @@ export interface PerfumeDTO {
     tags: TagDTO[];
     ratings: PerfumeRatingDownloadDTO[];
     wearCount: number | undefined;
+    averageRating: number;
     lastWorn: string | undefined;
 }
