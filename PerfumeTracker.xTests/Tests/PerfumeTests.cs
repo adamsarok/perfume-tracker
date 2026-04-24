@@ -85,6 +85,7 @@ public class PerfumeTests {
 		var dto = new PerfumeUploadDto(House: perfume.House,
 			PerfumeName: perfume.PerfumeName,
 			Family: perfume.Family,
+			Parfumeur: perfume.Parfumeur,
 			perfume.Ml,
 			perfume.MlLeft,
 			new List<TagDto>() { tag.Adapt<TagDto>() });

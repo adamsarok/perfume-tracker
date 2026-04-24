@@ -5,6 +5,7 @@ export interface PerfumeUploadDTO {
     house: string;
     perfumeName: string;
     family: string;
+    parfumeur: string;
     ml: number;
     mlLeft: number;
     tags: TagDTO[]

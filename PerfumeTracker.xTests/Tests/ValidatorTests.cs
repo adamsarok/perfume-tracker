@@ -13,42 +13,42 @@ public class ValidatorTests {
 
 	[Fact]
 	public void PerfumeValidator_ValidDto_Passes() {
-		var dto = new PerfumeUploadDto("House1", "Big Citrus", "Woody", 100m, 50m, []);
+		var dto = new PerfumeUploadDto("House1", "Big Citrus", "Woody", "Quentin Bisch", 100m, 50m, []);
 		var result = _perfumeValidator.TestValidate(dto);
 		result.ShouldNotHaveAnyValidationErrors();
 	}
 
 	[Fact]
 	public void PerfumeValidator_EmptyHouse_Fails() {
-		var dto = new PerfumeUploadDto("", "Big Citrus", "Woody", 100m, 50m, []);
+		var dto = new PerfumeUploadDto("", "Big Citrus", "Woody", "Quentin Bisch", 100m, 50m, []);
 		var result = _perfumeValidator.TestValidate(dto);
 		result.ShouldHaveValidationErrorFor(x => x.House);
 	}
 
 	[Fact]
 	public void PerfumeValidator_HouseTooLong_Fails() {
-		var dto = new PerfumeUploadDto(new string('A', 251), "Big Citrus", "Woody", 100m, 50m, []);
+		var dto = new PerfumeUploadDto(new string('A', 251), "Big Citrus", "Woody", "Quentin Bisch", 100m, 50m, []);
 		var result = _perfumeValidator.TestValidate(dto);
 		result.ShouldHaveValidationErrorFor(x => x.House);
 	}
 
 	[Fact]
 	public void PerfumeValidator_EmptyPerfumeName_Fails() {
-		var dto = new PerfumeUploadDto("House1", "", "Woody", 100m, 50m, []);
+		var dto = new PerfumeUploadDto("House1", "", "Woody", "Quentin Bisch", 100m, 50m, []);
 		var result = _perfumeValidator.TestValidate(dto);
 		result.ShouldHaveValidationErrorFor(x => x.PerfumeName);
 	}
 
 	[Fact]
 	public void PerfumeValidator_NegativeMl_Fails() {
-		var dto = new PerfumeUploadDto("House1", "Big Citrus", "Woody", -1m, 50m, []);
+		var dto = new PerfumeUploadDto("House1", "Big Citrus", "Woody", "Quentin Bisch", -1m, 50m, []);
 		var result = _perfumeValidator.TestValidate(dto);
 		result.ShouldHaveValidationErrorFor(x => x.Ml);
 	}
 
 	[Fact]
 	public void PerfumeValidator_NegativeMlLeft_Fails() {
-		var dto = new PerfumeUploadDto("House1", "Big Citrus", "Woody", 100m, -1m, []);
+		var dto = new PerfumeUploadDto("House1", "Big Citrus", "Woody", "Quentin Bisch", 100m, -1m, []);
 		var result = _perfumeValidator.TestValidate(dto);
 		result.ShouldHaveValidationErrorFor(x => x.MlLeft);
 	}

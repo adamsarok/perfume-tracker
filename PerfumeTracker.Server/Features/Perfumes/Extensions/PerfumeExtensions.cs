@@ -30,6 +30,7 @@ public static class PerfumeExtensions {
 				p.House,
 				p.PerfumeName,
 				p.Family,
+				p.Parfumeur,
 				p.Ml,
 				p.MlLeft,
 				p.ImageObjectKeyNew,
