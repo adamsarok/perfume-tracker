@@ -98,6 +98,7 @@ public abstract class DbFixture : IAsyncLifetime {
 				"Floral", "Woody", "Oriental", "Fresh", "Fruity", "Citrus",
 				"Spicy", "Aquatic", "Green", "Leather", "Gourmand", "Aromatic"
 			}))
+			.RuleFor(p => p.Parfumeur, f => f.Name.FullName())
 			.RuleFor(p => p.Ml, f => f.PickRandom(new[] { 5m, 10m, 30m, 50m, 75m, 100m }))
 			.RuleFor(p => p.MlLeft, (f, p) => f.Random.Decimal(0, p.Ml))
 			.RuleFor(p => p.ImageObjectKeyNew, f => f.Random.Bool(0.3f) ? Guid.NewGuid() : null)

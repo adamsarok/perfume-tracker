@@ -46,6 +46,7 @@ public static class SeedDemoData {
 			House = "Maison de Luxe",
 			PerfumeName = "Azure Mystique",
 			Family = "Fresh Aromatic",
+			Parfumeur = "Avery Laurent",
 			Ml = 100,
 			MlLeft = 85,
 		};
@@ -54,6 +55,7 @@ public static class SeedDemoData {
 			House = "Atelier de Senteurs",
 			PerfumeName = "Tobacco Rêve",
 			Family = "Tobacco Oriental",
+			Parfumeur = "Luc Moreau",
 			Ml = 50,
 			MlLeft = 45,
 		};
@@ -62,6 +64,7 @@ public static class SeedDemoData {
 			House = "Maison de Joie",
 			PerfumeName = "Cool Magic",
 			Family = "Fresh Citrus",
+			Parfumeur = "Sofia Marin",
 			Ml = 100,
 			MlLeft = 60,
 		};
@@ -70,6 +73,7 @@ public static class SeedDemoData {
 			House = "Maison Marguerite",
 			PerfumeName = "Nocturne",
 			Family = "Oriental Gourmand",
+			Parfumeur = "Camille Renard",
 			Ml = 100,
 			MlLeft = 80,
 		};
@@ -78,6 +82,7 @@ public static class SeedDemoData {
 			House = "Acqua d'Italia",
 			PerfumeName = "Classic Bergamot",
 			Family = "Fresh Citrus",
+			Parfumeur = "Marco Bellini",
 			Ml = 100,
 			MlLeft = 90,
 		};
