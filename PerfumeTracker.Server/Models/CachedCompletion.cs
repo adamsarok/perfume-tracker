@@ -6,6 +6,7 @@ public class CachedCompletion : UserEntity {
 	public required string Response { get; set; }
 	public enum CompletionTypes {
 		MoodOrOccasionRecommendation,
-		IdentifyPerfume
+		IdentifyPerfume,
+		IdentifyParfumeur
 	}
 }
