@@ -52,8 +52,7 @@ public class UserStatsService(PerfumeTrackerContext context, IPerfumeRecommender
 			.ToListAsync(cancellationToken);
 
 		var favoriteParfumeurs = await context.Perfumes
-			.Where(p => p.Ml > 0
-				&& p.MlLeft > 0
+			.Where(p => p.MlLeft > 0
 				&& p.Parfumeur != null
 				&& p.Parfumeur != string.Empty
 				&& p.Parfumeur != "Unknown")
@@ -72,8 +71,7 @@ public class UserStatsService(PerfumeTrackerContext context, IPerfumeRecommender
 			.ToList();
 
 		var favoriteParfumeurPerfumes = await context.Perfumes
-			.Where(p => p.Ml > 0
-				&& p.MlLeft > 0
+			.Where(p => p.MlLeft > 0
 				&& favoriteParfumeurNames.Contains(p.Parfumeur))
 			.Select(p => new {
 				p.Parfumeur,
