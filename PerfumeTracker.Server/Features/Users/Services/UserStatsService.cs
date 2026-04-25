@@ -51,6 +51,50 @@ public class UserStatsService(PerfumeTrackerContext context, IPerfumeRecommender
 			))
 			.ToListAsync(cancellationToken);
 
+		var favoriteParfumeurs = await context.Perfumes
+			.Where(p => p.MlLeft > 0
+				&& p.Parfumeur != null
+				&& p.Parfumeur != string.Empty
+				&& p.Parfumeur != "Unknown")
+			.GroupBy(p => p.Parfumeur)
+			.Select(g => new {
+				Parfumeur = g.Key,
+				PerfumeCount = g.Count()
+			})
+			.OrderByDescending(p => p.PerfumeCount)
+			.ThenBy(p => p.Parfumeur)
+			.Take(10)
+			.ToListAsync(cancellationToken);
+
+		var favoriteParfumeurNames = favoriteParfumeurs
+			.Select(p => p.Parfumeur)
+			.ToList();
+
+		var favoriteParfumeurPerfumes = await context.Perfumes
+			.Where(p => p.MlLeft > 0
+				&& favoriteParfumeurNames.Contains(p.Parfumeur))
+			.Select(p => new {
+				p.Parfumeur,
+				Perfume = new FavoriteParfumeurPerfumeDto(
+					p.Id,
+					p.House,
+					p.PerfumeName
+				)
+			})
+			.ToListAsync(cancellationToken);
+
+		var favoriteParfumeurDtos = favoriteParfumeurs
+			.Select(p => new FavoriteParfumeurDto(
+				p.Parfumeur,
+				p.PerfumeCount,
+				favoriteParfumeurPerfumes
+					.Where(fp => fp.Parfumeur == p.Parfumeur)
+					.Select(fp => fp.Perfume)
+					.OrderBy(fp => fp.House)
+					.ThenBy(fp => fp.PerfumeName)
+					.ToList()))
+			.ToList();
+
 		// Get favorite tags (top 10 by wear count)
 		var tagData = await context.PerfumeTags
 			.Include(pt => pt.Tag)
@@ -123,6 +167,7 @@ public class UserStatsService(PerfumeTrackerContext context, IPerfumeRecommender
 			MonthlyUsageMl: monthlyUsageMl,
 			YearlyUsageMl: yearlyUsageMl,
 			FavoritePerfumes: favoritePerfumes,
+			FavoriteParfumeurs: favoriteParfumeurDtos,
 			FavoriteTags: favoriteTags,
 			CurrentStreak: currentStreak,
 			BestStreak: bestStreak,
