@@ -23,7 +23,8 @@ public record UserStatsResponse(
 	IEnumerable<RatingSpreadDto> RatingSpread
 );
 public record FavoritePerfumeDto(Guid Id, string House, string PerfumeName, decimal AverageRating, int WearCount);
-public record FavoriteParfumeurDto(string Parfumeur, int PerfumeCount);
+public record FavoriteParfumeurPerfumeDto(Guid Id, string House, string PerfumeName);
+public record FavoriteParfumeurDto(string Parfumeur, int PerfumeCount, IEnumerable<FavoriteParfumeurPerfumeDto> Perfumes);
 public record FavoriteTagDto(Guid Id, string TagName, string Color, int WearCount, decimal TotalMl);
 public record RatingSpreadDto(decimal Rating, int PerfumeCount, decimal TotalMl);
 

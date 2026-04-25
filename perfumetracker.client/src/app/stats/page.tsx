@@ -2,11 +2,13 @@ import { getCurrentUserStats, UserStatsDTO } from "@/services/stats-service";
 import { useEffect, useState } from "react";
 import { showError } from "@/services/toasty-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 
 export default function StatsPage() {
     const [stats, setStats] = useState<UserStatsDTO | null>(null);
     const [loading, setLoading] = useState(true);
+    const [hoveredParfumeur, setHoveredParfumeur] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -164,7 +166,48 @@ export default function StatsPage() {
                         <div className="space-y-3">
                             {stats.favoriteParfumeurs.map((parfumeur) => (
                                 <div key={parfumeur.parfumeur} className="flex justify-between items-center border-b pb-2">
-                                    <p className="font-medium">{parfumeur.parfumeur}</p>
+                                    <Popover
+                                        open={hoveredParfumeur === parfumeur.parfumeur}
+                                        onOpenChange={(open) => setHoveredParfumeur(open ? parfumeur.parfumeur : null)}
+                                    >
+                                        <PopoverTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="font-medium text-left underline-offset-4 hover:underline"
+                                                onMouseEnter={() => setHoveredParfumeur(parfumeur.parfumeur)}
+                                                onMouseLeave={() => setHoveredParfumeur((current) =>
+                                                    current === parfumeur.parfumeur ? null : current
+                                                )}
+                                            >
+                                                {parfumeur.parfumeur}
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent
+                                            align="start"
+                                            className="w-80"
+                                            onMouseEnter={() => setHoveredParfumeur(parfumeur.parfumeur)}
+                                            onMouseLeave={() => setHoveredParfumeur((current) =>
+                                                current === parfumeur.parfumeur ? null : current
+                                            )}
+                                        >
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <p className="font-semibold">{parfumeur.parfumeur}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {parfumeur.perfumeCount} owned perfumes
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {parfumeur.perfumes.map((perfume) => (
+                                                        <div key={perfume.id} className="border-b pb-2 last:border-b-0 last:pb-0">
+                                                            <p className="font-medium">{perfume.house}</p>
+                                                            <p className="text-sm text-muted-foreground">{perfume.perfumeName}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
                                     <p className="text-sm text-muted-foreground">{parfumeur.perfumeCount} perfumes</p>
                                 </div>
                             ))}

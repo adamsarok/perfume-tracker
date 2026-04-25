@@ -16,6 +16,13 @@ export interface FavoritePerfumeDTO {
 export interface FavoriteParfumeurDTO {
   parfumeur: string;
   perfumeCount: number;
+  perfumes: FavoriteParfumeurPerfumeDTO[];
+}
+
+export interface FavoriteParfumeurPerfumeDTO {
+  id: string;
+  house: string;
+  perfumeName: string;
 }
 
 export interface FavoriteTagDTO {

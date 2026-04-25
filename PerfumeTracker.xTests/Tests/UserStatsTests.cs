@@ -91,6 +91,8 @@ public class UserStatsTests {
 		var favoriteParfumeur = Assert.Single(stats.FavoriteParfumeurs);
 		Assert.Equal("Alice Dupont", favoriteParfumeur.Parfumeur);
 		Assert.Equal(2, favoriteParfumeur.PerfumeCount);
+		Assert.Equal(2, favoriteParfumeur.Perfumes.Count());
+		Assert.All(favoriteParfumeur.Perfumes, perfume => Assert.False(string.IsNullOrWhiteSpace(perfume.PerfumeName)));
 	}
 
 	[Fact]

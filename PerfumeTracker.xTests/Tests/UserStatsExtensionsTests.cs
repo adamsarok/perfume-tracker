@@ -20,7 +20,9 @@ public class UserStatsExtensionsTests {
 				new FavoritePerfumeDto(Guid.NewGuid(), "House1", "Big Citrus", 9.5m, 10)
 			},
 			FavoriteParfumeurs: new[] {
-				new FavoriteParfumeurDto("Jean-Claude Ellena", 3)
+				new FavoriteParfumeurDto("Jean-Claude Ellena", 3, new[] {
+					new FavoriteParfumeurPerfumeDto(Guid.NewGuid(), "House1", "Big Citrus")
+				})
 			},
 			FavoriteTags: new[] {
 				new FavoriteTagDto(Guid.NewGuid(), "Woody", "#8B4513", 20, 100m)
