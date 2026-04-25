@@ -117,6 +117,7 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	// Following services require a valid OpenAI api key, do not start them otherwise
 	builder.Services.AddHostedService<EmbeddingBackgroundService>();
 	builder.Services.AddHostedService<PerfumeIdentifierBackgroundService>();
+	builder.Services.AddHostedService<ParfumeurIdentifierBackgroundService>();
 	builder.Services.AddHostedService<TagBackfillBackgroundService>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();
@@ -131,6 +132,7 @@ builder.Services.AddScoped<IXPService, XPService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IPerfumeIdentifier, PerfumeIdentifier>();
+builder.Services.AddScoped<IParfumeurIdentifier, ParfumeurIdentifier>();
 builder.Services.AddSingleton<ISystemPromptCache, SystemPromptCache>();
 builder.Services.AddScoped<IChatAgent, ChatAgent>();
 builder.Services.AddScoped<IChatAgentTools, ChatAgentTools>();
