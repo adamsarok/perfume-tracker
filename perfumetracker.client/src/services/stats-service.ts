@@ -13,6 +13,11 @@ export interface FavoritePerfumeDTO {
   wearCount: number;
 }
 
+export interface FavoriteParfumeurDTO {
+  parfumeur: string;
+  perfumeCount: number;
+}
+
 export interface FavoriteTagDTO {
   id: string;
   tagName: string;
@@ -43,6 +48,7 @@ export interface UserStatsDTO {
   monthlyUsageMl: number;
   yearlyUsageMl: number;
   favoritePerfumes: FavoritePerfumeDTO[];
+  favoriteParfumeurs: FavoriteParfumeurDTO[];
   favoriteTags: FavoriteTagDTO[];
   currentStreak: number | null;
   bestStreak: number | null;

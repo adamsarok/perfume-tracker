@@ -16,12 +16,14 @@ public class UserStatsFixture : DbFixture {
 	public async override Task SeedTestData(PerfumeTrackerContext context) {
 		var perfumes = await SeedPerfumes(3);
 		// Set ratings and wear counts on perfumes
-		foreach (var p in perfumes) {
-			var dbPerfume = await context.Perfumes.FindAsync(p.Id);
-			if (dbPerfume != null) {
-				dbPerfume.AverageRating = 8.0m;
-				dbPerfume.WearCount = 5;
-			}
+		for (int i = 0; i < perfumes.Count; i++) {
+			var dbPerfume = await context.Perfumes.FindAsync(perfumes[i].Id);
+			if (dbPerfume == null) continue;
+
+			dbPerfume.AverageRating = 8.0m;
+			dbPerfume.WearCount = 5;
+			dbPerfume.Parfumeur = i < 2 ? "Alice Dupont" : "Bob Martin";
+			dbPerfume.MlLeft = i < 2 ? 10m : 0m;
 		}
 		await context.SaveChangesAsync();
 
@@ -73,6 +75,22 @@ public class UserStatsTests {
 		var stats = await service.GetUserStats(TestContext.Current.CancellationToken);
 
 		Assert.NotEmpty(stats.FavoritePerfumes);
+	}
+
+	[Fact]
+	public async Task GetUserStats_HasFavoriteParfumeursOrderedByOwnedPerfumes() {
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var mockRecommender = new Mock<IPerfumeRecommender>();
+		mockRecommender.Setup(r => r.GetRecommendationStats(It.IsAny<CancellationToken>()))
+			.ReturnsAsync(Enumerable.Empty<PerfumeRecommendationStats>());
+		var service = new UserStatsService(context, mockRecommender.Object);
+
+		var stats = await service.GetUserStats(TestContext.Current.CancellationToken);
+
+		var favoriteParfumeur = Assert.Single(stats.FavoriteParfumeurs);
+		Assert.Equal("Alice Dupont", favoriteParfumeur.Parfumeur);
+		Assert.Equal(2, favoriteParfumeur.PerfumeCount);
 	}
 
 	[Fact]

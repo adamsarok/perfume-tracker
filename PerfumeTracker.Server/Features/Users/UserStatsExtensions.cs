@@ -20,6 +20,14 @@ public static class UserStatsExtensions {
 			sb.AppendLine();
 		}
 
+		if (stats.FavoriteParfumeurs.Any()) {
+			sb.AppendLine("MOST OWNED PARFUMEURS:");
+			foreach (var parfumeur in stats.FavoriteParfumeurs) {
+				sb.AppendLine($"- {parfumeur.Parfumeur}: {parfumeur.PerfumeCount} perfumes owned");
+			}
+			sb.AppendLine();
+		}
+
 		// Favorite Tags
 		if (stats.FavoriteTags.Any()) {
 			sb.AppendLine("MOST WORN NOTES/TAGS:");

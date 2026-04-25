@@ -19,6 +19,9 @@ public class UserStatsExtensionsTests {
 			FavoritePerfumes: new[] {
 				new FavoritePerfumeDto(Guid.NewGuid(), "House1", "Big Citrus", 9.5m, 10)
 			},
+			FavoriteParfumeurs: new[] {
+				new FavoriteParfumeurDto("Jean-Claude Ellena", 3)
+			},
 			FavoriteTags: new[] {
 				new FavoriteTagDto(Guid.NewGuid(), "Woody", "#8B4513", 20, 100m)
 			},
@@ -33,6 +36,8 @@ public class UserStatsExtensionsTests {
 		Assert.Contains("USER PERFUME COLLECTION STATISTICS", result);
 		Assert.Contains("TOP RATED PERFUMES", result);
 		Assert.Contains("House1 - Big Citrus", result);
+		Assert.Contains("MOST OWNED PARFUMEURS", result);
+		Assert.Contains("Jean-Claude Ellena", result);
 		Assert.Contains("MOST WORN NOTES/TAGS", result);
 		Assert.Contains("Woody", result);
 		Assert.Contains("20 wears", result);
@@ -50,6 +55,7 @@ public class UserStatsExtensionsTests {
 			MonthlyUsageMl: 0m,
 			YearlyUsageMl: 0m,
 			FavoritePerfumes: Enumerable.Empty<FavoritePerfumeDto>(),
+			FavoriteParfumeurs: Enumerable.Empty<FavoriteParfumeurDto>(),
 			FavoriteTags: Enumerable.Empty<FavoriteTagDto>(),
 			CurrentStreak: null,
 			BestStreak: null,
@@ -61,6 +67,7 @@ public class UserStatsExtensionsTests {
 
 		Assert.Contains("USER PERFUME COLLECTION STATISTICS", result);
 		Assert.DoesNotContain("TOP RATED PERFUMES", result);
+		Assert.DoesNotContain("MOST OWNED PARFUMEURS", result);
 		Assert.DoesNotContain("MOST WORN NOTES/TAGS", result);
 	}
 }

@@ -155,6 +155,24 @@ export default function StatsPage() {
                 </Card>
             )}
 
+            {stats.favoriteParfumeurs.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Favorite Parfumeurs</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {stats.favoriteParfumeurs.map((parfumeur) => (
+                                <div key={parfumeur.parfumeur} className="flex justify-between items-center border-b pb-2">
+                                    <p className="font-medium">{parfumeur.parfumeur}</p>
+                                    <p className="text-sm text-muted-foreground">{parfumeur.perfumeCount} perfumes</p>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Favorite Tags */}
             {stats.favoriteTags.length > 0 && (
                 <Card>
