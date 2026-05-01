@@ -2,6 +2,7 @@
 
 public partial class Tag : UserEntity {
 	public string TagName { get; set; } = null!;
+	public string? NoteGroup { get; set; } = null;
 	public string? Color { get; set; } = null;
 	public string? Description { get; set; } = null;
 	public int BackfillAttempts { get; set; } = 0;

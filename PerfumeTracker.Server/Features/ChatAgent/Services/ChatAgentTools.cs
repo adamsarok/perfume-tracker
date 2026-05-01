@@ -1,5 +1,6 @@
 ﻿using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Perfumes.Services;
+using PerfumeTracker.Server.Features.Tags;
 
 namespace PerfumeTracker.Server.Features.ChatAgent.Services;
 
@@ -61,6 +62,18 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		""")
 	);
 
+	public static readonly ChatTool AnalyzeWardrobeGapsTool = ChatTool.CreateFunctionTool(
+		functionName: "analyze_wardrobe_gaps",
+		functionDescription: "Analyze the user's owned perfume wardrobe for underrepresented note groups. Use this when the user asks about wardrobe gaps, missing scent categories, collection balance, or what note groups to explore next.",
+		functionParameters: BinaryData.FromString("""
+		{
+			"type": "object",
+			"properties": {},
+			"additionalProperties": false
+		}
+		""")
+	);
+
 	public async Task<string> ExecuteToolCall(ChatToolCall toolCall, CancellationToken cancellationToken) {
 		var arguments = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(toolCall.FunctionArguments.ToString());
 		if (arguments == null) throw new InvalidOperationException("Failed to parse tool arguments");
@@ -70,9 +83,72 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				return await SearchByEmbedding(arguments, cancellationToken);
 			case "check_perfume_ownership":
 				return await SearchByPerfumesNames(arguments, cancellationToken);
+			case "analyze_wardrobe_gaps":
+				return await AnalyzeWardrobeGaps(cancellationToken);
 			default:
 				throw new InvalidOperationException($"Unknown tool: {toolCall.FunctionName}");
 		}
+	}
+
+	private async Task<string> AnalyzeWardrobeGaps(CancellationToken cancellationToken) {
+		var ownedPerfumes = await context.Perfumes
+			.AsNoTracking()
+			.Where(p => p.MlLeft > 0)
+			.Select(p => new {
+				p.Id,
+				p.House,
+				p.PerfumeName,
+				p.AverageRating,
+				NoteGroups = p.PerfumeTags
+					.Where(pt => !pt.IsDeleted
+						&& !pt.Tag.IsDeleted
+						&& !string.IsNullOrEmpty(pt.Tag.NoteGroup)
+						&& pt.Tag.NoteGroup != NoteGroups.Other)
+					.Select(pt => pt.Tag.NoteGroup!)
+					.Distinct()
+					.ToList()
+			})
+			.ToListAsync(cancellationToken);
+
+		var groupStats = ownedPerfumes
+			.SelectMany(p => p.NoteGroups.Select(group => new { Perfume = p, NoteGroup = group }))
+			.GroupBy(x => x.NoteGroup)
+			.Select(g => new WardrobeNoteGroupCoverage(
+				g.Key,
+				g.Select(x => x.Perfume.Id).Distinct().Count(),
+				g.Select(x => new PerfumeLlmDto(x.Perfume.House, x.Perfume.PerfumeName, x.Perfume.AverageRating))
+					.Distinct()
+					.OrderByDescending(p => p.Rating)
+					.ThenBy(p => p.House)
+					.ThenBy(p => p.PerfumeName)
+					.Take(5)
+					.ToList()))
+			.ToDictionary(g => g.NoteGroup, StringComparer.OrdinalIgnoreCase);
+
+		var coverage = NoteGroups.WardrobeCoverage
+			.Select(group => groupStats.TryGetValue(group, out var stat)
+				? stat
+				: new WardrobeNoteGroupCoverage(group, 0, []))
+			.OrderBy(g => g.OwnedPerfumeCount)
+			.ThenBy(g => g.NoteGroup)
+			.ToList();
+
+		var ungroupedPerfumeCount = ownedPerfumes.Count(p => p.NoteGroups.Count == 0);
+		var result = new WardrobeGapAnalysis(
+			ownedPerfumes.Count,
+			coverage.Where(g => g.OwnedPerfumeCount == 0).ToList(),
+			coverage.Where(g => g.OwnedPerfumeCount is > 0 and <= 2).ToList(),
+			coverage.Where(g => g.OwnedPerfumeCount is >= 3 and <= 5).ToList(),
+			coverage.Where(g => g.OwnedPerfumeCount > 5).OrderByDescending(g => g.OwnedPerfumeCount).ToList(),
+			groupStats.Values
+				.Where(g => !NoteGroups.WardrobeCoverage.Contains(g.NoteGroup, StringComparer.OrdinalIgnoreCase))
+				.OrderByDescending(g => g.OwnedPerfumeCount)
+				.ToList(),
+			ungroupedPerfumeCount);
+
+		return JsonSerializer.Serialize(result, new JsonSerializerOptions {
+			WriteIndented = false
+		});
 	}
 
 	private async Task<string> SearchByPerfumesNames(Dictionary<string, JsonElement> arguments, CancellationToken cancellationToken) {
@@ -162,3 +238,17 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 	}
 
 }
+
+public record WardrobeGapAnalysis(
+	int OwnedPerfumeCount,
+	List<WardrobeNoteGroupCoverage> MissingNoteGroups,
+	List<WardrobeNoteGroupCoverage> ThinNoteGroups,
+	List<WardrobeNoteGroupCoverage> BalancedNoteGroups,
+	List<WardrobeNoteGroupCoverage> StrongNoteGroups,
+	List<WardrobeNoteGroupCoverage> NonCoreNoteGroups,
+	int UngroupedPerfumeCount);
+
+public record WardrobeNoteGroupCoverage(
+	string NoteGroup,
+	int OwnedPerfumeCount,
+	List<PerfumeLlmDto> ExamplePerfumes);

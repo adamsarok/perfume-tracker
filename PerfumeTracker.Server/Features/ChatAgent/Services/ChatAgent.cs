@@ -32,6 +32,7 @@ public class ChatAgent(
 		var options = new ChatCompletionOptions();
 		options.Tools.Add(ChatAgentTools.SearchOwnedPerfumesByCharacteristicsTool);
 		options.Tools.Add(ChatAgentTools.CheckPerfumeOwnershipTool);
+		options.Tools.Add(ChatAgentTools.AnalyzeWardrobeGapsTool);
 
 		bool requiresAnotherIteration = true;
 		int iteration = 0;
@@ -146,6 +147,14 @@ IMPORTANT TOOL USAGE RULES:
 Available tools (for OWNED perfumes only):
 - search_owned_perfumes_by_characteristics: Simple 1-3 word searches in owned collection (e.g., "vanilla", "summer", "woody fresh")
 - check_perfume_ownership: Check if user already owns specific perfumes. Use this BEFORE recommending new perfumes to buy.
+- analyze_wardrobe_gaps: Deterministically analyzes the user's owned collection by NoteGroup and returns missing, thin, balanced, and strong note groups.
+
+For wardrobe-gap requests:
+- Always call analyze_wardrobe_gaps.
+- Explain that this is note-group-level coverage, not a full style/performance/occasion audit.
+- Highlight missing and thin groups first, then mention strong areas for context.
+- Suggest exploration directions, not mandatory purchases.
+- If the tool reports many ungrouped perfumes, mention that better NoteGroup backfill will improve the analysis.
 
 When tools return perfumes, they include:
 - Id, House, PerfumeName, Family
