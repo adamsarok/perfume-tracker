@@ -78,21 +78,23 @@ public class TagNoteGroupIdentifier(ChatClient chatClient, PerfumeTrackerContext
 			promptBuilder.AppendLine($"- {tagName}");
 		}
 
+		var noteGroupList = NoteGroups.ToPromptList();
+		var systemPrompt =
+			$$"""
+			You are a perfume expert. Given perfume tags that may be raw notes, accords, or informal note groups, assign each tag to one canonical note group.
+
+			Use exactly one of these note groups:
+			{{noteGroupList}}
+
+			IMPORTANT:
+			- Preserve the input tagName exactly.
+			- If the input is already a group, map it to the closest canonical group.
+			- If the tag is not a perfume note or accord, use Other and set confidenceScore below 0.5.
+			- Confidence scale: 0.0 (not confident/not perfume related) to 1.0 (very confident).
+			""";
+
 		var messages = new List<OpenAI.Chat.ChatMessage> {
-			new SystemChatMessage(
-				"""
-				You are a perfume expert. Given perfume tags that may be raw notes, accords, or informal note groups, assign each tag to one canonical note group.
-
-				Use exactly one of these note groups:
-				Citrus, Fruity, Green, Aromatic, Herbal, Floral, White Floral, Rose, Powdery, Spicy, Sweet, Gourmand, Vanilla, Amber, Woody, Resinous, Leather, Animalic, Musk, Aquatic, Ozonic, Earthy, Tobacco, Boozy, Tea, Synthetic, Other.
-
-				IMPORTANT:
-				- Preserve the input tagName exactly.
-				- If the input is already a group, map it to the closest canonical group.
-				- If the tag is not a perfume note or accord, use Other and set confidenceScore below 0.5.
-				- Confidence scale: 0.0 (not confident/not perfume related) to 1.0 (very confident).
-				"""
-			),
+			new SystemChatMessage(systemPrompt),
 			new UserChatMessage(promptBuilder.ToString())
 		};
 
