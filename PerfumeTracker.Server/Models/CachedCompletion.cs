@@ -7,6 +7,7 @@ public class CachedCompletion : UserEntity {
 	public enum CompletionTypes {
 		MoodOrOccasionRecommendation,
 		IdentifyPerfume,
-		IdentifyParfumeur
+		IdentifyParfumeur,
+		IdentifyNoteGroup
 	}
 }

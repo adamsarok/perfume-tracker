@@ -17,6 +17,7 @@ using PerfumeTracker.Server.Features.PerfumeRatings.Services;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.R2;
 using PerfumeTracker.Server.Features.Tags;
+using PerfumeTracker.Server.Features.Tags.Services;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Middleware;
@@ -119,6 +120,7 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddHostedService<PerfumeIdentifierBackgroundService>();
 	builder.Services.AddHostedService<ParfumeurIdentifierBackgroundService>();
 	builder.Services.AddHostedService<TagBackfillBackgroundService>();
+	builder.Services.AddHostedService<TagNoteGroupBackfillBackgroundService>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();
 }
@@ -133,6 +135,7 @@ builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IPerfumeIdentifier, PerfumeIdentifier>();
 builder.Services.AddScoped<IParfumeurIdentifier, ParfumeurIdentifier>();
+builder.Services.AddScoped<ITagNoteGroupIdentifier, TagNoteGroupIdentifier>();
 builder.Services.AddSingleton<ISystemPromptCache, SystemPromptCache>();
 builder.Services.AddScoped<IChatAgent, ChatAgent>();
 builder.Services.AddScoped<IChatAgentTools, ChatAgentTools>();
