@@ -2,6 +2,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.HttpOverrides;
 using OpenAI;
 using OpenAI.Chat;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -54,6 +55,17 @@ var serviceVersion = typeof(Program).Assembly
 	.InformationalVersion;
 var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"]
 	?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+var otlpProtocol = builder.Configuration["OpenTelemetry:OtlpProtocol"]
+	?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_PROTOCOL");
+Action<OtlpExporterOptions> configureOtlpExporter = options => {
+	if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
+		options.Endpoint = new Uri(otlpEndpoint);
+	}
+
+	if (TryParseOtlpProtocol(otlpProtocol, out var protocol)) {
+		options.Protocol = protocol;
+	}
+};
 
 builder.Logging.AddOpenTelemetry(logging => {
 	logging.IncludeFormattedMessage = true;
@@ -66,12 +78,10 @@ builder.Logging.AddOpenTelemetry(logging => {
 			serviceInstanceId: Environment.MachineName)
 		.AddAttributes(new Dictionary<string, object> {
 			["deployment.environment.name"] = builder.Environment.EnvironmentName
-		}));
+	}));
 
 	if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
-		logging.AddOtlpExporter(options => {
-			options.Endpoint = new Uri(otlpEndpoint);
-		});
+		logging.AddOtlpExporter(configureOtlpExporter);
 	}
 });
 
@@ -102,9 +112,7 @@ builder.Services.AddOpenTelemetry()
 			.AddSource(Diagnostics.ActivitySourceName);
 
 		if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
-			tracing.AddOtlpExporter(options => {
-				options.Endpoint = new Uri(otlpEndpoint);
-			});
+			tracing.AddOtlpExporter(configureOtlpExporter);
 		}
 	})
 	.WithMetrics(metrics => {
@@ -114,9 +122,7 @@ builder.Services.AddOpenTelemetry()
 			.AddRuntimeInstrumentation();
 
 		if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
-			metrics.AddOtlpExporter(options => {
-				options.Endpoint = new Uri(otlpEndpoint);
-			});
+			metrics.AddOtlpExporter(configureOtlpExporter);
 		}
 	});
 
@@ -258,6 +264,24 @@ app.MapHub<MissionProgressHub>("/api/hubs/mission-progress");
 app.MapHub<ChatProgressHub>("/api/hubs/chat-progress");
 
 await app.RunAsync();
+
+static bool TryParseOtlpProtocol(string? value, out OtlpExportProtocol protocol) {
+	protocol = default;
+	if (string.IsNullOrWhiteSpace(value)) return false;
+
+	switch (value.Trim().ToLowerInvariant()) {
+		case "grpc":
+			protocol = OtlpExportProtocol.Grpc;
+			return true;
+		case "http":
+		case "http/protobuf":
+		case "httpprotobuf":
+			protocol = OtlpExportProtocol.HttpProtobuf;
+			return true;
+		default:
+			return false;
+	}
+}
 
 #pragma warning disable S1118 // Utility classes should not have public constructors
 public partial class Program { } //for integration tests
