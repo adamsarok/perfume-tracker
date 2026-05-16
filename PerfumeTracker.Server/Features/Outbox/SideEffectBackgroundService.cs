@@ -1,7 +1,9 @@
 ﻿namespace PerfumeTracker.Server.Features.Outbox;
 
 using Microsoft.Extensions.Hosting;
+using PerfumeTracker.Server.Startup;
 using System;
+using System.Diagnostics;
 
 /// <summary>
 /// Async processing for updating mission progress
@@ -27,6 +29,19 @@ public class SideEffectBackgroundService(ISideEffectQueue queue, IServiceProvide
 
 	private async Task ProcessMessageAsync(OutboxMessage message, IPublisher publisher, CancellationToken cancellationToken) {
 		try {
+			using var activity = Diagnostics.ActivitySource.StartActivity(
+				  "outbox.process",
+				  ActivityKind.Consumer,
+				  CreateParentContext(message));
+
+			activity?.SetTag("outbox.message.id", message.Id);
+			activity?.SetTag("outbox.event_type", message.EventType);
+
+			logger.LogInformation(
+				"Processing outbox message {OutboxMessageId} of type {EventType}",
+				message.Id,
+				message.EventType);
+
 			var eventType = Type.GetType(message.EventType);
 			if (eventType == null) throw new InvalidOperationException($"Unknown event type: {message.EventType}");
 			var evt = JsonSerializer.Deserialize(message.Payload, eventType);
@@ -38,6 +53,24 @@ public class SideEffectBackgroundService(ISideEffectQueue queue, IServiceProvide
 			message.TryCount++;
 			message.LastError = ex.Message;
 			message.FailedAt = DateTime.UtcNow;
+		}
+	}
+
+	private static ActivityContext CreateParentContext(OutboxMessage message) {
+		if (message.TraceId is not { Length: 32 } traceIdValue ||
+			message.SpanId is not { Length: 16 } spanIdValue) {
+			return default;
+		}
+
+		try {
+			return new ActivityContext(
+				ActivityTraceId.CreateFromString(traceIdValue.AsSpan()),
+				ActivitySpanId.CreateFromString(spanIdValue.AsSpan()),
+				ActivityTraceFlags.Recorded,
+				traceState: null,
+				isRemote: true);
+		} catch (ArgumentException) {
+			return default;
 		}
 	}
 }

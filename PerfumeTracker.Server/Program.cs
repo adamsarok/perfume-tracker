@@ -98,7 +98,8 @@ builder.Services.AddOpenTelemetry()
 			.AddHttpClientInstrumentation(options => {
 				options.RecordException = true;
 			})
-			.AddEntityFrameworkCoreInstrumentation();
+			.AddEntityFrameworkCoreInstrumentation()
+			.AddSource(Diagnostics.ActivitySourceName);
 
 		if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
 			tracing.AddOtlpExporter(options => {
