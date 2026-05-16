@@ -2,6 +2,10 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.HttpOverrides;
 using OpenAI;
 using OpenAI.Chat;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
@@ -22,10 +26,7 @@ using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Startup;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
-using Serilog.Sinks.PostgreSQL;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
@@ -45,34 +46,79 @@ if (!string.IsNullOrWhiteSpace(databaseUrl)) {
 	if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 }
 
-var loggerConfig = new LoggerConfiguration()
-	.WriteTo.Console()
-	.WriteTo.PostgreSQL(
-		connectionString: conn,
-		tableName: "log",
-		columnOptions: new Dictionary<string, ColumnWriterBase>
-		{
-			{ "message", new RenderedMessageColumnWriter() },
-			{ "message_template", new MessageTemplateColumnWriter() },
-			{ "level", new LevelColumnWriter() },
-			{ "timestamp", new TimestampColumnWriter() },
-			{ "exception", new ExceptionColumnWriter() },
-			{ "properties", new LogEventSerializedColumnWriter() }
-		},
-		needAutoCreateTable: true)
-	.Enrich.FromLogContext();
+var serviceName = builder.Configuration["OpenTelemetry:ServiceName"]
+	?? Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME")
+	?? builder.Environment.ApplicationName;
+var serviceVersion = typeof(Program).Assembly
+	.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+	.InformationalVersion;
+var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"]
+	?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
 
-var defaultLogLevel = builder.Configuration.GetValue<string>("Logging:LogLevel:Default") ?? "Information";
-loggerConfig.MinimumLevel.ControlledBy(new LoggingLevelSwitch(
-	(LogEventLevel)Enum.Parse(typeof(LogEventLevel), defaultLogLevel)));
+builder.Logging.AddOpenTelemetry(logging => {
+	logging.IncludeFormattedMessage = true;
+	logging.IncludeScopes = true;
+	logging.ParseStateValues = true;
+	logging.SetResourceBuilder(ResourceBuilder.CreateDefault()
+		.AddService(
+			serviceName: serviceName,
+			serviceVersion: serviceVersion,
+			serviceInstanceId: Environment.MachineName)
+		.AddAttributes(new Dictionary<string, object> {
+			["deployment.environment.name"] = builder.Environment.EnvironmentName
+		}));
 
-Log.Logger = loggerConfig.CreateLogger();
-builder.Host.UseSerilog();
+	if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
+		logging.AddOtlpExporter(options => {
+			options.Endpoint = new Uri(otlpEndpoint);
+		});
+	}
+});
 
 builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.UseNpgsql(conn, o => o.UseVector());
 	opt.AddInterceptors(new EntityInterceptor());
 });
+
+builder.Services.AddOpenTelemetry()
+	.ConfigureResource(resource => resource
+		.AddService(
+			serviceName: serviceName,
+			serviceVersion: serviceVersion,
+			serviceInstanceId: Environment.MachineName)
+		.AddAttributes(new Dictionary<string, object> {
+			["deployment.environment.name"] = builder.Environment.EnvironmentName
+		}))
+	.WithTracing(tracing => {
+		tracing
+			.AddAspNetCoreInstrumentation(options => {
+				options.RecordException = true;
+				options.Filter = context => !context.Request.Path.StartsWithSegments("/api/health");
+			})
+			.AddHttpClientInstrumentation(options => {
+				options.RecordException = true;
+			})
+			.AddEntityFrameworkCoreInstrumentation()
+			.AddSource(Diagnostics.ActivitySourceName);
+
+		if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
+			tracing.AddOtlpExporter(options => {
+				options.Endpoint = new Uri(otlpEndpoint);
+			});
+		}
+	})
+	.WithMetrics(metrics => {
+		metrics
+			.AddAspNetCoreInstrumentation()
+			.AddHttpClientInstrumentation()
+			.AddRuntimeInstrumentation();
+
+		if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
+			metrics.AddOtlpExporter(options => {
+				options.Endpoint = new Uri(otlpEndpoint);
+			});
+		}
+	});
 
 var rateLimitConfig = builder.Configuration.GetSection("RateLimits").Get<RateLimitConfiguration>();
 if (rateLimitConfig != null) Startup.SetupRateLimiting(builder.Services, rateLimitConfig);
@@ -201,7 +247,6 @@ app.UseForwardedHeaders();
 app.UseRateLimiter();
 app.UseExceptionHandler();
 app.UseCors("AllowSpecificOrigin");
-app.UseSecurityLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSecurityHeaders();
