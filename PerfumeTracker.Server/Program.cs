@@ -2,6 +2,9 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.HttpOverrides;
 using OpenAI;
 using OpenAI.Chat;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
@@ -25,7 +28,9 @@ using PerfumeTracker.Server.Startup;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
 using Serilog.Sinks.PostgreSQL;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
@@ -45,6 +50,15 @@ if (!string.IsNullOrWhiteSpace(databaseUrl)) {
 	if (string.IsNullOrWhiteSpace(conn)) throw new ConfigEmptyException("Connection string is empty");
 }
 
+var serviceName = builder.Configuration["OpenTelemetry:ServiceName"]
+	?? Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME")
+	?? builder.Environment.ApplicationName;
+var serviceVersion = typeof(Program).Assembly
+	.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+	.InformationalVersion;
+var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"]
+	?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+
 var loggerConfig = new LoggerConfiguration()
 	.WriteTo.Console()
 	.WriteTo.PostgreSQL(
@@ -59,8 +73,19 @@ var loggerConfig = new LoggerConfiguration()
 			{ "exception", new ExceptionColumnWriter() },
 			{ "properties", new LogEventSerializedColumnWriter() }
 		},
-		needAutoCreateTable: true)
-	.Enrich.FromLogContext();
+		needAutoCreateTable: true);
+
+if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
+	loggerConfig.WriteTo.OpenTelemetry(options => {
+		options.Endpoint = otlpEndpoint;
+		options.Protocol = OtlpProtocol.Grpc;
+		options.ResourceAttributes = new Dictionary<string, object> {
+			["service.name"] = serviceName,
+			["service.version"] = serviceVersion ?? "unknown",
+			["deployment.environment.name"] = builder.Environment.EnvironmentName
+		};
+	});
+}
 
 var defaultLogLevel = builder.Configuration.GetValue<string>("Logging:LogLevel:Default") ?? "Information";
 loggerConfig.MinimumLevel.ControlledBy(new LoggingLevelSwitch(
@@ -73,6 +98,45 @@ builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.UseNpgsql(conn, o => o.UseVector());
 	opt.AddInterceptors(new EntityInterceptor());
 });
+
+builder.Services.AddOpenTelemetry()
+	.ConfigureResource(resource => resource
+		.AddService(
+			serviceName: serviceName,
+			serviceVersion: serviceVersion,
+			serviceInstanceId: Environment.MachineName)
+		.AddAttributes(new Dictionary<string, object> {
+			["deployment.environment.name"] = builder.Environment.EnvironmentName
+		}))
+	.WithTracing(tracing => {
+		tracing
+			.AddAspNetCoreInstrumentation(options => {
+				options.RecordException = true;
+				options.Filter = context => !context.Request.Path.StartsWithSegments("/api/health");
+			})
+			.AddHttpClientInstrumentation(options => {
+				options.RecordException = true;
+			})
+			.AddEntityFrameworkCoreInstrumentation();
+
+		if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
+			tracing.AddOtlpExporter(options => {
+				options.Endpoint = new Uri(otlpEndpoint);
+			});
+		}
+	})
+	.WithMetrics(metrics => {
+		metrics
+			.AddAspNetCoreInstrumentation()
+			.AddHttpClientInstrumentation()
+			.AddRuntimeInstrumentation();
+
+		if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
+			metrics.AddOtlpExporter(options => {
+				options.Endpoint = new Uri(otlpEndpoint);
+			});
+		}
+	});
 
 var rateLimitConfig = builder.Configuration.GetSection("RateLimits").Get<RateLimitConfiguration>();
 if (rateLimitConfig != null) Startup.SetupRateLimiting(builder.Services, rateLimitConfig);
