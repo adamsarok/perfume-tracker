@@ -2,6 +2,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.HttpOverrides;
 using OpenAI;
 using OpenAI.Chat;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -25,11 +26,6 @@ using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Startup;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
-using Serilog.Sinks.OpenTelemetry;
-using Serilog.Sinks.PostgreSQL;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
@@ -59,40 +55,25 @@ var serviceVersion = typeof(Program).Assembly
 var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"]
 	?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
 
-var loggerConfig = new LoggerConfiguration()
-	.WriteTo.Console()
-	.WriteTo.PostgreSQL(
-		connectionString: conn,
-		tableName: "log",
-		columnOptions: new Dictionary<string, ColumnWriterBase>
-		{
-			{ "message", new RenderedMessageColumnWriter() },
-			{ "message_template", new MessageTemplateColumnWriter() },
-			{ "level", new LevelColumnWriter() },
-			{ "timestamp", new TimestampColumnWriter() },
-			{ "exception", new ExceptionColumnWriter() },
-			{ "properties", new LogEventSerializedColumnWriter() }
-		},
-		needAutoCreateTable: true);
-
-if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
-	loggerConfig.WriteTo.OpenTelemetry(options => {
-		options.Endpoint = otlpEndpoint;
-		options.Protocol = OtlpProtocol.Grpc;
-		options.ResourceAttributes = new Dictionary<string, object> {
-			["service.name"] = serviceName,
-			["service.version"] = serviceVersion ?? "unknown",
+builder.Logging.AddOpenTelemetry(logging => {
+	logging.IncludeFormattedMessage = true;
+	logging.IncludeScopes = true;
+	logging.ParseStateValues = true;
+	logging.SetResourceBuilder(ResourceBuilder.CreateDefault()
+		.AddService(
+			serviceName: serviceName,
+			serviceVersion: serviceVersion,
+			serviceInstanceId: Environment.MachineName)
+		.AddAttributes(new Dictionary<string, object> {
 			["deployment.environment.name"] = builder.Environment.EnvironmentName
-		};
-	});
-}
+		}));
 
-var defaultLogLevel = builder.Configuration.GetValue<string>("Logging:LogLevel:Default") ?? "Information";
-loggerConfig.MinimumLevel.ControlledBy(new LoggingLevelSwitch(
-	(LogEventLevel)Enum.Parse(typeof(LogEventLevel), defaultLogLevel)));
-
-Log.Logger = loggerConfig.CreateLogger();
-builder.Host.UseSerilog();
+	if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
+		logging.AddOtlpExporter(options => {
+			options.Endpoint = new Uri(otlpEndpoint);
+		});
+	}
+});
 
 builder.Services.AddDbContext<PerfumeTrackerContext>(opt => {
 	opt.UseNpgsql(conn, o => o.UseVector());
@@ -265,7 +246,6 @@ app.UseForwardedHeaders();
 app.UseRateLimiter();
 app.UseExceptionHandler();
 app.UseCors("AllowSpecificOrigin");
-app.UseSecurityLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSecurityHeaders();
