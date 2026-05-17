@@ -1,6 +1,7 @@
-﻿using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Outbox;
+using PerfumeTracker.Server.Startup;
 using static PerfumeTracker.Server.Models.PerfumeEvent;
 
 namespace PerfumeTracker.Server.Features.PerfumeEvents;
@@ -64,8 +65,11 @@ public class AddPerfumeEventHandler(PerfumeTrackerContext context, ISideEffectQu
 			evt.AmountMl = -settings.SprayAmountForBottleSize(perfume.Ml);
 		}
 		if (request.Dto.RecommendationId == null) return;
-		messages.Add(OutboxMessage.From(new PerfumeRecommendationAcceptedNotification(perfume.Id, userId)));
 		var recommendation = await context.PerfumeRecommendations.FindAsync(request.Dto.RecommendationId);
-		if (recommendation != null) recommendation.IsAccepted = true;
+		if (recommendation != null && !recommendation.IsAccepted) {
+			messages.Add(OutboxMessage.From(new PerfumeRecommendationAcceptedNotification(recommendation.Id, userId)));
+			recommendation.IsAccepted = true;
+			Diagnostics.RecommendationsAcceptedCounter.Add(1, new KeyValuePair<string, object?>("recommendation.strategy", recommendation.Strategy.ToString()));
+		}
 	}
 }

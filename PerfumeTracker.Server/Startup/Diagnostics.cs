@@ -12,4 +12,8 @@ public static class Diagnostics {
 		"missions.completed",
 		unit: "{mission}",
 		description: "Number of missions completed.");
+	public static readonly Counter<long> RecommendationsAcceptedCounter = Meter.CreateCounter<long>(
+		"recommendations.accepted",
+		unit: "{recommendation}",
+		description: "Number of perfume recommendations accepted.");
 }
