@@ -119,7 +119,8 @@ builder.Services.AddOpenTelemetry()
 		metrics
 			.AddAspNetCoreInstrumentation()
 			.AddHttpClientInstrumentation()
-			.AddRuntimeInstrumentation();
+			.AddRuntimeInstrumentation()
+			.AddMeter(Diagnostics.MeterName);
 
 		if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
 			metrics.AddOtlpExporter(configureOtlpExporter);
