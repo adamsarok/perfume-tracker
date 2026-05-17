@@ -136,6 +136,7 @@ public class TagNoteGroupIdentifier(ChatClient chatClient, PerfumeTrackerContext
 		};
 
 		var completion = await chatClient.CompleteChatAsync(messages, options, cancellationToken);
+		PerfumeTracker.Server.Startup.Diagnostics.RecordChatTokenUsage(completion.Value, "identify_note_group");
 		var content = completion.Value.Content;
 		if (content is null || content.Count == 0 || string.IsNullOrEmpty(content[0].Text)) {
 			throw new InvalidOperationException("OpenAI returned an empty or invalid note group response");
