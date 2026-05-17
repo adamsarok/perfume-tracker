@@ -216,6 +216,7 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 			new UserChatMessage(moodOrOccasion)
 		];
 		ChatCompletion completion = await chatClient.CompleteChatAsync(messages, cancellationToken: cancellationToken);
+		PerfumeTracker.Server.Startup.Diagnostics.RecordChatTokenUsage(completion, "mood_or_occasion_recommendation");
 		if (completion.Content == null || completion.Content.Count == 0 || string.IsNullOrWhiteSpace(completion.Content[0].Text)) {
 			throw new InvalidOperationException("OpenAI returned an empty response");
 		}

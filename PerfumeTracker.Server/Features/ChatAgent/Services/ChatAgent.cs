@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.Users.Services;
+using PerfumeTracker.Server.Startup;
 using System.Text;
 
 namespace PerfumeTracker.Server.Features.ChatAgent.Services;
@@ -49,6 +50,7 @@ public class ChatAgent(
 			await hubContext.Clients.User(userId.ToString())
 				.SendAsync("ProgressMsg", new { Message = $"Agent is thinking... {iteration}/{MAX_ITERATIONS} iterations." });
 			var completion = await chatClient.CompleteChatAsync(chatHistory, options, cancellationToken);
+			Diagnostics.RecordChatTokenUsage(completion.Value, "chat_agent");
 
 			switch (completion.Value.FinishReason) {
 				case ChatFinishReason.Stop:

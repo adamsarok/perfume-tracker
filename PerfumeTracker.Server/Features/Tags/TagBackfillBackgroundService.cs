@@ -103,6 +103,7 @@ public class TagBackfillBackgroundService(IServiceProvider sp, ChatClient chatCl
 
 		try {
 			var completion = await chatClient.CompleteChatAsync(chatMessages, options, stoppingToken);
+			PerfumeTracker.Server.Startup.Diagnostics.RecordChatTokenUsage(completion.Value, "tag_backfill");
 			var responseContent = completion.Value.Content[0].Text;
 
 			logger.LogInformation("Received response from OpenAI");

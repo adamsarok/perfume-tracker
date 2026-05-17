@@ -64,6 +64,7 @@ public class ParfumeurIdentifier(ChatClient chatClient, PerfumeTrackerContext co
 			};
 
 			var completion = await chatClient.CompleteChatAsync(messages, chatCompletionOptions, cancellationToken);
+			PerfumeTracker.Server.Startup.Diagnostics.RecordChatTokenUsage(completion.Value, "identify_parfumeur");
 			var content = completion.Value.Content;
 			if (content is null || content.Count == 0 || string.IsNullOrEmpty(content[0].Text)) {
 				throw new InvalidOperationException("OpenAI returned an empty or invalid response");

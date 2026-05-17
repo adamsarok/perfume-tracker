@@ -70,6 +70,7 @@ public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext cont
 			};
 
 			var completion = await chatClient.CompleteChatAsync(messages, chatCompletionOptions, cancellationToken);
+			PerfumeTracker.Server.Startup.Diagnostics.RecordChatTokenUsage(completion.Value, "identify_perfume");
 			completionText = completion.Value.Content[0].Text;
 			context.CachedCompletions.Add(new CachedCompletion {
 				Prompt = promptKey,
