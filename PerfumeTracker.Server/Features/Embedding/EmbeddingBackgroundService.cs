@@ -2,6 +2,9 @@
 
 namespace PerfumeTracker.Server.Features.Embedding;
 
+using PerfumeTracker.Server.Startup;
+using System.Diagnostics;
+
 public class EmbeddingBackgroundService(IServiceProvider sp, ILogger<EmbeddingBackgroundService> logger, IEncoder encoder) : BackgroundService {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 		if (encoder is NullEncoder) {
@@ -28,6 +31,9 @@ public class EmbeddingBackgroundService(IServiceProvider sp, ILogger<EmbeddingBa
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
 	private async Task<bool> BackfillBatch(CancellationToken cancellationToken) {
+		using var activity = Diagnostics.ActivitySource.StartActivity("embedding.backfill", ActivityKind.Internal);
+		activity?.SetTag("job.name", nameof(EmbeddingBackgroundService));
+
 		using var scope = sp.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
@@ -41,16 +47,24 @@ public class EmbeddingBackgroundService(IServiceProvider sp, ILogger<EmbeddingBa
 			.Include(p => p.PerfumeEvents)
 			.ToListAsync(cancellationToken);
 
+		activity?.SetTag("perfume.count", perfumesNeedingEmbedding.Count);
+
 		if (perfumesNeedingEmbedding.Count == 0) return false;
 
 		bool hasUpdates = false;
+		var updatedCount = 0;
+		var failedCount = 0;
 
 		logger.LogInformation("Processing {Count} perfumes for embeddings", perfumesNeedingEmbedding.Count);
 
 		foreach (var perfume in perfumesNeedingEmbedding) {
+			using var perfumeActivity = Diagnostics.ActivitySource.StartActivity("embedding.backfill.perfume", ActivityKind.Internal);
+			perfumeActivity?.SetTag("perfume.id", perfume.Id);
+
 			try {
 				var text = perfume.GetTextForEmbedding();
 				if (string.IsNullOrWhiteSpace(text)) {
+					perfumeActivity?.SetTag("embedding.skipped", true);
 					continue; // TODO mark so we don't try again?
 				}
 				var embedding = await encoder.GetEmbeddings(text, cancellationToken);
@@ -64,10 +78,18 @@ public class EmbeddingBackgroundService(IServiceProvider sp, ILogger<EmbeddingBa
 
 				await context.SaveChangesAsync(cancellationToken);
 				hasUpdates = true;
+				updatedCount++;
 			} catch (Exception ex) {
+				failedCount++;
+				perfumeActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+				perfumeActivity?.SetTag("error.type", ex.GetType().FullName);
 				logger.LogError(ex, "Failed to generate embedding for perfume {PerfumeId}", perfume.Id);
 			}
 		}
+
+		activity?.SetTag("embedding.updated_count", updatedCount);
+		activity?.SetTag("embedding.failed_count", failedCount);
+
 		return hasUpdates;
 	}
 }

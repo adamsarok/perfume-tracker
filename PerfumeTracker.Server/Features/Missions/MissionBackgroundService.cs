@@ -1,5 +1,8 @@
 namespace PerfumeTracker.Server.Features.Missions;
 
+using PerfumeTracker.Server.Startup;
+using System.Diagnostics;
+
 public class MissionBackgroundService(IServiceProvider serviceProvider, ILogger<MissionBackgroundService> logger) : BackgroundService {
 	private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1);
 
@@ -17,21 +20,30 @@ public class MissionBackgroundService(IServiceProvider serviceProvider, ILogger<
 	}
 
 	private async Task CreateWeeklyMissionsAsync(PerfumeTrackerContext context) {
+		using var activity = Diagnostics.ActivitySource.StartActivity("missions.create_weekly", ActivityKind.Internal);
+		activity?.SetTag("job.name", nameof(MissionBackgroundService));
+
 		var conf = serviceProvider.GetRequiredService<IConfiguration>();
 		var neededCount = conf.GetValue<int>("Missions:WeeklyCreateCount");
+		activity?.SetTag("missions.needed_count", neededCount);
 		if (neededCount <= 0) return;
+
 		var now = DateTime.UtcNow;
 		var startDate = now.Date.AddDays(-(now.DayOfWeek == 0 ? 6 : (int)now.DayOfWeek - 1));
 		var endDate = startDate.AddDays(7);
+		activity?.SetTag("missions.week_start", startDate);
 
-		await context.Missions
+		var deactivatedCount = await context.Missions
 			.Where(m => m.EndDate < now)
 			.ExecuteUpdateAsync(s => s.SetProperty(m => m.IsActive, false));
+		activity?.SetTag("missions.deactivated_count", deactivatedCount);
 
 		var existingCount = await context.Missions.Where(m => m.StartDate == startDate && m.IsActive).CountAsync();
+		activity?.SetTag("missions.existing_count", existingCount);
 
 		if (existingCount < neededCount) {
 			var missions = await GenerateRandomMissions(neededCount - existingCount, context);
+			activity?.SetTag("missions.generated_count", missions.Count);
 
 			foreach (var mission in missions) {
 				mission.StartDate = startDate;
@@ -41,6 +53,8 @@ public class MissionBackgroundService(IServiceProvider serviceProvider, ILogger<
 
 			await context.Missions.AddRangeAsync(missions);
 			await context.SaveChangesAsync();
+		} else {
+			activity?.SetTag("missions.generated_count", 0);
 		}
 	}
 
