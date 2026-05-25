@@ -22,9 +22,17 @@ public class PerfumeRecommenderFixture : DbFixture {
 
 	public async override Task SeedTestData(PerfumeTrackerContext context) {
 		// Seed user profile with a low minimum rating so all perfumes are recommendable
-		var userProfile = await SeedUserProfile();
+		var tenantId = TenantProvider.MockTenantId!.Value;
+		var userProfile = await context.UserProfiles
+			.IgnoreQueryFilters()
+			.FirstOrDefaultAsync(up => up.Id == tenantId);
+		if (userProfile == null) {
+			userProfile = UserProfileFaker.Clone()
+				.RuleFor(up => up.Id, tenantId)
+				.Generate();
+			await context.UserProfiles.AddAsync(userProfile);
+		}
 		userProfile.MinimumRating = 0;
-		context.UserProfiles.Update(userProfile);
 		await context.SaveChangesAsync();
 
 		// Clear and seed tags with seasonal keywords
@@ -41,7 +49,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 				Id = Guid.NewGuid(),
 				TagName = tagName,
 				Color = "#000000",
-				UserId = TenantProvider.MockTenantId!.Value,
+				UserId = tenantId,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
 				Description = $"{tagName} scent"
@@ -102,7 +110,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 				Rating = 8.5m,
 				RatingDate = DateTime.UtcNow,
 				Comment = "Great perfume!",
-				UserId = TenantProvider.MockTenantId!.Value,
+				UserId = tenantId,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow
 			};
@@ -120,7 +128,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 				Type = PerfumeEvent.PerfumeEventType.Worn,
 				AmountMl = 0.1m,
 				SequenceNumber = 1,
-				UserId = TenantProvider.MockTenantId!.Value,
+				UserId = tenantId,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow
 			};
@@ -135,7 +143,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 			Type = PerfumeEvent.PerfumeEventType.Worn,
 			AmountMl = 0.1m,
 			SequenceNumber = 1,
-			UserId = TenantProvider.MockTenantId!.Value,
+			UserId = tenantId,
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow
 		};
@@ -149,7 +157,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 			Type = PerfumeEvent.PerfumeEventType.Worn,
 			AmountMl = 0.1m,
 			SequenceNumber = 1,
-			UserId = TenantProvider.MockTenantId!.Value,
+			UserId = tenantId,
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow
 		};
@@ -163,7 +171,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 				Id = Guid.NewGuid(),
 				PerfumeId = recentlyWorn[i].Id,
 				TagId = tags[i].Id,
-				UserId = TenantProvider.MockTenantId!.Value,
+				UserId = tenantId,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow
 			};
@@ -177,7 +185,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 				Id = Guid.NewGuid(),
 				PerfumeId = seasonalPerfume.Id,
 				TagId = seasonalTag.Id,
-				UserId = TenantProvider.MockTenantId!.Value,
+				UserId = tenantId,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow
 			};
@@ -191,7 +199,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 				Id = perfume.Id,
 				Text = $"Test document for {perfume.PerfumeName}",
 				Embedding = new Vector(Enumerable.Range(0, 1536).Select(i => (float)i / 1536).ToArray()),
-				UserId = TenantProvider.MockTenantId!.Value,
+				UserId = tenantId,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow
 			};

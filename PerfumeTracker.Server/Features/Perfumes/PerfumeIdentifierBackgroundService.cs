@@ -2,6 +2,9 @@
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 
+using PerfumeTracker.Server.Startup;
+using System.Diagnostics;
+
 public class PerfumeIdentifierBackgroundService(
 	IServiceProvider sp,
 	ILogger<PerfumeIdentifierBackgroundService> logger) : BackgroundService {
@@ -32,6 +35,9 @@ public class PerfumeIdentifierBackgroundService(
 	}
 
 	private async Task<bool> ProcessBatch(CancellationToken cancellationToken) {
+		using var activity = Diagnostics.ActivitySource.StartActivity("perfume_identification.backfill", ActivityKind.Internal);
+		activity?.SetTag("job.name", nameof(PerfumeIdentifierBackgroundService));
+
 		using var scope = sp.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var perfumeIdentifier = scope.ServiceProvider.GetRequiredService<IPerfumeIdentifier>();
@@ -48,15 +54,19 @@ public class PerfumeIdentifierBackgroundService(
 			.ToListAsync(cancellationToken);
 
 		if (perfumesNeedingIdentification.Count == 0) {
+			activity?.SetTag("perfume.count", 0);
 			return false;
 		}
 
+		activity?.SetTag("perfume.count", perfumesNeedingIdentification.Count);
 		logger.LogInformation("Processing {Count} perfumes for identification", perfumesNeedingIdentification.Count);
 
+		var failedCount = 0;
 		foreach (var perfume in perfumesNeedingIdentification) {
 			try {
 				await ProcessPerfume(context, perfume, perfumeIdentifier, cancellationToken);
 			} catch (Exception ex) {
+				failedCount++;
 				try {
 					perfume.PerfumeIdentifiedStatus = Perfume.PerfumeIdentifiedStatuses.IdentificationFailed;
 					await context.SaveChangesAsync(cancellationToken);
@@ -69,6 +79,7 @@ public class PerfumeIdentifierBackgroundService(
 			}
 		}
 
+		activity?.SetTag("perfume.failed_count", failedCount);
 		return true;
 	}
 
@@ -78,12 +89,16 @@ public class PerfumeIdentifierBackgroundService(
 		IPerfumeIdentifier perfumeIdentifier,
 		CancellationToken cancellationToken) {
 
+		using var activity = Diagnostics.ActivitySource.StartActivity("perfume_identification.backfill.perfume", ActivityKind.Internal);
+		activity?.SetTag("perfume.id", perfume.Id);
+
 		logger.LogInformation("Processing perfume {PerfumeId}: {House} - {Name}",
 			perfume.Id, perfume.House, perfume.PerfumeName);
 
 		// Step 1: Try to find a match in GlobalPerfumes
 		var globalMatch = await FindGlobalPerfumeMatch(context, perfume, cancellationToken);
 		if (globalMatch != null) {
+			activity?.SetTag("perfume.identification.source", "global");
 			logger.LogInformation("Found global match for {House} - {Name}", perfume.House, perfume.PerfumeName);
 			await ApplyGlobalPerfumeData(context, perfume, globalMatch, cancellationToken);
 			await context.SaveChangesAsync(cancellationToken);
@@ -97,7 +112,9 @@ public class PerfumeIdentifierBackgroundService(
 			perfume.UserId,
 			cancellationToken);
 
+		activity?.SetTag("perfume.identification.confidence", identified.ConfidenceScore);
 		if (identified.ConfidenceScore >= CONFIDENCE_THRESHOLD) {
+			activity?.SetTag("perfume.identification.source", "llm");
 			logger.LogInformation("LLM identified {House} - {Name} with confidence {Confidence}",
 				perfume.House, perfume.PerfumeName, identified.ConfidenceScore);
 			await ApplyIdentifiedPerfumeData(context, perfume, identified, cancellationToken);
@@ -106,6 +123,7 @@ public class PerfumeIdentifierBackgroundService(
 		}
 
 		// Step 3: No good match found, mark as failed
+		activity?.SetTag("perfume.identification.source", "none");
 		logger.LogWarning("No good match found for {House} - {Name}, marking as failed",
 			perfume.House, perfume.PerfumeName);
 		perfume.PerfumeIdentifiedStatus = Perfume.PerfumeIdentifiedStatuses.IdentificationFailed;

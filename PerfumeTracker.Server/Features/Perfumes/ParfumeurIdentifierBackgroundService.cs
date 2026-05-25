@@ -2,6 +2,9 @@ using PerfumeTracker.Server.Features.Perfumes.Services;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 
+using PerfumeTracker.Server.Startup;
+using System.Diagnostics;
+
 public class ParfumeurIdentifierBackgroundService(
 	IServiceProvider sp,
 	ILogger<ParfumeurIdentifierBackgroundService> logger) : BackgroundService {
@@ -25,6 +28,9 @@ public class ParfumeurIdentifierBackgroundService(
 	}
 
 	private async Task<bool> ProcessBatch(CancellationToken cancellationToken) {
+		using var activity = Diagnostics.ActivitySource.StartActivity("parfumeur_identification.backfill", ActivityKind.Internal);
+		activity?.SetTag("job.name", nameof(ParfumeurIdentifierBackgroundService));
+
 		using var scope = sp.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var parfumeurIdentifier = scope.ServiceProvider.GetRequiredService<IParfumeurIdentifier>();
@@ -39,20 +45,25 @@ public class ParfumeurIdentifierBackgroundService(
 			.ToListAsync(cancellationToken);
 
 		if (perfumesNeedingParfumeur.Count == 0) {
+			activity?.SetTag("perfume.count", 0);
 			return false;
 		}
 
+		activity?.SetTag("perfume.count", perfumesNeedingParfumeur.Count);
 		logger.LogInformation("Processing {Count} perfumes for parfumeur identification", perfumesNeedingParfumeur.Count);
 
+		var failedCount = 0;
 		foreach (var perfume in perfumesNeedingParfumeur) {
 			try {
 				await ProcessPerfume(context, perfume, parfumeurIdentifier, cancellationToken);
 			} catch (Exception ex) {
+				failedCount++;
 				logger.LogError(ex, "Failed to identify parfumeur for perfume {PerfumeId} ({House} - {Name})",
 					perfume.Id, perfume.House, perfume.PerfumeName);
 			}
 		}
 
+		activity?.SetTag("perfume.failed_count", failedCount);
 		return true;
 	}
 
@@ -61,6 +72,9 @@ public class ParfumeurIdentifierBackgroundService(
 		Perfume perfume,
 		IParfumeurIdentifier parfumeurIdentifier,
 		CancellationToken cancellationToken) {
+
+		using var activity = Diagnostics.ActivitySource.StartActivity("parfumeur_identification.backfill.perfume", ActivityKind.Internal);
+		activity?.SetTag("perfume.id", perfume.Id);
 
 		logger.LogInformation("Processing parfumeur for perfume {PerfumeId}: {House} - {Name}",
 			perfume.Id, perfume.House, perfume.PerfumeName);
@@ -71,7 +85,9 @@ public class ParfumeurIdentifierBackgroundService(
 			perfume.UserId,
 			cancellationToken);
 
+		activity?.SetTag("parfumeur.identification.confidence", identified.ConfidenceScore);
 		if (identified.ConfidenceScore < CONFIDENCE_THRESHOLD || string.IsNullOrEmpty(identified.Parfumeur)) {
+			activity?.SetTag("parfumeur.identification.result", "unknown");
 			perfume.Parfumeur = UNKNOWN_PARFUMEUR;
 			await context.SaveChangesAsync(cancellationToken);
 			logger.LogInformation("Marked parfumeur as {Parfumeur} for {House} - {Name}; confidence {Confidence:P0} below threshold",
@@ -82,6 +98,7 @@ public class ParfumeurIdentifierBackgroundService(
 
 		var parfumeur = identified.Parfumeur.Trim();
 		if (string.IsNullOrWhiteSpace(parfumeur)) {
+			activity?.SetTag("parfumeur.identification.result", "empty");
 			perfume.Parfumeur = UNKNOWN_PARFUMEUR;
 			await context.SaveChangesAsync(cancellationToken);
 			logger.LogWarning("Marked parfumeur as {Parfumeur} for {House} - {Name}; response was empty",
@@ -91,6 +108,7 @@ public class ParfumeurIdentifierBackgroundService(
 		}
 
 		if (parfumeur.Length > 250) {
+			activity?.SetTag("parfumeur.identification.result", "too_long");
 			perfume.Parfumeur = UNKNOWN_PARFUMEUR;
 			await context.SaveChangesAsync(cancellationToken);
 			logger.LogWarning("Marked parfumeur as {Parfumeur} for {House} - {Name}; parfumeur exceeds max length",
@@ -101,6 +119,7 @@ public class ParfumeurIdentifierBackgroundService(
 
 		perfume.Parfumeur = parfumeur;
 		await context.SaveChangesAsync(cancellationToken);
+		activity?.SetTag("parfumeur.identification.result", "identified");
 		logger.LogInformation("Updated parfumeur for {House} - {Name} to {Parfumeur}",
 			perfume.House, perfume.PerfumeName, parfumeur);
 	}

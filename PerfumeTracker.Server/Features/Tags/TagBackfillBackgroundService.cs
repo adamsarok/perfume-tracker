@@ -3,6 +3,9 @@ using System.Text;
 
 namespace PerfumeTracker.Server.Features.Tags;
 
+using PerfumeTracker.Server.Startup;
+using System.Diagnostics;
+
 public class TagBackfillBackgroundService(IServiceProvider sp, ChatClient chatClient, ILogger<TagBackfillBackgroundService> logger) : BackgroundService {
 	private const int MAX_BACKFILL_ATTEMPTS = 3;
 	private static readonly TimeSpan RETRY_DELAY = TimeSpan.FromDays(14);
@@ -29,6 +32,9 @@ public class TagBackfillBackgroundService(IServiceProvider sp, ChatClient chatCl
 	}
 
 	private async Task<bool> BackfillBatch(CancellationToken stoppingToken) {
+		using var activity = Diagnostics.ActivitySource.StartActivity("tag.backfill", ActivityKind.Internal);
+		activity?.SetTag("job.name", nameof(TagBackfillBackgroundService));
+
 		using var scope = sp.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 
@@ -44,6 +50,7 @@ public class TagBackfillBackgroundService(IServiceProvider sp, ChatClient chatCl
 			.Take(25)
 			.ToList();
 
+		activity?.SetTag("tag.count", tags.Count);
 		if (tags.Count == 0) return false;
 
 		logger.LogInformation("Processing {Count} tags for backfill", tags.Count);
@@ -103,7 +110,7 @@ public class TagBackfillBackgroundService(IServiceProvider sp, ChatClient chatCl
 
 		try {
 			var completion = await chatClient.CompleteChatAsync(chatMessages, options, stoppingToken);
-			PerfumeTracker.Server.Startup.Diagnostics.RecordChatTokenUsage(completion.Value, "tag_backfill");
+			Diagnostics.RecordChatTokenUsage(completion.Value, "tag_backfill");
 			var responseContent = completion.Value.Content[0].Text;
 
 			logger.LogInformation("Received response from OpenAI");
@@ -124,9 +131,12 @@ public class TagBackfillBackgroundService(IServiceProvider sp, ChatClient chatCl
 			}
 
 			await context.SaveChangesAsync(stoppingToken);
+			activity?.SetTag("tag.updated_count", updatedCount);
 			logger.LogInformation("Successfully updated {Count} tags", updatedCount);
 			return true;
 		} catch (Exception ex) {
+			activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+			activity?.SetTag("error.type", ex.GetType().FullName);
 			logger.LogError(ex, "Error calling OpenAI or parsing response");
 			return false;
 		}
