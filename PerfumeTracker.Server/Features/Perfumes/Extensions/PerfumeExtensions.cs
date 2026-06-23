@@ -39,7 +39,7 @@ public static class PerfumeExtensions {
 				p.IsDeleted,
 				[.. p.PerfumeRatings.Select(r => new PerfumeRatings.PerfumeRatingDownloadDto(r.PerfumeId, r.Id, r.Rating, r.Comment, r.RatingDate, r.IsDeleted))],
 				p.WearCount,
-				p.AverageRating,
+				p.LatestRating,
 				p.LastWorn
 			),
 			burnRatePerYearMl,
@@ -58,7 +58,7 @@ public static class PerfumeExtensions {
 	//		House: p.House,
 	//		PerfumeName: p.PerfumeName,
 	//		Family: p.Family,
-	//		Rating: p.AverageRating,
+	//		Rating: p.LatestRating,
 	//		TimesWorn: p.WearCount,
 	//		Tags: [.. p.PerfumeTags.Select(pt => pt.Tag.TagName)],
 	//		LastComment: lastComment
@@ -71,7 +71,7 @@ public static class PerfumeExtensions {
 	//		House: p.Perfume.House,
 	//		PerfumeName: p.Perfume.PerfumeName,
 	//		Family: p.Perfume.Family,
-	//		Rating: p.AverageRating,
+	//		Rating: p.LatestRating,
 	//		TimesWorn: p.WornTimes,
 	//		Tags: [.. p.Perfume.Tags.Select(t => t.TagName)],
 	//		LastComment: p.LastComment

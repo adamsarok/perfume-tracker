@@ -7,7 +7,7 @@ public partial class Perfume : UserEntity {
 	public string Parfumeur { get; set; } = null!;
 	public decimal Ml { get; set; }
 	public decimal MlLeft { get; set; }
-	public decimal AverageRating { get; set; }
+	public decimal LatestRating { get; set; }
 	public int WearCount { get; set; }
 	public DateTime? LastWorn { get; set; }
 	public Guid? ImageObjectKeyNew { get; set; } = null!;

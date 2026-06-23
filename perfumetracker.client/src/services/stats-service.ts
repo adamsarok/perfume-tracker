@@ -9,7 +9,7 @@ export interface FavoritePerfumeDTO {
   id: string;
   house: string;
   perfumeName: string;
-  averageRating: number;
+  latestRating: number;
   wearCount: number;
 }
 

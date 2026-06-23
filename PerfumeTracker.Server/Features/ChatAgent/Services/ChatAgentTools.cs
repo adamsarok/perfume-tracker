@@ -98,7 +98,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				p.Id,
 				p.House,
 				p.PerfumeName,
-				p.AverageRating,
+				p.LatestRating,
 				NoteGroups = p.PerfumeTags
 					.Where(pt => !pt.IsDeleted
 						&& !pt.Tag.IsDeleted
@@ -116,7 +116,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 			.Select(g => new WardrobeNoteGroupCoverage(
 				g.Key,
 				g.Select(x => x.Perfume.Id).Distinct().Count(),
-				g.Select(x => new PerfumeLlmDto(x.Perfume.House, x.Perfume.PerfumeName, x.Perfume.AverageRating))
+				g.Select(x => new PerfumeLlmDto(x.Perfume.House, x.Perfume.PerfumeName, x.Perfume.LatestRating))
 					.Distinct()
 					.OrderByDescending(p => p.Rating)
 					.ThenBy(p => p.House)
@@ -161,7 +161,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 
 		var ownedPerfumes = await context.Perfumes
 			.AsNoTracking()
-			.Select(r => new PerfumeLlmDto(r.House, r.PerfumeName, r.AverageRating))
+			.Select(r => new PerfumeLlmDto(r.House, r.PerfumeName, r.LatestRating))
 			.ToListAsync(cancellationToken);
 
 		var results = perfumesToCheck.Select<PerfumeOwnershipCheckQuery, PerfumeOwnershipCheckResult>(check => {
@@ -197,7 +197,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		var prompt = arguments["prompt"].GetString() ?? throw new ArgumentException("Missing prompt");
 		var count = arguments.TryGetValue("count", out var countElement) ? countElement.GetInt32() : 5;
 		var recommendations = await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(count, prompt, cancellationToken);
-		var perfumes = recommendations.Select(r => new PerfumeLlmDto(r.Perfume.Perfume.House, r.Perfume.Perfume.PerfumeName, r.Perfume.Perfume.AverageRating));
+		var perfumes = recommendations.Select(r => new PerfumeLlmDto(r.Perfume.Perfume.House, r.Perfume.Perfume.PerfumeName, r.Perfume.Perfume.LatestRating));
 		return JsonSerializer.Serialize(perfumes, new JsonSerializerOptions {
 			WriteIndented = false
 		});

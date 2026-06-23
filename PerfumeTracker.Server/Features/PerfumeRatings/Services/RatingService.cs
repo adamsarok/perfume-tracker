@@ -28,9 +28,12 @@ public class RatingService(PerfumeTrackerContext context, ISideEffectQueue queue
 
 	private async Task UpdatePerfume(Guid perfumeId, CancellationToken cancellationToken) {
 		var perfume = await context.Perfumes.FindAsync([perfumeId], cancellationToken) ?? throw new NotFoundException("Perfumes", perfumeId);
-		perfume.AverageRating = await context.PerfumeRatings
+		perfume.LatestRating = await context.PerfumeRatings
 			.Where(r => r.PerfumeId == perfumeId)
-			.AverageAsync(r => (decimal?)r.Rating, cancellationToken) ?? 0;
+			.OrderByDescending(r => r.RatingDate)
+			.ThenByDescending(r => r.CreatedAt)
+			.Select(r => (decimal?)r.Rating)
+			.FirstOrDefaultAsync(cancellationToken) ?? 0;
 		var message = OutboxMessage.From(new PerfumeUpdatedNotification(perfumeId, perfume.UserId));
 		context.OutboxMessages.Add(message);
 		await context.SaveChangesAsync(cancellationToken);

@@ -38,15 +38,15 @@ public class UserStatsService(PerfumeTrackerContext context, IPerfumeRecommender
 
 		// Get favorite perfumes (top 10 by rating, with at least 1 wear)
 		var favoritePerfumes = await context.Perfumes
-			.Where(p => p.AverageRating > 0 && p.WearCount > 0)
-			.OrderByDescending(p => p.AverageRating)
+			.Where(p => p.LatestRating > 0 && p.WearCount > 0)
+			.OrderByDescending(p => p.LatestRating)
 			.ThenByDescending(p => p.WearCount)
 			.Take(10)
 			.Select(p => new FavoritePerfumeDto(
 				p.Id,
 				p.House,
 				p.PerfumeName,
-				p.AverageRating,
+				p.LatestRating,
 				p.WearCount
 			))
 			.ToListAsync(cancellationToken);
@@ -140,15 +140,15 @@ public class UserStatsService(PerfumeTrackerContext context, IPerfumeRecommender
 
 		// Get rating spread (rounded to 0.5 increments)
 		var ratingSpread = await context.Perfumes
-			.Where(p => p.AverageRating > 0)
+			.Where(p => p.LatestRating > 0)
 			.Select(p => new {
-				p.AverageRating,
+				p.LatestRating,
 				p.MlLeft
 			})
 			.ToListAsync(cancellationToken);
 
 		var ratingSpreadGrouped = ratingSpread
-			.GroupBy(p => Math.Round(p.AverageRating * 2, MidpointRounding.AwayFromZero) / 2)
+			.GroupBy(p => Math.Round(p.LatestRating * 2, MidpointRounding.AwayFromZero) / 2)
 			.Select(g => new RatingSpreadDto(
 				g.Key,
 				g.Count(),

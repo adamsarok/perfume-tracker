@@ -20,7 +20,7 @@ public class UserStatsFixture : DbFixture {
 			var dbPerfume = await context.Perfumes.FindAsync(perfumes[i].Id);
 			if (dbPerfume == null) continue;
 
-			dbPerfume.AverageRating = 8.0m;
+			dbPerfume.LatestRating = 8.0m;
 			dbPerfume.WearCount = 5;
 			dbPerfume.Parfumeur = i < 2 ? "Alice Dupont" : "Bob Martin";
 			dbPerfume.MlLeft = i < 2 ? 10m : 0m;

@@ -43,7 +43,7 @@ public class PerfumeRatingTests {
 	}
 
 	[Fact]
-	public async Task AddPerfumeRating_CreatesRatingAndUpdatesAverage() {
+	public async Task AddPerfumeRating_CreatesRatingAndUpdatesLatestRating() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var ratingService = scope.ServiceProvider.GetRequiredService<IRatingService>();
@@ -55,11 +55,10 @@ public class PerfumeRatingTests {
 		Assert.Equal(perfume.Id, result.PerfumeId);
 		Assert.Equal(9.0m, result.Rating);
 
-		// Verify average was updated
+		// Verify latest rating was updated
 		var updatedPerfume = await context.Perfumes.FindAsync([perfume.Id], TestContext.Current.CancellationToken);
 		Assert.NotNull(updatedPerfume);
-		Assert.True(updatedPerfume.AverageRating > 0,
-			$"Expected positive average rating, got {updatedPerfume.AverageRating}");
+		Assert.Equal(9.0m, updatedPerfume.LatestRating);
 	}
 
 	[Fact]

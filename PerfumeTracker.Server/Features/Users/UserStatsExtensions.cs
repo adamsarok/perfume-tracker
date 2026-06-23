@@ -15,7 +15,7 @@ public static class UserStatsExtensions {
 			sb.AppendLine("TOP RATED PERFUMES:");
 			foreach (var perfume in stats.FavoritePerfumes) {
 				sb.AppendLine($"- {perfume.House} - {perfume.PerfumeName}");
-				sb.AppendLine($"  Rating: {perfume.AverageRating:F1}/10, Worn: {perfume.WearCount} times");
+				sb.AppendLine($"  Rating: {perfume.LatestRating:F1}/10, Worn: {perfume.WearCount} times");
 			}
 			sb.AppendLine();
 		}
