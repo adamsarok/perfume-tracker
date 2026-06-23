@@ -103,7 +103,7 @@ public class PerfumeRecommenderFixture : DbFixture {
 
 		// Add ratings to perfumes (all above minimum rating threshold)
 		foreach (var perfume in perfumes) {
-			perfume.AverageRating = 8.5m;
+			perfume.LatestRating = 8.5m;
 			var rating = new PerfumeRating {
 				Id = Guid.NewGuid(),
 				PerfumeId = perfume.Id,
@@ -261,7 +261,7 @@ public class PerfumeRecommenderTests {
 		var unwornPerfume = _fixture.GeneratePerfumes(1)[0];
 		unwornPerfume.Ml = 100;
 		unwornPerfume.MlLeft = 100;
-		unwornPerfume.AverageRating = 9.0m;
+		unwornPerfume.LatestRating = 9.0m;
 		context.Perfumes.Add(unwornPerfume);
 		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 

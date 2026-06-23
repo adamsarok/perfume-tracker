@@ -15,7 +15,7 @@ public record PerfumeDto(Guid Id,
 	bool IsDeleted,
 	IReadOnlyList<PerfumeRatingDownloadDto> Ratings,
 	int WearCount,
-	decimal AverageRating,
+	decimal LatestRating,
 	DateTime? LastWorn
 	);
 public record PerfumeUploadDto(string House, string PerfumeName, string Family, string Parfumeur, decimal Ml, decimal MlLeft, List<TagDto> Tags);

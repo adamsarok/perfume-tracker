@@ -42,7 +42,7 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 	private IQueryable<Perfume> GetRecommendablePerfumes(decimal minimumRating, List<Guid> lastWornPerfumeIds) {
 		return context.Perfumes
 			.Where(p => p.MlLeft > 0
-				&& p.AverageRating >= minimumRating
+				&& p.LatestRating >= minimumRating
 				&& !lastWornPerfumeIds.Contains(p.Id))
 			.Include(p => p.PerfumeEvents)
 			.Include(p => p.PerfumeRatings)

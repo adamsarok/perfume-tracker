@@ -129,7 +129,7 @@ public class ChatAgent(
 
 		sb.AppendLine($"User's FAVORITE perfumes:");
 		foreach (var perfume in stats.FavoritePerfumes) {
-			sb.AppendLine($"{perfume.House} - {perfume.PerfumeName} rated {perfume.AverageRating:F1})");
+			sb.AppendLine($"{perfume.House} - {perfume.PerfumeName} rated {perfume.LatestRating:F1})");
 		}
 		return $"""
 You are a helpful perfume assistant. You help users explore their perfume collection, make recommendations, and answer questions about fragrances.

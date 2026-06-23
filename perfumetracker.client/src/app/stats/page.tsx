@@ -147,7 +147,7 @@ export default function StatsPage() {
                                         <p className="text-sm text-muted-foreground">{perfume.perfumeName}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-semibold">⭐ {perfume.averageRating.toFixed(1)}</p>
+                                        <p className="font-semibold">⭐ {perfume.latestRating.toFixed(1)}</p>
                                         <p className="text-sm text-muted-foreground">{perfume.wearCount} wears</p>
                                     </div>
                                 </div>
