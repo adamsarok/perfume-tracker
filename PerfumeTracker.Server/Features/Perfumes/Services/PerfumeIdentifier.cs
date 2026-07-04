@@ -1,25 +1,38 @@
-﻿using OpenAI.Chat;
+using Microsoft.Extensions.Caching.Memory;
+using OpenAI.Chat;
 
 namespace PerfumeTracker.Server.Features.Perfumes.Services;
 
-public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext context) : IPerfumeIdentifier {
+public class PerfumeIdentifier(ChatClient chatClient, IMemoryCache memoryCache) : IPerfumeIdentifier {
+	private static readonly TimeSpan CompletionCacheTtl = TimeSpan.FromHours(2);
+
 	public async Task<IdentifiedPerfume> GetIdentifiedPerfumeAsync(string house, string perfumeName, Guid userId, CancellationToken cancellationToken) {
-		string promptKey = $"{house}::{perfumeName}";
-		string completionText = string.Empty;
-		var cached = await context.CachedCompletions
-			.IgnoreQueryFilters()
-			.FirstOrDefaultAsync(cc => cc.Prompt == promptKey
-				&& cc.CompletionType == CachedCompletion.CompletionTypes.IdentifyPerfume
-				&& cc.UserId == userId, cancellationToken);
-		if (cached != null) {
-			completionText = cached.Response;
-		} else {
-			var messages = new List<OpenAI.Chat.ChatMessage> {
+		var promptKey = $"{house}::{perfumeName}";
+		var cacheKey = $"completion:identify-perfume:{userId}:{promptKey}";
+		if (!memoryCache.TryGetValue<string>(cacheKey, out var completionText) || string.IsNullOrWhiteSpace(completionText)) {
+			completionText = await GetCompletionTextAsync(house, perfumeName, cancellationToken);
+			memoryCache.Set(cacheKey, completionText, new MemoryCacheEntryOptions {
+				AbsoluteExpirationRelativeToNow = CompletionCacheTtl
+			});
+		}
+
+		var result = System.Text.Json.JsonSerializer.Deserialize<IdentifiedPerfume>(
+			completionText,
+			new System.Text.Json.JsonSerializerOptions {
+				PropertyNameCaseInsensitive = true
+			}
+		);
+
+		return result ?? throw new InvalidOperationException("Failed to parse OpenAI response");
+	}
+
+	private async Task<string> GetCompletionTextAsync(string house, string perfumeName, CancellationToken cancellationToken) {
+		var messages = new List<OpenAI.Chat.ChatMessage> {
 			new SystemChatMessage(
 				"""
 				You are a perfume expert. Given a perfume house and name, identify the perfume's family and notes.
-				
-				IMPORTANT: 
+
+				IMPORTANT:
 				- If you're not sure or the perfume doesn't exist, set confidenceScore to 0.0.
 				- Base your confidence on your knowledge of real, commercially available perfumes.
 				- Confidence scale: 0.0 (not confident/doesn't exist) to 1.0 (very confident/well-known perfume).
@@ -30,10 +43,10 @@ public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext cont
 			)
 		};
 
-			var chatCompletionOptions = new ChatCompletionOptions {
-				ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-					jsonSchemaFormatName: "identified_perfume",
-					jsonSchema: BinaryData.FromString("""
+		var chatCompletionOptions = new ChatCompletionOptions {
+			ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+				jsonSchemaFormatName: "identified_perfume",
+				jsonSchema: BinaryData.FromString("""
 				{
 					"type": "object",
 					"properties": {
@@ -65,30 +78,12 @@ public class PerfumeIdentifier(ChatClient chatClient, PerfumeTrackerContext cont
 					"additionalProperties": false
 				}
 				"""),
-					jsonSchemaIsStrict: true
-				)
-			};
+				jsonSchemaIsStrict: true
+			)
+		};
 
-			var completion = await chatClient.CompleteChatAsync(messages, chatCompletionOptions, cancellationToken);
-			PerfumeTracker.Server.Startup.Diagnostics.RecordChatTokenUsage(completion.Value, "identify_perfume");
-			completionText = completion.Value.Content[0].Text;
-			context.CachedCompletions.Add(new CachedCompletion {
-				Prompt = promptKey,
-				CompletionType = CachedCompletion.CompletionTypes.IdentifyPerfume,
-				Response = completionText,
-				CreatedAt = DateTime.UtcNow,
-				UserId = userId,
-			});
-			await context.SaveChangesAsync(cancellationToken);
-		}
-
-		var result = System.Text.Json.JsonSerializer.Deserialize<IdentifiedPerfume>(
-			completionText,
-			new System.Text.Json.JsonSerializerOptions {
-				PropertyNameCaseInsensitive = true
-			}
-		);
-
-		return result ?? throw new InvalidOperationException("Failed to parse OpenAI response");
+		var completion = await chatClient.CompleteChatAsync(messages, chatCompletionOptions, cancellationToken);
+		PerfumeTracker.Server.Startup.Diagnostics.RecordChatTokenUsage(completion.Value, "identify_perfume");
+		return completion.Value.Content[0].Text;
 	}
 }

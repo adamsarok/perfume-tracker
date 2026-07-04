@@ -1,9 +1,11 @@
+using Microsoft.Extensions.Caching.Memory;
 using OpenAI.Chat;
 using System.Text;
 
 namespace PerfumeTracker.Server.Features.Tags.Services;
 
-public class TagNoteGroupIdentifier(ChatClient chatClient, PerfumeTrackerContext context) : ITagNoteGroupIdentifier {
+public class TagNoteGroupIdentifier(ChatClient chatClient, IMemoryCache memoryCache) : ITagNoteGroupIdentifier {
+	private static readonly TimeSpan CompletionCacheTtl = TimeSpan.FromHours(2);
 	private static readonly JsonSerializerOptions SerializerOptions = new() {
 		PropertyNameCaseInsensitive = true
 	};
@@ -24,22 +26,18 @@ public class TagNoteGroupIdentifier(ChatClient chatClient, PerfumeTrackerContext
 			return new IdentifiedTagNoteGroups([]);
 		}
 
-		var promptKeys = distinctTagNames.Select(CreatePromptKey).ToList();
-		var cachedCompletions = await context.CachedCompletions
-			.IgnoreQueryFilters()
-			.Where(cc => cc.UserId == userId
-				&& cc.CompletionType == CachedCompletion.CompletionTypes.IdentifyNoteGroup
-				&& promptKeys.Contains(cc.Prompt))
-			.ToListAsync(cancellationToken);
-
 		var results = new List<IdentifiedTagNoteGroup>();
 		var cachedPromptKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		foreach (var cached in cachedCompletions) {
-			var cachedResult = JsonSerializer.Deserialize<IdentifiedTagNoteGroup>(cached.Response, SerializerOptions);
+		foreach (var tagName in distinctTagNames) {
+			var promptKey = CreatePromptKey(tagName);
+			var cacheKey = CreateCacheKey(userId, promptKey);
+			if (!memoryCache.TryGetValue<string>(cacheKey, out var cachedText) || string.IsNullOrWhiteSpace(cachedText)) continue;
+
+			var cachedResult = JsonSerializer.Deserialize<IdentifiedTagNoteGroup>(cachedText, SerializerOptions);
 			if (cachedResult == null) continue;
 
 			results.Add(cachedResult);
-			cachedPromptKeys.Add(cached.Prompt);
+			cachedPromptKeys.Add(promptKey);
 		}
 
 		var uncachedTagNames = distinctTagNames
@@ -57,17 +55,13 @@ public class TagNoteGroupIdentifier(ChatClient chatClient, PerfumeTrackerContext
 		foreach (var tag in identified.Tags) {
 			if (!uncachedTagNames.Any(t => t.Equals(tag.TagName, StringComparison.OrdinalIgnoreCase))) continue;
 
-			context.CachedCompletions.Add(new CachedCompletion {
-				Prompt = CreatePromptKey(tag.TagName),
-				CompletionType = CachedCompletion.CompletionTypes.IdentifyNoteGroup,
-				Response = JsonSerializer.Serialize(tag),
-				CreatedAt = DateTime.UtcNow,
-				UserId = userId,
+			var promptKey = CreatePromptKey(tag.TagName);
+			memoryCache.Set(CreateCacheKey(userId, promptKey), JsonSerializer.Serialize(tag), new MemoryCacheEntryOptions {
+				AbsoluteExpirationRelativeToNow = CompletionCacheTtl
 			});
 			results.Add(tag);
 		}
 
-		await context.SaveChangesAsync(cancellationToken);
 		return new IdentifiedTagNoteGroups(results);
 	}
 
@@ -146,4 +140,5 @@ public class TagNoteGroupIdentifier(ChatClient chatClient, PerfumeTrackerContext
 	}
 
 	private static string CreatePromptKey(string tagName) => $"note-group::{tagName.Trim().ToLowerInvariant()}";
+	private static string CreateCacheKey(Guid userId, string promptKey) => $"completion:identify-note-group:{userId}:{promptKey}";
 }

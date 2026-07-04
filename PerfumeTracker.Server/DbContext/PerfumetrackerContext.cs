@@ -28,7 +28,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<UserMission> UserMissions { get; set; }
 	public virtual DbSet<Invite> Invites { get; set; }
 	public virtual DbSet<PerfumeDocument> PerfumeDocuments { get; set; }
-	public virtual DbSet<CachedCompletion> CachedCompletions { get; set; }
 	public virtual DbSet<PerfumeRecommendation> PerfumeRecommendations { get; set; }
 	public virtual DbSet<GlobalPerfume> GlobalPerfumes { get; set; }
 	public virtual DbSet<GlobalTag> GlobalTags { get; set; }
@@ -194,18 +193,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
-		builder.Entity<CachedCompletion>(entity => {
-			entity.HasKey(e => e.Id).HasName("CachedCompletion_pkey");
-			entity.HasIndex(e => new { e.UserId, e.CompletionType, e.Prompt })
-				.HasDatabaseName("IX_CachedCompletion_UserId_Type_Prompt")
-				.IsUnique();
-			entity.ToTable("CachedCompletion");
-			entity.HasQueryFilter(x => TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId());
-			entity.Property(e => e.Prompt)
-				.HasMaxLength(2000)
-				.IsRequired();
-		});
-
 		builder.Entity<PerfumeRecommendation>(entity => {
 			entity.HasKey(e => e.Id).HasName("PerfumeRecommendation_pkey");
 			entity.ToTable("PerfumeRecommendation");
@@ -214,12 +201,6 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasForeignKey(d => d.PerfumeId)
 				.HasConstraintName("PerfumeRecommendation_PerfumeId_fkey");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
-			entity.HasOne(d => d.CachedCompletion)
-				.WithMany()
-				.HasForeignKey(d => d.CompletionId)
-				.OnDelete(DeleteBehavior.SetNull)
-				.IsRequired(false)
-				.HasConstraintName("PerfumeRecommendation_CompletionId_fkey");
 		});
 
 		builder.Entity<GlobalTag>(entity => {

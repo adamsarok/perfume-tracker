@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Embedding;
@@ -224,7 +225,8 @@ public class PerfumeRecommenderTests {
 			userProfileService,
 			_fixture.MockEncoder.Object,
 			_fixture.MockPresignedUrlService,
-			null!); // ChatClient is only used for mood/occasion, which we test separately
+			null!, // ChatClient is only used for mood/occasion, which we test separately
+			_fixture.Factory.Services.GetRequiredService<IMemoryCache>());
 	}
 
 	[Fact]
@@ -251,7 +253,7 @@ public class PerfumeRecommenderTests {
 	}
 
 	[Fact]
-	public async Task GetRecommendationsForOccasionMoodPrompt_UsesCachedCompletion() {
+	public async Task GetRecommendationsForOccasionMoodPrompt_UsesMemoryCacheCompletion() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
@@ -276,24 +278,13 @@ public class PerfumeRecommenderTests {
 		context.PerfumeDocuments.Add(doc);
 		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-		// Clear any existing cached completions for this test
-		var existingCompletions = await context.CachedCompletions
-			.Where(cc => cc.Prompt == "test mood")
-			.ToListAsync(TestContext.Current.CancellationToken);
-		context.CachedCompletions.RemoveRange(existingCompletions);
-		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-		// Add a cached completion
-		var cachedCompletion = new CachedCompletion {
-			Prompt = "test mood",
-			Response = "citrus, fresh, light",
-			CompletionType = CachedCompletion.CompletionTypes.MoodOrOccasionRecommendation,
-			UserId = _fixture.TenantProvider.MockTenantId!.Value,
-			CreatedAt = DateTime.UtcNow,
-			UpdatedAt = DateTime.UtcNow
-		};
-		context.CachedCompletions.Add(cachedCompletion);
-		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+		var memoryCache = _fixture.Factory.Services.GetRequiredService<IMemoryCache>();
+		memoryCache.Set(
+			$"completion:mood-or-occasion:{_fixture.TenantProvider.MockTenantId!.Value}:test mood",
+			"citrus, fresh, light",
+			new MemoryCacheEntryOptions {
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(2)
+			});
 
 		var recommendations = await recommender.GetRecommendationsForOccasionMoodPrompt(
 			3,

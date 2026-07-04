@@ -18,13 +18,96 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				},
 				"count": {
 					"type": "integer",
-					"description": "Number of perfumes to return (1-10)",
+					"description": "Number of perfumes to return (1-25)",
 					"minimum": 1,
-					"maximum": 10,
+					"maximum": 25,
 					"default": 5
 				}
 			},
 			"required": ["prompt"],
+			"additionalProperties": false
+		}
+		""")
+	);
+
+	public static readonly ChatTool FilterOwnedPerfumesTool = ChatTool.CreateFunctionTool(
+		functionName: "filter_owned_perfumes",
+		functionDescription: "Filter and order ONLY perfumes the user already OWNS by structured collection facts. Use this for least worn, highest rated, not worn recently, never worn, specific tags, family, house, or availability queries.",
+		functionParameters: BinaryData.FromString("""
+		{
+			"type": "object",
+			"properties": {
+				"count": {
+					"type": "integer",
+					"description": "Number of perfumes to return (1-50)",
+					"minimum": 1,
+					"maximum": 50,
+					"default": 10
+				},
+				"orderBy": {
+					"type": "string",
+					"description": "Field to order by",
+					"enum": ["rating", "wearCount", "lastWorn", "mlLeft", "house", "perfumeName"],
+					"default": "rating"
+				},
+				"orderDirection": {
+					"type": "string",
+					"description": "Sort direction",
+					"enum": ["asc", "desc"],
+					"default": "desc"
+				},
+				"minRating": {
+					"type": "number",
+					"description": "Minimum user rating, inclusive"
+				},
+				"maxRating": {
+					"type": "number",
+					"description": "Maximum user rating, inclusive"
+				},
+				"minWearCount": {
+					"type": "integer",
+					"description": "Minimum wear count, inclusive"
+				},
+				"maxWearCount": {
+					"type": "integer",
+					"description": "Maximum wear count, inclusive"
+				},
+				"notWornInDays": {
+					"type": "integer",
+					"description": "Return perfumes never worn or not worn in at least this many days"
+				},
+				"wornWithinDays": {
+					"type": "integer",
+					"description": "Return perfumes worn within this many days"
+				},
+				"neverWorn": {
+					"type": "boolean",
+					"description": "When true, return only perfumes with zero wears"
+				},
+				"onlyAvailable": {
+					"type": "boolean",
+					"description": "When true, only return perfumes with ml left",
+					"default": true
+				},
+				"family": {
+					"type": "string",
+					"description": "Case-insensitive family match"
+				},
+				"house": {
+					"type": "string",
+					"description": "Case-insensitive house match"
+				},
+				"tagsAny": {
+					"type": "array",
+					"description": "Return perfumes with at least one of these tags",
+					"items": { "type": "string" }
+				},
+				"tagsAll": {
+					"type": "array",
+					"description": "Return perfumes with all of these tags",
+					"items": { "type": "string" }
+				}
+			},
 			"additionalProperties": false
 		}
 		""")
@@ -81,6 +164,8 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		switch (toolCall.FunctionName) {
 			case "search_owned_perfumes_by_characteristics":
 				return await SearchByEmbedding(arguments, cancellationToken);
+			case "filter_owned_perfumes":
+				return await FilterOwnedPerfumes(arguments, cancellationToken);
 			case "check_perfume_ownership":
 				return await SearchByPerfumesNames(arguments, cancellationToken);
 			case "analyze_wardrobe_gaps":
@@ -116,7 +201,17 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 			.Select(g => new WardrobeNoteGroupCoverage(
 				g.Key,
 				g.Select(x => x.Perfume.Id).Distinct().Count(),
-				g.Select(x => new PerfumeLlmDto(x.Perfume.House, x.Perfume.PerfumeName, x.Perfume.LatestRating))
+				g.Select(x => new PerfumeLlmDto(
+						x.Perfume.Id,
+						x.Perfume.House,
+						x.Perfume.PerfumeName,
+						string.Empty,
+						x.Perfume.LatestRating,
+						0,
+						null,
+						0,
+						[],
+						null))
 					.Distinct()
 					.OrderByDescending(p => p.Rating)
 					.ThenBy(p => p.House)
@@ -161,7 +256,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 
 		var ownedPerfumes = await context.Perfumes
 			.AsNoTracking()
-			.Select(r => new PerfumeLlmDto(r.House, r.PerfumeName, r.LatestRating))
+			.Select(r => new { r.House, r.PerfumeName, r.LatestRating })
 			.ToListAsync(cancellationToken);
 
 		var results = perfumesToCheck.Select<PerfumeOwnershipCheckQuery, PerfumeOwnershipCheckResult>(check => {
@@ -175,7 +270,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				.Select(owned => new {
 					owned.House,
 					owned.PerfumeName,
-					owned.Rating,
+					owned.LatestRating,
 					houseScore = CalculateSimilarity(check.House.ToLowerInvariant(), owned.House.ToLowerInvariant()),
 					nameScore = CalculateSimilarity(check.Name.ToLowerInvariant(), owned.PerfumeName.ToLowerInvariant())
 				})
@@ -196,11 +291,166 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 	private async Task<string> SearchByEmbedding(Dictionary<string, JsonElement> arguments, CancellationToken cancellationToken) {
 		var prompt = arguments["prompt"].GetString() ?? throw new ArgumentException("Missing prompt");
 		var count = arguments.TryGetValue("count", out var countElement) ? countElement.GetInt32() : 5;
+		count = Math.Clamp(count, 1, 25);
 		var recommendations = await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(count, prompt, cancellationToken);
-		var perfumes = recommendations.Select(r => new PerfumeLlmDto(r.Perfume.Perfume.House, r.Perfume.Perfume.PerfumeName, r.Perfume.Perfume.LatestRating));
+		var perfumes = recommendations.Select(r => ToPerfumeLlmDto(r.Perfume));
 		return JsonSerializer.Serialize(perfumes, new JsonSerializerOptions {
 			WriteIndented = false
 		});
+	}
+
+	private async Task<string> FilterOwnedPerfumes(Dictionary<string, JsonElement> arguments, CancellationToken cancellationToken) {
+		var count = GetOptionalInt(arguments, "count") ?? 10;
+		count = Math.Clamp(count, 1, 50);
+		var orderBy = GetOptionalString(arguments, "orderBy") ?? "rating";
+		var orderDirection = GetOptionalString(arguments, "orderDirection") ?? "desc";
+		var descending = !orderDirection.Equals("asc", StringComparison.OrdinalIgnoreCase);
+		var onlyAvailable = GetOptionalBool(arguments, "onlyAvailable") ?? true;
+
+		var query = context.Perfumes.AsNoTracking();
+
+		if (onlyAvailable) query = query.Where(p => p.MlLeft > 0);
+		if (GetOptionalDecimal(arguments, "minRating") is { } minRating) query = query.Where(p => p.LatestRating >= minRating);
+		if (GetOptionalDecimal(arguments, "maxRating") is { } maxRating) query = query.Where(p => p.LatestRating <= maxRating);
+		if (GetOptionalInt(arguments, "minWearCount") is { } minWearCount) query = query.Where(p => p.WearCount >= minWearCount);
+		if (GetOptionalInt(arguments, "maxWearCount") is { } maxWearCount) query = query.Where(p => p.WearCount <= maxWearCount);
+		if (GetOptionalBool(arguments, "neverWorn") == true) query = query.Where(p => p.WearCount == 0);
+		if (GetOptionalInt(arguments, "notWornInDays") is { } notWornInDays) {
+			var cutoff = DateTime.UtcNow.AddDays(-notWornInDays);
+			query = query.Where(p => p.LastWorn == null || p.LastWorn <= cutoff);
+		}
+		if (GetOptionalInt(arguments, "wornWithinDays") is { } wornWithinDays) {
+			var cutoff = DateTime.UtcNow.AddDays(-wornWithinDays);
+			query = query.Where(p => p.LastWorn != null && p.LastWorn >= cutoff);
+		}
+		if (GetOptionalString(arguments, "family") is { } family) {
+			var normalizedFamily = family.ToLower();
+			query = query.Where(p => p.Family.ToLower() == normalizedFamily);
+		}
+		if (GetOptionalString(arguments, "house") is { } house) {
+			var normalizedHouse = house.ToLower();
+			query = query.Where(p => p.House.ToLower() == normalizedHouse);
+		}
+
+		var tagsAny = GetOptionalStringList(arguments, "tagsAny");
+		if (tagsAny.Count > 0) {
+			var normalizedTagsAny = tagsAny.Select(t => t.ToLower()).ToList();
+			query = query.Where(p => p.PerfumeTags.Any(pt => normalizedTagsAny.Contains(pt.Tag.TagName.ToLower())));
+		}
+
+		var tagsAll = GetOptionalStringList(arguments, "tagsAll");
+		foreach (var tag in tagsAll) {
+			var normalizedTag = tag.ToLower();
+			query = query.Where(p => p.PerfumeTags.Any(pt => pt.Tag.TagName.ToLower() == normalizedTag));
+		}
+
+		query = ApplyOrdering(query, orderBy, descending);
+
+		var perfumes = await query
+			.Include(p => p.PerfumeTags).ThenInclude(pt => pt.Tag)
+			.Include(p => p.PerfumeRatings)
+			.Take(count)
+			.ToListAsync(cancellationToken);
+
+		return JsonSerializer.Serialize(perfumes.Select(ToPerfumeLlmDto), new JsonSerializerOptions {
+			WriteIndented = false
+		});
+	}
+
+	private static IQueryable<Perfume> ApplyOrdering(IQueryable<Perfume> query, string orderBy, bool descending) {
+		return orderBy.ToLowerInvariant() switch {
+			"wearcount" => descending
+				? query.OrderByDescending(p => p.WearCount).ThenByDescending(p => p.LatestRating).ThenBy(p => p.House).ThenBy(p => p.PerfumeName)
+				: query.OrderBy(p => p.WearCount).ThenByDescending(p => p.LatestRating).ThenBy(p => p.House).ThenBy(p => p.PerfumeName),
+			"lastworn" => descending
+				? query.OrderByDescending(p => p.LastWorn).ThenByDescending(p => p.LatestRating).ThenBy(p => p.House).ThenBy(p => p.PerfumeName)
+				: query.OrderBy(p => p.LastWorn == null ? 0 : 1).ThenBy(p => p.LastWorn).ThenByDescending(p => p.LatestRating).ThenBy(p => p.House).ThenBy(p => p.PerfumeName),
+			"mlleft" => descending
+				? query.OrderByDescending(p => p.MlLeft).ThenByDescending(p => p.LatestRating).ThenBy(p => p.House).ThenBy(p => p.PerfumeName)
+				: query.OrderBy(p => p.MlLeft).ThenByDescending(p => p.LatestRating).ThenBy(p => p.House).ThenBy(p => p.PerfumeName),
+			"house" => descending
+				? query.OrderByDescending(p => p.House).ThenBy(p => p.PerfumeName)
+				: query.OrderBy(p => p.House).ThenBy(p => p.PerfumeName),
+			"perfumename" => descending
+				? query.OrderByDescending(p => p.PerfumeName).ThenBy(p => p.House)
+				: query.OrderBy(p => p.PerfumeName).ThenBy(p => p.House),
+			_ => descending
+				? query.OrderByDescending(p => p.LatestRating).ThenBy(p => p.WearCount).ThenBy(p => p.House).ThenBy(p => p.PerfumeName)
+				: query.OrderBy(p => p.LatestRating).ThenBy(p => p.WearCount).ThenBy(p => p.House).ThenBy(p => p.PerfumeName)
+		};
+	}
+
+	private static PerfumeLlmDto ToPerfumeLlmDto(Perfume perfume) {
+		var lastComment = perfume.PerfumeRatings
+			.Where(r => !string.IsNullOrWhiteSpace(r.Comment))
+			.OrderByDescending(r => r.RatingDate)
+			.Select(r => r.Comment)
+			.FirstOrDefault();
+
+		return new PerfumeLlmDto(
+			perfume.Id,
+			perfume.House,
+			perfume.PerfumeName,
+			perfume.Family,
+			perfume.LatestRating,
+			perfume.WearCount,
+			perfume.LastWorn,
+			perfume.MlLeft,
+			perfume.PerfumeTags
+				.Select(pt => pt.Tag.TagName)
+				.Distinct()
+				.OrderBy(t => t)
+				.ToList(),
+			lastComment);
+	}
+
+	private static PerfumeLlmDto ToPerfumeLlmDto(PerfumeWithWornStatsDto perfume) {
+		return new PerfumeLlmDto(
+			perfume.Perfume.Id,
+			perfume.Perfume.House,
+			perfume.Perfume.PerfumeName,
+			perfume.Perfume.Family,
+			perfume.Perfume.LatestRating,
+			perfume.Perfume.WearCount,
+			perfume.Perfume.LastWorn,
+			perfume.Perfume.MlLeft,
+			perfume.Perfume.Tags.Select(t => t.TagName).OrderBy(t => t).ToList(),
+			string.IsNullOrWhiteSpace(perfume.LastComment) ? null : perfume.LastComment);
+	}
+
+	private static string? GetOptionalString(Dictionary<string, JsonElement> arguments, string key) {
+		return arguments.TryGetValue(key, out var element) && element.ValueKind == JsonValueKind.String
+			? element.GetString()
+			: null;
+	}
+
+	private static int? GetOptionalInt(Dictionary<string, JsonElement> arguments, string key) {
+		return arguments.TryGetValue(key, out var element) && element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out var value)
+			? value
+			: null;
+	}
+
+	private static decimal? GetOptionalDecimal(Dictionary<string, JsonElement> arguments, string key) {
+		return arguments.TryGetValue(key, out var element) && element.ValueKind == JsonValueKind.Number && element.TryGetDecimal(out var value)
+			? value
+			: null;
+	}
+
+	private static bool? GetOptionalBool(Dictionary<string, JsonElement> arguments, string key) {
+		return arguments.TryGetValue(key, out var element) && (element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False)
+			? element.GetBoolean()
+			: null;
+	}
+
+	private static List<string> GetOptionalStringList(Dictionary<string, JsonElement> arguments, string key) {
+		if (!arguments.TryGetValue(key, out var element) || element.ValueKind != JsonValueKind.Array) return [];
+
+		return element.EnumerateArray()
+			.Where(e => e.ValueKind == JsonValueKind.String)
+			.Select(e => e.GetString())
+			.Where(s => !string.IsNullOrWhiteSpace(s))
+			.Select(s => s!)
+			.ToList();
 	}
 
 	private static double CalculateSimilarity(string source, string target) {

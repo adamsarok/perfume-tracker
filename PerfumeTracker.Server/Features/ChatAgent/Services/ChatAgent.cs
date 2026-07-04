@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Startup;
+using System.Diagnostics;
 using System.Text;
 
 namespace PerfumeTracker.Server.Features.ChatAgent.Services;
@@ -10,18 +12,30 @@ namespace PerfumeTracker.Server.Features.ChatAgent.Services;
 public class ChatProgressHub : Hub;
 public record PerfumeOwnershipCheckQuery(string House, string Name);
 public record PerfumeOwnershipCheckResult(string House, string Name, bool IsOwned);
-public record PerfumeLlmDto(string House, string PerfumeName, decimal Rating);
+public record PerfumeLlmDto(
+	Guid Id,
+	string House,
+	string PerfumeName,
+	string Family,
+	decimal Rating,
+	int TimesWorn,
+	DateTime? LastWorn,
+	decimal MlLeft,
+	List<string> Tags,
+	string? LastComment);
 public class ChatAgent(
 	PerfumeTrackerContext context,
 	ChatClient chatClient,
 	IUserStatsService userStatsService,
 	ISystemPromptCache promptCache,
 	IHubContext<ChatProgressHub> hubContext,
-	IChatAgentTools chatAgentTools) : IChatAgent {
-	private const int MAX_ITERATIONS = 2;
+	IChatAgentTools chatAgentTools,
+	IOptions<ChatAgentOptions> chatAgentOptions,
+	ILogger<ChatAgent> logger) : IChatAgent {
 
 	public async Task<ChatAgentResponse> ChatAsync(ChatAgentRequest request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
+		var maxIterations = Math.Max(1, chatAgentOptions.Value.MaxIterations);
 
 		var (conversation, chatHistory) = await GetOrCreateConversation(request, userId, cancellationToken);
 
@@ -34,21 +48,22 @@ public class ChatAgent(
 		options.Tools.Add(ChatAgentTools.SearchOwnedPerfumesByCharacteristicsTool);
 		options.Tools.Add(ChatAgentTools.CheckPerfumeOwnershipTool);
 		options.Tools.Add(ChatAgentTools.AnalyzeWardrobeGapsTool);
+		options.Tools.Add(ChatAgentTools.FilterOwnedPerfumesTool);
 
 		bool requiresAnotherIteration = true;
 		int iteration = 0;
 
-		while (requiresAnotherIteration && iteration < MAX_ITERATIONS) {
+		while (requiresAnotherIteration && iteration < maxIterations) {
 			iteration++;
 			requiresAnotherIteration = false;
 
 			// For final iteration disable tool calls to force final answer
-			if (iteration == MAX_ITERATIONS) {
+			if (iteration == maxIterations) {
 				options = new ChatCompletionOptions();
 			}
 
 			await hubContext.Clients.User(userId.ToString())
-				.SendAsync("ProgressMsg", new { Message = $"Agent is thinking... {iteration}/{MAX_ITERATIONS} iterations." });
+				.SendAsync("ProgressMsg", new { Message = $"Agent is thinking... {iteration}/{maxIterations} iterations." });
 			var completion = await chatClient.CompleteChatAsync(chatHistory, options, cancellationToken);
 			Diagnostics.RecordChatTokenUsage(completion.Value, "chat_agent");
 
@@ -78,9 +93,22 @@ public class ChatAgent(
 
 		foreach (var toolCall in completion.Value.ToolCalls) {
 			string toolResult;
+			var stopwatch = Stopwatch.StartNew();
+			var functionArguments = toolCall.FunctionArguments.ToString();
+
 			try {
 				toolResult = await chatAgentTools.ExecuteToolCall(toolCall, cancellationToken);
 			} catch (Exception ex) {
+				stopwatch.Stop();
+				logger.LogError(
+					ex,
+					"Chat agent tool call failed. ConversationId: {ConversationId}, UserId: {UserId}, ToolCallId: {ToolCallId}, ToolName: {ToolName}, ElapsedMs: {ElapsedMs}, Arguments: {Arguments}",
+					conversation.Id,
+					userId,
+					toolCall.Id,
+					toolCall.FunctionName,
+					stopwatch.ElapsedMilliseconds,
+					functionArguments);
 				toolResult = $"Error: {ex.Message}";
 			}
 			chatHistory.Add(new ToolChatMessage(toolCall.Id, toolResult));
@@ -148,6 +176,7 @@ IMPORTANT TOOL USAGE RULES:
 
 Available tools (for OWNED perfumes only):
 - search_owned_perfumes_by_characteristics: Simple 1-3 word searches in owned collection (e.g., "vanilla", "summer", "woody fresh")
+- filter_owned_perfumes: Deterministically filter and order owned perfumes by rating, wear count, last worn date, house, family, tags, and availability.
 - check_perfume_ownership: Check if user already owns specific perfumes. Use this BEFORE recommending new perfumes to buy.
 - analyze_wardrobe_gaps: Deterministically analyzes the user's owned collection by NoteGroup and returns missing, thin, balanced, and strong note groups.
 
@@ -162,10 +191,11 @@ When tools return perfumes, they include:
 - Id, House, PerfumeName, Family
 - Rating: User's rating (0-10)
 - TimesWorn: How many times worn
+- LastWorn and MlLeft
 - Tags: Notes and characteristics
 - LastComment: User's most recent comment
 
-Be conversational, friendly, and knowledgeable. Remember: ONE tool call round only, then provide your final answer.
+Use the tools to gather enough collection evidence before answering, especially for personalized wear recommendations. Be conversational, friendly, and knowledgeable.
 """;
 	}
 
