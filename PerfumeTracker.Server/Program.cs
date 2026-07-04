@@ -155,6 +155,8 @@ builder.Services.AddOptionsWithValidateOnStart<UserConfiguration>()
 	.ValidateDataAnnotations();
 builder.Services.AddOptions<OpenAIOptions>()
 	.Bind(builder.Configuration.GetSection("OpenAI"));
+builder.Services.AddOptions<ChatAgentOptions>()
+	.Bind(builder.Configuration.GetSection("ChatAgent"));
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();

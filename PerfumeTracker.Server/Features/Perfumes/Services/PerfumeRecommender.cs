@@ -1,4 +1,5 @@
 ﻿using OpenAI.Chat;
+using Microsoft.Extensions.Caching.Memory;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Embedding;
 using PerfumeTracker.Server.Features.Perfumes.Extensions;
@@ -21,8 +22,10 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 	IUserProfileService userProfileService,
 	IEncoder encoder,
 	IPresignedUrlService presignedUrlService,
-	ChatClient chatClient) : IPerfumeRecommender {
+	ChatClient chatClient,
+	IMemoryCache memoryCache) : IPerfumeRecommender {
 	private const int RANDOM_SAMPLE_MULTIPLIER = 3;
+	private static readonly TimeSpan CompletionCacheTtl = TimeSpan.FromHours(2);
 	private List<Guid>? _lastWornPerfumeIds;
 
 	private async Task<List<Guid>> GetLastWornPerfumeIdsCached(CancellationToken cancellationToken = default) {
@@ -198,14 +201,13 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 			.Select(x => new PerfumeRecommendationDto(Guid.Empty, x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.ForgottenFavorite));
 	}
 
-	private async Task<CachedCompletion> GetMoodOrOccasionCompletion(string moodOrOccasion, CancellationToken cancellationToken) {
-		// Check cache first
-		var cached = await context.CachedCompletions
-			.FirstOrDefaultAsync(cc => cc.Prompt == moodOrOccasion && cc.CompletionType == CachedCompletion.CompletionTypes.MoodOrOccasionRecommendation, cancellationToken);
-		if (cached != null) {
+	private async Task<string> GetMoodOrOccasionCompletion(string moodOrOccasion, CancellationToken cancellationToken) {
+		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
+		var cacheKey = $"completion:mood-or-occasion:{userId}:{moodOrOccasion}";
+		if (memoryCache.TryGetValue<string>(cacheKey, out var cached) && !string.IsNullOrWhiteSpace(cached)) {
 			return cached;
 		}
-		// Not cached, call OpenAI
+
 		var moodSystemPrompt = new SystemChatMessage(
 @"You are a perfume recommendation expert. When given a mood, occasion, or context, respond ONLY with a comma-separated list of perfume notes, accords, and families that match. Do not include explanations, greetings, or any other text. You MUST provide between 7-10 items. Focus on specific notes (e.g., bergamot, vanilla, oud) and general families (e.g., woody, floral, oriental, fresh, aquatic, citrus, spicy, gourmand). Examples:
 Query: 'summer night' → Response: 'light, citrus, aquatic, jasmine, neroli, marine, fresh, bergamot'
@@ -221,15 +223,10 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 			throw new InvalidOperationException("OpenAI returned an empty response");
 		}
 		var text = completion.Content[0].Text;
-		// Cache the result
-		var cachedCompletion = new CachedCompletion {
-			Prompt = moodOrOccasion,
-			Response = text,
-			CompletionType = CachedCompletion.CompletionTypes.MoodOrOccasionRecommendation,
-		};
-		context.CachedCompletions.Add(cachedCompletion);
-		await context.SaveChangesAsync(cancellationToken);
-		return cachedCompletion;
+		memoryCache.Set(cacheKey, text, new MemoryCacheEntryOptions {
+			AbsoluteExpirationRelativeToNow = CompletionCacheTtl
+		});
+		return text;
 	}
 
 	public record PerfumeRecommendationsAddedNotification(int Count, Guid UserId) : IUserNotification;
@@ -252,14 +249,14 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 		}
 		var normalizedPrompt = moodOrOccasion.Trim().ToLowerInvariant();
 		var completion = await GetMoodOrOccasionCompletion(normalizedPrompt, cancellationToken);
-		var embedding = await encoder.GetEmbeddings(completion.Response, cancellationToken);
+		var embedding = await encoder.GetEmbeddings(completion, cancellationToken);
 		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
 		var result = await GetSimilarToEmbedding(count, userProfile, embedding, null, cancellationToken);
 		var recommendations = result.Select(x => new PerfumeRecommendationDto(Guid.Empty, x, RecommendationStrategy.MoodOrOccasion));
-		return await PersistRecommendations(recommendations, count, completion.Id);
+		return await PersistRecommendations(recommendations, count);
 	}
 
-	private async Task<IEnumerable<PerfumeRecommendationDto>> PersistRecommendations(IEnumerable<PerfumeRecommendationDto> recommendations, int count, Guid? completionId = null) {
+	private async Task<IEnumerable<PerfumeRecommendationDto>> PersistRecommendations(IEnumerable<PerfumeRecommendationDto> recommendations, int count) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
 		List<PerfumeRecommendationDto> result = new();
 		var limited = recommendations
@@ -270,9 +267,6 @@ Query: 'formal business meeting' → Response: 'fresh, clean, citrus, woody, sub
 				PerfumeId = recommendation.Perfume.Perfume.Id,
 				Strategy = recommendation.Strategy,
 			};
-			if (completionId != null) {
-				rec.CompletionId = completionId.Value;
-			}
 			context.PerfumeRecommendations.Add(rec);
 			result.Add(recommendation with { RecommendationId = rec.Id });
 		}
