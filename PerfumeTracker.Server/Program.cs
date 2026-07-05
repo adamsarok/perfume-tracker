@@ -16,6 +16,7 @@ using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Common.Services;
 using PerfumeTracker.Server.Features.Demo;
 using PerfumeTracker.Server.Features.Embedding;
+using PerfumeTracker.Server.Features.Marketplace;
 using PerfumeTracker.Server.Features.Missions;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.PerfumeRatings.Services;
@@ -225,6 +226,7 @@ builder.Services.AddSingleton<ISideEffectQueue, SideEffectQueue>();
 builder.Services.AddHostedService<SideEffectBackgroundService>();
 builder.Services.AddHostedService<OutboxBackgroundService>();
 builder.Services.AddHostedService<MissionBackgroundService>();
+builder.Services.AddHostedService<MarketplaceOfferMatcherBackgroundService>();
 
 builder.Services.AddHttpClient<UploadImageEndpoint>();
 

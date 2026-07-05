@@ -209,20 +209,10 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 					"description": "Optional offer status filter.",
 					"default": "Active"
 				},
-				"includeIgnored": {
-					"type": "boolean",
-					"description": "When true, include offers the user marked ignored.",
-					"default": false
-				},
 				"excludeOwned": {
 					"type": "boolean",
 					"description": "When true, exclude offers that match already-owned perfumes by MatchedPerfumeId or exact brand/product name.",
 					"default": true
-				},
-				"wishlistOnly": {
-					"type": "boolean",
-					"description": "When true, only return offers marked as wishlist candidates.",
-					"default": false
 				}
 			},
 			"additionalProperties": false
@@ -435,14 +425,10 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 	private async Task<string> SearchMarketplaceOffers(Dictionary<string, JsonElement> arguments, CancellationToken cancellationToken) {
 		var count = GetOptionalInt(arguments, "count") ?? maxResultsPerToolCall;
 		count = Math.Clamp(count, 1, maxResultsPerToolCall);
-		var includeIgnored = GetOptionalBool(arguments, "includeIgnored") ?? false;
 		var excludeOwned = GetOptionalBool(arguments, "excludeOwned") ?? true;
-		var wishlistOnly = GetOptionalBool(arguments, "wishlistOnly") ?? false;
 
 		var query = context.MarketplaceOffers.AsNoTracking();
 
-		if (!includeIgnored) query = query.Where(o => !o.Ignored);
-		if (wishlistOnly) query = query.Where(o => o.WishlistCandidate);
 		var normalizedStatus = (GetOptionalString(arguments, "status") ?? "Active").ToLower();
 		query = query.Where(o => o.Status.ToLower() == normalizedStatus);
 		if (GetOptionalString(arguments, "source") is { } source) {
@@ -484,8 +470,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		}
 
 		var offers = await query
-			.OrderByDescending(o => o.WishlistCandidate)
-			.ThenByDescending(o => o.ListedAt ?? o.ImportedAt)
+			.OrderByDescending(o => o.ListedAt ?? o.ImportedAt)
 			.ThenBy(o => o.BrandName)
 			.ThenBy(o => o.ProductName)
 			.Take(count)
@@ -504,8 +489,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				o.Status,
 				o.ListedAt,
 				o.ImportedAt,
-				o.MatchConfidence,
-				o.WishlistCandidate))
+				o.MatchConfidence))
 			.ToListAsync(cancellationToken);
 
 		return JsonSerializer.Serialize(offers, new JsonSerializerOptions {
@@ -674,5 +658,4 @@ public record MarketplaceOfferLlmDto(
 	string Status,
 	DateTime? ListedAt,
 	DateTime ImportedAt,
-	decimal? MatchConfidence,
-	bool WishlistCandidate);
+	decimal? MatchConfidence);

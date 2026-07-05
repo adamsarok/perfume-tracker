@@ -278,8 +278,8 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 			entity.HasIndex(e => new { e.UserId, e.Source, e.SourceOfferId })
 				.HasFilter(@"""IsDeleted"" = FALSE")
 				.IsUnique();
-			entity.HasIndex(e => new { e.UserId, e.Status, e.Ignored })
-				.HasDatabaseName("IX_MarketplaceOffer_UserId_Status_Ignored");
+			entity.HasIndex(e => new { e.UserId, e.Status, e.MatchConfidence })
+				.HasDatabaseName("IX_MarketplaceOffer_UserId_Status_MatchConfidence");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
