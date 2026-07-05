@@ -9,7 +9,7 @@ public class MarketplaceOfferMatcherBackgroundService(
 	IServiceProvider sp,
 	ILogger<MarketplaceOfferMatcherBackgroundService> logger) : BackgroundService {
 
-	private const double CONFIDENCE_THRESHOLD = 0.75;
+	private const double CONFIDENCE_THRESHOLD = 0.45;
 	private const int BATCH_SIZE = 100;
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {

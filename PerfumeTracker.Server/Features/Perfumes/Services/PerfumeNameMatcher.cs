@@ -27,7 +27,12 @@ public static class PerfumeNameMatcher {
 
 		if (!HousesMatch(normalizedSourceHouse, normalizedTargetHouse)) return 0;
 
-		return CalculateNameSimilarity(NormalizePerfumeName(sourceName), NormalizePerfumeName(targetName));
+		var normalizedSourceName = RemoveHousePrefix(NormalizePerfumeName(sourceName), normalizedSourceHouse);
+		var normalizedTargetName = RemoveHousePrefix(NormalizePerfumeName(targetName), normalizedTargetHouse);
+
+		if (normalizedSourceName == normalizedTargetName) return 1;
+
+		return CalculateNameSimilarity(normalizedSourceName, normalizedTargetName);
 	}
 
 	public static bool HousesMatch(string house1, string house2) {
@@ -41,6 +46,30 @@ public static class PerfumeNameMatcher {
 		if (words2.Length == 1 && words1.Any(w => w.Contains(words2[0]))) return true;
 
 		return false;
+	}
+
+	public static string RemoveHousePrefix(string perfumeName, string house) {
+		if (string.IsNullOrWhiteSpace(perfumeName) || string.IsNullOrWhiteSpace(house)) return perfumeName;
+
+		var normalizedName = perfumeName.Trim();
+		var normalizedHouse = house.Trim();
+
+		if (normalizedName.Equals(normalizedHouse, StringComparison.OrdinalIgnoreCase)) return normalizedName;
+
+		if (normalizedName.StartsWith(normalizedHouse + " ", StringComparison.OrdinalIgnoreCase)) {
+			return normalizedName[normalizedHouse.Length..].Trim();
+		}
+
+		var houseWords = normalizedHouse.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+		var nameWords = normalizedName.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+
+		while (houseWords.Length > 0
+			&& nameWords.Count > 0
+			&& houseWords.Any(w => w.Equals(nameWords[0], StringComparison.OrdinalIgnoreCase))) {
+			nameWords.RemoveAt(0);
+		}
+
+		return nameWords.Count == 0 ? normalizedName : string.Join(" ", nameWords);
 	}
 
 	private static double CalculateNameSimilarity(string sourceName, string targetName) {

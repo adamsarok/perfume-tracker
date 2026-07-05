@@ -466,7 +466,9 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				&& !context.Perfumes.Any(p =>
 					o.BrandName != null
 					&& p.House.ToLower() == o.BrandName.ToLower()
-					&& p.PerfumeName.ToLower() == o.ProductName.ToLower()));
+					&& (p.PerfumeName.ToLower() == o.ProductName.ToLower()
+						|| (o.ProductName.ToLower().StartsWith(o.BrandName.ToLower() + " ")
+							&& p.PerfumeName.ToLower() == o.ProductName.ToLower().Substring(o.BrandName.Length + 1)))));
 		}
 
 		var offers = await query

@@ -5,7 +5,7 @@ public class MarketplaceOffer : UserEntity {
 	public string SourceOfferId { get; set; } = null!;
 	public string? SourceUrl { get; set; }
 	public string? SellerName { get; set; }
-	public string? SellerExternalId { get; set; }
+	public int? SellerExternalId { get; set; }
 	public string? BrandName { get; set; }
 	public string ProductName { get; set; } = null!;
 	public string OfferTitle { get; set; } = null!;
