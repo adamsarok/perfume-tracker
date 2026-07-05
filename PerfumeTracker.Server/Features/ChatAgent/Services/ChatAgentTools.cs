@@ -10,7 +10,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 
 	public IReadOnlyList<ChatTool> Tools { get; } = [
 		CreateSearchOwnedPerfumesByCharacteristicsTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
-		CheckPerfumeOwnershipTool,
+		CreateCheckPerfumeOwnershipTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
 		AnalyzeWardrobeGapsTool,
 		CreateFilterOwnedPerfumesTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall))
 	];
@@ -31,7 +31,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 					"description": "Number of perfumes to return (1-{{maxResultsPerToolCall}})",
 					"minimum": 1,
 					"maximum": {{maxResultsPerToolCall}},
-					"default": {{Math.Min(5, maxResultsPerToolCall)}}
+					"default": {{maxResultsPerToolCall}}
 				}
 			},
 			"required": ["prompt"],
@@ -52,7 +52,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 					"description": "Number of perfumes to return (1-{{maxResultsPerToolCall}})",
 					"minimum": 1,
 					"maximum": {{maxResultsPerToolCall}},
-					"default": {{Math.Min(10, maxResultsPerToolCall)}}
+					"default": {{maxResultsPerToolCall}}
 				},
 				"orderBy": {
 					"type": "string",
@@ -123,16 +123,18 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		""")
 	);
 
-	private static readonly ChatTool CheckPerfumeOwnershipTool = ChatTool.CreateFunctionTool(
+	private static ChatTool CreateCheckPerfumeOwnershipTool(int maxResultsPerToolCall) => ChatTool.CreateFunctionTool(
 		functionName: "check_perfume_ownership",
 		functionDescription: "Check if user already owns specific perfumes by house and name. Use this BEFORE recommending new perfumes to buy. Returns which perfumes from the list are already owned.",
-		functionParameters: BinaryData.FromString("""
+		functionParameters: BinaryData.FromString($$"""
 		{
 			"type": "object",
 			"properties": {
 				"perfumes": {
 					"type": "array",
-					"description": "List of perfumes to check ownership for",
+					"description": "List of perfumes to check ownership for. Use up to {{maxResultsPerToolCall}} candidates when checking new recommendations.",
+					"minItems": 1,
+					"maxItems": {{maxResultsPerToolCall}},
 					"items": {
 						"type": "object",
 						"properties": {
