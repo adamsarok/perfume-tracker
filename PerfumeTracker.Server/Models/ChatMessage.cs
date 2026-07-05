@@ -9,6 +9,7 @@ public class ChatMessage : UserEntity {
 	public required string Content { get; set; }
 	public string? ToolCallId { get; set; }
 	public string? ToolName { get; set; }
+	public string? ToolCallArguments { get; set; }
 	public int MessageIndex { get; set; }
 	public ChatFinishReason? ChatFinishReason { get; set; }
 }

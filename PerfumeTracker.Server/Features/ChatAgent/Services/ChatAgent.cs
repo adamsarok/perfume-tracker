@@ -45,10 +45,9 @@ public class ChatAgent(
 		await SaveChatMessage(conversation.Id, "user", request.UserMessage, chatHistory.Count - 1, cancellationToken, null);
 
 		var options = new ChatCompletionOptions();
-		options.Tools.Add(ChatAgentTools.SearchOwnedPerfumesByCharacteristicsTool);
-		options.Tools.Add(ChatAgentTools.CheckPerfumeOwnershipTool);
-		options.Tools.Add(ChatAgentTools.AnalyzeWardrobeGapsTool);
-		options.Tools.Add(ChatAgentTools.FilterOwnedPerfumesTool);
+		foreach (var tool in chatAgentTools.Tools) {
+			options.Tools.Add(tool);
+		}
 
 		bool requiresAnotherIteration = true;
 		int iteration = 0;
@@ -112,7 +111,7 @@ public class ChatAgent(
 				toolResult = $"Error: {ex.Message}";
 			}
 			chatHistory.Add(new ToolChatMessage(toolCall.Id, toolResult));
-			await SaveChatMessage(conversation.Id, "tool", toolResult, chatHistory.Count - 1, cancellationToken, null, toolCall.Id, toolCall.FunctionName);
+			await SaveChatMessage(conversation.Id, "tool", toolResult, chatHistory.Count - 1, cancellationToken, null, toolCall.Id, toolCall.FunctionName, functionArguments);
 		}
 	}
 
@@ -148,6 +147,7 @@ public class ChatAgent(
 
 	private async Task<string> BuildSystemPrompt(CancellationToken cancellationToken) {
 		var stats = await userStatsService.GetUserStats(cancellationToken);
+		var maxResultsPerToolCall = Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall);
 		StringBuilder sb = new StringBuilder();
 
 		sb.AppendLine($"User's FAVORITE perfume notes:");
@@ -171,8 +171,16 @@ IMPORTANT TOOL USAGE RULES:
 2. For NEW perfume recommendations (e.g., "recommend new perfumes to try"):
    - Use your perfume knowledge and the user's favorite notes/tags above
    - Suggest perfumes that complement their collection
-   - Call check_perfume_ownership with a large batch (30-50 perfumes) in ONE tool call
+   - Call check_perfume_ownership with a large batch of up to {maxResultsPerToolCall} perfumes in ONE tool call
    - Filter out owned ones and present the remaining recommendations
+   - Do not call search_owned_perfumes_by_characteristics or filter_owned_perfumes for new perfume recommendations unless the user also asks about owned perfumes
+
+Tool selection:
+- Use check_perfume_ownership for new perfume recommendations, buy/sample/try requests, wishlists, and any question where you need to avoid recommending already-owned perfumes.
+- Use analyze_wardrobe_gaps for collection gaps, missing scent categories, balance, overrepresented/underrepresented notes, and what note groups to explore next.
+- Use filter_owned_perfumes when the user asks for factual lists from their owned collection: highest/lowest rated, most/least worn, not worn recently, never worn, available bottles, house/family/tag filters, or sorted collection views.
+- Use search_owned_perfumes_by_characteristics only for fuzzy owned-collection searches by simple notes, moods, seasons, or characteristics.
+- When a tool has a count parameter and the user does not ask for a smaller list, request {maxResultsPerToolCall} results so you have enough evidence before narrowing the final answer.
 
 Available tools (for OWNED perfumes only):
 - search_owned_perfumes_by_characteristics: Simple 1-3 word searches in owned collection (e.g., "vanilla", "summer", "woody fresh")
@@ -253,7 +261,7 @@ Use the tools to gather enough collection evidence before answering, especially 
 		return chatHistory;
 	}
 
-	private async Task SaveChatMessage(Guid conversationId, string role, string content, int index, CancellationToken cancellationToken, ChatFinishReason? chatFinishReason, string? toolCallId = null, string? toolName = null) {
+	private async Task SaveChatMessage(Guid conversationId, string role, string content, int index, CancellationToken cancellationToken, ChatFinishReason? chatFinishReason, string? toolCallId = null, string? toolName = null, string? toolCallArguments = null) {
 		var message = new Models.ChatMessage {
 			ConversationId = conversationId,
 			Role = role,
@@ -261,6 +269,7 @@ Use the tools to gather enough collection evidence before answering, especially 
 			MessageIndex = index,
 			ToolCallId = toolCallId,
 			ToolName = toolName,
+			ToolCallArguments = toolCallArguments,
 			UserId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException(),
 			ChatFinishReason = chatFinishReason
 		};

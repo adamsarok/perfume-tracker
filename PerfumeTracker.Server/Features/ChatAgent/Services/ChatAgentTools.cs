@@ -1,14 +1,24 @@
 ﻿using OpenAI.Chat;
+using Microsoft.Extensions.Options;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.Tags;
 
 namespace PerfumeTracker.Server.Features.ChatAgent.Services;
 
-public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender perfumeRecommender) : IChatAgentTools {
-	public static readonly ChatTool SearchOwnedPerfumesByCharacteristicsTool = ChatTool.CreateFunctionTool(
+public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender perfumeRecommender, IOptions<ChatAgentOptions> chatAgentOptions) : IChatAgentTools {
+	private readonly int maxResultsPerToolCall = Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall);
+
+	public IReadOnlyList<ChatTool> Tools { get; } = [
+		CreateSearchOwnedPerfumesByCharacteristicsTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
+		CreateCheckPerfumeOwnershipTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
+		AnalyzeWardrobeGapsTool,
+		CreateFilterOwnedPerfumesTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall))
+	];
+
+	private static ChatTool CreateSearchOwnedPerfumesByCharacteristicsTool(int maxResultsPerToolCall) => ChatTool.CreateFunctionTool(
 		functionName: "search_owned_perfumes_by_characteristics",
 		functionDescription: "Search ONLY perfumes the user already OWNS by simple characteristics like notes, moods, or seasons. LIMITATIONS: (1) Only searches user's OWNED collection, NOT new perfumes. (2) Only handles simple 1-3 word queries like 'vanilla', 'summer night', 'spicy amber'.",
-		functionParameters: BinaryData.FromString("""
+		functionParameters: BinaryData.FromString($$"""
 		{
 			"type": "object",
 			"properties": {
@@ -18,10 +28,10 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				},
 				"count": {
 					"type": "integer",
-					"description": "Number of perfumes to return (1-25)",
+					"description": "Number of perfumes to return (1-{{maxResultsPerToolCall}})",
 					"minimum": 1,
-					"maximum": 25,
-					"default": 5
+					"maximum": {{maxResultsPerToolCall}},
+					"default": {{maxResultsPerToolCall}}
 				}
 			},
 			"required": ["prompt"],
@@ -30,19 +40,19 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		""")
 	);
 
-	public static readonly ChatTool FilterOwnedPerfumesTool = ChatTool.CreateFunctionTool(
+	private static ChatTool CreateFilterOwnedPerfumesTool(int maxResultsPerToolCall) => ChatTool.CreateFunctionTool(
 		functionName: "filter_owned_perfumes",
 		functionDescription: "Filter and order ONLY perfumes the user already OWNS by structured collection facts. Use this for least worn, highest rated, not worn recently, never worn, specific tags, family, house, or availability queries.",
-		functionParameters: BinaryData.FromString("""
+		functionParameters: BinaryData.FromString($$"""
 		{
 			"type": "object",
 			"properties": {
 				"count": {
 					"type": "integer",
-					"description": "Number of perfumes to return (1-50)",
+					"description": "Number of perfumes to return (1-{{maxResultsPerToolCall}})",
 					"minimum": 1,
-					"maximum": 50,
-					"default": 10
+					"maximum": {{maxResultsPerToolCall}},
+					"default": {{maxResultsPerToolCall}}
 				},
 				"orderBy": {
 					"type": "string",
@@ -113,16 +123,18 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		""")
 	);
 
-	public static readonly ChatTool CheckPerfumeOwnershipTool = ChatTool.CreateFunctionTool(
+	private static ChatTool CreateCheckPerfumeOwnershipTool(int maxResultsPerToolCall) => ChatTool.CreateFunctionTool(
 		functionName: "check_perfume_ownership",
 		functionDescription: "Check if user already owns specific perfumes by house and name. Use this BEFORE recommending new perfumes to buy. Returns which perfumes from the list are already owned.",
-		functionParameters: BinaryData.FromString("""
+		functionParameters: BinaryData.FromString($$"""
 		{
 			"type": "object",
 			"properties": {
 				"perfumes": {
 					"type": "array",
-					"description": "List of perfumes to check ownership for",
+					"description": "List of perfumes to check ownership for. Use up to {{maxResultsPerToolCall}} candidates when checking new recommendations.",
+					"minItems": 1,
+					"maxItems": {{maxResultsPerToolCall}},
 					"items": {
 						"type": "object",
 						"properties": {
@@ -145,7 +157,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		""")
 	);
 
-	public static readonly ChatTool AnalyzeWardrobeGapsTool = ChatTool.CreateFunctionTool(
+	private static readonly ChatTool AnalyzeWardrobeGapsTool = ChatTool.CreateFunctionTool(
 		functionName: "analyze_wardrobe_gaps",
 		functionDescription: "Analyze the user's owned perfume wardrobe for underrepresented note groups. Use this when the user asks about wardrobe gaps, missing scent categories, collection balance, or what note groups to explore next.",
 		functionParameters: BinaryData.FromString("""
@@ -291,7 +303,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 	private async Task<string> SearchByEmbedding(Dictionary<string, JsonElement> arguments, CancellationToken cancellationToken) {
 		var prompt = arguments["prompt"].GetString() ?? throw new ArgumentException("Missing prompt");
 		var count = arguments.TryGetValue("count", out var countElement) ? countElement.GetInt32() : 5;
-		count = Math.Clamp(count, 1, 25);
+		count = Math.Clamp(count, 1, maxResultsPerToolCall);
 		var recommendations = await perfumeRecommender.GetRecommendationsForOccasionMoodPrompt(count, prompt, cancellationToken);
 		var perfumes = recommendations.Select(r => ToPerfumeLlmDto(r.Perfume));
 		return JsonSerializer.Serialize(perfumes, new JsonSerializerOptions {
@@ -301,7 +313,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 
 	private async Task<string> FilterOwnedPerfumes(Dictionary<string, JsonElement> arguments, CancellationToken cancellationToken) {
 		var count = GetOptionalInt(arguments, "count") ?? 10;
-		count = Math.Clamp(count, 1, 50);
+		count = Math.Clamp(count, 1, maxResultsPerToolCall);
 		var orderBy = GetOptionalString(arguments, "orderBy") ?? "rating";
 		var orderDirection = GetOptionalString(arguments, "orderDirection") ?? "desc";
 		var descending = !orderDirection.Equals("asc", StringComparison.OrdinalIgnoreCase);
