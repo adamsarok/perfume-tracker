@@ -34,6 +34,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<GlobalPerfumeTag> GlobalPerfumeTags { get; set; }
 	public virtual DbSet<ChatConversation> ChatConversations { get; set; }
 	public virtual DbSet<ChatMessage> ChatMessages { get; set; }
+	public virtual DbSet<MarketplaceOffer> MarketplaceOffers { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 
@@ -268,6 +269,17 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasConstraintName("ChatMessage_ConversationId_fkey");
 			entity.HasIndex(e => new { e.ConversationId, e.MessageIndex })
 				.HasDatabaseName("IX_ChatMessage_ConversationId_MessageIndex");
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
+
+		builder.Entity<MarketplaceOffer>(entity => {
+			entity.HasKey(e => e.Id).HasName("MarketplaceOffer_pkey");
+			entity.ToTable("MarketplaceOffer");
+			entity.HasIndex(e => new { e.UserId, e.Source, e.SourceOfferId })
+				.HasFilter(@"""IsDeleted"" = FALSE")
+				.IsUnique();
+			entity.HasIndex(e => new { e.UserId, e.Status, e.Ignored })
+				.HasDatabaseName("IX_MarketplaceOffer_UserId_Status_Ignored");
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 
