@@ -111,7 +111,7 @@ public class ChatAgent(
 				toolResult = $"Error: {ex.Message}";
 			}
 			chatHistory.Add(new ToolChatMessage(toolCall.Id, toolResult));
-			await SaveChatMessage(conversation.Id, "tool", toolResult, chatHistory.Count - 1, cancellationToken, null, toolCall.Id, toolCall.FunctionName);
+			await SaveChatMessage(conversation.Id, "tool", toolResult, chatHistory.Count - 1, cancellationToken, null, toolCall.Id, toolCall.FunctionName, functionArguments);
 		}
 	}
 
@@ -252,7 +252,7 @@ Use the tools to gather enough collection evidence before answering, especially 
 		return chatHistory;
 	}
 
-	private async Task SaveChatMessage(Guid conversationId, string role, string content, int index, CancellationToken cancellationToken, ChatFinishReason? chatFinishReason, string? toolCallId = null, string? toolName = null) {
+	private async Task SaveChatMessage(Guid conversationId, string role, string content, int index, CancellationToken cancellationToken, ChatFinishReason? chatFinishReason, string? toolCallId = null, string? toolName = null, string? toolCallArguments = null) {
 		var message = new Models.ChatMessage {
 			ConversationId = conversationId,
 			Role = role,
@@ -260,6 +260,7 @@ Use the tools to gather enough collection evidence before answering, especially 
 			MessageIndex = index,
 			ToolCallId = toolCallId,
 			ToolName = toolName,
+			ToolCallArguments = toolCallArguments,
 			UserId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException(),
 			ChatFinishReason = chatFinishReason
 		};
