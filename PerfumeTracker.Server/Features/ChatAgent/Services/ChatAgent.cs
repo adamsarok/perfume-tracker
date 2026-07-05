@@ -45,10 +45,9 @@ public class ChatAgent(
 		await SaveChatMessage(conversation.Id, "user", request.UserMessage, chatHistory.Count - 1, cancellationToken, null);
 
 		var options = new ChatCompletionOptions();
-		options.Tools.Add(ChatAgentTools.SearchOwnedPerfumesByCharacteristicsTool);
-		options.Tools.Add(ChatAgentTools.CheckPerfumeOwnershipTool);
-		options.Tools.Add(ChatAgentTools.AnalyzeWardrobeGapsTool);
-		options.Tools.Add(ChatAgentTools.FilterOwnedPerfumesTool);
+		foreach (var tool in chatAgentTools.Tools) {
+			options.Tools.Add(tool);
+		}
 
 		bool requiresAnotherIteration = true;
 		int iteration = 0;
