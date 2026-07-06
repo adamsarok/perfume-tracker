@@ -1,20 +1,53 @@
-﻿using OpenAI.Chat;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Caching.Memory;
+using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.Tags;
 
 namespace PerfumeTracker.Server.Features.ChatAgent.Services;
 
-public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender perfumeRecommender, IOptions<ChatAgentOptions> chatAgentOptions) : IChatAgentTools {
+public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender perfumeRecommender, IOptions<ChatAgentOptions> chatAgentOptions, IMemoryCache memoryCache) : IChatAgentTools {
+	private const string ToolListCacheKeyPrefix = "chat_agent_tools";
+	private const string MarketplaceAvailabilityCacheKeyPrefix = "chat_agent_tools_marketplace_available";
+	private static readonly MemoryCacheEntryOptions ToolCacheOptions = new() {
+		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+	};
 	private readonly int maxResultsPerToolCall = Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall);
 
-	public IReadOnlyList<ChatTool> Tools { get; } = [
-		CreateSearchOwnedPerfumesByCharacteristicsTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
-		CreateCheckPerfumeOwnershipTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
-		AnalyzeWardrobeGapsTool,
-		CreateFilterOwnedPerfumesTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
-		CreateSearchMarketplaceOffersTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall))
-	];
+	public IReadOnlyList<ChatTool> Tools => memoryCache.GetOrCreate(
+		GetToolListCacheKey(),
+		entry => {
+			entry.SetOptions(ToolCacheOptions);
+			return BuildTools(HasMarketplaceOffers);
+		}) ?? throw new InvalidOperationException("Failed to build chat agent tools");
+
+	public bool HasMarketplaceOffers => memoryCache.GetOrCreate(
+		GetMarketplaceAvailabilityCacheKey(),
+		entry => {
+			entry.SetOptions(ToolCacheOptions);
+			return context.MarketplaceOffers.AsNoTracking().Any();
+		});
+
+	private IReadOnlyList<ChatTool> BuildTools(bool hasMarketplaceOffers) {
+		var tools = new List<ChatTool> {
+			CreateSearchOwnedPerfumesByCharacteristicsTool(maxResultsPerToolCall),
+			CreateCheckPerfumeOwnershipTool(maxResultsPerToolCall),
+			AnalyzeWardrobeGapsTool,
+			CreateFilterOwnedPerfumesTool(maxResultsPerToolCall)
+		};
+
+		if (hasMarketplaceOffers) {
+			tools.Add(CreateSearchMarketplaceOffersTool(maxResultsPerToolCall));
+		}
+
+		return tools;
+	}
+
+	private string GetToolListCacheKey() => $"{ToolListCacheKeyPrefix}::{GetTenantCacheKeyPart()}::{maxResultsPerToolCall}";
+
+	private string GetMarketplaceAvailabilityCacheKey() => $"{MarketplaceAvailabilityCacheKeyPrefix}::{GetTenantCacheKeyPart()}";
+
+	private string GetTenantCacheKeyPart() => context.TenantProvider?.GetCurrentUserId()?.ToString() ?? "no_tenant";
 
 	private static ChatTool CreateSearchOwnedPerfumesByCharacteristicsTool(int maxResultsPerToolCall) => ChatTool.CreateFunctionTool(
 		functionName: "search_owned_perfumes_by_characteristics",
@@ -478,20 +511,11 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 			.Take(count)
 			.Select(o => new MarketplaceOfferLlmDto(
 				o.Id,
-				o.Source,
-				o.SourceOfferId,
 				o.SourceUrl,
 				o.SellerName,
-				o.BrandName,
 				o.ProductName,
-				o.OfferTitle,
 				o.PriceText,
-				o.SizeText,
-				o.Description,
-				o.Status,
-				o.ListedAt,
-				o.ImportedAt,
-				o.MatchConfidence))
+				o.SizeText))
 			.ToListAsync(cancellationToken);
 
 		return JsonSerializer.Serialize(offers, new JsonSerializerOptions {
@@ -647,17 +671,8 @@ public record WardrobeNoteGroupCoverage(
 
 public record MarketplaceOfferLlmDto(
 	Guid Id,
-	string Source,
-	string SourceOfferId,
 	string? SourceUrl,
 	string? SellerName,
-	string? BrandName,
 	string ProductName,
-	string OfferTitle,
 	string? PriceText,
-	string? SizeText,
-	string? Description,
-	string Status,
-	DateTime? ListedAt,
-	DateTime ImportedAt,
-	decimal? MatchConfidence);
+	string? SizeText);

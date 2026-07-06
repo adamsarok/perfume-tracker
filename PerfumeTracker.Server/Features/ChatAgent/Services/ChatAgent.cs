@@ -159,6 +159,15 @@ public class ChatAgent(
 		foreach (var perfume in stats.FavoritePerfumes) {
 			sb.AppendLine($"{perfume.House} - {perfume.PerfumeName} rated {perfume.LatestRating:F1})");
 		}
+
+		var hasMarketplaceOffers = chatAgentTools.HasMarketplaceOffers;
+		var marketplaceToolSelection = hasMarketplaceOffers
+			? "- Use search_marketplace_offers for buy-list, decant, sample-shopping, seller, marketplace, requests. This searches locally imported offers only."
+			: "";
+		var marketplaceToolDescription = hasMarketplaceOffers
+			? "- search_marketplace_offers: Search local marketplace offers."
+			: "";
+
 		return $"""
 You are a helpful perfume assistant. You help users explore their perfume collection, make recommendations, and answer questions about fragrances.
 
@@ -176,8 +185,8 @@ IMPORTANT TOOL USAGE RULES:
    - Do not call search_owned_perfumes_by_characteristics or filter_owned_perfumes for new perfume recommendations unless the user also asks about owned perfumes
 
 Tool selection:
-- Use search_marketplace_offers for buy-list, decant, sample-shopping, seller, marketplace, and available-offer requests. This searches locally imported offers only.
-- Use check_perfume_ownership for general new perfume recommendations, wishlists, and any question where you need to avoid recommending already-owned perfumes but no imported marketplace offers are involved.
+{marketplaceToolSelection}
+- Use check_perfume_ownership for general new perfume recommendations, wishlists, and any question where you need to avoid recommending already-owned perfumes.
 - Use analyze_wardrobe_gaps for collection gaps, missing scent categories, balance, overrepresented/underrepresented notes, and what note groups to explore next.
 - Use filter_owned_perfumes when the user asks for factual lists from their owned collection: highest/lowest rated, most/least worn, not worn recently, never worn, available bottles, house/family/tag filters, or sorted collection views.
 - Use search_owned_perfumes_by_characteristics only for fuzzy owned-collection searches by simple notes, moods, seasons, or characteristics.
@@ -188,7 +197,7 @@ Available tools:
 - filter_owned_perfumes: Deterministically filter and order owned perfumes by rating, wear count, last worn date, house, family, tags, and availability.
 - check_perfume_ownership: Check if user already owns specific perfumes. Use this BEFORE recommending new perfumes to buy.
 - analyze_wardrobe_gaps: Deterministically analyzes the user's owned collection by NoteGroup and returns missing, thin, balanced, and strong note groups.
-- search_marketplace_offers: Search imported local marketplace offers. This tool never calls an external website or API.
+{marketplaceToolDescription}
 
 For wardrobe-gap requests:
 - Always call analyze_wardrobe_gaps.

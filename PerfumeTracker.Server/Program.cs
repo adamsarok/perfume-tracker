@@ -38,10 +38,7 @@ var builder = WebApplication.CreateBuilder(args);
 string? conn;
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (!string.IsNullOrWhiteSpace(databaseUrl)) {
-	var uri = new Uri(databaseUrl);
-	var username = uri.UserInfo.Split(':')[0];
-	var password = uri.UserInfo.Split(':')[1];
-	conn = $"Host={uri.Host};Database={uri.AbsolutePath.Substring(1)};Username={username};Password={password};Port={uri.Port};SSL Mode=Require";
+	conn = databaseUrl;
 } else {
 	string db = builder.Environment.IsEnvironment("Test") ? "PerfumeTrackerTest" : "PerfumeTracker";
 	conn = builder.Configuration.GetConnectionString(db);
@@ -79,7 +76,7 @@ builder.Logging.AddOpenTelemetry(logging => {
 			serviceInstanceId: Environment.MachineName)
 		.AddAttributes(new Dictionary<string, object> {
 			["deployment.environment.name"] = builder.Environment.EnvironmentName
-	}));
+		}));
 
 	if (!string.IsNullOrWhiteSpace(otlpEndpoint)) {
 		logging.AddOtlpExporter(configureOtlpExporter);
