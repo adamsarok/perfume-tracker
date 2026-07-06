@@ -309,3 +309,5 @@ next-env.d.ts
 docker-compose.override.yml
 
 settings.local.json
+
+/scripts

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -13,9 +14,11 @@ using Pgvector;
 namespace PerfumeTracker.Server.Migrations
 {
     [DbContext(typeof(PerfumeTrackerContext))]
-    partial class PerfumeTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20260705073342_MarketplaceOffers")]
+    partial class MarketplaceOffers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -439,8 +442,8 @@ namespace PerfumeTracker.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("SellerExternalId")
-                        .HasColumnType("integer");
+                    b.Property<string>("SellerExternalId")
+                        .HasColumnType("text");
 
                     b.Property<string>("SellerName")
                         .HasColumnType("text");

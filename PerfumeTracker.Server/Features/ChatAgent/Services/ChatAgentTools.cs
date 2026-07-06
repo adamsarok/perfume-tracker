@@ -1,19 +1,53 @@
-﻿using OpenAI.Chat;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Caching.Memory;
+using OpenAI.Chat;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.Tags;
 
 namespace PerfumeTracker.Server.Features.ChatAgent.Services;
 
-public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender perfumeRecommender, IOptions<ChatAgentOptions> chatAgentOptions) : IChatAgentTools {
+public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender perfumeRecommender, IOptions<ChatAgentOptions> chatAgentOptions, IMemoryCache memoryCache) : IChatAgentTools {
+	private const string ToolListCacheKeyPrefix = "chat_agent_tools";
+	private const string MarketplaceAvailabilityCacheKeyPrefix = "chat_agent_tools_marketplace_available";
+	private static readonly MemoryCacheEntryOptions ToolCacheOptions = new() {
+		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+	};
 	private readonly int maxResultsPerToolCall = Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall);
 
-	public IReadOnlyList<ChatTool> Tools { get; } = [
-		CreateSearchOwnedPerfumesByCharacteristicsTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
-		CreateCheckPerfumeOwnershipTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall)),
-		AnalyzeWardrobeGapsTool,
-		CreateFilterOwnedPerfumesTool(Math.Max(1, chatAgentOptions.Value.MaxResultsPerToolCall))
-	];
+	public IReadOnlyList<ChatTool> Tools => memoryCache.GetOrCreate(
+		GetToolListCacheKey(),
+		entry => {
+			entry.SetOptions(ToolCacheOptions);
+			return BuildTools(HasMarketplaceOffers);
+		}) ?? throw new InvalidOperationException("Failed to build chat agent tools");
+
+	public bool HasMarketplaceOffers => memoryCache.GetOrCreate(
+		GetMarketplaceAvailabilityCacheKey(),
+		entry => {
+			entry.SetOptions(ToolCacheOptions);
+			return context.MarketplaceOffers.AsNoTracking().Any();
+		});
+
+	private IReadOnlyList<ChatTool> BuildTools(bool hasMarketplaceOffers) {
+		var tools = new List<ChatTool> {
+			CreateSearchOwnedPerfumesByCharacteristicsTool(maxResultsPerToolCall),
+			CreateCheckPerfumeOwnershipTool(maxResultsPerToolCall),
+			AnalyzeWardrobeGapsTool,
+			CreateFilterOwnedPerfumesTool(maxResultsPerToolCall)
+		};
+
+		if (hasMarketplaceOffers) {
+			tools.Add(CreateSearchMarketplaceOffersTool(maxResultsPerToolCall));
+		}
+
+		return tools;
+	}
+
+	private string GetToolListCacheKey() => $"{ToolListCacheKeyPrefix}::{GetTenantCacheKeyPart()}::{maxResultsPerToolCall}";
+
+	private string GetMarketplaceAvailabilityCacheKey() => $"{MarketplaceAvailabilityCacheKeyPrefix}::{GetTenantCacheKeyPart()}";
+
+	private string GetTenantCacheKeyPart() => context.TenantProvider?.GetCurrentUserId()?.ToString() ?? "no_tenant";
 
 	private static ChatTool CreateSearchOwnedPerfumesByCharacteristicsTool(int maxResultsPerToolCall) => ChatTool.CreateFunctionTool(
 		functionName: "search_owned_perfumes_by_characteristics",
@@ -169,6 +203,56 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		""")
 	);
 
+	private static ChatTool CreateSearchMarketplaceOffersTool(int maxResultsPerToolCall) => ChatTool.CreateFunctionTool(
+		functionName: "search_marketplace_offers",
+		functionDescription: "Search locally imported marketplace offers. This tool only reads the user's persisted MarketplaceOffers table and never calls external marketplace websites or APIs. Use for buy-list, decant, seller, marketplace, available offer, and sample-shopping requests.",
+		functionParameters: BinaryData.FromString($$"""
+		{
+			"type": "object",
+			"properties": {
+				"query": {
+					"type": "string",
+					"description": "Optional text search across brand, product, offer title, description, seller, price, and size."
+				},
+				"count": {
+					"type": "integer",
+					"description": "Number of offers to return (1-{{maxResultsPerToolCall}})",
+					"minimum": 1,
+					"maximum": {{maxResultsPerToolCall}},
+					"default": {{maxResultsPerToolCall}}
+				},
+				"source": {
+					"type": "string",
+					"description": "Optional imported source name, such as a marketplace/site label."
+				},
+				"sellerName": {
+					"type": "string",
+					"description": "Optional seller name filter."
+				},
+				"brandName": {
+					"type": "string",
+					"description": "Optional brand/house filter."
+				},
+				"productName": {
+					"type": "string",
+					"description": "Optional product/perfume name filter."
+				},
+				"status": {
+					"type": "string",
+					"description": "Optional offer status filter.",
+					"default": "Active"
+				},
+				"excludeOwned": {
+					"type": "boolean",
+					"description": "When true, exclude offers that match already-owned perfumes by MatchedPerfumeId or exact brand/product name.",
+					"default": true
+				}
+			},
+			"additionalProperties": false
+		}
+		""")
+	);
+
 	public async Task<string> ExecuteToolCall(ChatToolCall toolCall, CancellationToken cancellationToken) {
 		var arguments = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(toolCall.FunctionArguments.ToString());
 		if (arguments == null) throw new InvalidOperationException("Failed to parse tool arguments");
@@ -182,6 +266,8 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				return await SearchByPerfumesNames(arguments, cancellationToken);
 			case "analyze_wardrobe_gaps":
 				return await AnalyzeWardrobeGaps(cancellationToken);
+			case "search_marketplace_offers":
+				return await SearchMarketplaceOffers(arguments, cancellationToken);
 			default:
 				throw new InvalidOperationException($"Unknown tool: {toolCall.FunctionName}");
 		}
@@ -369,6 +455,74 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		});
 	}
 
+	private async Task<string> SearchMarketplaceOffers(Dictionary<string, JsonElement> arguments, CancellationToken cancellationToken) {
+		var count = GetOptionalInt(arguments, "count") ?? maxResultsPerToolCall;
+		count = Math.Clamp(count, 1, maxResultsPerToolCall);
+		var excludeOwned = GetOptionalBool(arguments, "excludeOwned") ?? true;
+
+		var query = context.MarketplaceOffers.AsNoTracking();
+
+		var normalizedStatus = (GetOptionalString(arguments, "status") ?? "Active").ToLower();
+		query = query.Where(o => o.Status.ToLower() == normalizedStatus);
+		if (GetOptionalString(arguments, "source") is { } source) {
+			var normalizedSource = source.ToLower();
+			query = query.Where(o => o.Source.ToLower() == normalizedSource);
+		}
+		if (GetOptionalString(arguments, "sellerName") is { } sellerName) {
+			var normalizedSellerName = sellerName.ToLower();
+			query = query.Where(o => o.SellerName != null && o.SellerName.ToLower().Contains(normalizedSellerName));
+		}
+		if (GetOptionalString(arguments, "brandName") is { } brandName) {
+			var normalizedBrandName = brandName.ToLower();
+			query = query.Where(o => o.BrandName != null && o.BrandName.ToLower().Contains(normalizedBrandName));
+		}
+		if (GetOptionalString(arguments, "productName") is { } productName) {
+			var normalizedProductName = productName.ToLower();
+			query = query.Where(o => o.ProductName.ToLower().Contains(normalizedProductName));
+		}
+		if (GetOptionalString(arguments, "query") is { } textQuery) {
+			var normalizedTextQuery = textQuery.ToLower();
+			query = query.Where(o =>
+				o.Source.ToLower().Contains(normalizedTextQuery)
+				|| (o.SellerName != null && o.SellerName.ToLower().Contains(normalizedTextQuery))
+				|| (o.BrandName != null && o.BrandName.ToLower().Contains(normalizedTextQuery))
+				|| o.ProductName.ToLower().Contains(normalizedTextQuery)
+				|| o.OfferTitle.ToLower().Contains(normalizedTextQuery)
+				|| (o.PriceText != null && o.PriceText.ToLower().Contains(normalizedTextQuery))
+				|| (o.SizeText != null && o.SizeText.ToLower().Contains(normalizedTextQuery))
+				|| (o.Description != null && o.Description.ToLower().Contains(normalizedTextQuery)));
+		}
+
+		if (excludeOwned) {
+			query = query.Where(o =>
+				o.MatchedPerfumeId == null
+				&& !context.Perfumes.Any(p =>
+					o.BrandName != null
+					&& p.House.ToLower() == o.BrandName.ToLower()
+					&& (p.PerfumeName.ToLower() == o.ProductName.ToLower()
+						|| (o.ProductName.ToLower().StartsWith(o.BrandName.ToLower() + " ")
+							&& p.PerfumeName.ToLower() == o.ProductName.ToLower().Substring(o.BrandName.Length + 1)))));
+		}
+
+		var offers = await query
+			.OrderByDescending(o => o.ListedAt ?? o.ImportedAt)
+			.ThenBy(o => o.BrandName)
+			.ThenBy(o => o.ProductName)
+			.Take(count)
+			.Select(o => new MarketplaceOfferLlmDto(
+				o.Id,
+				o.SourceUrl,
+				o.SellerName,
+				o.ProductName,
+				o.PriceText,
+				o.SizeText))
+			.ToListAsync(cancellationToken);
+
+		return JsonSerializer.Serialize(offers, new JsonSerializerOptions {
+			WriteIndented = false
+		});
+	}
+
 	private static IQueryable<Perfume> ApplyOrdering(IQueryable<Perfume> query, string orderBy, bool descending) {
 		return orderBy.ToLowerInvariant() switch {
 			"wearcount" => descending
@@ -514,3 +668,11 @@ public record WardrobeNoteGroupCoverage(
 	string NoteGroup,
 	int OwnedPerfumeCount,
 	List<PerfumeLlmDto> ExamplePerfumes);
+
+public record MarketplaceOfferLlmDto(
+	Guid Id,
+	string? SourceUrl,
+	string? SellerName,
+	string ProductName,
+	string? PriceText,
+	string? SizeText);

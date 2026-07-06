@@ -13,13 +13,6 @@ public class PerfumeIdentifierBackgroundService(
 	private const int BATCH_SIZE = 10;
 	private const int MIN_TAG_COUNT = 5;
 
-	// Common perfume abbreviations and their full forms
-	private static readonly Dictionary<string, string[]> PerfumeAbbreviations = new(StringComparer.OrdinalIgnoreCase) {
-		{ "edp", new[] { "eau de parfum" } },
-		{ "edt", new[] { "eau de toilette" } },
-		{ "edc", new[] { "eau de cologne" } }
-	};
-
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 		await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
 
@@ -188,65 +181,15 @@ public class PerfumeIdentifierBackgroundService(
 	}
 
 	private string NormalizePerfumeName(string text) {
-		var normalized = text.ToLower().Trim();
-
-		// Expand abbreviations to their full forms
-		foreach (var abbrev in PerfumeAbbreviations) {
-			// Replace the abbreviation with the first full form
-			normalized = System.Text.RegularExpressions.Regex.Replace(
-				normalized,
-				$@"\b{System.Text.RegularExpressions.Regex.Escape(abbrev.Key)}\b",
-				abbrev.Value[0],
-				System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-		}
-
-		return normalized;
+		return PerfumeNameMatcher.NormalizePerfumeName(text);
 	}
 
 	private double CalculateSimilarity(Perfume perfume, GlobalPerfume global, string normalizedPerfumeName, string normalizedPerfumeHouse) {
-		// Normalize both strings
-		var globalHouse = global.House.ToLower().Trim();
-		var globalName = NormalizePerfumeName(global.PerfumeName);
-
-		// House must match (allow for slight variations)
-		if (!HousesMatch(normalizedPerfumeHouse, globalHouse)) {
-			return 0;
-		}
-
-		// Calculate name similarity
-		var perfumeWords = normalizedPerfumeName.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
-		var globalWords = globalName.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
-
-		if (perfumeWords.Count == 0 || globalWords.Count == 0) return 0;
-
-		// Jaccard similarity
-		var intersection = perfumeWords.Intersect(globalWords).Count();
-		var union = perfumeWords.Union(globalWords).Count();
-		var jaccardScore = (double)intersection / union;
-
-		// Also calculate a lenient match score (how many words from perfume are in global)
-		var coverageScore = (double)intersection / perfumeWords.Count;
-
-		// Use the better of the two scores
-		return Math.Max(jaccardScore, coverageScore);
-	}
-
-	private bool HousesMatch(string house1, string house2) {
-		// Exact match
-		if (house1 == house2) return true;
-
-		// One contains the other (e.g., "Chanel" matches "CHANEL Paris")
-		if (house1.Contains(house2) || house2.Contains(house1)) return true;
-
-		// Split by spaces and check if main words match
-		var words1 = house1.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-		var words2 = house2.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-		// If either house is a single word, check if it appears in the other
-		if (words1.Length == 1 && words2.Any(w => w.Contains(words1[0]))) return true;
-		if (words2.Length == 1 && words1.Any(w => w.Contains(words2[0]))) return true;
-
-		return false;
+		return PerfumeNameMatcher.CalculateSimilarity(
+			normalizedPerfumeHouse,
+			normalizedPerfumeName,
+			global.House,
+			global.PerfumeName);
 	}
 
 	private async Task ApplyGlobalPerfumeData(
