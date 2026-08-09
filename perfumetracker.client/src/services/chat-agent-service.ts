@@ -24,6 +24,14 @@ export interface ChatConversation {
   title?: string | null;
   messages: ChatMessage[];
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatConversationSummary {
+  id: string;
+  title?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const chatWithAgent = async (
@@ -41,8 +49,8 @@ export const chatWithAgent = async (
   return response.data;
 };
 
-export const getConversations = async (): Promise<ChatConversation[]> => {
-  const response = await get<ChatConversation[]>("/chat/conversations");
+export const getConversations = async (): Promise<ChatConversationSummary[]> => {
+  const response = await get<ChatConversationSummary[]>("/chat/conversations");
 
   if (!response.ok || !response.data) {
     throw new Error(response.error || "Failed to get conversations");

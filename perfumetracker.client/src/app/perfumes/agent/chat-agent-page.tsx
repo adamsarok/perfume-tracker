@@ -1,7 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   chatWithAgent,
   ChatAgentResponse,
+  ChatConversationSummary,
+  getConversation,
+  getConversations,
 } from "@/services/chat-agent-service";
 import { initializeApiUrl } from "@/services/axios-service";
 import * as signalR from "@microsoft/signalr";
@@ -16,7 +19,10 @@ export default function ChatAgentPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<ChatConversationSummary[]>([]);
+  const [conversationError, setConversationError] = useState<string | null>(null);
   const [toolCallProgress, setToolCallProgress] = useState<{
     isActive: boolean;
     message: string;
@@ -24,6 +30,20 @@ export default function ChatAgentPage() {
   }>({ isActive: false, message: "", startTime: null });
   const [elapsedTime, setElapsedTime] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const loadConversations = useCallback(async () => {
+    try {
+      setConversations(await getConversations());
+      setConversationError(null);
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+      setConversationError("Could not load previous conversations.");
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadConversations();
+  }, [loadConversations]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -96,6 +116,10 @@ export default function ChatAgentPage() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      if (!conversationId) {
+        void loadConversations();
+      }
     } catch (error) {
       console.error("Error chatting with agent:", error);
       const errorMessage: Message = {
@@ -171,20 +195,88 @@ export default function ChatAgentPage() {
     setMessages([]);
     setConversationId(null);
     setInput("");
+    setConversationError(null);
     stopProgressTimer();
+  };
+
+  const handleConversationChange = async (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedConversationId = event.target.value;
+
+    if (!selectedConversationId) {
+      handleNewConversation();
+      return;
+    }
+
+    setIsLoadingConversation(true);
+    setConversationError(null);
+    setInput("");
+    stopProgressTimer();
+
+    try {
+      const conversation = await getConversation(selectedConversationId);
+      if (!conversation) {
+        throw new Error("Conversation not found");
+      }
+
+      const restoredMessages: Message[] = [...conversation.messages]
+        .sort((left, right) => left.messageIndex - right.messageIndex)
+        .filter(
+          (message) => message.role === "user" || message.role === "assistant"
+        )
+        .map((message) => ({
+          role: message.role as Message["role"],
+          content: message.content,
+        }));
+
+      setConversationId(conversation.id);
+      setMessages(restoredMessages);
+    } catch (error) {
+      console.error("Error loading conversation:", error);
+      setConversationError("Could not load the selected conversation.");
+    } finally {
+      setIsLoadingConversation(false);
+    }
   };
 
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Perfume Agent Chat</h1>
-        <button
-          onClick={handleNewConversation}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        >
-          New Conversation
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label className="sr-only" htmlFor="conversation-select">
+            Previous conversation
+          </label>
+          <select
+            id="conversation-select"
+            value={conversationId ?? ""}
+            onChange={handleConversationChange}
+            disabled={isLoading || isLoadingConversation}
+            className="min-w-64 max-w-full rounded border bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100"
+          >
+            <option value="">New conversation</option>
+            {conversations.map((conversation) => (
+              <option key={conversation.id} value={conversation.id}>
+                {conversation.title?.trim() || "Untitled conversation"}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleNewConversation}
+            disabled={isLoading || isLoadingConversation}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            New Conversation
+          </button>
+        </div>
       </div>
+
+      {conversationError && (
+        <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {conversationError}
+        </div>
+      )}
 
       {toolCallProgress.isActive && (
         <div className="mb-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-center justify-between">
@@ -196,7 +288,11 @@ export default function ChatAgentPage() {
       )}
 
       <div className="flex-1 max-h-[60vh] overflow-y-auto mb-4 border rounded-lg p-4 bg-gray-50">
-        {messages.length === 0 ? (
+        {isLoadingConversation ? (
+          <div className="text-center text-gray-500 mt-10">
+            Loading conversation...
+          </div>
+        ) : messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">
             <p className="text-lg">Welcome to the Perfume Agent! 👋</p>
             <p className="mt-2">
@@ -303,11 +399,11 @@ export default function ChatAgentPage() {
           placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
           className="flex-1 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           rows={3}
-          disabled={isLoading}
+          disabled={isLoading || isLoadingConversation}
         />
         <button
           onClick={handleSend}
-          disabled={!input.trim() || isLoading}
+          disabled={!input.trim() || isLoading || isLoadingConversation}
           className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           {isLoading ? "Sending..." : "Send"}
