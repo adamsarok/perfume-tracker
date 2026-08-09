@@ -22,6 +22,7 @@ export interface ChatMessage {
 export interface ChatConversation {
   id: string;
   title?: string | null;
+  discussedPerfumeIds: string[];
   messages: ChatMessage[];
   createdAt: string;
   updatedAt: string;
@@ -30,6 +31,7 @@ export interface ChatConversation {
 export interface ChatConversationSummary {
   id: string;
   title?: string | null;
+  discussedPerfumeIds: string[];
   createdAt: string;
   updatedAt: string;
 }

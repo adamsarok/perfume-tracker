@@ -7,10 +7,11 @@ public record ChatWithAgentCommand(Guid? ConversationId, string Message) : IComm
 public record GetConversationQuery(Guid ConversationId) : IQuery<GetConversationResult>;
 public record GetConversationsQuery() : IQuery<IEnumerable<ChatConversationSummaryDto>>;
 public record GetConversationResult(ChatConversationDto? Conversation);
-public record ChatConversationSummaryDto(Guid Id, string? Title, DateTime CreatedAt, DateTime UpdatedAt);
+public record ChatConversationSummaryDto(Guid Id, string? Title, IEnumerable<Guid> DiscussedPerfumeIds, DateTime CreatedAt, DateTime UpdatedAt);
 public record ChatConversationDto(
 	Guid Id,
 	string? Title,
+	IEnumerable<Guid> DiscussedPerfumeIds,
 	IEnumerable<ChatMessageDto> Messages,
 	DateTime CreatedAt,
 	DateTime UpdatedAt);
@@ -69,6 +70,7 @@ public class GetConversationHandler(IChatAgent chatAgent) : IQueryHandler<GetCon
 		return new GetConversationResult(conversation == null ? null : new ChatConversationDto(
 			conversation.Id,
 			conversation.Title,
+			conversation.DiscussedPerfumeIds,
 			conversation.Messages
 				.OrderBy(message => message.MessageIndex)
 				.Where(message =>
@@ -92,6 +94,7 @@ public class GetConversationsHandler(IChatAgent chatAgent) : IQueryHandler<GetCo
 		return conversations.Select(conversation => new ChatConversationSummaryDto(
 			conversation.Id,
 			conversation.Title,
+			conversation.DiscussedPerfumeIds,
 			conversation.CreatedAt,
 			conversation.UpdatedAt));
 	}

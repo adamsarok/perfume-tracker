@@ -9,6 +9,8 @@ import {
 import { initializeApiUrl } from "@/services/axios-service";
 import * as signalR from "@microsoft/signalr";
 import ReactMarkdown from "react-markdown";
+import ConversationPerfumeCard from "@/components/conversation-perfume-card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Message {
   role: "user" | "assistant";
@@ -23,6 +25,8 @@ export default function ChatAgentPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ChatConversationSummary[]>([]);
   const [conversationError, setConversationError] = useState<string | null>(null);
+  const [conversationMenuOpen, setConversationMenuOpen] = useState(false);
+  const [hoveredConversationId, setHoveredConversationId] = useState<string | null>(null);
   const [toolCallProgress, setToolCallProgress] = useState<{
     isActive: boolean;
     message: string;
@@ -199,16 +203,8 @@ export default function ChatAgentPage() {
     stopProgressTimer();
   };
 
-  const handleConversationChange = async (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const selectedConversationId = event.target.value;
-
-    if (!selectedConversationId) {
-      handleNewConversation();
-      return;
-    }
-
+  const handleConversationChange = async (selectedConversationId: string) => {
+    setConversationMenuOpen(false);
     setIsLoadingConversation(true);
     setConversationError(null);
     setInput("");
@@ -240,28 +236,58 @@ export default function ChatAgentPage() {
     }
   };
 
+  const selectedConversation = conversations.find((conversation) => conversation.id === conversationId);
+  const hoveredConversation = conversations.find((conversation) => conversation.id === hoveredConversationId);
+
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto p-4">
       <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Perfume Agent Chat</h1>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <label className="sr-only" htmlFor="conversation-select">
-            Previous conversation
-          </label>
-          <select
-            id="conversation-select"
-            value={conversationId ?? ""}
-            onChange={handleConversationChange}
-            disabled={isLoading || isLoadingConversation}
-            className="min-w-64 max-w-full rounded border bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100"
-          >
-            <option value="">New conversation</option>
-            {conversations.map((conversation) => (
-              <option key={conversation.id} value={conversation.id}>
-                {conversation.title?.trim() || "Untitled conversation"}
-              </option>
-            ))}
-          </select>
+          <Popover open={conversationMenuOpen} onOpenChange={setConversationMenuOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={isLoading || isLoadingConversation}
+                className="min-w-64 max-w-full truncate rounded border bg-white px-3 py-2 text-left disabled:cursor-not-allowed disabled:bg-gray-100"
+              >
+                {selectedConversation?.title?.trim() || "Select a previous conversation"}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-[min(48rem,calc(100vw-2rem))] p-0">
+              <div className="grid max-h-96 grid-cols-1 overflow-hidden sm:grid-cols-2">
+                <div className="overflow-y-auto border-r p-2">
+                  {conversations.length === 0 ? (
+                    <p className="p-3 text-sm text-gray-500">No previous conversations.</p>
+                  ) : conversations.map((conversation) => (
+                    <button
+                      type="button"
+                      key={conversation.id}
+                      onMouseEnter={() => setHoveredConversationId(conversation.id)}
+                      onFocus={() => setHoveredConversationId(conversation.id)}
+                      onClick={() => void handleConversationChange(conversation.id)}
+                      className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                    >
+                      {conversation.title?.trim() || "Untitled conversation"}
+                    </button>
+                  ))}
+                </div>
+                <div className="hidden overflow-y-auto bg-gray-50 p-3 sm:block">
+                  {!hoveredConversation ? (
+                    <p className="text-sm text-gray-500">Hover over a conversation to see discussed perfumes.</p>
+                  ) : hoveredConversation.discussedPerfumeIds.length === 0 ? (
+                    <p className="text-sm text-gray-500">No owned perfumes referenced.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {hoveredConversation.discussedPerfumeIds.map((perfumeId) => (
+                        <ConversationPerfumeCard key={perfumeId} perfumeId={perfumeId} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <button
             onClick={handleNewConversation}
             disabled={isLoading || isLoadingConversation}
@@ -364,6 +390,16 @@ export default function ChatAgentPage() {
                             {children}
                           </code>
                         ),
+                        a: ({ href, children }) => {
+                          const perfumeId = href?.match(/^\/perfumes\/([0-9a-f-]{36})\/?$/i)?.[1];
+                          return perfumeId ? (
+                            <ConversationPerfumeCard perfumeId={perfumeId} />
+                          ) : (
+                            <a href={href} className="text-blue-600 underline">
+                              {children}
+                            </a>
+                          );
+                        },
                       }}
                     >
                       {message.content}

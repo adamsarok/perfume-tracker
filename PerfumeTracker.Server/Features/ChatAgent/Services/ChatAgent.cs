@@ -6,6 +6,7 @@ using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Startup;
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace PerfumeTracker.Server.Features.ChatAgent.Services;
 
@@ -32,6 +33,9 @@ public class ChatAgent(
 	IChatAgentTools chatAgentTools,
 	IOptions<ChatAgentOptions> chatAgentOptions,
 	ILogger<ChatAgent> logger) : IChatAgent {
+	private static readonly Regex OwnedPerfumeLinkRegex = new(
+		@"/perfumes/(?<id>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})",
+		RegexOptions.Compiled);
 
 	public async Task<ChatAgentResponse> ChatAsync(ChatAgentRequest request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
@@ -70,6 +74,7 @@ public class ChatAgent(
 				case ChatFinishReason.Stop:
 					var responseMessage = completion.Value.Content[0].Text;
 					await SaveChatMessage(conversation.Id, "assistant", responseMessage, chatHistory.Count, cancellationToken, completion.Value.FinishReason);
+					await SaveDiscussedPerfumeIds(conversation, responseMessage, cancellationToken);
 					await GenerateAndSaveConversationTitle(conversation, cancellationToken);
 					return new ChatAgentResponse(conversation.Id, responseMessage);
 				case ChatFinishReason.ToolCalls:
@@ -215,6 +220,11 @@ When tools return perfumes, they include:
 - Tags: Notes and characteristics
 - LastComment: User's most recent comment
 
+OWNED PERFUME REFERENCES:
+- Whenever the final answer mentions a perfume the user owns, format its name as a markdown link using its returned Id: [House - PerfumeName](/perfumes/00000000-0000-0000-0000-000000000000)
+- Use the exact owned perfume Id returned by a tool. Never invent an Id.
+- Do not use this link format for perfumes the user does not own.
+
 Use the tools to gather enough collection evidence before answering, especially for personalized wear recommendations. Be conversational, friendly, and knowledgeable.
 """;
 	}
@@ -301,6 +311,28 @@ Use the tools to gather enough collection evidence before answering, especially 
 			ChatFinishReason = ChatFinishReason.ToolCalls
 		};
 		context.Add(message);
+		await context.SaveChangesAsync(cancellationToken);
+	}
+
+	private async Task SaveDiscussedPerfumeIds(ChatConversation conversation, string assistantResponse, CancellationToken cancellationToken) {
+		var referencedIds = OwnedPerfumeLinkRegex.Matches(assistantResponse)
+			.Select(match => Guid.TryParse(match.Groups["id"].Value, out var id) ? id : Guid.Empty)
+			.Where(id => id != Guid.Empty)
+			.Distinct()
+			.ToList();
+		if (referencedIds.Count == 0) return;
+
+		var ownedIds = await context.Perfumes
+			.AsNoTracking()
+			.Where(perfume => referencedIds.Contains(perfume.Id))
+			.Select(perfume => perfume.Id)
+			.ToListAsync(cancellationToken);
+		if (ownedIds.Count == 0) return;
+
+		conversation.DiscussedPerfumeIds = conversation.DiscussedPerfumeIds
+			.Concat(ownedIds)
+			.Distinct()
+			.ToList();
 		await context.SaveChangesAsync(cancellationToken);
 	}
 
