@@ -6,6 +6,7 @@ using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Startup;
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace PerfumeTracker.Server.Features.ChatAgent.Services;
 
@@ -32,6 +33,9 @@ public class ChatAgent(
 	IChatAgentTools chatAgentTools,
 	IOptions<ChatAgentOptions> chatAgentOptions,
 	ILogger<ChatAgent> logger) : IChatAgent {
+	private static readonly Regex OwnedPerfumeLinkRegex = new(
+		@"/perfumes/(?<id>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})",
+		RegexOptions.Compiled);
 
 	public async Task<ChatAgentResponse> ChatAsync(ChatAgentRequest request, CancellationToken cancellationToken) {
 		var userId = context.TenantProvider?.GetCurrentUserId() ?? throw new TenantNotSetException();
@@ -70,6 +74,8 @@ public class ChatAgent(
 				case ChatFinishReason.Stop:
 					var responseMessage = completion.Value.Content[0].Text;
 					await SaveChatMessage(conversation.Id, "assistant", responseMessage, chatHistory.Count, cancellationToken, completion.Value.FinishReason);
+					await SaveDiscussedPerfumeIds(conversation, responseMessage, cancellationToken);
+					await GenerateAndSaveConversationTitle(conversation, cancellationToken);
 					return new ChatAgentResponse(conversation.Id, responseMessage);
 				case ChatFinishReason.ToolCalls:
 					await HandleToolCalls(userId, conversation, chatHistory, completion, cancellationToken);
@@ -214,6 +220,11 @@ When tools return perfumes, they include:
 - Tags: Notes and characteristics
 - LastComment: User's most recent comment
 
+OWNED PERFUME REFERENCES:
+- Whenever the final answer mentions a perfume the user owns, format its name as a markdown link using its returned Id: [House - PerfumeName](/perfumes/00000000-0000-0000-0000-000000000000)
+- Use the exact owned perfume Id returned by a tool. Never invent an Id.
+- Do not use this link format for perfumes the user does not own.
+
 Use the tools to gather enough collection evidence before answering, especially for personalized wear recommendations. Be conversational, friendly, and knowledgeable.
 """;
 	}
@@ -301,6 +312,78 @@ Use the tools to gather enough collection evidence before answering, especially 
 		};
 		context.Add(message);
 		await context.SaveChangesAsync(cancellationToken);
+	}
+
+	private async Task SaveDiscussedPerfumeIds(ChatConversation conversation, string assistantResponse, CancellationToken cancellationToken) {
+		var referencedIds = OwnedPerfumeLinkRegex.Matches(assistantResponse)
+			.Select(match => Guid.TryParse(match.Groups["id"].Value, out var id) ? id : Guid.Empty)
+			.Where(id => id != Guid.Empty)
+			.Distinct()
+			.ToList();
+		if (referencedIds.Count == 0) return;
+
+		var ownedIds = await context.Perfumes
+			.AsNoTracking()
+			.Where(perfume => referencedIds.Contains(perfume.Id))
+			.Select(perfume => perfume.Id)
+			.ToListAsync(cancellationToken);
+		if (ownedIds.Count == 0) return;
+
+		conversation.DiscussedPerfumeIds = conversation.DiscussedPerfumeIds
+			.Concat(ownedIds)
+			.Distinct()
+			.ToList();
+		await context.SaveChangesAsync(cancellationToken);
+	}
+
+	public async Task GenerateAndSaveConversationTitle(ChatConversation conversation, CancellationToken cancellationToken) {
+		if (conversation.TitleGeneratedAt.HasValue) return;
+
+		try {
+			var visibleMessages = await context.Set<Models.ChatMessage>()
+				.IgnoreQueryFilters()
+				.AsNoTracking()
+				.Where(message => message.ConversationId == conversation.Id)
+				.Where(message =>
+					message.Role == "user" ||
+					(message.Role == "assistant" && message.ChatFinishReason != ChatFinishReason.ToolCalls))
+				.OrderBy(message => message.MessageIndex)
+				.Select(message => new { message.Role, message.Content })
+				.ToListAsync(cancellationToken);
+
+			var transcript = new StringBuilder();
+			foreach (var message in visibleMessages) {
+				var line = $"{message.Role}: {message.Content}\n";
+				if (transcript.Length + line.Length > 6000) break;
+				transcript.Append(line);
+			}
+
+			if (transcript.Length == 0) return;
+
+			List<OpenAI.Chat.ChatMessage> titlePrompt = [
+				new SystemChatMessage(
+					"Create a concise, specific title that summarizes the main topic of this conversation. " +
+					"Use 3 to 8 words. Return only the title, without quotes, punctuation at the end, or markdown."),
+				new UserChatMessage(transcript.ToString())
+			];
+			var titleOptions = new ChatCompletionOptions { MaxOutputTokenCount = 40 };
+			var completion = await chatClient.CompleteChatAsync(titlePrompt, titleOptions, cancellationToken);
+			Diagnostics.RecordChatTokenUsage(completion.Value, "chat_conversation_title");
+
+			var generatedTitle = completion.Value.Content.FirstOrDefault()?.Text?.Trim().Trim('"', '\'');
+			if (string.IsNullOrWhiteSpace(generatedTitle)) return;
+
+			const string titlePrefix = "Title:";
+			if (generatedTitle.StartsWith(titlePrefix, StringComparison.OrdinalIgnoreCase)) {
+				generatedTitle = generatedTitle[titlePrefix.Length..].Trim();
+			}
+
+			conversation.Title = generatedTitle.Length > 100 ? generatedTitle[..100].TrimEnd() : generatedTitle;
+			conversation.TitleGeneratedAt = DateTime.UtcNow;
+			await context.SaveChangesAsync(cancellationToken);
+		} catch (Exception ex) {
+			logger.LogWarning(ex, "Could not generate title for chat conversation {ConversationId}", conversation.Id);
+		}
 	}
 
 	public async Task<Models.ChatConversation?> GetConversationAsync(Guid conversationId, CancellationToken cancellationToken) {

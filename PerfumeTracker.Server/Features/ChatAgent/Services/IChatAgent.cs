@@ -5,6 +5,7 @@ public record ChatAgentResponse(Guid ConversationId, string AssistantMessage);
 
 public interface IChatAgent {
 	Task<ChatAgentResponse> ChatAsync(ChatAgentRequest request, CancellationToken cancellationToken);
+	Task GenerateAndSaveConversationTitle(ChatConversation conversation, CancellationToken cancellationToken);
 	Task<Models.ChatConversation?> GetConversationAsync(Guid conversationId, CancellationToken cancellationToken);
 	Task<IEnumerable<Models.ChatConversation>> GetUserConversationsAsync(CancellationToken cancellationToken);
 }

@@ -11,6 +11,7 @@ using PerfumeTracker.Server;
 using PerfumeTracker.Server.Behaviors;
 using PerfumeTracker.Server.Features.Achievements;
 using PerfumeTracker.Server.Features.Auth;
+using PerfumeTracker.Server.Features.ChatAgent;
 using PerfumeTracker.Server.Features.ChatAgent.Services;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Common.Services;
@@ -174,6 +175,7 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddHostedService<ParfumeurIdentifierBackgroundService>();
 	builder.Services.AddHostedService<TagBackfillBackgroundService>();
 	builder.Services.AddHostedService<TagNoteGroupBackfillBackgroundService>();
+	builder.Services.AddHostedService<GenerateConversationTitlesBackgroundService>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();
 }

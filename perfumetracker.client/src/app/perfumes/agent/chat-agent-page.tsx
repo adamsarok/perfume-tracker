@@ -1,11 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   chatWithAgent,
   ChatAgentResponse,
+  ChatConversationSummary,
+  getConversation,
+  getConversations,
 } from "@/services/chat-agent-service";
 import { initializeApiUrl } from "@/services/axios-service";
 import * as signalR from "@microsoft/signalr";
 import ReactMarkdown from "react-markdown";
+import ConversationPerfumeCard from "@/components/conversation-perfume-card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,7 +21,12 @@ export default function ChatAgentPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<ChatConversationSummary[]>([]);
+  const [conversationError, setConversationError] = useState<string | null>(null);
+  const [conversationMenuOpen, setConversationMenuOpen] = useState(false);
+  const [hoveredConversationId, setHoveredConversationId] = useState<string | null>(null);
   const [toolCallProgress, setToolCallProgress] = useState<{
     isActive: boolean;
     message: string;
@@ -24,6 +34,20 @@ export default function ChatAgentPage() {
   }>({ isActive: false, message: "", startTime: null });
   const [elapsedTime, setElapsedTime] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const loadConversations = useCallback(async () => {
+    try {
+      setConversations(await getConversations());
+      setConversationError(null);
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+      setConversationError("Could not load previous conversations.");
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadConversations();
+  }, [loadConversations]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -96,6 +120,10 @@ export default function ChatAgentPage() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      if (!conversationId) {
+        void loadConversations();
+      }
     } catch (error) {
       console.error("Error chatting with agent:", error);
       const errorMessage: Message = {
@@ -171,20 +199,110 @@ export default function ChatAgentPage() {
     setMessages([]);
     setConversationId(null);
     setInput("");
+    setConversationError(null);
     stopProgressTimer();
   };
 
+  const handleConversationChange = async (selectedConversationId: string) => {
+    setConversationMenuOpen(false);
+    setIsLoadingConversation(true);
+    setConversationError(null);
+    setInput("");
+    stopProgressTimer();
+
+    try {
+      const conversation = await getConversation(selectedConversationId);
+      if (!conversation) {
+        throw new Error("Conversation not found");
+      }
+
+      const restoredMessages: Message[] = [...conversation.messages]
+        .sort((left, right) => left.messageIndex - right.messageIndex)
+        .filter(
+          (message) => message.role === "user" || message.role === "assistant"
+        )
+        .map((message) => ({
+          role: message.role as Message["role"],
+          content: message.content,
+        }));
+
+      setConversationId(conversation.id);
+      setMessages(restoredMessages);
+    } catch (error) {
+      console.error("Error loading conversation:", error);
+      setConversationError("Could not load the selected conversation.");
+    } finally {
+      setIsLoadingConversation(false);
+    }
+  };
+
+  const selectedConversation = conversations.find((conversation) => conversation.id === conversationId);
+  const hoveredConversation = conversations.find((conversation) => conversation.id === hoveredConversationId);
+
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Perfume Agent Chat</h1>
-        <button
-          onClick={handleNewConversation}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        >
-          New Conversation
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Popover open={conversationMenuOpen} onOpenChange={setConversationMenuOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={isLoading || isLoadingConversation}
+                className="min-w-64 max-w-full truncate rounded border bg-white px-3 py-2 text-left disabled:cursor-not-allowed disabled:bg-gray-100"
+              >
+                {selectedConversation?.title?.trim() || "Select a previous conversation"}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-[min(48rem,calc(100vw-2rem))] p-0">
+              <div className="grid max-h-96 grid-cols-1 overflow-hidden sm:grid-cols-2">
+                <div className="overflow-y-auto border-r p-2">
+                  {conversations.length === 0 ? (
+                    <p className="p-3 text-sm text-gray-500">No previous conversations.</p>
+                  ) : conversations.map((conversation) => (
+                    <button
+                      type="button"
+                      key={conversation.id}
+                      onMouseEnter={() => setHoveredConversationId(conversation.id)}
+                      onFocus={() => setHoveredConversationId(conversation.id)}
+                      onClick={() => void handleConversationChange(conversation.id)}
+                      className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                    >
+                      {conversation.title?.trim() || "Untitled conversation"}
+                    </button>
+                  ))}
+                </div>
+                <div className="hidden overflow-y-auto bg-gray-50 p-3 sm:block">
+                  {!hoveredConversation ? (
+                    <p className="text-sm text-gray-500">Hover over a conversation to see discussed perfumes.</p>
+                  ) : hoveredConversation.discussedPerfumeIds.length === 0 ? (
+                    <p className="text-sm text-gray-500">No owned perfumes referenced.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {hoveredConversation.discussedPerfumeIds.map((perfumeId) => (
+                        <ConversationPerfumeCard key={perfumeId} perfumeId={perfumeId} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <button
+            onClick={handleNewConversation}
+            disabled={isLoading || isLoadingConversation}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            New Conversation
+          </button>
+        </div>
       </div>
+
+      {conversationError && (
+        <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {conversationError}
+        </div>
+      )}
 
       {toolCallProgress.isActive && (
         <div className="mb-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-center justify-between">
@@ -196,7 +314,11 @@ export default function ChatAgentPage() {
       )}
 
       <div className="flex-1 max-h-[60vh] overflow-y-auto mb-4 border rounded-lg p-4 bg-gray-50">
-        {messages.length === 0 ? (
+        {isLoadingConversation ? (
+          <div className="text-center text-gray-500 mt-10">
+            Loading conversation...
+          </div>
+        ) : messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">
             <p className="text-lg">Welcome to the Perfume Agent! 👋</p>
             <p className="mt-2">
@@ -268,6 +390,16 @@ export default function ChatAgentPage() {
                             {children}
                           </code>
                         ),
+                        a: ({ href, children }) => {
+                          const perfumeId = href?.match(/^\/perfumes\/([0-9a-f-]{36})\/?$/i)?.[1];
+                          return perfumeId ? (
+                            <ConversationPerfumeCard perfumeId={perfumeId} />
+                          ) : (
+                            <a href={href} className="text-blue-600 underline">
+                              {children}
+                            </a>
+                          );
+                        },
                       }}
                     >
                       {message.content}
@@ -303,11 +435,11 @@ export default function ChatAgentPage() {
           placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
           className="flex-1 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           rows={3}
-          disabled={isLoading}
+          disabled={isLoading || isLoadingConversation}
         />
         <button
           onClick={handleSend}
-          disabled={!input.trim() || isLoading}
+          disabled={!input.trim() || isLoading || isLoadingConversation}
           className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           {isLoading ? "Sending..." : "Send"}
