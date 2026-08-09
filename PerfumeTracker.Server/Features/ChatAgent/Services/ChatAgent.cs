@@ -70,6 +70,7 @@ public class ChatAgent(
 				case ChatFinishReason.Stop:
 					var responseMessage = completion.Value.Content[0].Text;
 					await SaveChatMessage(conversation.Id, "assistant", responseMessage, chatHistory.Count, cancellationToken, completion.Value.FinishReason);
+					await GenerateAndSaveConversationTitle(conversation, cancellationToken);
 					return new ChatAgentResponse(conversation.Id, responseMessage);
 				case ChatFinishReason.ToolCalls:
 					await HandleToolCalls(userId, conversation, chatHistory, completion, cancellationToken);
@@ -301,6 +302,56 @@ Use the tools to gather enough collection evidence before answering, especially 
 		};
 		context.Add(message);
 		await context.SaveChangesAsync(cancellationToken);
+	}
+
+	public async Task GenerateAndSaveConversationTitle(ChatConversation conversation, CancellationToken cancellationToken) {
+		if (conversation.TitleGeneratedAt.HasValue) return;
+
+		try {
+			var visibleMessages = await context.Set<Models.ChatMessage>()
+				.IgnoreQueryFilters()
+				.AsNoTracking()
+				.Where(message => message.ConversationId == conversation.Id)
+				.Where(message =>
+					message.Role == "user" ||
+					(message.Role == "assistant" && message.ChatFinishReason != ChatFinishReason.ToolCalls))
+				.OrderBy(message => message.MessageIndex)
+				.Select(message => new { message.Role, message.Content })
+				.ToListAsync(cancellationToken);
+
+			var transcript = new StringBuilder();
+			foreach (var message in visibleMessages) {
+				var line = $"{message.Role}: {message.Content}\n";
+				if (transcript.Length + line.Length > 6000) break;
+				transcript.Append(line);
+			}
+
+			if (transcript.Length == 0) return;
+
+			List<OpenAI.Chat.ChatMessage> titlePrompt = [
+				new SystemChatMessage(
+					"Create a concise, specific title that summarizes the main topic of this conversation. " +
+					"Use 3 to 8 words. Return only the title, without quotes, punctuation at the end, or markdown."),
+				new UserChatMessage(transcript.ToString())
+			];
+			var titleOptions = new ChatCompletionOptions { MaxOutputTokenCount = 40 };
+			var completion = await chatClient.CompleteChatAsync(titlePrompt, titleOptions, cancellationToken);
+			Diagnostics.RecordChatTokenUsage(completion.Value, "chat_conversation_title");
+
+			var generatedTitle = completion.Value.Content.FirstOrDefault()?.Text?.Trim().Trim('"', '\'');
+			if (string.IsNullOrWhiteSpace(generatedTitle)) return;
+
+			const string titlePrefix = "Title:";
+			if (generatedTitle.StartsWith(titlePrefix, StringComparison.OrdinalIgnoreCase)) {
+				generatedTitle = generatedTitle[titlePrefix.Length..].Trim();
+			}
+
+			conversation.Title = generatedTitle.Length > 100 ? generatedTitle[..100].TrimEnd() : generatedTitle;
+			conversation.TitleGeneratedAt = DateTime.UtcNow;
+			await context.SaveChangesAsync(cancellationToken);
+		} catch (Exception ex) {
+			logger.LogWarning(ex, "Could not generate title for chat conversation {ConversationId}", conversation.Id);
+		}
 	}
 
 	public async Task<Models.ChatConversation?> GetConversationAsync(Guid conversationId, CancellationToken cancellationToken) {
