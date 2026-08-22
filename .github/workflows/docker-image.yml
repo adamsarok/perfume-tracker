@@ -99,7 +99,7 @@ jobs:
       working-directory: ./PerfumeTracker.xTests
       env:
         NuGetAudit: false
-      run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+      run: dotnet test --configuration Release --coverlet --coverlet-output-format cobertura --coverlet-exclude-by-file "**/Migrations/*.cs"
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
