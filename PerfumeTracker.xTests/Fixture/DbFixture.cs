@@ -10,10 +10,11 @@ using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.Outbox;
 using PerfumeTracker.Server.Features.Users;
+using Xunit.v3;
 using static PerfumeTracker.Server.Features.Missions.ProgressMissions;
 using static PerfumeTracker.Server.Features.Streaks.ProgressStreaks;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+[assembly: Parallelization(Mode = Xunit.Sdk.ParallelMode.None)]
 namespace PerfumeTracker.xTests.Fixture;
 
 public abstract class DbFixture : IAsyncLifetime {

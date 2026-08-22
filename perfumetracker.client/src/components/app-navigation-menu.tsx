@@ -6,7 +6,7 @@ import {
     NavigationMenuList,
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import { Brain, Cake, ChartNoAxesCombined, House, List, ListChecks, Plus, Settings, Tag } from "lucide-react"
+import { Brain, Cake, ChartNoAxesCombined, House, List, ListChecks, Plus, Settings, Sparkles, Tag } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 
 export default function AppNavigationMenu() {
@@ -30,6 +30,14 @@ export default function AppNavigationMenu() {
                                         <p className="text-xs leading-tight text-muted-foreground">
                                             Return to the main dashboard
                                         </p>
+                                    </Link>
+                                </NavigationMenuLink>
+                            </li>
+                            <li>
+                                <NavigationMenuLink asChild>
+                                    <Link className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent" to="/year-in-review">
+                                        <div className="flex items-center gap-2"><Sparkles className="h-4 w-4" /><div className="text-sm font-medium leading-none">Year in Review</div></div>
+                                        <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">Replay your year in fragrance</p>
                                     </Link>
                                 </NavigationMenuLink>
                             </li>

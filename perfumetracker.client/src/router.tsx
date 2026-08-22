@@ -12,6 +12,7 @@ import StatsPage from './app/stats/stats-page'
 import TagsPage from './app/tags/tags-page'
 import ProgressPage from './app/progress/progress-page'
 import SettingsPage from './app/settings/settings-page'
+import YearInReviewPage from './app/year-in-review/year-in-review-page'
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -89,6 +90,12 @@ const settingsRoute = createRoute({
   component: SettingsPage,
 })
 
+const yearInReviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/year-in-review',
+  component: YearInReviewPage,
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -102,6 +109,7 @@ const routeTree = rootRoute.addChildren([
   tagsRoute,
   progressRoute,
   settingsRoute,
+  yearInReviewRoute,
 ])
 
 export const router = createRouter({ routeTree })
