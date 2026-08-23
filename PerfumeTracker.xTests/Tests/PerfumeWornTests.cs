@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PerfumeTracker.Server.Features.Common;
 using PerfumeTracker.Server.Features.PerfumeEvents;
+using PerfumeTracker.Server.Features.YearInReview;
 using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;
@@ -50,6 +51,24 @@ public class PerfumeWornTests {
 		var result = await handler.Handle(new GetWornPerfumesQuery(0, 20), TestContext.Current.CancellationToken);
 		Assert.NotNull(result);
 		Assert.NotEmpty(result);
+	}
+
+	[Fact]
+	public async Task GetYearInReviewAggregatesWearsOnServer() {
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var handler = new GetYearInReviewHandler(context, new MockPresignedUrlService());
+
+		var result = await handler.Handle(
+			new GetYearInReviewQuery(DateTime.UtcNow.Year),
+			TestContext.Current.CancellationToken);
+
+		Assert.Equal(2, result.TotalWears);
+		Assert.Equal(2, result.UniquePerfumes);
+		Assert.Equal(2, result.ActiveDays);
+		Assert.Equal(2, result.TopPerfumes.Count);
+		Assert.NotNull(result.BusiestMonth);
+		Assert.NotNull(result.BusiestDay);
 	}
 
 	[Fact]
