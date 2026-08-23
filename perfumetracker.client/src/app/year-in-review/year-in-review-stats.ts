@@ -19,6 +19,20 @@ export interface YearInReviewStats {
   topTags: ReviewRankedItem[];
   busiestMonth: ReviewRankedItem | null;
   busiestDay: ReviewRankedItem | null;
+  categories: YearInReviewCategory[];
+}
+
+export interface YearInReviewCategory {
+  key: string;
+  title: string;
+  perfumeName?: string | null;
+  house?: string | null;
+  imageUrl?: string | null;
+  detail: string;
+  ratingFrom?: number | null;
+  ratingTo?: number | null;
+  gapDays?: number | null;
+  note?: string | null;
 }
 
 export async function getYearInReview(year: number): Promise<YearInReviewStats> {

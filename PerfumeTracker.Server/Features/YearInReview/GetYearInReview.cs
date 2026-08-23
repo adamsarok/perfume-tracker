@@ -11,6 +11,19 @@ public record YearInReviewRankedItem(
 	string? ImageUrl = null
 );
 
+public record YearInReviewCategory(
+	string Key,
+	string Title,
+	string? PerfumeName,
+	string? House,
+	string? ImageUrl,
+	string Detail,
+	decimal? RatingFrom = null,
+	decimal? RatingTo = null,
+	int? GapDays = null,
+	string? Note = null
+);
+
 public record YearInReviewResponse(
 	int Year,
 	int TotalWears,
@@ -21,7 +34,8 @@ public record YearInReviewResponse(
 	IReadOnlyList<YearInReviewRankedItem> TopHouses,
 	IReadOnlyList<YearInReviewRankedItem> TopTags,
 	YearInReviewRankedItem? BusiestMonth,
-	YearInReviewRankedItem? BusiestDay
+	YearInReviewRankedItem? BusiestDay,
+	IReadOnlyList<YearInReviewCategory> Categories
 );
 
 public record GetYearInReviewQuery(int Year) : IQuery<YearInReviewResponse>;
@@ -41,7 +55,8 @@ public class GetYearInReviewEndpoint : ICarterModule {
 
 public class GetYearInReviewHandler(
 	PerfumeTrackerContext context,
-	IPresignedUrlService presignedUrlService)
+	IPresignedUrlService presignedUrlService,
+	IYearInReviewAi? yearInReviewAi = null)
 	: IQueryHandler<GetYearInReviewQuery, YearInReviewResponse> {
 
 	public async Task<YearInReviewResponse> Handle(
@@ -62,7 +77,7 @@ public class GetYearInReviewHandler(
 		var totalWears = await events.CountAsync(cancellationToken);
 		if (totalWears == 0) {
 			return new YearInReviewResponse(
-				request.Year, 0, 0, 0, 0, [], [], [], null, null);
+				request.Year, 0, 0, 0, 0, [], [], [], null, null, []);
 		}
 
 		var uniquePerfumes = await events
@@ -78,26 +93,27 @@ public class GetYearInReviewHandler(
 			.Distinct()
 			.CountAsync(cancellationToken);
 
-		var topPerfumeRows = await events
+		var perfumeRows = await events
 			.GroupBy(x => new {
 				x.PerfumeId,
 				x.Perfume.PerfumeName,
 				x.Perfume.House,
+				x.Perfume.Family,
 				x.Perfume.ImageObjectKeyNew
 			})
 			.Select(group => new {
 				group.Key.PerfumeId,
 				group.Key.PerfumeName,
 				group.Key.House,
+				group.Key.Family,
 				group.Key.ImageObjectKeyNew,
 				Count = group.Count()
 			})
 			.OrderByDescending(x => x.Count)
 			.ThenBy(x => x.PerfumeName)
-			.Take(5)
 			.ToListAsync(cancellationToken);
 
-		var topPerfumes = topPerfumeRows.Select(x => {
+		var topPerfumes = perfumeRows.Take(5).Select(x => {
 			var imageUrl = presignedUrlService.GetUrl(
 				x.ImageObjectKeyNew,
 				Amazon.S3.HttpVerb.GET)?.ToString();
@@ -133,10 +149,11 @@ public class GetYearInReviewHandler(
 				x.Name, null, x.Count, x.Color))
 			.ToList();
 
-		var dateCounts = await events
-			.Select(x => x.EventDate)
+		var wearRows = await events
+			.Select(x => new { x.PerfumeId, x.EventDate })
 			.ToListAsync(cancellationToken);
-		var busiestMonth = dateCounts
+		var busiestMonth = wearRows
+			.Select(x => x.EventDate)
 			.GroupBy(x => x.Month)
 			.OrderByDescending(x => x.Count())
 			.ThenBy(x => x.Key)
@@ -145,12 +162,172 @@ public class GetYearInReviewHandler(
 				null,
 				x.Count()))
 			.First();
-		var busiestDay = dateCounts
+		var busiestDay = wearRows
+			.Select(x => x.EventDate)
 			.GroupBy(x => x.DayOfWeek)
 			.OrderByDescending(x => x.Count())
 			.ThenBy(x => x.Key)
 			.Select(x => new YearInReviewRankedItem(x.Key.ToString(), null, x.Count()))
 			.First();
+
+		var perfumeIds = perfumeRows.Select(x => x.PerfumeId).ToList();
+		var ratingRows = await context.PerfumeRatings
+			.AsNoTracking()
+			.Where(x => perfumeIds.Contains(x.PerfumeId) && x.RatingDate < end)
+			.Select(x => new { x.PerfumeId, x.RatingDate, x.Rating })
+			.OrderBy(x => x.RatingDate)
+			.ToListAsync(cancellationToken);
+		var tagRows = await context.PerfumeTags
+			.AsNoTracking()
+			.Where(x => perfumeIds.Contains(x.PerfumeId))
+			.Select(x => new {
+				x.PerfumeId,
+				TagId = x.Tag.Id,
+				Name = x.Tag.TagName,
+				x.Tag.Description
+			})
+			.ToListAsync(cancellationToken);
+
+		var latestRatings = ratingRows
+			.GroupBy(x => x.PerfumeId)
+			.ToDictionary(x => x.Key, x => (decimal?)x.Last().Rating);
+		var tagsByPerfume = tagRows
+			.GroupBy(x => x.PerfumeId)
+			.ToDictionary(
+				x => x.Key,
+				x => (IReadOnlyList<YearInReviewAiTag>)x.Select(t =>
+					new YearInReviewAiTag(t.TagId, t.Name, t.Description)).ToList());
+		var rowById = perfumeRows.ToDictionary(x => x.PerfumeId);
+
+		var sampleReasons = new Dictionary<Guid, List<string>>();
+		void AddSample(IEnumerable<Guid> ids, string reason) {
+			foreach (var id in ids) {
+				if (!sampleReasons.TryGetValue(id, out var reasons)) {
+					reasons = [];
+					sampleReasons.Add(id, reasons);
+				}
+				if (!reasons.Contains(reason, StringComparer.Ordinal)) reasons.Add(reason);
+			}
+		}
+
+		AddSample(perfumeRows.Take(5).Select(x => x.PerfumeId), "most-worn");
+		AddSample(perfumeRows
+			.Where(x => latestRatings.ContainsKey(x.PerfumeId))
+			.OrderByDescending(x => latestRatings[x.PerfumeId])
+			.ThenByDescending(x => x.Count)
+			.Take(5)
+			.Select(x => x.PerfumeId), "top-rated");
+		AddSample(perfumeRows
+			.Where(x => latestRatings.GetValueOrDefault(x.PerfumeId) >= 8m)
+			.OrderBy(x => x.Count)
+			.ThenByDescending(x => latestRatings[x.PerfumeId])
+			.Take(5)
+			.Select(x => x.PerfumeId), "high-rated-low-use");
+
+		var tagFrequency = tagRows
+			.GroupBy(x => x.TagId)
+			.ToDictionary(x => x.Key, x => x.Count());
+
+		var candidates = sampleReasons.Take(20).Select(sample => {
+			var id = sample.Key;
+			var row = rowById[id];
+			return new YearInReviewAiCandidate(
+				id,
+				row.House,
+				row.PerfumeName,
+				row.Family,
+				row.Count,
+				latestRatings.GetValueOrDefault(id),
+				tagsByPerfume.GetValueOrDefault(id, [])
+					.OrderBy(t => tagFrequency[t.TagId])
+					.Take(10)
+					.Select(t => t with {
+						Description = t.Description is { Length: > 160 }
+							? t.Description[..160]
+							: t.Description
+					})
+					.ToList(),
+				sample.Value.AsReadOnly());
+		}).ToList();
+
+		var categories = new List<YearInReviewCategory>();
+		string? GetImageUrl(Guid perfumeId) => presignedUrlService.GetUrl(
+			rowById[perfumeId].ImageObjectKeyNew,
+			Amazon.S3.HttpVerb.GET)?.ToString();
+
+		var hiddenGem = ratingRows
+			.GroupBy(x => x.PerfumeId)
+			.Select(group => {
+				var inYear = group.Where(x => x.RatingDate >= start).ToList();
+				if (inYear.Count == 0) return null;
+				var from = group.LastOrDefault(x => x.RatingDate < start)?.Rating
+					?? inYear.First().Rating;
+				var to = inYear.Last().Rating;
+				return new { PerfumeId = group.Key, From = from, To = to, Change = to - from };
+			})
+			.Where(x => x != null && x.Change > 0)
+			.OrderByDescending(x => x!.Change)
+			.FirstOrDefault();
+		if (hiddenGem != null) {
+			var row = rowById[hiddenGem.PerfumeId];
+			categories.Add(new YearInReviewCategory(
+				"hiddenGem",
+				"Your Hidden Gem",
+				row.PerfumeName,
+				row.House,
+				GetImageUrl(row.PerfumeId),
+				$"Your rating climbed by {hiddenGem.Change:0.#} points this year.",
+				hiddenGem.From,
+				hiddenGem.To));
+		}
+
+		var forgottenFavourite = wearRows
+			.GroupBy(x => x.PerfumeId)
+			.Where(x => latestRatings.GetValueOrDefault(x.Key) >= 8m && x.Count() >= 2)
+			.Select(group => {
+				var dates = group.Select(x => x.EventDate).OrderBy(x => x).ToList();
+				var gap = dates.Zip(dates.Skip(1), (left, right) => (right - left).Days).Max();
+				return new { PerfumeId = group.Key, GapDays = gap };
+			})
+			.OrderByDescending(x => x.GapDays)
+			.FirstOrDefault();
+		if (forgottenFavourite != null) {
+			var row = rowById[forgottenFavourite.PerfumeId];
+			categories.Add(new YearInReviewCategory(
+				"forgottenFavourite",
+				"Your Forgotten Favourite",
+				row.PerfumeName,
+				row.House,
+				GetImageUrl(row.PerfumeId),
+				$"A {forgottenFavourite.GapDays}-day gap, but still rated {latestRatings[row.PerfumeId]:0.#}.",
+				GapDays: forgottenFavourite.GapDays));
+		}
+
+		var aiSelection = await (yearInReviewAi ?? new NullYearInReviewAi())
+			.SelectCategories(request.Year, candidates, cancellationToken);
+		if (aiSelection != null) {
+			void AddAiPerfumeCategory(string key, string title, Guid? perfumeId, string? reason) {
+				var candidate = candidates.FirstOrDefault(x => x.PerfumeId == perfumeId);
+				if (candidate == null || string.IsNullOrWhiteSpace(reason)) return;
+				categories.Add(new YearInReviewCategory(
+					key, title, candidate.PerfumeName, candidate.House,
+					GetImageUrl(candidate.PerfumeId), reason.Trim()));
+			}
+
+			AddAiPerfumeCategory("crowdPleaser", "Your Crowd Pleaser",
+				aiSelection.CrowdPleaserPerfumeId, aiSelection.CrowdPleaserReason);
+			AddAiPerfumeCategory("wildcard", "Your Wildcard",
+				aiSelection.WildcardPerfumeId, aiSelection.WildcardReason);
+			AddAiPerfumeCategory("comfortScent", "Your Comfort Scent",
+				aiSelection.ComfortScentPerfumeId, aiSelection.ComfortScentReason);
+		}
+
+		var categoryOrder = new[] {
+			"crowdPleaser", "wildcard", "hiddenGem", "comfortScent", "forgottenFavourite"
+		};
+		categories = categories
+			.OrderBy(x => Array.IndexOf(categoryOrder, x.Key))
+			.ToList();
 
 		return new YearInReviewResponse(
 			request.Year,
@@ -162,6 +339,8 @@ public class GetYearInReviewHandler(
 			topHouses,
 			topTags,
 			busiestMonth,
-			busiestDay);
+			busiestDay,
+			categories);
 	}
+
 }

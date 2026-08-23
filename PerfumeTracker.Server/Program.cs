@@ -27,6 +27,7 @@ using PerfumeTracker.Server.Features.Tags;
 using PerfumeTracker.Server.Features.Tags.Services;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Features.Users.Services;
+using PerfumeTracker.Server.Features.YearInReview;
 using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Startup;
 using System.Reflection;
@@ -169,6 +170,7 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
 	builder.Services.AddSingleton<ChatClient>(_ = new ChatClient(model: assistantModel, apiKey: openAiApiKey));
 	builder.Services.AddSingleton<IEncoder, Encoder>();
+	builder.Services.AddScoped<IYearInReviewAi, YearInReviewAi>();
 	// Following services require a valid OpenAI api key, do not start them otherwise
 	builder.Services.AddHostedService<EmbeddingBackgroundService>();
 	builder.Services.AddHostedService<PerfumeIdentifierBackgroundService>();
@@ -178,6 +180,7 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddHostedService<GenerateConversationTitlesBackgroundService>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();
+	builder.Services.AddSingleton<IYearInReviewAi, NullYearInReviewAi>();
 }
 
 builder.Services.AddScoped<ICreateUser, CreateUser>();
