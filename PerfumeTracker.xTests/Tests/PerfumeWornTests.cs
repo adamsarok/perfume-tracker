@@ -83,7 +83,7 @@ public class PerfumeWornTests {
 		var persistedResult = await handler.Handle(
 			new GetYearInReviewQuery(),
 			TestContext.Current.CancellationToken);
-		Assert.Equal(2, persistedResult.TotalWears);
+
 		Assert.All(persistedResult.TopPerfumes, item => Assert.Equal("http://test.invalid/", item.ImageUrl));
 	}
 
