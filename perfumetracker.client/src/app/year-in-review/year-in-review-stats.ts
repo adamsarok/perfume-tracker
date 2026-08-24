@@ -6,6 +6,7 @@ export interface ReviewRankedItem {
   count: number;
   color?: string;
   imageUrl?: string;
+  imageObjectKey?: string;
 }
 
 export interface YearInReviewStats {
@@ -28,6 +29,7 @@ export interface YearInReviewCategory {
   perfumeName?: string | null;
   house?: string | null;
   imageUrl?: string | null;
+  imageObjectKey?: string | null;
   detail: string;
   ratingFrom?: number | null;
   ratingTo?: number | null;
@@ -35,8 +37,8 @@ export interface YearInReviewCategory {
   note?: string | null;
 }
 
-export async function getYearInReview(year: number): Promise<YearInReviewStats> {
-  const result = await get<YearInReviewStats>(`/year-in-review/${encodeURIComponent(year)}`);
+export async function getYearInReview(): Promise<YearInReviewStats> {
+  const result = await get<YearInReviewStats>(`/year-in-review`);
   if (!result.ok || !result.data) {
     throw new Error(result.error || "Could not create year in review");
   }

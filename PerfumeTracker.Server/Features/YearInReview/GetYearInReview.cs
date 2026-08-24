@@ -1,3 +1,4 @@
+using Npgsql;
 using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Common;
 
@@ -8,7 +9,8 @@ public record YearInReviewRankedItem(
 	string? Subtitle,
 	int Count,
 	string? Color = null,
-	string? ImageUrl = null
+	string? ImageUrl = null,
+	Guid? ImageObjectKey = null
 );
 
 public record YearInReviewCategory(
@@ -21,7 +23,8 @@ public record YearInReviewCategory(
 	decimal? RatingFrom = null,
 	decimal? RatingTo = null,
 	int? GapDays = null,
-	string? Note = null
+	string? Note = null,
+	Guid? ImageObjectKey = null
 );
 
 public record YearInReviewResponse(
@@ -38,15 +41,14 @@ public record YearInReviewResponse(
 	IReadOnlyList<YearInReviewCategory> Categories
 );
 
-public record GetYearInReviewQuery(int Year) : IQuery<YearInReviewResponse>;
+public record GetYearInReviewQuery : IQuery<YearInReviewResponse>;
 
 public class GetYearInReviewEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapGet("/api/year-in-review/{year:int}", async (
-			int year,
+		app.MapGet("/api/year-in-review", async (
 			ISender sender,
 			CancellationToken cancellationToken) =>
-			await sender.Send(new GetYearInReviewQuery(year), cancellationToken))
+			await sender.Send(new GetYearInReviewQuery(), cancellationToken))
 			.WithTags("YearInReview")
 			.WithName("GetYearInReview")
 			.RequireAuthorization(Policies.READ);
@@ -58,15 +60,20 @@ public class GetYearInReviewHandler(
 	IPresignedUrlService presignedUrlService,
 	IYearInReviewAi? yearInReviewAi = null)
 	: IQueryHandler<GetYearInReviewQuery, YearInReviewResponse> {
-
 	public async Task<YearInReviewResponse> Handle(
 		GetYearInReviewQuery request,
 		CancellationToken cancellationToken) {
-		if (request.Year is < 1 or > 9998) {
-			throw new ArgumentOutOfRangeException(nameof(request.Year));
+		var year = DateTime.UtcNow.Year - 1;
+		var persistedPayload = await context.YearInReviewSnapshots
+			.AsNoTracking()
+			.Where(x => x.Year == year)
+			.Select(x => x.Payload)
+			.SingleOrDefaultAsync(cancellationToken);
+		if (persistedPayload != null) {
+			return RestoreImageUrls(persistedPayload, year);
 		}
 
-		var start = new DateTime(request.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+		var start = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		var end = start.AddYears(1);
 		var events = context.PerfumeEvents
 			.AsNoTracking()
@@ -76,8 +83,8 @@ public class GetYearInReviewHandler(
 
 		var totalWears = await events.CountAsync(cancellationToken);
 		if (totalWears == 0) {
-			return new YearInReviewResponse(
-				request.Year, 0, 0, 0, 0, [], [], [], null, null, []);
+			return await Persist(new YearInReviewResponse(
+				year, 0, 0, 0, 0, [], [], [], null, null, []), cancellationToken);
 		}
 
 		var uniquePerfumes = await events
@@ -118,7 +125,8 @@ public class GetYearInReviewHandler(
 				x.ImageObjectKeyNew,
 				Amazon.S3.HttpVerb.GET)?.ToString();
 			return new YearInReviewRankedItem(
-				x.PerfumeName, x.House, x.Count, ImageUrl: imageUrl);
+				x.PerfumeName, x.House, x.Count, ImageUrl: imageUrl,
+				ImageObjectKey: x.ImageObjectKeyNew);
 		}).ToList();
 
 		var topHouseRows = await events
@@ -265,7 +273,7 @@ public class GetYearInReviewHandler(
 				var to = inYear.Last().Rating;
 				return new { PerfumeId = group.Key, From = from, To = to, Change = to - from };
 			})
-			.Where(x => x != null && x.Change > 0)
+			.Where(x => x != null && x.From > 0 && x.Change >= 3)
 			.OrderByDescending(x => x!.Change)
 			.FirstOrDefault();
 		if (hiddenGem != null) {
@@ -278,7 +286,8 @@ public class GetYearInReviewHandler(
 				GetImageUrl(row.PerfumeId),
 				$"Your rating climbed by {hiddenGem.Change:0.#} points this year.",
 				hiddenGem.From,
-				hiddenGem.To));
+				hiddenGem.To,
+				ImageObjectKey: row.ImageObjectKeyNew));
 		}
 
 		var forgottenFavourite = wearRows
@@ -300,18 +309,20 @@ public class GetYearInReviewHandler(
 				row.House,
 				GetImageUrl(row.PerfumeId),
 				$"A {forgottenFavourite.GapDays}-day gap, but still rated {latestRatings[row.PerfumeId]:0.#}.",
-				GapDays: forgottenFavourite.GapDays));
+				GapDays: forgottenFavourite.GapDays,
+				ImageObjectKey: row.ImageObjectKeyNew));
 		}
 
 		var aiSelection = await (yearInReviewAi ?? new NullYearInReviewAi())
-			.SelectCategories(request.Year, candidates, cancellationToken);
+			.SelectCategories(year, candidates, cancellationToken);
 		if (aiSelection != null) {
 			void AddAiPerfumeCategory(string key, string title, Guid? perfumeId, string? reason) {
 				var candidate = candidates.FirstOrDefault(x => x.PerfumeId == perfumeId);
 				if (candidate == null || string.IsNullOrWhiteSpace(reason)) return;
 				categories.Add(new YearInReviewCategory(
 					key, title, candidate.PerfumeName, candidate.House,
-					GetImageUrl(candidate.PerfumeId), reason.Trim()));
+					GetImageUrl(candidate.PerfumeId), reason.Trim(),
+					ImageObjectKey: rowById[candidate.PerfumeId].ImageObjectKeyNew));
 			}
 
 			AddAiPerfumeCategory("crowdPleaser", "Your Crowd Pleaser",
@@ -329,8 +340,8 @@ public class GetYearInReviewHandler(
 			.OrderBy(x => Array.IndexOf(categoryOrder, x.Key))
 			.ToList();
 
-		return new YearInReviewResponse(
-			request.Year,
+		return await Persist(new YearInReviewResponse(
+			year,
 			totalWears,
 			uniquePerfumes,
 			uniqueHouses,
@@ -340,7 +351,55 @@ public class GetYearInReviewHandler(
 			topTags,
 			busiestMonth,
 			busiestDay,
-			categories);
+			categories), cancellationToken);
 	}
+
+	private async Task<YearInReviewResponse> Persist(
+		YearInReviewResponse response,
+		CancellationToken cancellationToken) {
+		var userId = context.TenantProvider?.GetCurrentUserId()
+			?? throw new InvalidOperationException("A user is required to create a year in review.");
+		var snapshot = response with {
+				TopPerfumes = response.TopPerfumes.Select(x => x with { ImageUrl = null }).ToList(),
+				Categories = response.Categories.Select(x => x with { ImageUrl = null }).ToList()
+			};
+		context.YearInReviewSnapshots.Add(new YearInReviewSnapshot {
+			UserId = userId,
+			Year = response.Year,
+			Payload = JsonSerializer.Serialize(snapshot)
+		});
+		try {
+			await context.SaveChangesAsync(cancellationToken);
+		} catch (DbUpdateException exception)
+			  when (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation }) {
+			context.Entry(context.YearInReviewSnapshots.Local.Single(x => x.Year == response.Year))
+				.State = EntityState.Detached;
+			var persistedPayload = await context.YearInReviewSnapshots
+				.AsNoTracking()
+				.Where(x => x.Year == response.Year)
+				.Select(x => x.Payload)
+				.SingleAsync(cancellationToken);
+			return RestoreImageUrls(persistedPayload, response.Year);
+		}
+		return response;
+	}
+
+	private YearInReviewResponse RestoreImageUrls(string payload, int year) {
+		var snapshot = JsonSerializer.Deserialize<YearInReviewResponse>(payload)
+			?? throw new InvalidOperationException($"The persisted {year} year in review is invalid.");
+		return snapshot with {
+			TopPerfumes = snapshot.TopPerfumes.Select(item => item with {
+				ImageUrl = CreateImageUrl(item.ImageObjectKey)
+			}).ToList(),
+			Categories = snapshot.Categories.Select(category => category with {
+				ImageUrl = CreateImageUrl(category.ImageObjectKey)
+			}).ToList()
+		};
+	}
+
+	private string? CreateImageUrl(Guid? imageObjectKey) =>
+		presignedUrlService.GetUrl(
+			imageObjectKey,
+			Amazon.S3.HttpVerb.GET)?.ToString();
 
 }

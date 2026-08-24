@@ -13,7 +13,7 @@ public class PerfumeWornFixture : DbFixture {
 	public PerfumeWornFixture() : base() { }
 
 	public async override Task SeedTestData(PerfumeTrackerContext context) {
-		var sql = "truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;";
+		var sql = "truncate table \"public\".\"YearInReviewSnapshot\" cascade; truncate table \"public\".\"PerfumeEvent\" cascade; truncate table \"public\".\"Perfume\" cascade;";
 		await context.Database.ExecuteSqlRawAsync(sql);
 
 		var perfumes = GeneratePerfumes(3);
@@ -22,12 +22,12 @@ public class PerfumeWornFixture : DbFixture {
 
 		var events = GeneratePerfumeEvents(1, perfumes[0].Id);
 		events[0].Type = PerfumeEvent.PerfumeEventType.Worn;
-		events[0].EventDate = DateTime.UtcNow;
+		events[0].EventDate = DateTime.UtcNow.AddYears(-1);
 		await context.PerfumeEvents.AddRangeAsync(events);
 
 		var events2 = GeneratePerfumeEvents(1, perfumes[1].Id);
 		events2[0].Type = PerfumeEvent.PerfumeEventType.Worn;
-		events2[0].EventDate = DateTime.UtcNow.AddDays(-1);
+		events2[0].EventDate = DateTime.UtcNow.AddYears(-1).AddDays(-1);
 		await context.PerfumeEvents.AddRangeAsync(events2);
 
 		await context.SaveChangesAsync();
@@ -60,15 +60,34 @@ public class PerfumeWornTests {
 		var handler = new GetYearInReviewHandler(context, new MockPresignedUrlService());
 
 		var result = await handler.Handle(
-			new GetYearInReviewQuery(DateTime.UtcNow.Year),
+			new GetYearInReviewQuery(),
 			TestContext.Current.CancellationToken);
 
 		Assert.Equal(2, result.TotalWears);
+		Assert.Equal(DateTime.UtcNow.Year - 1, result.Year);
 		Assert.Equal(2, result.UniquePerfumes);
 		Assert.Equal(2, result.ActiveDays);
 		Assert.Equal(2, result.TopPerfumes.Count);
 		Assert.NotNull(result.BusiestMonth);
 		Assert.NotNull(result.BusiestDay);
+		var snapshotPayload = await context.YearInReviewSnapshots
+			.Select(x => x.Payload)
+			.SingleAsync(TestContext.Current.CancellationToken);
+		Assert.DoesNotContain("http://test.invalid", snapshotPayload, StringComparison.Ordinal);
+
+		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
+		context.PerfumeEvents.Add(new PerfumeEvent {
+			PerfumeId = perfume.Id,
+			EventDate = DateTime.UtcNow.AddYears(-1),
+			Type = PerfumeEvent.PerfumeEventType.Worn
+		});
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+		var persistedResult = await handler.Handle(
+			new GetYearInReviewQuery(),
+			TestContext.Current.CancellationToken);
+		Assert.Equal(2, persistedResult.TotalWears);
+		Assert.All(persistedResult.TopPerfumes, item => Assert.Equal("http://test.invalid/", item.ImageUrl));
 	}
 
 	[Fact]

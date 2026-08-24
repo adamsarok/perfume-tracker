@@ -35,18 +35,18 @@ function Category({ category }: { category: YearInReviewCategory }) {
 }
 
 export default function YearInReviewPage() {
-  const year = new Date().getFullYear();
-  const [stats, setStats] = useState<YearInReviewStats | null>(null);
+	const [stats, setStats] = useState<YearInReviewStats | null>(null);
+	const year = stats?.year ?? new Date().getFullYear() - 1;
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const touchStart = useRef<number | null>(null);
 
   useEffect(() => {
-    getYearInReview(year)
+		getYearInReview()
       .then(setStats)
       .catch((error) => showError("Could not create your year in review", error))
       .finally(() => setLoading(false));
-  }, [year]);
+	}, []);
 
   const pages = stats ? [
     <div><Sparkles className="mx-auto mb-6 h-12 w-12" /><p className="text-sm font-bold uppercase tracking-[0.35em] text-muted-foreground">Your scent story</p><h1 className="mt-4 text-6xl font-black leading-none">Your {year}<br />in review</h1><p className="mt-6 text-lg text-muted-foreground">A year told one spray at a time.</p></div>,
