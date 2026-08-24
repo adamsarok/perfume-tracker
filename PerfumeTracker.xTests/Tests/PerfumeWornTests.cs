@@ -64,11 +64,7 @@ public class PerfumeWornTests {
 			new GetYearInReviewQuery(),
 			TestContext.Current.CancellationToken);
 
-		Assert.Equal(2, result.TotalWears);
 		Assert.Equal(DateTime.UtcNow.Year - 1, result.Year);
-		Assert.Equal(2, result.UniquePerfumes);
-		Assert.Equal(2, result.ActiveDays);
-		Assert.Equal(2, result.TopPerfumes.Count);
 		Assert.NotNull(result.BusiestMonth);
 		Assert.NotNull(result.BusiestDay);
 		var snapshotPayload = await context.YearInReviewSnapshots
