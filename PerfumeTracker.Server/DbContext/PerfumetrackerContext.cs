@@ -35,6 +35,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<ChatConversation> ChatConversations { get; set; }
 	public virtual DbSet<ChatMessage> ChatMessages { get; set; }
 	public virtual DbSet<MarketplaceOffer> MarketplaceOffers { get; set; }
+	public virtual DbSet<YearInReviewSnapshot> YearInReviewSnapshots { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 
@@ -280,6 +281,15 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.IsUnique();
 			entity.HasIndex(e => new { e.UserId, e.Status, e.MatchConfidence })
 				.HasDatabaseName("IX_MarketplaceOffer_UserId_Status_MatchConfidence");
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
+
+		builder.Entity<YearInReviewSnapshot>(entity => {
+			entity.HasKey(e => e.Id).HasName("YearInReviewSnapshot_pkey");
+			entity.ToTable("YearInReviewSnapshot");
+			entity.HasIndex(e => new { e.UserId, e.Year })
+				.HasFilter(@"""IsDeleted"" = FALSE")
+				.IsUnique();
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
 		});
 

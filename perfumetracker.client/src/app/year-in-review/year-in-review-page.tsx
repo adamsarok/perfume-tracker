@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CalendarDays, Droplets, RotateCcw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { showError } from "@/services/toasty-service";
-import { getYearInReview, ReviewRankedItem, YearInReviewStats } from "./year-in-review-stats";
+import { getYearInReview, ReviewRankedItem, YearInReviewCategory, YearInReviewStats } from "./year-in-review-stats";
 
 function Ranking({ items }: { items: ReviewRankedItem[] }) {
   return <div className="mt-7 w-full space-y-3 text-left">
@@ -20,19 +20,33 @@ function Ranking({ items }: { items: ReviewRankedItem[] }) {
   </div>;
 }
 
+function Category({ category }: { category: YearInReviewCategory }) {
+  return <div>
+    <Sparkles className="mx-auto mb-5 h-10 w-10" />
+    <p className="text-sm font-bold uppercase tracking-[0.3em] text-muted-foreground">{category.title}</p>
+    {category.note && <p className="mt-5 text-5xl font-black">{category.note}</p>}
+    {category.imageUrl && <img src={category.imageUrl} alt="" className="mx-auto mt-6 h-32 w-32 rounded-3xl object-cover shadow-lg" />}
+    {category.perfumeName && <h2 className="mt-5 text-4xl font-black">{category.perfumeName}</h2>}
+    {category.house && <p className="mt-1 text-lg text-muted-foreground">{category.house}</p>}
+    {category.ratingFrom != null && category.ratingTo != null &&
+      <p className="mt-5 text-3xl font-black">{category.ratingFrom.toFixed(1)} → {category.ratingTo.toFixed(1)}</p>}
+    <p className="mx-auto mt-5 max-w-sm text-lg text-muted-foreground">{category.detail}</p>
+  </div>;
+}
+
 export default function YearInReviewPage() {
-  const year = new Date().getFullYear();
-  const [stats, setStats] = useState<YearInReviewStats | null>(null);
+	const [stats, setStats] = useState<YearInReviewStats | null>(null);
+	const year = stats?.year ?? new Date().getFullYear() - 1;
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const touchStart = useRef<number | null>(null);
 
   useEffect(() => {
-    getYearInReview(year)
+		getYearInReview()
       .then(setStats)
       .catch((error) => showError("Could not create your year in review", error))
       .finally(() => setLoading(false));
-  }, [year]);
+	}, []);
 
   const pages = stats ? [
     <div><Sparkles className="mx-auto mb-6 h-12 w-12" /><p className="text-sm font-bold uppercase tracking-[0.35em] text-muted-foreground">Your scent story</p><h1 className="mt-4 text-6xl font-black leading-none">Your {year}<br />in review</h1><p className="mt-6 text-lg text-muted-foreground">A year told one spray at a time.</p></div>,
@@ -40,6 +54,7 @@ export default function YearInReviewPage() {
     <div><p className="text-sm font-bold uppercase tracking-[0.3em] text-muted-foreground">Your top scents</p><h2 className="mt-3 text-4xl font-black">The ones you kept coming back to</h2><Ranking items={stats.topPerfumes} /></div>,
     <div><p className="text-sm font-bold uppercase tracking-[0.3em] text-muted-foreground">House favorites</p><h2 className="mt-3 text-4xl font-black">Your most-worn houses</h2><Ranking items={stats.topHouses} /></div>,
     <div><p className="text-sm font-bold uppercase tracking-[0.3em] text-muted-foreground">Your scent profile</p><h2 className="mt-3 text-4xl font-black">Notes that defined your year</h2>{stats.topTags.length ? <Ranking items={stats.topTags} /> : <p className="mt-8 text-xl text-muted-foreground">Add tags to your perfumes to reveal your scent profile.</p>}</div>,
+    ...stats.categories.map((category) => <Category key={category.key} category={category} />),
     <div><CalendarDays className="mx-auto mb-5 h-10 w-10" /><p className="text-sm font-bold uppercase tracking-[0.3em] text-muted-foreground">Your year in a bottle</p><p className="mt-6 text-6xl font-black">{stats.uniquePerfumes}</p><p className="text-xl">different perfumes</p><p className="mt-6 text-6xl font-black">{stats.uniqueHouses}</p><p className="text-xl">houses explored</p><p className="mt-7 text-muted-foreground">Peak month: <strong className="text-foreground">{stats.busiestMonth?.name ?? "—"}</strong> · Favorite day: <strong className="text-foreground">{stats.busiestDay?.name ?? "—"}</strong></p></div>,
   ] : [];
 
