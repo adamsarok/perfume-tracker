@@ -19,15 +19,16 @@ public class PerfumeWornFixture : DbFixture {
 		var perfumes = GeneratePerfumes(3);
 		await context.Perfumes.AddRangeAsync(perfumes);
 		await context.SaveChangesAsync();
+		var previousYear = DateTime.UtcNow.Year - 1;
 
 		var events = GeneratePerfumeEvents(1, perfumes[0].Id);
 		events[0].Type = PerfumeEvent.PerfumeEventType.Worn;
-		events[0].EventDate = DateTime.UtcNow.AddYears(-1);
+		events[0].EventDate = new DateTime(previousYear, 6, 15, 0, 0, 0, DateTimeKind.Utc);
 		await context.PerfumeEvents.AddRangeAsync(events);
 
 		var events2 = GeneratePerfumeEvents(1, perfumes[1].Id);
 		events2[0].Type = PerfumeEvent.PerfumeEventType.Worn;
-		events2[0].EventDate = DateTime.UtcNow.AddYears(-1).AddDays(-1);
+		events2[0].EventDate = new DateTime(previousYear, 6, 14, 0, 0, 0, DateTimeKind.Utc);
 		await context.PerfumeEvents.AddRangeAsync(events2);
 
 		await context.SaveChangesAsync();
@@ -78,7 +79,7 @@ public class PerfumeWornTests {
 		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 		context.PerfumeEvents.Add(new PerfumeEvent {
 			PerfumeId = perfume.Id,
-			EventDate = DateTime.UtcNow.AddYears(-1),
+			EventDate = new DateTime(DateTime.UtcNow.Year - 1, 7, 1, 0, 0, 0, DateTimeKind.Utc),
 			Type = PerfumeEvent.PerfumeEventType.Worn
 		});
 		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
