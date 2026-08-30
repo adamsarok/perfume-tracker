@@ -253,6 +253,66 @@ public class PerfumeRecommenderTests {
 	}
 
 	[Fact]
+	public async Task GetRandom_RanksFreshPerfumesFirst_AndFallsBackWhenNeeded() {
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var userProfile = await userProfileService.GetCurrentUserProfile(TestContext.Current.CancellationToken);
+		var recommender = GetRecommender(context, userProfileService);
+
+		var existingRecommendations = await context.PerfumeRecommendations
+			.ToListAsync(TestContext.Current.CancellationToken);
+		context.PerfumeRecommendations.RemoveRange(existingRecommendations);
+
+		var recommendablePerfumeIds = await context.Perfumes
+			.Where(p => p.MlLeft > 0 && p.LatestRating >= userProfile.MinimumRating)
+			.Select(p => p.Id)
+			.ToListAsync(TestContext.Current.CancellationToken);
+		Assert.NotEmpty(recommendablePerfumeIds);
+
+		var now = DateTime.UtcNow;
+		context.PerfumeRecommendations.AddRange(recommendablePerfumeIds.Select(perfumeId => new PerfumeRecommendation {
+			PerfumeId = perfumeId,
+			Strategy = RecommendationStrategy.Random,
+			UserId = _fixture.TenantProvider.MockTenantId!.Value,
+			CreatedAt = now,
+			UpdatedAt = now
+		}));
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+		var requestedCount = Math.Min(3, recommendablePerfumeIds.Count);
+		var lastWornPerfumeIds = await context.PerfumeEvents
+			.Where(e => e.Type == PerfumeEvent.PerfumeEventType.Worn)
+			.OrderByDescending(e => e.EventDate)
+			.Select(e => e.PerfumeId)
+			.Distinct()
+			.Take(5)
+			.ToListAsync(TestContext.Current.CancellationToken);
+		var recommendations = await recommender.GetAllStrategyRecommendations(
+			requestedCount,
+			[RecommendationStrategy.Random],
+			TestContext.Current.CancellationToken);
+
+		var recommendationList = recommendations.ToList();
+		Assert.Equal(requestedCount, recommendationList.Count);
+		Assert.All(recommendationList, recommendation =>
+			Assert.Contains(recommendation.Perfume.Perfume.Id, recommendablePerfumeIds));
+		Assert.DoesNotContain(recommendationList, recommendation =>
+			lastWornPerfumeIds.Contains(recommendation.Perfume.Perfume.Id));
+
+		var fallbackRecommendations = await recommender.GetAllStrategyRecommendations(
+			recommendablePerfumeIds.Count,
+			[RecommendationStrategy.Random],
+			TestContext.Current.CancellationToken);
+		var fallbackRecommendationIds = fallbackRecommendations
+			.Select(recommendation => recommendation.Perfume.Perfume.Id)
+			.ToList();
+
+		Assert.Equal(recommendablePerfumeIds.Count, fallbackRecommendationIds.Count);
+		Assert.All(lastWornPerfumeIds, perfumeId => Assert.Contains(perfumeId, fallbackRecommendationIds));
+	}
+
+	[Fact]
 	public async Task GetRecommendationsForOccasionMoodPrompt_UsesMemoryCacheCompletion() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();

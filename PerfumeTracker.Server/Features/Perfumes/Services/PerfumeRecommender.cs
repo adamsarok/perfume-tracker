@@ -42,11 +42,11 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 		return _lastWornPerfumeIds;
 	}
 
-	private IQueryable<Perfume> GetRecommendablePerfumes(decimal minimumRating, List<Guid> lastWornPerfumeIds) {
+	private IQueryable<Perfume> GetRecommendablePerfumes(decimal minimumRating, List<Guid> excludedPerfumeIds) {
 		return context.Perfumes
 			.Where(p => p.MlLeft > 0
 				&& p.LatestRating >= minimumRating
-				&& !lastWornPerfumeIds.Contains(p.Id))
+				&& !excludedPerfumeIds.Contains(p.Id))
 			.Include(p => p.PerfumeEvents)
 			.Include(p => p.PerfumeRatings)
 			.Include(p => p.PerfumeTags)
@@ -102,15 +102,16 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 	}
 
 	private async Task<IEnumerable<PerfumeRecommendationDto>> GetRandom(int count, UserProfile userProfile, CancellationToken cancellationToken) {
-		var alreadySuggestedIds = await GetAlreadySuggestedRandomPerfumeIds(userProfile.DayFilter, cancellationToken);
-		var all = await GetRecommendablePerfumes(userProfile.MinimumRating, alreadySuggestedIds)
-			.ToListAsync(cancellationToken);
-		if (all.Count == 0) return Enumerable.Empty<PerfumeRecommendationDto>();
-		var filtered = all.Where(x => !alreadySuggestedIds.Contains(x.Id));
-		if (!filtered.Any()) filtered = all;
-		return filtered
-			.OrderBy(_ => Random.Shared.Next())
+		var lastWornIds = await GetLastWornPerfumeIdsCached(cancellationToken);
+		var recentlySuggestedIds = await GetAlreadySuggestedRandomPerfumeIds(userProfile.DayFilter, cancellationToken);
+		var selected = await GetRecommendablePerfumes(userProfile.MinimumRating, [])
+			.OrderBy(p => lastWornIds.Contains(p.Id))
+			.ThenBy(p => recentlySuggestedIds.Contains(p.Id))
+			.ThenBy(_ => EF.Functions.Random())
 			.Take(count)
+			.ToListAsync(cancellationToken);
+
+		return selected
 			.Select(x => new PerfumeRecommendationDto(Guid.Empty, x.ToPerfumeWithWornStatsDto(userProfile, presignedUrlService), RecommendationStrategy.Random));
 	}
 
