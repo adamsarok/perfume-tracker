@@ -146,7 +146,7 @@ public abstract class DbFixture : IAsyncLifetime {
 			.RuleFor(pr => pr.Id, f => Guid.NewGuid())
 			.RuleFor(pr => pr.PerfumeId, f => Guid.NewGuid())
 			.RuleFor(pr => pr.RatingDate, f => f.Date.RecentOffset(90).UtcDateTime)
-			.RuleFor(pr => pr.Rating, f => f.Random.Decimal(1, 10))
+			.RuleFor(pr => pr.Rating, f => f.Random.Decimal(1, 5))
 			.RuleFor(pr => pr.Comment, f => f.Lorem.Sentence(10))
 			.RuleFor(pr => pr.UserId, tenantId)
 			.RuleFor(pr => pr.CreatedAt, f => f.Date.PastOffset(1).UtcDateTime)
@@ -219,7 +219,6 @@ public abstract class DbFixture : IAsyncLifetime {
 
 		UserProfileFaker = new Faker<UserProfile>()
 			.RuleFor(up => up.Id, tenantId)
-			.RuleFor(up => up.MinimumRating, f => f.Random.Decimal(0, 10))
 			.RuleFor(up => up.DayFilter, f => f.Random.Int(7, 90))
 			.RuleFor(up => up.ShowMalePerfumes, f => f.Random.Bool(0.8f))
 			.RuleFor(up => up.ShowUnisexPerfumes, f => f.Random.Bool(0.8f))

@@ -104,11 +104,11 @@ public class PerfumeRecommenderFixture : DbFixture {
 
 		// Add ratings to perfumes (all above minimum rating threshold)
 		foreach (var perfume in perfumes) {
-			perfume.LatestRating = 8.5m;
+			perfume.LatestRating = 4.5m;
 			var rating = new PerfumeRating {
 				Id = Guid.NewGuid(),
 				PerfumeId = perfume.Id,
-				Rating = 8.5m,
+				Rating = 4.5m,
 				RatingDate = DateTime.UtcNow,
 				Comment = "Great perfume!",
 				UserId = tenantId,
@@ -323,7 +323,7 @@ public class PerfumeRecommenderTests {
 		var unwornPerfume = _fixture.GeneratePerfumes(1)[0];
 		unwornPerfume.Ml = 100;
 		unwornPerfume.MlLeft = 100;
-		unwornPerfume.LatestRating = 9.0m;
+		unwornPerfume.LatestRating = 5.0m;
 		context.Perfumes.Add(unwornPerfume);
 		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -489,7 +489,7 @@ public class PerfumeRecommenderTests {
 
 		// Update user profile to have a higher minimum rating
 		var userProfile = await userProfileService.GetCurrentUserProfile(TestContext.Current.CancellationToken);
-		userProfile.MinimumRating = 7.0m;
+		userProfile.MinimumRating = 4.0m;
 		context.UserProfiles.Update(userProfile);
 		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -566,7 +566,7 @@ public class PerfumeRecommenderTests {
 		var rating = new PerfumeRating {
 			Id = Guid.NewGuid(),
 			PerfumeId = emptyPerfume.Id,
-			Rating = 9.0m,
+			Rating = 5.0m,
 			RatingDate = DateTime.UtcNow,
 			UserId = _fixture.TenantProvider.MockTenantId!.Value,
 			CreatedAt = DateTime.UtcNow,

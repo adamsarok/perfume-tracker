@@ -8,6 +8,7 @@ public record PerfumeEventDownloadDto(
 	string PerfumeImageUrl,
 	string PerfumeHouse,
 	string PerfumeName,
+	decimal LatestRating,
 	List<TagDto> PerfumeTags,
 	int SequenceNumber,
 	bool IsDeleted

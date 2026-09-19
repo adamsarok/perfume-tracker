@@ -36,6 +36,7 @@ public class GetWornPerfumesHandler(PerfumeTrackerContext context, IPresignedUrl
 					: "",
 				x.Perfume.House,
 				x.Perfume.PerfumeName,
+				x.Perfume.LatestRating,
 				x.Perfume.PerfumeTags.Select(x => x.Tag.Adapt<TagDto>()).ToList(),
 				x.SequenceNumber,
 				x.IsDeleted

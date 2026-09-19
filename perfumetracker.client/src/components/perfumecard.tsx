@@ -16,6 +16,7 @@ import { PerfumeWornDTO } from "@/dto/PerfumeWornDTO";
 import { deleteWear } from "@/services/perfume-worn-service";
 import { showError, showSuccess } from "@/services/toasty-service";
 import { useAuth } from "@/hooks/use-auth";
+import PerfumeRatingBadge from "./perfume-rating-badge";
 
 export interface PerfumeCardProps {
   readonly worn: PerfumeWornDTO;
@@ -68,6 +69,7 @@ export default function PerfumeCard({
               </Avatar>
               <div className="text-small leading-none text-default-600">
                 <p className="whitespace-normal text-small">{worn.perfumeHouse} - {worn.perfumeName}</p>
+                <div className="mt-2"><PerfumeRatingBadge rating={worn.latestRating} /></div>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
