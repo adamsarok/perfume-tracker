@@ -4,7 +4,7 @@ namespace PerfumeTracker.Server.Models;
 
 public class UserProfile : Entity {
 	public UserProfile() {
-		MinimumRating = 8;
+		MinimumRating = 2;
 		DayFilter = 30;
 		ShowFemalePerfumes = true;
 		ShowMalePerfumes = true;

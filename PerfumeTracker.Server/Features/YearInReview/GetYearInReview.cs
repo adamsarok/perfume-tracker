@@ -58,11 +58,15 @@ public class GetYearInReviewEndpoint : ICarterModule {
 public class GetYearInReviewHandler(
 	PerfumeTrackerContext context,
 	IPresignedUrlService presignedUrlService,
+	IUserProfileService userProfileService,
 	IYearInReviewAi? yearInReviewAi = null)
 	: IQueryHandler<GetYearInReviewQuery, YearInReviewResponse> {
 	public async Task<YearInReviewResponse> Handle(
 		GetYearInReviewQuery request,
 		CancellationToken cancellationToken) {
+
+		var userProfile = await userProfileService.GetCurrentUserProfile(cancellationToken);
+
 		var year = DateTime.UtcNow.Year - 1;
 		var persistedPayload = await context.YearInReviewSnapshots
 			.AsNoTracking()
@@ -226,7 +230,7 @@ public class GetYearInReviewHandler(
 			.Take(5)
 			.Select(x => x.PerfumeId), "top-rated");
 		AddSample(perfumeRows
-			.Where(x => latestRatings.GetValueOrDefault(x.PerfumeId) >= 8m)
+			.Where(x => latestRatings.GetValueOrDefault(x.PerfumeId) >= userProfile.MinimumRating)
 			.OrderBy(x => x.Count)
 			.ThenByDescending(x => latestRatings[x.PerfumeId])
 			.Take(5)
@@ -292,7 +296,7 @@ public class GetYearInReviewHandler(
 
 		var forgottenFavourite = wearRows
 			.GroupBy(x => x.PerfumeId)
-			.Where(x => latestRatings.GetValueOrDefault(x.Key) >= 8m && x.Count() >= 2)
+			.Where(x => latestRatings.GetValueOrDefault(x.Key) >= userProfile.MinimumRating && x.Count() >= 2)
 			.Select(group => {
 				var dates = group.Select(x => x.EventDate).OrderBy(x => x).ToList();
 				var gap = dates.Zip(dates.Skip(1), (left, right) => (right - left).Days).Max();
@@ -360,9 +364,9 @@ public class GetYearInReviewHandler(
 		var userId = context.TenantProvider?.GetCurrentUserId()
 			?? throw new InvalidOperationException("A user is required to create a year in review.");
 		var snapshot = response with {
-				TopPerfumes = response.TopPerfumes.Select(x => x with { ImageUrl = null }).ToList(),
-				Categories = response.Categories.Select(x => x with { ImageUrl = null }).ToList()
-			};
+			TopPerfumes = response.TopPerfumes.Select(x => x with { ImageUrl = null }).ToList(),
+			Categories = response.Categories.Select(x => x with { ImageUrl = null }).ToList()
+		};
 		context.YearInReviewSnapshots.Add(new YearInReviewSnapshot {
 			UserId = userId,
 			Year = response.Year,
