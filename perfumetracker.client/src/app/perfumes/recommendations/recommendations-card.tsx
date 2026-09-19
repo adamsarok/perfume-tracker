@@ -13,6 +13,7 @@ import ColorChip from "@/components/color-chip";
 import SprayOnComponent from "@/components/spray-on";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PerfumeRecommendationDTO } from "@/dto/PerfumeRecommendationDTO";
+import PerfumeRatingBadge from "@/components/perfume-rating-badge";
 
 export interface PerfumeRecommendationsCardProps {
   readonly recommendation: PerfumeRecommendationDTO;
@@ -52,6 +53,7 @@ export default function PerfumeRecommendationsCard({
               <div className="text-small leading-none text-default-600">
                 {getRecommendationIcon(recommendation.strategy)}
                 <p className="whitespace-normal text-small">{perfume.house} - {perfume.perfumeName}</p>
+                <div className="mt-2"><PerfumeRatingBadge rating={perfume.latestRating} /></div>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>

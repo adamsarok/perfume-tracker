@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PerfumeWithWornStatsDTO } from "@/dto/PerfumeWithWornStatsDTO";
 import { getPerfume } from "@/services/perfume-service";
+import PerfumeRatingBadge from "@/components/perfume-rating-badge";
 
 const perfumeCache = new Map<string, Promise<PerfumeWithWornStatsDTO | null>>();
 
@@ -55,6 +56,7 @@ export default function ConversationPerfumeCard({ perfumeId }: { readonly perfum
           {details.family || "Unknown family"} · {details.mlLeft} ml left
         </span>
       </span>
+      <PerfumeRatingBadge rating={details.latestRating} />
     </a>
   );
 }

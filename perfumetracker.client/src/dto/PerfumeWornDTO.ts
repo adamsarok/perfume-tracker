@@ -7,6 +7,7 @@ export interface PerfumeWornDTO {
     perfumeImageUrl: string,
     perfumeHouse: string,
     perfumeName: string,
+    latestRating: number,
     perfumeTags: TagDTO[],
     eventDate: string,
     sequenceNumber: number
