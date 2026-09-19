@@ -58,7 +58,8 @@ public class PerfumeWornTests {
 	public async Task GetYearInReviewAggregatesWearsOnServer() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-		var handler = new GetYearInReviewHandler(context, new MockPresignedUrlService());
+		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var handler = new GetYearInReviewHandler(context, new MockPresignedUrlService(), userProfileService);
 
 		var result = await handler.Handle(
 			new GetYearInReviewQuery(),

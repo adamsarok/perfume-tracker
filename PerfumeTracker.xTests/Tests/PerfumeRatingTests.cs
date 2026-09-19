@@ -50,15 +50,15 @@ public class PerfumeRatingTests {
 		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 
 		var result = await ratingService.AddPerfumeRating(
-			perfume.Id, 9.0m, "Excellent!", TestContext.Current.CancellationToken);
+			perfume.Id, 5.0m, "Excellent!", TestContext.Current.CancellationToken);
 
 		Assert.Equal(perfume.Id, result.PerfumeId);
-		Assert.Equal(9.0m, result.Rating);
+		Assert.Equal(5.0m, result.Rating);
 
 		// Verify latest rating was updated
 		var updatedPerfume = await context.Perfumes.FindAsync([perfume.Id], TestContext.Current.CancellationToken);
 		Assert.NotNull(updatedPerfume);
-		Assert.Equal(9.0m, updatedPerfume.LatestRating);
+		Assert.Equal(5.0m, updatedPerfume.LatestRating);
 	}
 
 	[Fact]
@@ -69,11 +69,11 @@ public class PerfumeRatingTests {
 		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
 
 		var remain = await ratingService.AddPerfumeRating(
-			perfume.Id, 10.0m, "Good", TestContext.Current.CancellationToken);
+			perfume.Id, 5.0m, "Good", TestContext.Current.CancellationToken);
 
 		// Add a rating first
 		var added = await ratingService.AddPerfumeRating(
-			perfume.Id, 7.0m, "Good", TestContext.Current.CancellationToken);
+			perfume.Id, 4.0m, "Good", TestContext.Current.CancellationToken);
 
 		// Delete it
 		var deleted = await ratingService.DeletePerfumeRating(

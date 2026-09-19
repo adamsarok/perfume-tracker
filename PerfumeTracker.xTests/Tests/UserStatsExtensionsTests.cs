@@ -17,7 +17,7 @@ public class UserStatsExtensionsTests {
 			MonthlyUsageMl: 10m,
 			YearlyUsageMl: 120m,
 			FavoritePerfumes: new[] {
-				new FavoritePerfumeDto(Guid.NewGuid(), "House1", "Big Citrus", 9.5m, 10)
+				new FavoritePerfumeDto(Guid.NewGuid(), "House1", "Big Citrus", 4.5m, 10)
 			},
 			FavoriteParfumeurs: new[] {
 				new FavoriteParfumeurDto("Jean-Claude Ellena", 3, new[] {

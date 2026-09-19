@@ -5,6 +5,13 @@ using PerfumeTracker.xTests.Fixture;
 
 namespace PerfumeTracker.xTests.Tests;
 
+public class UserProfileDefaultsTests {
+	[Fact]
+	public void NewUserProfile_DefaultMinimumRatingIsTwo() {
+		Assert.Equal(2m, new PerfumeTracker.Server.Models.UserProfile().MinimumRating);
+	}
+}
+
 [CollectionDefinition("UserProfiles Tests")]
 public class UserProfilesCollection : ICollectionFixture<UserProfilesFixture>;
 
@@ -23,6 +30,7 @@ public class UserProfilesTests {
 	public UserProfilesTests(UserProfilesFixture fixture) {
 		_fixture = fixture;
 	}
+
 
 	[Fact]
 	public async Task GetUserProfiles() {
