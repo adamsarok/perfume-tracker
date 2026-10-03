@@ -20,7 +20,7 @@ export default function AppNavigationMenu() {
                             <li className="row-span-2">
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-4 no-underline outline-none focus:shadow-md"
+                                        className="flex h-full w-full select-none flex-col justify-end rounded-md bg-linear-to-b from-muted/50 to-muted p-4 no-underline outline-hidden focus:shadow-md"
                                         to="/"
                                     >
                                         <House className="h-5 w-5" />
@@ -35,7 +35,7 @@ export default function AppNavigationMenu() {
                             </li>
                             <li>
                                 <NavigationMenuLink asChild>
-                                    <Link className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent" to="/year-in-review">
+                                    <Link className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent" to="/year-in-review">
                                         <div className="flex items-center gap-2"><Sparkles className="h-4 w-4" /><div className="text-sm font-medium leading-none">Year in Review</div></div>
                                         <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">Replay your year in fragrance</p>
                                     </Link>
@@ -44,7 +44,7 @@ export default function AppNavigationMenu() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         to="/perfumes/recommendations"
                                     >
                                         <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default function AppNavigationMenu() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         to="/perfumes/agent"
                                     >
                                         <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export default function AppNavigationMenu() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         to="/perfumes/new-perfume"
                                     >
                                         <div className="flex items-center gap-2">
@@ -92,7 +92,7 @@ export default function AppNavigationMenu() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         to="/perfumes"
                                     >
                                         <div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export default function AppNavigationMenu() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         to="/stats"
                                     >
                                         <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export default function AppNavigationMenu() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         to="/tags"
                                     >
                                         <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ export default function AppNavigationMenu() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         to="/progress"
                                     >
                                         <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export default function AppNavigationMenu() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                        className="block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                         to="/settings"
                                     >
                                         <div className="flex items-center gap-2">

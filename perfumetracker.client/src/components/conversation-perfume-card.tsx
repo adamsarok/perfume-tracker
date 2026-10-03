@@ -44,9 +44,9 @@ export default function ConversationPerfumeCard({ perfumeId }: { readonly perfum
   return (
     <a
       href={`/perfumes/${details.id}`}
-      className="my-2 flex items-center gap-3 rounded-lg border bg-white p-3 text-gray-900 shadow-sm transition hover:border-blue-300 hover:shadow no-underline"
+      className="my-2 flex items-center gap-3 rounded-lg border bg-white p-3 text-gray-900 shadow-xs transition hover:border-blue-300 hover:shadow-sm no-underline"
     >
-      <Avatar className="h-12 w-12 flex-shrink-0">
+      <Avatar className="h-12 w-12 shrink-0">
         <AvatarImage className="object-cover" src={details.imageUrl} />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>

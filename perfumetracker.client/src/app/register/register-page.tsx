@@ -67,7 +67,7 @@ export default function RegisterPage() {
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit} autoComplete="on">
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="rounded-md shadow-xs -space-y-px">
             <div>
               <Label htmlFor="email-address" className="sr-only">
                 Email address

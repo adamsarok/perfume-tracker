@@ -266,7 +266,7 @@ export default function ChatAgentPage() {
                       onMouseEnter={() => setHoveredConversationId(conversation.id)}
                       onFocus={() => setHoveredConversationId(conversation.id)}
                       onClick={() => void handleConversationChange(conversation.id)}
-                      className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                      className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-hidden"
                     >
                       {conversation.title?.trim() || "Untitled conversation"}
                     </button>
@@ -433,7 +433,7 @@ export default function ChatAgentPage() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-          className="flex-1 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 p-3 border rounded-lg resize-none focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           rows={3}
           disabled={isLoading || isLoadingConversation}
         />
