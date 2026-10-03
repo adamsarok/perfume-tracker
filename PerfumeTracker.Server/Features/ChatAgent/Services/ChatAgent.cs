@@ -1,6 +1,9 @@
+#pragma warning disable OPENAI001 // Responses API is marked experimental in OpenAI 2.13.0.
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using OpenAI.Chat;
+using OpenAI.Responses;
+using PerfumeTracker.Server.Options;
 using PerfumeTracker.Server.Features.Perfumes.Services;
 using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Startup;
@@ -26,7 +29,8 @@ public record PerfumeLlmDto(
 	string? LastComment);
 public class ChatAgent(
 	PerfumeTrackerContext context,
-	ChatClient chatClient,
+	ResponsesClient responsesClient,
+	IOptions<OpenAIOptions> openAiOptions,
 	IUserStatsService userStatsService,
 	ISystemPromptCache promptCache,
 	IHubContext<ChatProgressHub> hubContext,
@@ -48,61 +52,53 @@ public class ChatAgent(
 
 		await SaveChatMessage(conversation.Id, "user", request.UserMessage, chatHistory.Count - 1, cancellationToken, null);
 
-		var options = new ChatCompletionOptions();
-		foreach (var tool in chatAgentTools.Tools) {
-			options.Tools.Add(tool);
-		}
-
-		bool requiresAnotherIteration = true;
-		int iteration = 0;
-
-		while (requiresAnotherIteration && iteration < maxIterations) {
-			iteration++;
-			requiresAnotherIteration = false;
-
-			// For final iteration disable tool calls to force final answer
-			if (iteration == maxIterations) {
-				options = new ChatCompletionOptions();
-			}
+		var responseHistory = ChatAgentResponseProtocol.ConvertHistory(chatHistory);
+		for (var iteration = 1; iteration <= maxIterations; iteration++) {
+			var options = ChatAgentResponseProtocol.CreateOptions(openAiOptions.Value.AssistantModel,
+				responseHistory, chatAgentTools.Tools, allowTools: iteration < maxIterations);
 
 			await hubContext.Clients.User(userId.ToString())
-				.SendAsync("ProgressMsg", new { Message = $"Agent is thinking... {iteration}/{maxIterations} iterations." });
-			var completion = await chatClient.CompleteChatAsync(chatHistory, options, cancellationToken);
-			Diagnostics.RecordChatTokenUsage(completion.Value, "chat_agent");
-
-			switch (completion.Value.FinishReason) {
-				case ChatFinishReason.Stop:
-					var responseMessage = completion.Value.Content[0].Text;
-					await SaveChatMessage(conversation.Id, "assistant", responseMessage, chatHistory.Count, cancellationToken, completion.Value.FinishReason);
-					await SaveDiscussedPerfumeIds(conversation, responseMessage, cancellationToken);
-					await GenerateAndSaveConversationTitle(conversation, cancellationToken);
-					return new ChatAgentResponse(conversation.Id, responseMessage);
-				case ChatFinishReason.ToolCalls:
-					await HandleToolCalls(userId, conversation, chatHistory, completion, cancellationToken);
-					requiresAnotherIteration = true;
-					break;
-				case ChatFinishReason.Length:
-					throw new InvalidOperationException("Chat response was too long");
-				default:
-					throw new InvalidOperationException($"Unexpected finish reason: {completion.Value.FinishReason}");
+				.SendAsync("ProgressMsg", new { Message = $"Agent is thinking... {iteration}/{maxIterations} iterations." }, cancellationToken);
+			var response = (await responsesClient.CreateResponseAsync(options, cancellationToken)).Value;
+			Diagnostics.RecordChatTokenUsage(response, "chat_agent");
+			if (response.Status != ResponseStatus.Completed) {
+				throw new InvalidOperationException($"Chat response did not complete: {response.Status}. {response.Error?.Message} {response.IncompleteStatusDetails?.Reason}");
 			}
+
+			// Reasoning items must accompany the function calls when sending their outputs back.
+			responseHistory.AddRange(response.OutputItems);
+			var toolCalls = ChatAgentResponseProtocol.GetToolCalls(response);
+			if (toolCalls.Count > 0) {
+				if (iteration == maxIterations) throw new InvalidOperationException("Model called tools when tool calls were disabled");
+				await HandleToolCalls(userId, conversation, chatHistory, responseHistory, toolCalls, cancellationToken);
+				continue;
+			}
+
+			var responseMessage = response.GetOutputText();
+			if (string.IsNullOrWhiteSpace(responseMessage)) throw new InvalidOperationException("Chat response contained no answer");
+			await SaveChatMessage(conversation.Id, "assistant", responseMessage, chatHistory.Count, cancellationToken, ChatFinishReason.Stop);
+			await SaveDiscussedPerfumeIds(conversation, responseMessage, cancellationToken);
+			await GenerateAndSaveConversationTitle(conversation, cancellationToken);
+			return new ChatAgentResponse(conversation.Id, responseMessage);
 		}
 		throw new InvalidOperationException("Maximum iterations reached without completion");
 	}
 
-	private async Task HandleToolCalls(Guid userId, ChatConversation conversation, List<OpenAI.Chat.ChatMessage> chatHistory, System.ClientModel.ClientResult<ChatCompletion> completion, CancellationToken cancellationToken) {
+	private async Task HandleToolCalls(Guid userId, ChatConversation conversation, List<OpenAI.Chat.ChatMessage> chatHistory, List<ResponseItem> responseHistory, List<ChatToolCall> toolCalls, CancellationToken cancellationToken) {
 		await hubContext.Clients.User(userId.ToString())
-								.SendAsync("ProgressMsg", new { Message = $"Agent is making {completion.Value.ToolCalls.Count} tool call(s)." });
-		chatHistory.Add(new AssistantChatMessage(completion.Value));
-		await SaveAssistantMessageWithTools(conversation.Id, completion.Value, chatHistory.Count - 1, cancellationToken);
+								.SendAsync("ProgressMsg", new { Message = $"Agent is making {toolCalls.Count} tool call(s)." }, cancellationToken);
+		chatHistory.Add(new AssistantChatMessage(toolCalls));
+		await SaveAssistantMessageWithTools(conversation.Id, toolCalls, chatHistory.Count - 1, cancellationToken);
 
-		foreach (var toolCall in completion.Value.ToolCalls) {
+		foreach (var toolCall in toolCalls) {
 			string toolResult;
 			var stopwatch = Stopwatch.StartNew();
 			var functionArguments = toolCall.FunctionArguments.ToString();
 
 			try {
 				toolResult = await chatAgentTools.ExecuteToolCall(toolCall, cancellationToken);
+			} catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
+				throw;
 			} catch (Exception ex) {
 				stopwatch.Stop();
 				logger.LogError(
@@ -116,6 +112,7 @@ public class ChatAgent(
 					functionArguments);
 				toolResult = $"Error: {ex.Message}";
 			}
+			responseHistory.Add(ResponseItem.CreateFunctionCallOutputItem(toolCall.Id, toolResult));
 			chatHistory.Add(new ToolChatMessage(toolCall.Id, toolResult));
 			await SaveChatMessage(conversation.Id, "tool", toolResult, chatHistory.Count - 1, cancellationToken, null, toolCall.Id, toolCall.FunctionName, functionArguments);
 		}
@@ -246,25 +243,10 @@ Use the tools to gather enough collection evidence before answering, especially 
 					break;
 				case "assistant":
 					if (msg.ChatFinishReason == ChatFinishReason.ToolCalls) {
-						// Deserialize the tool calls structure we saved
-						var toolCallsData = JsonSerializer.Deserialize<JsonElement>(msg.Content);
-						if (toolCallsData.ValueKind == JsonValueKind.Array) {
-							var toolCalls = new List<ChatToolCall>();
-							foreach (var tcElement in toolCallsData.EnumerateArray()) {
-								var id = tcElement.GetProperty("Id").GetString();
-								var kind = tcElement.GetProperty("Kind");
-								var functionName = tcElement.GetProperty("FunctionName").GetString();
-								var functionArguments = tcElement.GetProperty("FunctionArguments").GetRawText();
-
-								if (id != null && functionName != null && functionArguments != null) {
-									toolCalls.Add(ChatToolCall.CreateFunctionToolCall(id, functionName, BinaryData.FromString(functionArguments)));
-								}
-							}
-
-							if (toolCalls.Count > 0) {
-								chatHistory.Add(new AssistantChatMessage((IEnumerable<ChatToolCall>)toolCalls));
-								break;
-							}
+						var toolCalls = ChatAgentResponseProtocol.DeserializeToolCalls(msg.Content);
+						if (toolCalls.Count > 0) {
+							chatHistory.Add(new AssistantChatMessage(toolCalls));
+							break;
 						}
 						// If we can't parse tool calls, fall through to regular message
 						chatHistory.Add(new AssistantChatMessage(msg.Content));
@@ -299,8 +281,8 @@ Use the tools to gather enough collection evidence before answering, especially 
 		await context.SaveChangesAsync(cancellationToken);
 	}
 
-	private async Task SaveAssistantMessageWithTools(Guid conversationId, ChatCompletion completion, int index, CancellationToken cancellationToken) {
-		var toolCallsJson = JsonSerializer.Serialize(completion.ToolCalls);
+	private async Task SaveAssistantMessageWithTools(Guid conversationId, List<ChatToolCall> toolCalls, int index, CancellationToken cancellationToken) {
+		var toolCallsJson = JsonSerializer.Serialize(toolCalls);
 
 		var message = new Models.ChatMessage {
 			ConversationId = conversationId,
@@ -360,17 +342,19 @@ Use the tools to gather enough collection evidence before answering, especially 
 
 			if (transcript.Length == 0) return;
 
-			List<OpenAI.Chat.ChatMessage> titlePrompt = [
-				new SystemChatMessage(
+			var titleOptions = ChatAgentResponseProtocol.CreateOptions(openAiOptions.Value.AssistantModel, [
+				ResponseItem.CreateSystemMessageItem(
 					"Create a concise, specific title that summarizes the main topic of this conversation. " +
 					"Use 3 to 8 words. Return only the title, without quotes, punctuation at the end, or markdown."),
-				new UserChatMessage(transcript.ToString())
-			];
-			var titleOptions = new ChatCompletionOptions { MaxOutputTokenCount = 40 };
-			var completion = await chatClient.CompleteChatAsync(titlePrompt, titleOptions, cancellationToken);
-			Diagnostics.RecordChatTokenUsage(completion.Value, "chat_conversation_title");
+				ResponseItem.CreateUserMessageItem(transcript.ToString())
+			], [], allowTools: false);
+			// The output budget includes reasoning tokens as well as the short title.
+			titleOptions.MaxOutputTokenCount = 2048;
+			var response = (await responsesClient.CreateResponseAsync(titleOptions, cancellationToken)).Value;
+			Diagnostics.RecordChatTokenUsage(response, "chat_conversation_title");
+			if (response.Status != ResponseStatus.Completed) return;
 
-			var generatedTitle = completion.Value.Content.FirstOrDefault()?.Text?.Trim().Trim('"', '\'');
+			var generatedTitle = response.GetOutputText()?.Trim().Trim('"', '\'');
 			if (string.IsNullOrWhiteSpace(generatedTitle)) return;
 
 			const string titlePrefix = "Title:";
@@ -381,6 +365,8 @@ Use the tools to gather enough collection evidence before answering, especially 
 			conversation.Title = generatedTitle.Length > 100 ? generatedTitle[..100].TrimEnd() : generatedTitle;
 			conversation.TitleGeneratedAt = DateTime.UtcNow;
 			await context.SaveChangesAsync(cancellationToken);
+		} catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
+			throw;
 		} catch (Exception ex) {
 			logger.LogWarning(ex, "Could not generate title for chat conversation {ConversationId}", conversation.Id);
 		}

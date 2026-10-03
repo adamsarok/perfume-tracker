@@ -1,6 +1,8 @@
+#pragma warning disable OPENAI001 // Responses API is marked experimental in OpenAI 2.13.0.
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using OpenAI.Chat;
+using OpenAI.Responses;
 
 namespace PerfumeTracker.Server.Startup;
 
@@ -25,17 +27,27 @@ public static class Diagnostics {
 	public static void RecordChatTokenUsage(ChatCompletion completion, string operation) {
 		var usage = completion.Usage;
 		if (usage == null) return;
+		RecordTokenUsage(usage.InputTokenCount, usage.OutputTokenCount, usage.TotalTokenCount, operation);
+	}
+
+	public static void RecordChatTokenUsage(ResponseResult response, string operation) {
+		var usage = response.Usage;
+		if (usage == null) return;
+		RecordTokenUsage(usage.InputTokenCount, usage.OutputTokenCount, usage.TotalTokenCount, operation);
+	}
+
+	private static void RecordTokenUsage(int inputTokens, int outputTokens, int totalTokens, string operation) {
 
 		OpenAiChatTokensCounter.Add(
-			usage.InputTokenCount,
+			inputTokens,
 			new KeyValuePair<string, object?>("operation", operation),
 			new KeyValuePair<string, object?>("token.type", "input"));
 		OpenAiChatTokensCounter.Add(
-			usage.OutputTokenCount,
+			outputTokens,
 			new KeyValuePair<string, object?>("operation", operation),
 			new KeyValuePair<string, object?>("token.type", "output"));
 		OpenAiChatTokensCounter.Add(
-			usage.TotalTokenCount,
+			totalTokens,
 			new KeyValuePair<string, object?>("operation", operation),
 			new KeyValuePair<string, object?>("token.type", "total"));
 	}
