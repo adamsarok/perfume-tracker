@@ -155,7 +155,7 @@ export default function RootLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-white shadow-xs">
         <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16">
             {user && (

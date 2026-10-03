@@ -168,6 +168,9 @@ var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
 var assistantModel = builder.Configuration["OpenAI:AssistantModel"];
 if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assistantModel)) {
 	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
+#pragma warning disable OPENAI001 // Responses API is marked experimental in OpenAI 2.13.0.
+	builder.Services.AddSingleton(sp => sp.GetRequiredService<OpenAIClient>().GetResponsesClient());
+#pragma warning restore OPENAI001
 	builder.Services.AddSingleton<ChatClient>(_ = new ChatClient(model: assistantModel, apiKey: openAiApiKey));
 	builder.Services.AddSingleton<IEncoder, Encoder>();
 	builder.Services.AddScoped<IYearInReviewAi, YearInReviewAi>();

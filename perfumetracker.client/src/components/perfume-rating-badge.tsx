@@ -5,7 +5,7 @@ export default function PerfumeRatingBadge({ rating }: { readonly rating: number
   const color = !rated
     ? "bg-gray-100 text-gray-600"
     : rating >= 5
-      ? "bg-gradient-to-r from-yellow-200 via-amber-200 to-yellow-400 text-amber-800 shadow-sm"
+      ? "bg-linear-to-r from-yellow-200 via-amber-200 to-yellow-400 text-amber-800 shadow-xs"
       : rating >= 4
       ? "bg-green-100 text-green-800"
       : rating >= 3

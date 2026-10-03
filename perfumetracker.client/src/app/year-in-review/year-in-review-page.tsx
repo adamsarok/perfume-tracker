@@ -73,11 +73,11 @@ export default function YearInReviewPage() {
 
   if (loading) return <div className="flex min-h-[65vh] items-center justify-center"><div className="h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" /></div>;
   if (!stats) return <div className="p-8 text-center">Could not create your year in review.</div>;
-  if (stats.totalWears === 0) return <div className="rounded-3xl border bg-background p-10 text-center text-foreground shadow-sm"><Sparkles className="mx-auto mb-4" /><h1 className="text-4xl font-black">Your {year} story is waiting</h1><p className="mt-4 text-muted-foreground">Log a perfume wear and come back to watch your year in review take shape.</p></div>;
+  if (stats.totalWears === 0) return <div className="rounded-3xl border bg-background p-10 text-center text-foreground shadow-xs"><Sparkles className="mx-auto mb-4" /><h1 className="text-4xl font-black">Your {year} story is waiting</h1><p className="mt-4 text-muted-foreground">Log a perfume wear and come back to watch your year in review take shape.</p></div>;
 
   return <section
     aria-label={`${year} perfume year in review`}
-    className="relative min-h-[680px] overflow-hidden rounded-[2rem] border bg-background text-foreground shadow-sm"
+    className="relative min-h-[680px] overflow-hidden rounded-4xl border bg-background text-foreground shadow-xs"
     onTouchStart={(event) => { touchStart.current = event.touches[0].clientX; }}
     onTouchEnd={(event) => { if (touchStart.current !== null) { const distance = touchStart.current - event.changedTouches[0].clientX; if (Math.abs(distance) > 45) move(distance > 0 ? 1 : -1); touchStart.current = null; } }}
   >
