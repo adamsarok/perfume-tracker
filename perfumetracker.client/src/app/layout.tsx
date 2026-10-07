@@ -171,7 +171,7 @@ export default function RootLayout() {
             )}
           </div>
         </div>
-        {user && xp && (
+        {pathname === "/" && user && xp && (
           <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <div className="flex items-center gap-4">
               <span className="text-xs text-gray-500">

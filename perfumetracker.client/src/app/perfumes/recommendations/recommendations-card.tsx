@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { format } from "date-fns";
 import { Card, CardHeader } from "@/components/ui/card";
 import {
   Tooltip,
@@ -37,28 +38,29 @@ export default function PerfumeRecommendationsCard({
   return (
     <form>
       <Card key={perfume.id} className="w-full perfume-card">
-        <CardHeader>
+        <CardHeader className="p-3">
           <a
             // href={`/perfumes/${perfume.id}/`}
-            className="flex items-center justify-between gap-4"
+            className="flex items-center justify-between gap-2"
           >
-            <div className="flex items-center space-x-4">
-              <Avatar className="w-16 h-16 sm:w-20 sm:h-20 semi-bold">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <Avatar className="w-12 h-12 sm:w-16 sm:h-16 semi-bold">
                 <AvatarImage
                   className="object-cover"
                   src={perfume.imageUrl}
                 />
                 <AvatarFallback>{avatar}</AvatarFallback>
               </Avatar>
-              <div className="text-small leading-none text-default-600">
-                {getRecommendationIcon(recommendation.strategy)}
+              <div className="min-w-0 text-small leading-none text-default-600">
                 <p className="whitespace-normal text-small">{perfume.house} - {perfume.perfumeName}</p>
-                <div className="mt-2"><PerfumeRatingBadge rating={perfume.latestRating} /></div>
+                <div className="mt-2 flex items-center gap-2 whitespace-nowrap">
+                  <span className="shrink-0">{getRecommendationIcon(recommendation.strategy)}</span>
+                  <PerfumeRatingBadge rating={perfume.latestRating} />
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <p className="mt-2 text-small tracking-tight text-default-400">
-                        {`Worn on: ${recommendation.perfume.perfume.lastWorn ? new Date(recommendation.perfume.perfume.lastWorn).toDateString() : "Never"}`}
+                      <p className="text-xs tracking-tight text-default-400">
+                        {perfume.lastWorn ? format(new Date(perfume.lastWorn), "yyyy.MM.dd") : "Never"}
                       </p>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -76,6 +78,7 @@ export default function PerfumeRecommendationsCard({
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+                </div>
               </div>
             </div>
              <SprayOnComponent

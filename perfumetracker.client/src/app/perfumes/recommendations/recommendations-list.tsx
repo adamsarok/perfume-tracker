@@ -105,8 +105,8 @@ export default function RecommendationsList() {
 
   return (
     <div className="w-full max-w-3xl mx-auto px-2">
-      <div className="mb-4">
-        <Label className="mb-2 block">Recommendation Strategies</Label>
+      <details className="mb-4">
+        <summary className="mb-2 cursor-pointer text-sm font-medium">Recommendation Strategies</summary>
         <div className="grid grid-cols-2 gap-3 mb-4 p-3 border rounded-md">
           {availableStrategies.map((strategy) => (
             <div key={strategy} className="flex items-center space-x-2">
@@ -124,7 +124,7 @@ export default function RecommendationsList() {
             </div>
           ))}
         </div>
-      </div>
+      </details>
       
       <Label htmlFor="occasionOrMood">Occasion or Mood</Label>
       <div className="flex space-x-2" >
