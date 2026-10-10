@@ -39,7 +39,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 string? conn;
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-if (!string.IsNullOrWhiteSpace(databaseUrl)) {
+// Integration tests must use their dedicated connection string, even when DATABASE_URL is inherited.
+if (!builder.Environment.IsEnvironment("Test") && !string.IsNullOrWhiteSpace(databaseUrl)) {
 	conn = databaseUrl;
 } else {
 	string db = builder.Environment.IsEnvironment("Test") ? "PerfumeTrackerTest" : "PerfumeTracker";
