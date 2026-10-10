@@ -4,7 +4,7 @@ using PerfumeTracker.Server.Features.Perfumes.Extensions;
 
 namespace PerfumeTracker.Server.Features.Perfumes;
 
-public record GetPerfumesWithWornQuery(string? FullText = null) : IQuery<List<PerfumeWithWornStatsDto>>;
+public record GetPerfumesWithWornQuery(string? FullText = null, bool MlGreaterZero = false) : IQuery<List<PerfumeWithWornStatsDto>>;
 public class GetPerfumesWithWornEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
 		app.MapGet("/api/perfumes/fulltext/{fulltext}", async (string fulltext, ISender sender, CancellationToken cancellationToken) =>
@@ -12,8 +12,8 @@ public class GetPerfumesWithWornEndpoint : ICarterModule {
 			.WithTags("Perfumes")
 			.WithName("GetPerfumesFulltext")
 			.RequireAuthorization(Policies.READ);
-		app.MapGet("/api/perfumes", async (ISender sender, CancellationToken cancellationToken) =>
-			await sender.Send(new GetPerfumesWithWornQuery(), cancellationToken))
+		app.MapGet("/api/perfumes", async (ISender sender, CancellationToken cancellationToken, bool? mlGreaterZero = null) =>
+			await sender.Send(new GetPerfumesWithWornQuery(null, mlGreaterZero ?? false), cancellationToken))
 			.WithTags("Perfumes")
 			.WithName("GetPerfumes")
 			.RequireAuthorization(Policies.READ);
@@ -38,10 +38,11 @@ public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, IPresigne
 			.Include(x => x.PerfumeTags)
 			.ThenInclude(x => x.Tag)
 			.Include(x => x.PerfumeRatings)
-			.Where(p => !hasQuery
+			.Where(p => (!hasQuery
 				|| p.FullText.Matches(EF.Functions.ToTsQuery(tsQuery))
 				|| p.PerfumeTags.Any(pt
-					 => EF.Functions.ILike(pt.Tag.TagName, $"%{normalized}%"))
+					 => EF.Functions.ILike(pt.Tag.TagName, $"%{normalized}%")))
+				&& (!request.MlGreaterZero || p.Ml > 0)
 			)
 			.Select(p => p.ToPerfumeWithWornStatsDto(settings, presignedUrlService))
 			.AsSplitQuery()

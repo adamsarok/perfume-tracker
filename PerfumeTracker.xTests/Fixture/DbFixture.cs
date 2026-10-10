@@ -249,7 +249,8 @@ public abstract class DbFixture : IAsyncLifetime {
 		var databaseName = builder.Database ?? string.Empty;
 
 		if (string.IsNullOrEmpty(databaseName)) throw new Exception("Test database not configured");
-		if (!databaseName.Contains("test", StringComparison.OrdinalIgnoreCase)) throw new Exception("Connected database is not a test database");
+		if (!databaseName.Contains("test", StringComparison.OrdinalIgnoreCase))
+			throw new InvalidOperationException($"Connected database '{databaseName}' is not a test database. Configure ConnectionStrings:PerfumeTrackerTest to use a dedicated database whose name contains 'test'.");
 
 		ILogger<CreateUser> logger = scope.ServiceProvider.GetRequiredService<ILogger<CreateUser>>();
 		var userManager = scope.ServiceProvider.GetRequiredService<UserManager<PerfumeIdentityUser>>();

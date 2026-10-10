@@ -17,8 +17,7 @@ export default function Home() {
         showError("Could not load perfumes", r.error ?? "unknown error");
         return;
       }
-      const perfumes = r.data.filter((x) => x.perfume.ml > 0); //todo filter on server side
-      setPerfumes(perfumes);
+      setPerfumes(r.data);
     }
     fetchPerfumes();
   }, []);
