@@ -43,7 +43,7 @@ export async function getPreviousPerfumeId(id: string): Promise<AxiosResult<stri
 }
 
 export async function getPerfumes(): Promise<AxiosResult<PerfumeWithWornStatsDTO[]>> {
-  const qry = `/perfumes/`;
+  const qry = `/perfumes/?mlGreaterZero=true`;
   return get<PerfumeWithWornStatsDTO[]>(qry);
 }
 
