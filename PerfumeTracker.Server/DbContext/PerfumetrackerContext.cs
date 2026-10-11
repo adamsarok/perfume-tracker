@@ -36,6 +36,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<ChatMessage> ChatMessages { get; set; }
 	public virtual DbSet<MarketplaceOffer> MarketplaceOffers { get; set; }
 	public virtual DbSet<YearInReviewSnapshot> YearInReviewSnapshots { get; set; }
+	public virtual DbSet<WeeklyDigest> WeeklyDigests { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 
@@ -294,5 +295,10 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 		});
 
 		base.OnModelCreating(builder);
+		builder.Entity<WeeklyDigest>(entity => {
+			entity.ToTable("WeeklyDigest");
+			entity.HasIndex(x => new { x.UserId, x.WeekStart }).IsUnique();
+			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
 	}
 }
