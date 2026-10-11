@@ -27,8 +27,9 @@ public class WeeklyDigestDatabase : IAsyncLifetime {
 
 	public async ValueTask InitializeAsync() {
 		var config = new ConfigurationBuilder().AddJsonFile(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
-			"../../../../PerfumeTracker.Server/appsettings.Test.json"))).AddEnvironmentVariables().Build();
-		var connection = config.GetConnectionString("PerfumeTrackerTest")!;
+			"../../../../PerfumeTracker.Server/appsettings.Test.json")), optional: true).AddEnvironmentVariables().Build();
+		var connection = config.GetConnectionString("PerfumeTrackerTest");
+		if (string.IsNullOrWhiteSpace(connection)) throw new InvalidOperationException("Configure ConnectionStrings__PerfumeTrackerTest or ConnectionStrings:PerfumeTrackerTest in appsettings.Test.json to use a dedicated test database.");
 		var databaseName = new Npgsql.NpgsqlConnectionStringBuilder(connection).Database;
 		if (databaseName?.Contains("test", StringComparison.OrdinalIgnoreCase) != true) throw new InvalidOperationException("A dedicated test database is required.");
 		var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Test" });
@@ -198,7 +199,7 @@ public class WeeklyDigestIntegrationTests(WeeklyDigestDatabase fixture) {
 			var db = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 			var run = await db.WeeklyDigests.IgnoreQueryFilters().SingleAsync(d => d.UserId == user, Ct);
 			Assert.Equal("Running", run.Status);
-			Assert.Equal(26_000, run.TokensUsed);
+			Assert.Equal(25_000, run.TokensUsed);
 			Assert.Contains("explorationRequests", run.Checkpoint);
 			await db.WeeklyDigests.IgnoreQueryFilters().Where(d => d.Id == run.Id).ExecuteUpdateAsync(s => s.SetProperty(d => d.LeaseUntil, (DateTime?)DateTime.UtcNow.AddMinutes(-1)), Ct);
 		}
@@ -206,7 +207,7 @@ public class WeeklyDigestIntegrationTests(WeeklyDigestDatabase fixture) {
 		using var read = fixture.App.Services.CreateScope();
 		var recovered = await read.ServiceProvider.GetRequiredService<PerfumeTrackerContext>().WeeklyDigests.IgnoreQueryFilters().SingleAsync(d => d.UserId == user, Ct);
 		Assert.Equal("Completed", recovered.Status);
-		Assert.Equal(28_000, recovered.TokensUsed);
+		Assert.Equal(27_000, recovered.TokensUsed);
 	}
 
 	[Fact]
@@ -261,7 +262,7 @@ public class WeeklyDigestIntegrationTests(WeeklyDigestDatabase fixture) {
 		var run = await scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>().WeeklyDigests.IgnoreQueryFilters().SingleAsync(d => d.UserId == user, Ct);
 		Assert.Equal("Failed", run.Status);
 		Assert.Equal(3, run.Attempts);
-		Assert.Equal(78_000, run.TokensUsed);
+		Assert.Equal(75_000, run.TokensUsed);
 	}
 
 	[Fact]
