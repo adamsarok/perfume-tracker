@@ -6,6 +6,7 @@ import RegisterPage from './app/register/register-page'
 import PerfumesPage from './app/perfumes/perfumes-page'
 import NewPerfumePage from './app/perfumes/new-perfume/new-perfume-page'
 import RecommendationsPage from './app/perfumes/recommendations/recommendations-page'
+import WeeklyDigestPage from './app/perfumes/weekly-digest/weekly-digest-page'
 import ChatAgentPage from './app/perfumes/agent/chat-agent-page'
 import EditPerfumePage from './app/perfumes/[id]/edit-perfume-page'
 import StatsPage from './app/stats/stats-page'
@@ -60,6 +61,12 @@ const perfumesAgentRoute = createRoute({
   component: ChatAgentPage,
 })
 
+const weeklyDigestRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/perfumes/weekly-digest',
+  component: WeeklyDigestPage,
+})
+
 export const perfumesIdRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/perfumes/$id',
@@ -103,6 +110,7 @@ const routeTree = rootRoute.addChildren([
   perfumesRoute,
   perfumesNewRoute,
   perfumesRecommendationsRoute,
+  weeklyDigestRoute,
   perfumesAgentRoute,
   perfumesIdRoute,
   statsRoute,

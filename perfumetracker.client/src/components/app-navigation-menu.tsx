@@ -17,6 +17,14 @@ export default function AppNavigationMenu() {
                     <NavigationMenuTrigger>Perfume Tracker</NavigationMenuTrigger>
                     <NavigationMenuContent>
                         <ul className="grid w-[300px] gap-2 p-3 md:w-[400px] md:grid-cols-2 lg:w-[500px]">
+                            <li>
+                                <NavigationMenuLink asChild>
+                                    <Link className="block space-y-1 rounded-md p-2 hover:bg-accent" to="/perfumes/weekly-digest">
+                                        <div className="flex items-center gap-2"><Sparkles className="h-4 w-4" /><span className="text-sm font-medium">Weekly Digest</span></div>
+                                        <p className="text-xs text-muted-foreground">Fresh inspiration from your collection</p>
+                                    </Link>
+                                </NavigationMenuLink>
+                            </li>
                             <li className="row-span-2">
                                 <NavigationMenuLink asChild>
                                     <Link

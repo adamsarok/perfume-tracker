@@ -20,7 +20,7 @@ namespace PerfumeTracker.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
@@ -827,6 +827,9 @@ namespace PerfumeTracker.Server.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<bool>("WeeklyDigestEnabled")
+                        .HasColumnType("boolean");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
@@ -1157,6 +1160,68 @@ namespace PerfumeTracker.Server.Migrations
                         .HasName("UserStreak_pkey");
 
                     b.ToTable("UserStreak", (string)null);
+                });
+
+            modelBuilder.Entity("PerfumeTracker.Server.Models.WeeklyDigest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Checkpoint")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("LeaseOwner")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Payload")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("TokensUsed")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("WeekStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "WeekStart")
+                        .IsUnique();
+
+                    b.ToTable("WeeklyDigest", (string)null);
                 });
 
             modelBuilder.Entity("PerfumeTracker.Server.Models.YearInReviewSnapshot", b =>

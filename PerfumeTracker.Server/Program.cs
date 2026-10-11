@@ -28,6 +28,7 @@ using PerfumeTracker.Server.Features.Tags.Services;
 using PerfumeTracker.Server.Features.Users;
 using PerfumeTracker.Server.Features.Users.Services;
 using PerfumeTracker.Server.Features.YearInReview;
+using PerfumeTracker.Server.Features.WeeklyDigests;
 using PerfumeTracker.Server.Middleware;
 using PerfumeTracker.Server.Startup;
 using System.Reflection;
@@ -158,6 +159,9 @@ builder.Services.AddOptions<OpenAIOptions>()
 	.Bind(builder.Configuration.GetSection("OpenAI"));
 builder.Services.AddOptions<ChatAgentOptions>()
 	.Bind(builder.Configuration.GetSection("ChatAgent"));
+builder.Services.AddOptions<WeeklyDigestOptions>().Bind(builder.Configuration.GetSection("WeeklyDigest"))
+	.Validate(o => o.IsValid(), "Invalid weekly digest token or attempt limits.").ValidateOnStart();
+builder.Services.AddScoped<IDigestCandidates, DigestCandidates>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
@@ -182,6 +186,12 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddHostedService<TagBackfillBackgroundService>();
 	builder.Services.AddHostedService<TagNoteGroupBackfillBackgroundService>();
 	builder.Services.AddHostedService<GenerateConversationTitlesBackgroundService>();
+	builder.Services.AddHttpClient<IDigestModel, DigestModel>(client => {
+		client.BaseAddress = new Uri("https://api.openai.com/v1/");
+		client.Timeout = TimeSpan.FromMinutes(30);
+	});
+	builder.Services.AddScoped<WeeklyDigestAgent>();
+	builder.Services.AddHostedService<WeeklyDigestBackgroundService>();
 } else {
 	builder.Services.AddSingleton<IEncoder, NullEncoder>();
 	builder.Services.AddSingleton<IYearInReviewAi, NullYearInReviewAi>();

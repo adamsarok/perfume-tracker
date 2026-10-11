@@ -13,6 +13,8 @@ Perfume Tracker lets you track, review, and analyze your perfume collection with
 
 ✅ AI Recommendations → Get smart perfume suggestions based on your preferences.
 
+✅ Weekly Digests → Read varied, LLM-selected wearing recommendations. See [operator setup](docs/weekly-digests.md) to enable weekly generation for a user.
+
 ✅ Random Picks → Get a random perfume choice, find that one bottle that you forget to wear.
 
 ## Tech Stack
