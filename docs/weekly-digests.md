@@ -18,7 +18,7 @@ Set it to false to stop future generation. Existing completed digests remain rea
 
 ## Schedule and configuration
 
-The hosted service checks on startup and hourly afterward. The newest due week starts Monday at 00:00 UTC and becomes due at 06:00 UTC. A restart catches up that latest due week; older missed weeks are not backfilled. Before Monday 06:00, the latest due week is the previous Monday. Users are processed sequentially, and users without a profile or eligible collection are skipped without LLM usage.
+The hosted service checks on startup and hourly afterward. The newest due week starts Sunday at 00:00 UTC and becomes due at 06:00 UTC. A restart catches up that latest due week; older missed weeks are not backfilled. Before Sunday 06:00, the latest due week is the previous Sunday. Users are processed sequentially, and users without a profile or eligible collection are skipped without LLM usage.
 
 Generation requires the existing `OpenAI:ApiKey` and `OpenAI:AssistantModel` configuration. `WeeklyDigest:Model` optionally overrides the assistant model for newly created runs; a persisted run retains its original model across retries.
 
@@ -26,14 +26,13 @@ Generation requires the existing `OpenAI:ApiKey` and `OpenAI:AssistantModel` con
 | --- | ---: | --- |
 | `MaxTokens` | 150000 | Total generation input and output tokens per user/week, shared across attempts |
 | `FinalizationReserve` | 40000 | Capacity withheld from exploration for final writing |
-| `FinalInputTokens` | 15000 | Maximum input size of a final-writing request |
 | `MaxOutputTokens` | 25000 | Maximum output, including reasoning, per generation request |
 | `MaxExplorationRequests` | 50 | Additional safeguard against agent loops |
 | `MaxAttempts` | 3 | Maximum scheduled attempts for transient failures or interrupted runs |
 
-Every generation request is preflighted with `POST /v1/responses/input_tokens`, including tool definitions and the final output schema. Exploration continues only when the input and maximum output fit below the finalization reserve. At cutoff, no further tools execute; the model receives a fresh, bounded evidence prompt with tools disabled. One output-repair request is allowed only within the remaining budget. Candidate tools query the database without nested LLM or embedding API calls; similarity uses stored embeddings.
+Token accounting uses input/output usage returned by generation responses; there are no input-token preflight requests. Exploration stops at `MaxTokens - FinalizationReserve`. At cutoff, no further tools execute and the model receives a fresh evidence prompt with tools disabled. Final evidence deduplicates perfumes across category pools. One repair is allowed while reported usage remains below the budget. Each response has an output cap; the cumulative budget is a soft limit because the next response's input usage is known only after completion. Candidate tools use database queries without nested LLM or embedding API calls.
 
-The runner durably reserves input plus maximum output before sending a generation request, then reconciles to returned usage. Replayed input and reasoning are counted. A crash or ambiguous network failure retains the full reservation, preventing a retry from resetting spend. The dedicated HTTP client has no automatic generation retries. Token consumption bounds cost for a configured model; this is not a dollar-price guarantee.
+Before sending each request, the runner checkpoints an output allowance, then replaces it with returned total usage. A crash or ambiguous network failure retains that allowance; unknown input usage can exceed it. Retries retain cumulative usage and are capped at three attempts. The dedicated HTTP client has no automatic generation retries. This is a generous cost guard rather than a strict token or dollar guarantee.
 
 ## Recovery and monitoring
 
@@ -41,7 +40,9 @@ The runner durably reserves input plus maximum output before sending a generatio
 
 Statuses are `Pending`, `Running`, `Completed`, `Skipped`, and `Failed`. Transient HTTP/network failures retry at later hourly checks within the same budget and attempt limit. Exhausted or terminal failures remain unpublished for that week. Interrupted work can resume when its lease expires. Completed payloads are validated again against current collection eligibility before publication.
 
-Inspect `Status`, `Attempts`, `TokensUsed`, `LastError`, and `CompletedAt` in the database. `TokensUsed` includes conservative reservations for requests whose actual usage is unknown. Logs record outcomes, tokens, exploration requests, and tool calls. Traces use `weekly_digest.generate`; existing token metrics use operation `weekly_digest`.
+Inspect `Status`, `Attempts`, `TokensUsed`, `LastError`, and `CompletedAt` in the database. `TokensUsed` includes output allowances for requests whose actual usage is unknown. Logs record outcomes, tokens, exploration requests, and tool calls. Traces use `weekly_digest.generate`; existing token metrics use operation `weekly_digest`.
+
+Processing-start logs identify the digest, user, week, attempt, model, and starting token usage. Each model step logs its persisted step number and phase (`Exploration`, `FinalAnswer`, or `Repair`), requested tool count and names, input/output token usage, and cumulative tokens against the limit. Logs distinguish graceful completion, final answers following a token-limit exploration cutoff, and termination when the final-answer or response-output token limit is reached. Failed requests explicitly report retained output allowances.
 
 Read APIs require the existing `Read` policy and tenant isolation:
 
@@ -58,3 +59,5 @@ Digest tests mock every LLM request. Database integration tests use only `Connec
 dotnet test PerfumeTracker.xTests/PerfumeTracker.xTests.csproj --filter FullyQualifiedName~WeeklyDigest
 npm run build --prefix perfumetracker.client
 ```
+
+Lease renewal stops by disposing its timer on normal completion. Actual renewal failures are logged and cancel generation; host cancellation preserves the checkpoint for recovery.

@@ -45,7 +45,7 @@ export default function WeeklyDigestPage() {
         <p className="mt-3 whitespace-pre-line leading-relaxed">{detail.data.digest.introduction}</p>
         <p className="mt-3 text-sm font-medium">This week’s mood: {detail.data.digest.moodOrOccasion}</p>
       </div>
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5">
         {detail.data.digest.categories.map(category => <section key={category.strategy} className="rounded-xl border p-5">
           <h3 className="text-lg font-semibold">{categoryNames[category.strategy] ?? category.strategy}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{category.summary}</p>

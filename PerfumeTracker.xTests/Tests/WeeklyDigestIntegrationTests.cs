@@ -100,7 +100,6 @@ public class DigestTestModel : IDigestModel {
 	public TaskCompletionSource? Started { get; set; }
 	public TaskCompletionSource? Release { get; set; }
 	public bool Fail { get; set; }
-	public Task<int> CountInput(JsonObject request, CancellationToken ct) => Task.FromResult(1000);
 	public async Task<JsonObject> Generate(JsonObject request, CancellationToken ct) {
 		Interlocked.Increment(ref Requests);
 		if (Fail) throw new HttpRequestException("Test transient failure");
@@ -110,7 +109,7 @@ public class DigestTestModel : IDigestModel {
 		if (final) {
 			var facts = JsonNode.Parse(request["input"]![1]!["content"]!.GetValue<string>())!.AsObject();
 			var categories = facts["candidatePools"]!.AsObject().Select(pool => new DigestCategory(Enum.Parse<RecommendationStrategy>(pool.Key), "This week’s inspiration.", "",
-				pool.Value!.AsArray().Take(5).Select(p => new DigestPick(Guid.Parse(p!["id"]!.GetValue<string>()), "Try these notes this week.")).ToList())).ToList();
+				pool.Value!.AsArray().Take(5).Select(p => new DigestPick(Guid.Parse(p!.GetValue<string>()), "Try these notes this week.")).ToList())).ToList();
 			text = JsonSerializer.Serialize(new DigestPayload("Enjoy your collection.", "Autumn afternoon", categories), DigestJson.Options);
 		}
 		return new JsonObject { ["id"] = "resp_test", ["object"] = "response", ["created_at"] = 0, ["status"] = "completed", ["model"] = "test",

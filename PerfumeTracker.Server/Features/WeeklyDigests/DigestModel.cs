@@ -6,12 +6,11 @@ using Microsoft.Extensions.Options;
 namespace PerfumeTracker.Server.Features.WeeklyDigests;
 
 public interface IDigestModel {
-	Task<int> CountInput(JsonObject request, CancellationToken ct);
 	Task<JsonObject> Generate(JsonObject request, CancellationToken ct);
 }
 
 // A dedicated client avoids the SDK's automatic generation retries: each billed request
-// must be reserved and checkpointed by the runner before it is sent.
+// must be checkpointed by the runner before it is sent.
 public class DigestModel(HttpClient http, IOptions<OpenAIOptions> options) : IDigestModel {
 	private async Task<JsonObject> Post(string path, JsonObject request, CancellationToken ct) {
 		using var message = new HttpRequestMessage(HttpMethod.Post, path) {
@@ -23,14 +22,6 @@ public class DigestModel(HttpClient http, IOptions<OpenAIOptions> options) : IDi
 			throw new DigestApiException((int)response.StatusCode);
 		return (await response.Content.ReadFromJsonAsync<JsonObject>(ct))
 			?? throw new InvalidDataException("OpenAI returned an empty response.");
-	}
-	public async Task<int> CountInput(JsonObject request, CancellationToken ct) {
-		var countRequest = new JsonObject();
-		foreach (var key in new[] { "model", "input", "tools", "tool_choice", "text", "reasoning", "instructions" })
-			if (request[key] != null) countRequest[key] = request[key]!.DeepClone();
-		var result = await Post("responses/input_tokens", countRequest, ct);
-		var count = result["input_tokens"]?.GetValue<int>() ?? throw new InvalidDataException("Missing input token count.");
-		return count >= 0 ? count : throw new InvalidDataException("Invalid input token count.");
 	}
 	public Task<JsonObject> Generate(JsonObject request, CancellationToken ct) => Post("responses", request, ct);
 }

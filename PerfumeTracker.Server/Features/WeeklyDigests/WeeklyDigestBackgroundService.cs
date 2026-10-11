@@ -6,8 +6,8 @@ namespace PerfumeTracker.Server.Features.WeeklyDigests;
 
 public static class WeeklyDigestSchedule {
 	public static DateTime LatestDueWeek(DateTime utcNow) {
-		var monday = utcNow.Date.AddDays(-(((int)utcNow.DayOfWeek + 6) % 7));
-		return DateTime.SpecifyKind(utcNow < monday.AddHours(6) ? monday.AddDays(-7) : monday, DateTimeKind.Utc);
+		var sunday = utcNow.Date.AddDays(-(int)utcNow.DayOfWeek);
+		return DateTime.SpecifyKind(utcNow < sunday.AddHours(6) ? sunday.AddDays(-7) : sunday, DateTimeKind.Utc);
 	}
 }
 
@@ -55,19 +55,25 @@ public class WeeklyDigestBackgroundService(IServiceScopeFactory scopes, IOptions
 			ON CONFLICT ("UserId", "WeekStart") DO NOTHING
 			""", stoppingToken);
 		var owner = Guid.NewGuid();
-		await db.WeeklyDigests.Where(d => d.WeekStart == week
+		var exhausted = await db.WeeklyDigests.Where(d => d.WeekStart == week
 			&& (d.Status == "Pending" || (d.Status == "Running" && d.LeaseUntil < now))
 			&& (d.Attempts >= cfg.MaxAttempts || d.TokensUsed >= cfg.MaxTokens))
 			.ExecuteUpdateAsync(s => s.SetProperty(d => d.Status, "Failed").SetProperty(d => d.LastError, "Weekly attempts or token budget exhausted."), stoppingToken);
+		if (exhausted > 0) {
+			var failed = await db.WeeklyDigests.AsNoTracking().SingleAsync(d => d.WeekStart == week, stoppingToken);
+			logger.LogWarning("Weekly digest run finished early due to {LimitReason}. Digest {DigestId}, user {UserId}, week {Week}, attempts {Attempts}, tokens used {TokensUsed}/{MaxTokens}",
+				failed.TokensUsed >= cfg.MaxTokens ? "token limit" : "attempt limit", failed.Id, userId, week, failed.Attempts, failed.TokensUsed, cfg.MaxTokens);
+		}
 		var claimed = await db.WeeklyDigests.Where(d => d.WeekStart == week && d.Attempts < cfg.MaxAttempts && d.TokensUsed < cfg.MaxTokens
 			&& (d.Status == "Pending" || (d.Status == "Running" && d.LeaseUntil < now)))
 			.ExecuteUpdateAsync(s => s.SetProperty(d => d.Status, "Running").SetProperty(d => d.LeaseOwner, (Guid?)owner)
 				.SetProperty(d => d.LeaseUntil, (DateTime?)now.AddMinutes(2)).SetProperty(d => d.Attempts, d => d.Attempts + 1), stoppingToken);
 		if (claimed == 0) return;
 		var run = await db.WeeklyDigests.AsNoTracking().SingleAsync(d => d.WeekStart == week, stoppingToken);
+		logger.LogInformation("Weekly digest processing started. Digest {DigestId}, user {UserId}, week {Week}, attempt {Attempt}, model {Model}, tokens used {TokensUsed}/{MaxTokens}",
+			run.Id, userId, week, run.Attempts, run.Model, run.TokensUsed, cfg.MaxTokens);
 		using var work = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-		using var renewStop = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-		var renewal = RenewLease(run.Id, owner, work, renewStop.Token);
+		await using var renewal = new DigestLeaseRenewal(run.Id, ct => RenewLease(run.Id, owner, ct), work, stoppingToken, logger);
 		try {
 			if (!await db.UserProfiles.AnyAsync(work.Token)
 				|| !await db.Perfumes.AnyAsync(p => p.MlLeft > 0 && p.LatestRating >= db.UserProfiles.Select(p => p.MinimumRating).First(), work.Token)) {
@@ -100,13 +106,12 @@ public class WeeklyDigestBackgroundService(IServiceScopeFactory scopes, IOptions
 			run.LastError = ex.Message[..Math.Min(ex.Message.Length, 1000)];
 			await Save(work.Token);
 			logger.LogError(ex, "Weekly digest {Status} for {UserId}, tokens {Tokens}", run.Status, userId, run.TokensUsed);
-		} finally {
-			await renewStop.CancelAsync();
-			await renewal;
 		}
 		async Task Save(CancellationToken ct) {
 			var timestamp = DateTime.UtcNow;
 			var released = run.Status != "Running";
+			// Stop renewal before releasing ownership so a completion cannot be mistaken for lease loss.
+			if (released) await renewal.StopAsync();
 			var updated = await db.WeeklyDigests.Where(d => d.Id == run.Id && d.LeaseOwner == owner && d.LeaseUntil > timestamp)
 				.ExecuteUpdateAsync(s => s.SetProperty(d => d.Checkpoint, run.Checkpoint).SetProperty(d => d.TokensUsed, run.TokensUsed)
 					.SetProperty(d => d.Status, run.Status).SetProperty(d => d.Payload, run.Payload).SetProperty(d => d.LastError, run.LastError)
@@ -117,19 +122,13 @@ public class WeeklyDigestBackgroundService(IServiceScopeFactory scopes, IOptions
 		}
 	}
 
-	private async Task RenewLease(Guid id, Guid owner, CancellationTokenSource work, CancellationToken stop) {
-		try {
-			while (true) {
-				await Task.Delay(TimeSpan.FromSeconds(30), stop);
-				using var scope = scopes.CreateScope();
-				var db = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
-				var now = DateTime.UtcNow;
-				var updated = await db.WeeklyDigests.IgnoreQueryFilters().Where(d => d.Id == id && d.LeaseOwner == owner && d.Status == "Running" && d.LeaseUntil > now)
-					.ExecuteUpdateAsync(s => s.SetProperty(d => d.LeaseUntil, (DateTime?)now.AddMinutes(2)), stop);
-				if (updated != 1) { await work.CancelAsync(); return; }
-			}
-		} catch (OperationCanceledException) when (stop.IsCancellationRequested) { }
-		catch (Exception ex) { logger.LogError(ex, "Weekly digest lease renewal failed"); await work.CancelAsync(); }
+	private async Task<bool> RenewLease(Guid id, Guid owner, CancellationToken ct) {
+		using var scope = scopes.CreateScope();
+		var db = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var now = DateTime.UtcNow;
+		var updated = await db.WeeklyDigests.IgnoreQueryFilters().Where(d => d.Id == id && d.LeaseOwner == owner && d.Status == "Running" && d.LeaseUntil > now)
+			.ExecuteUpdateAsync(s => s.SetProperty(d => d.LeaseUntil, (DateTime?)now.AddMinutes(2)), ct);
+		return updated == 1;
 	}
 
 	private sealed class DigestTenant(Guid id) : ITenantProvider { public Guid? GetCurrentUserId() => id; }

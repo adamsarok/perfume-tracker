@@ -17,6 +17,8 @@ public class DigestCheckpoint {
 	public JsonElement Context { get; set; }
 	public int TotalEligible { get; set; }
 	public int ExplorationRequests { get; set; }
+	public int GenerationSteps { get; set; }
+	public string? ExplorationStopReason { get; set; }
 	public int ToolCalls { get; set; }
 	public bool Finalizing { get; set; }
 	public bool RepairUsed { get; set; }
@@ -50,6 +52,12 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 	public async Task<DigestPayload> Run(WeeklyDigest run, Func<CancellationToken, Task> save, CancellationToken ct) {
 		var cfg = options.Value;
 		var state = JsonSerializer.Deserialize<DigestCheckpoint>(run.Checkpoint, DigestJson.Options) ?? new();
+		state.GenerationSteps = Math.Max(state.GenerationSteps, state.ExplorationRequests);
+		using var logScope = logger.BeginScope(new Dictionary<string, object> {
+			["DigestId"] = run.Id, ["UserId"] = run.UserId, ["Week"] = run.WeekStart, ["Attempt"] = run.Attempts
+		});
+		logger.LogInformation("Weekly digest agent started. Digest {DigestId}, user {UserId}, week {Week}, attempt {Attempt}, completed steps {Steps}, tokens used {TokensUsed}/{MaxTokens}, finalizing {Finalizing}",
+			run.Id, run.UserId, run.WeekStart, run.Attempts, state.GenerationSteps, run.TokensUsed, cfg.MaxTokens, state.Finalizing);
 		if (state.Context.ValueKind == JsonValueKind.Undefined) {
 			state.Context = JsonSerializer.SerializeToElement(await candidates.GetContext(run.WeekStart, ct), DigestJson.Options);
 			foreach (var category in Enum.GetValues<RecommendationStrategy>()) {
@@ -60,14 +68,18 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 			state.History.Add(Message("user", JsonSerializer.Serialize(new { context = state.Context, candidatePools = Pools(state) }, DigestJson.Options)));
 			await Save();
 		}
-		if (!state.Finalizing) { await CompletePendingTools(state, ct); await Save(); }
+		if (!state.Finalizing && CanExplore(run.TokensUsed, cfg)) { await CompletePendingTools(state, ct); await Save(); }
 		while (!state.Finalizing && state.ExplorationRequests < cfg.MaxExplorationRequests) {
 			ct.ThrowIfCancellationRequested();
 			var request = CreateRequest(run.Model, state.History, false);
-			var input = await model.CountInput(request, ct);
-			if (!CanExplore(run.TokensUsed, input, cfg)) break;
+			if (!CanExplore(run.TokensUsed, cfg)) {
+				state.ExplorationStopReason = "TokenLimit";
+				logger.LogInformation("Weekly digest exploration finished early due to token limit before step {Step}. Tokens used {TokensUsed}/{MaxTokens}, output allowance {OutputTokens}, finalization reserve {FinalizationReserve}. Requesting final answer without tools",
+					state.GenerationSteps + 1, run.TokensUsed, cfg.MaxTokens, cfg.MaxOutputTokens, cfg.FinalizationReserve);
+				break;
+			}
 			state.ExplorationRequests++;
-			var response = await Generate(request, input);
+			var response = await Generate(request, "Exploration");
 			var rawOutput = response["output"]?.AsArray() ?? throw new InvalidDataException("Missing model output.");
 			foreach (var item in rawOutput) state.History.Add(JsonSerializer.SerializeToElement(item));
 			var parsed = ModelReaderWriter.Read<ResponseResult>(BinaryData.FromString(response.ToJsonString()))!;
@@ -76,10 +88,19 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 			if (!string.IsNullOrWhiteSpace(notes)) state.EditorialNotes = notes[..Math.Min(notes.Length, 8000)];
 			// Checkpoint the response before tools. On restart, complete pending calls before another request.
 			await Save();
+			if (!CanExplore(run.TokensUsed, cfg)) {
+				state.ExplorationStopReason = "TokenLimit";
+				logger.LogInformation("Weekly digest exploration finished early due to token limit after step {Step}. Tokens used {TokensUsed}/{MaxTokens}; no further tools will execute", state.GenerationSteps, run.TokensUsed, cfg.MaxTokens);
+				break;
+			}
 			await CompletePendingTools(state, ct);
 			await Save();
-			if (calls.Count == 0) break;
+			if (calls.Count == 0) { state.ExplorationStopReason = "ModelFinished"; break; }
 		}
+		state.ExplorationStopReason ??= state.Finalizing ? "ResumedFinalization" : "IterationLimit";
+		if (state.ExplorationStopReason == "IterationLimit")
+			logger.LogInformation("Weekly digest exploration stopped at iteration limit {MaxRequests}. Tokens used {TokensUsed}/{MaxTokens}. Requesting final answer without tools",
+				cfg.MaxExplorationRequests, run.TokensUsed, cfg.MaxTokens);
 		state.Finalizing = true;
 		await Save();
 		if (state.FinalText == null) state.FinalText = await FinalAnswer(null);
@@ -95,8 +116,11 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 			await Save();
 			payload = ParseAndValidate(state.FinalText);
 		}
-		logger.LogInformation("Weekly digest selected. User {UserId}, week {Week}, tokens {Tokens}, requests {Requests}, tools {Tools}",
-			run.UserId, run.WeekStart, run.TokensUsed, state.ExplorationRequests, state.ToolCalls);
+		var completionMessage = state.ExplorationStopReason == "TokenLimit"
+			? "Weekly digest finished with a validated final answer after early token-limit cutoff. Exploration stop reason {StopReason}, steps {Steps}, exploration requests {Requests}, tools executed {Tools}, tokens used {TokensUsed}/{MaxTokens}"
+			: "Weekly digest agent finished gracefully. Exploration stop reason {StopReason}, steps {Steps}, exploration requests {Requests}, tools executed {Tools}, tokens used {TokensUsed}/{MaxTokens}";
+		logger.LogInformation(completionMessage,
+			state.ExplorationStopReason, state.GenerationSteps, state.ExplorationRequests, state.ToolCalls, run.TokensUsed, cfg.MaxTokens);
 		return payload with { Categories = payload.Categories.Select(category => category with {
 			Picks = category.Picks.Select(pick => pick with { House = state.Evidence[pick.PerfumeId].House,
 				PerfumeName = state.Evidence[pick.PerfumeId].PerfumeName }).ToList()
@@ -108,16 +132,34 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 			DigestValidation.Validate(result, state.Evidence, state.TotalEligible);
 			return result;
 		}
-		async Task<JsonObject> Generate(JsonObject request, int input) {
+		async Task<JsonObject> Generate(JsonObject request, string phase) {
 			var outputLimit = request["max_output_tokens"]!.GetValue<int>();
-			if (run.TokensUsed + input + outputLimit > cfg.MaxTokens) throw new DigestBudgetException("Weekly token budget exhausted.");
-			// Reserve the worst case durably. A crash or ambiguous network failure keeps the reservation.
-			run.TokensUsed += input + outputLimit;
+			var step = ++state.GenerationSteps;
+			logger.LogInformation("Weekly digest step {Step} ({Phase}) started. Tokens used {TokensUsed}/{MaxTokens}, maximum output tokens {MaxOutputTokens}",
+				step, phase, run.TokensUsed, cfg.MaxTokens, outputLimit);
+			// Persist a fallback output allowance for ambiguous failures; successful responses use actual usage.
+			run.TokensUsed += outputLimit;
 			await Save();
-			var response = await model.Generate(request, ct);
+			JsonObject response;
+			try { response = await model.Generate(request, ct); }
+			catch (Exception ex) {
+				logger.LogWarning(ex, "Weekly digest step {Step} ({Phase}) did not finish. Tokens used including retained output allowance {TokensUsed}/{MaxTokens}",
+					step, phase, run.TokensUsed, cfg.MaxTokens);
+				throw;
+			}
 			var usage = response["usage"]?["total_tokens"]?.GetValue<int>();
-			if (usage != null) run.TokensUsed += usage.Value - input - outputLimit;
+			if (usage != null) run.TokensUsed += usage.Value - outputLimit;
 			await Save();
+			var requestedTools = response["output"]?.AsArray()
+				.Where(item => item?["type"]?.GetValue<string>() == "function_call")
+				.Select(item => item?["name"]?.GetValue<string>() ?? "unknown").ToList() ?? [];
+			logger.LogInformation("Weekly digest step {Step} ({Phase}) completed. Status {ResponseStatus}, tool calls requested {ToolCallsRequested} ({RequestedTools}), input tokens {InputTokens}, output tokens {OutputTokens}, step tokens {StepTokens}, tokens used {TokensUsed}/{MaxTokens}, usage reported {UsageReported}",
+				step, phase, response["status"]?.GetValue<string>(), requestedTools.Count, string.Join(", ", requestedTools),
+				response["usage"]?["input_tokens"]?.GetValue<int>(), response["usage"]?["output_tokens"]?.GetValue<int>(),
+				usage ?? outputLimit, run.TokensUsed, cfg.MaxTokens, usage.HasValue);
+			if (response["status"]?.GetValue<string>() == "incomplete" && response["incomplete_details"]?["reason"]?.GetValue<string>() == "max_output_tokens")
+				logger.LogWarning("Weekly digest run finished early due to response output token limit at step {Step}. Tokens used {TokensUsed}/{MaxTokens}",
+					step, run.TokensUsed, cfg.MaxTokens);
 			if (response["status"]?.GetValue<string>() != "completed") throw new InvalidDataException("Model response did not complete.");
 			var parsed = ModelReaderWriter.Read<ResponseResult>(BinaryData.FromString(response.ToJsonString()))!;
 			Diagnostics.RecordChatTokenUsage(parsed, "weekly_digest");
@@ -126,26 +168,23 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 		async Task<string> FinalAnswer(string? repair) {
 			// Start a fresh final-writing request with bounded facts, not the growing exploration transcript.
 			var pools = Pools(state);
-			while (true) {
-				var finalPrompt = JsonSerializer.Serialize(new { context = state.Context, candidatePools = pools,
-					instruction = "Exploration has ended. No tools are available. Produce the complete digest using this evidence.",
-					validationError = repair ?? state.RepairError, editorialNotes = state.EditorialNotes }, DigestJson.Options);
-				var request = CreateRequest(run.Model, [Message("system", Prompt), Message("user", finalPrompt)], true);
-				var input = await model.CountInput(request, ct);
-				if (input > cfg.FinalInputTokens) {
-					var largest = pools.OrderByDescending(p => p.Value.Count).First();
-					if (largest.Value.Count <= 5) throw new DigestBudgetException("Minimum final evidence exceeds final input limit.");
-					largest.Value.RemoveAt(largest.Value.Count - 1);
-					continue;
-				}
-				var available = cfg.MaxTokens - run.TokensUsed - input;
-				if (available < 1024) throw new DigestBudgetException("No final-answer budget remains.");
-				request["max_output_tokens"] = (int)Math.Min(cfg.MaxOutputTokens, available);
-				var response = await Generate(request, input);
-				var parsed = ModelReaderWriter.Read<ResponseResult>(BinaryData.FromString(response.ToJsonString()))!;
-				if (ChatAgentResponseProtocol.GetToolCalls(parsed).Count != 0) throw new InvalidDataException("Final response called tools.");
-				return parsed.GetOutputText();
-			}
+			var finalPrompt = JsonSerializer.Serialize(new { context = state.Context,
+				candidatePools = pools.ToDictionary(p => p.Key, p => p.Value.Select(candidate => candidate.Id)),
+				perfumes = pools.Values.SelectMany(p => p).DistinctBy(p => p.Id),
+				instruction = "Exploration has ended. No tools are available. Produce the complete digest. candidatePools contains IDs referencing the shared perfumes catalog.",
+				validationError = repair ?? state.RepairError, editorialNotes = state.EditorialNotes }, DigestJson.Options);
+			var request = CreateRequest(run.Model, [Message("system", Prompt), Message("user", finalPrompt)], true);
+			if (repair != null && run.TokensUsed >= cfg.MaxTokens) throw BudgetExceeded("No repair budget remains.");
+			var response = await Generate(request, repair == null ? "FinalAnswer" : "Repair");
+			var parsed = ModelReaderWriter.Read<ResponseResult>(BinaryData.FromString(response.ToJsonString()))!;
+			if (ChatAgentResponseProtocol.GetToolCalls(parsed).Count != 0) throw new InvalidDataException("Final response called tools.");
+			return parsed.GetOutputText();
+		}
+
+		DigestBudgetException BudgetExceeded(string reason) {
+			logger.LogWarning("Weekly digest run finished early due to token limit. Reason {Reason}, completed steps {Steps}, tokens used {TokensUsed}/{MaxTokens}",
+				reason, state.GenerationSteps, run.TokensUsed, cfg.MaxTokens);
+			return new DigestBudgetException(reason);
 		}
 		async Task CompletePendingTools(DigestCheckpoint checkpoint, CancellationToken token) {
 			var done = checkpoint.History.Where(i => i.TryGetProperty("type", out var t) && t.GetString() == "function_call_output")
@@ -169,7 +208,7 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 		}
 	}
 
-	public static bool CanExplore(long used, int input, WeeklyDigestOptions cfg) => used + input + cfg.MaxOutputTokens <= cfg.MaxTokens - cfg.FinalizationReserve;
+	public static bool CanExplore(long used, WeeklyDigestOptions cfg) => used < cfg.MaxTokens - cfg.FinalizationReserve;
 	private static JsonElement Message(string role, string content) => JsonSerializer.SerializeToElement(new { role, content });
 	private static void RecordEvidence(DigestCheckpoint state, RecommendationStrategy category, DigestCandidatePage page) {
 		state.TotalEligible = page.Total;

@@ -11,10 +11,11 @@ namespace PerfumeTracker.xTests.Tests;
 
 public class WeeklyDigestTests {
 	[Theory]
-	[InlineData("2026-10-12T05:59:59Z", "2026-10-05")]
-	[InlineData("2026-10-12T06:00:00Z", "2026-10-12")]
-	[InlineData("2026-10-18T23:59:59Z", "2026-10-12")]
-	[InlineData("2027-01-01T12:00:00Z", "2026-12-28")]
+	[InlineData("2026-10-11T05:59:59Z", "2026-10-04")]
+	[InlineData("2026-10-11T06:00:00Z", "2026-10-11")]
+	[InlineData("2026-10-12T06:00:00Z", "2026-10-11")]
+	[InlineData("2026-10-17T23:59:59Z", "2026-10-11")]
+	[InlineData("2027-01-01T12:00:00Z", "2026-12-27")]
 	public void Schedule_SelectsLatestDueWeek(string now, string expected) {
 		Assert.Equal(expected, WeeklyDigestSchedule.LatestDueWeek(DateTime.Parse(now).ToUniversalTime()).ToString("yyyy-MM-dd"));
 	}
@@ -28,11 +29,11 @@ public class WeeklyDigestTests {
 	}
 
 	[Fact]
-	public void Budget_ReservesFinalInputAndOutput() {
+	public void Budget_StopsExplorationUsingReportedUsage() {
 		var config = new WeeklyDigestOptions();
 		Assert.True(config.IsValid());
-		Assert.True(WeeklyDigestAgent.CanExplore(80_000, 5000, config));
-		Assert.False(WeeklyDigestAgent.CanExplore(80_001, 5000, config));
+		Assert.True(WeeklyDigestAgent.CanExplore(109_999, config));
+		Assert.False(WeeklyDigestAgent.CanExplore(110_000, config));
 		Assert.False(new WeeklyDigestOptions { FinalizationReserve = 10_000 }.IsValid());
 	}
 
@@ -49,7 +50,7 @@ public class WeeklyDigestTests {
 			Assert.All(c.Picks, p => Assert.Equal("House", p.House));
 		});
 		Assert.Equal(3000, run.TokensUsed);
-		Assert.Contains(26_000, savedReservations);
+		Assert.Contains(25_000, savedReservations);
 		Assert.Equal(3, model.Requests.Count);
 		var replay = model.Requests[1]["input"]!.AsArray();
 		Assert.Contains(replay, i => i?["type"]?.GetValue<string>() == "reasoning" && i["encrypted_content"]!.GetValue<string>() == "encrypted-data");
@@ -63,10 +64,10 @@ public class WeeklyDigestTests {
 		var candidates = new FakeCandidates();
 		var model = new FakeModel(candidates);
 		var run = NewRun();
-		run.TokensUsed = 109_000;
+		run.TokensUsed = 110_000;
 		await Agent(candidates, model).Run(run, _ => Task.CompletedTask, TestContext.Current.CancellationToken);
 		Assert.Equal("none", Assert.Single(model.Requests)["tool_choice"]!.GetValue<string>());
-		Assert.Equal(110_000, run.TokensUsed);
+		Assert.Equal(111_000, run.TokensUsed);
 	}
 
 	[Fact]
@@ -88,12 +89,12 @@ public class WeeklyDigestTests {
 	}
 
 	[Fact]
-	public async Task Agent_AmbiguousNetworkFailureKeepsWorstCaseReservation() {
+	public async Task Agent_AmbiguousNetworkFailureKeepsOutputAllowance() {
 		var candidates = new FakeCandidates();
 		var run = NewRun();
 		var model = new FakeModel(candidates) { ThrowOnGenerate = true };
 		await Assert.ThrowsAsync<HttpRequestException>(() => Agent(candidates, model).Run(run, _ => Task.CompletedTask, TestContext.Current.CancellationToken));
-		Assert.Equal(26_000, run.TokensUsed);
+		Assert.Equal(25_000, run.TokensUsed);
 		var restored = JsonSerializer.Deserialize<DigestCheckpoint>(run.Checkpoint, DigestJson.Options)!;
 		Assert.Equal(1, restored.ExplorationRequests);
 	}
@@ -125,7 +126,7 @@ public class WeeklyDigestTests {
 		var candidates = new FakeCandidates();
 		var model = new FakeModel(candidates) { InvalidFinals = 1 };
 		var run = NewRun();
-		run.TokensUsed = 109_000;
+		run.TokensUsed = 110_000;
 		await Agent(candidates, model).Run(run, _ => Task.CompletedTask, TestContext.Current.CancellationToken);
 		Assert.Equal(2, model.Requests.Count);
 		Assert.True(JsonSerializer.Deserialize<DigestCheckpoint>(run.Checkpoint, DigestJson.Options)!.RepairUsed);
@@ -139,16 +140,70 @@ public class WeeklyDigestTests {
 	}
 
 	[Fact]
-	public async Task Transport_CountsSchemaAndTools_AndNeverAutomaticallyRetries() {
+	public async Task Transport_SendsOnlyGeneration_AndNeverAutomaticallyRetries() {
 		using var handler = new CaptureHandler();
 		using var http = new HttpClient(handler) { BaseAddress = new Uri("https://api.openai.com/v1/") };
 		var model = new DigestModel(http, Options.Create(new OpenAIOptions { ApiKey = "test-key" }));
 		var request = JsonNode.Parse("""{"model":"test","input":[],"tools":[],"text":{"format":{"type":"text"}},"max_output_tokens":25000,"store":false}""")!.AsObject();
-		Assert.Equal(1000, await model.CountInput(request, TestContext.Current.CancellationToken));
-		Assert.NotNull(handler.Requests[0]["text"]);
-		Assert.Null(handler.Requests[0]["max_output_tokens"]);
 		await Assert.ThrowsAsync<DigestApiException>(() => model.Generate(request, TestContext.Current.CancellationToken));
-		Assert.Equal(2, handler.Requests.Count);
+		Assert.Single(handler.Requests);
+		Assert.NotNull(handler.Requests[0]["text"]);
+		Assert.Equal(25000, handler.Requests[0]["max_output_tokens"]!.GetValue<int>());
+	}
+
+	[Fact]
+	public async Task Agent_ReportedUsageCutoffSkipsRequestedToolsAndAllowsFinalBudgetOverrun() {
+		var candidates = new FakeCandidates();
+		var model = new FakeModel(candidates) { TotalUsage = 160_000 };
+		var run = NewRun();
+		await Agent(candidates, model).Run(run, _ => Task.CompletedTask, TestContext.Current.CancellationToken);
+		Assert.Equal(2, model.Requests.Count);
+		Assert.Equal("none", model.Requests[1]["tool_choice"]!.GetValue<string>());
+		Assert.Equal(320_000, run.TokensUsed);
+		var state = JsonSerializer.Deserialize<DigestCheckpoint>(run.Checkpoint, DigestJson.Options)!;
+		Assert.Equal("TokenLimit", state.ExplorationStopReason);
+		Assert.Equal(0, state.ToolCalls);
+		var facts = JsonNode.Parse(model.Requests[1]["input"]![1]!["content"]!.GetValue<string>())!;
+		Assert.Equal(6, facts["perfumes"]!.AsArray().Count);
+	}
+
+	[Fact]
+	public async Task Lease_NormalStopDoesNotCancelWork() {
+		using var work = new CancellationTokenSource();
+		await using var renewal = new DigestLeaseRenewal(Guid.NewGuid(), _ => throw new InvalidOperationException("Should not renew"),
+			work, CancellationToken.None, NullLogger.Instance, TimeSpan.FromHours(1));
+		await renewal.StopAsync().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		Assert.False(work.IsCancellationRequested);
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task Lease_ActualLossOrRenewalFailureCancelsWork(bool throws) {
+		using var work = new CancellationTokenSource();
+		var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var registration = work.Token.Register(() => cancelled.TrySetResult());
+		await using var renewal = new DigestLeaseRenewal(Guid.NewGuid(), _ => throws
+			? Task.FromException<bool>(new TaskCanceledException("Database timeout")) : Task.FromResult(false),
+			work, CancellationToken.None, NullLogger.Instance, TimeSpan.FromMilliseconds(1));
+		await cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		await renewal.StopAsync();
+		Assert.True(work.IsCancellationRequested);
+	}
+
+	[Fact]
+	public async Task Lease_StopWaitsForActiveRenewalWithoutMistakingReleaseForLoss() {
+		using var work = new CancellationTokenSource();
+		var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+		await using var renewal = new DigestLeaseRenewal(Guid.NewGuid(), _ => { started.TrySetResult(); return result.Task; },
+			work, CancellationToken.None, NullLogger.Instance, TimeSpan.FromMilliseconds(1));
+		await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		var stop = renewal.StopAsync();
+		Assert.False(stop.IsCompleted);
+		result.SetResult(false);
+		await stop.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		Assert.False(work.IsCancellationRequested);
 	}
 
 	private static WeeklyDigest NewRun() => new() { UserId = Guid.NewGuid(), WeekStart = WeeklyDigestSchedule.LatestDueWeek(DateTime.UtcNow), Model = "test" };
@@ -169,7 +224,7 @@ public class WeeklyDigestTests {
 		public bool ThrowOnGenerate { get; set; }
 		public bool Incomplete { get; set; }
 		public int InvalidFinals { get; set; }
-		public Task<int> CountInput(JsonObject request, CancellationToken ct) => Task.FromResult(1000);
+		public int TotalUsage { get; set; } = 1000;
 		public Task<JsonObject> Generate(JsonObject request, CancellationToken ct) {
 			Requests.Add((JsonObject)request.DeepClone());
 			if (ThrowOnGenerate) throw new HttpRequestException("Network interrupted");
@@ -179,9 +234,12 @@ public class WeeklyDigestTests {
 				: JsonSerializer.SerializeToNode(new[] { new { type = "message", id = "msg_one", role = "assistant", status = "completed", content = new[] {
 					new { type = "output_text", text = final ? (InvalidFinals-- > 0 ? "invalid JSON" : JsonSerializer.Serialize(candidates.Payload(), DigestJson.Options)) : "Enough evidence gathered.", annotations = Array.Empty<object>() }
 				} } })!;
+			var usage = JsonNode.Parse("""{"input_tokens":900,"output_tokens":100,"total_tokens":1000,"input_tokens_details":{"cached_tokens":0},"output_tokens_details":{"reasoning_tokens":20}}""")!;
+			usage["input_tokens"] = TotalUsage - 100;
+			usage["total_tokens"] = TotalUsage;
 			return Task.FromResult(new JsonObject {
 				["id"] = "resp_test", ["object"] = "response", ["created_at"] = 0, ["status"] = Incomplete ? "incomplete" : "completed", ["model"] = "test", ["output"] = output,
-				["usage"] = JsonNode.Parse("""{"input_tokens":900,"output_tokens":100,"total_tokens":1000,"input_tokens_details":{"cached_tokens":0},"output_tokens_details":{"reasoning_tokens":20}}""")
+				["usage"] = usage
 			});
 		}
 	}
@@ -189,10 +247,11 @@ public class WeeklyDigestTests {
 	private sealed class CaptureHandler : HttpMessageHandler {
 		public List<JsonObject> Requests { get; } = [];
 		protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) {
+			Assert.Equal("/v1/responses", request.RequestUri!.AbsolutePath);
 			Requests.Add(JsonNode.Parse(await request.Content!.ReadAsStringAsync(ct))!.AsObject());
 			Assert.Equal("test-key", request.Headers.Authorization!.Parameter);
-			return new HttpResponseMessage(request.RequestUri!.AbsolutePath.EndsWith("input_tokens", StringComparison.Ordinal) ? HttpStatusCode.OK : HttpStatusCode.TooManyRequests) {
-				Content = new StringContent("{\"input_tokens\":1000}", Encoding.UTF8, "application/json")
+			return new HttpResponseMessage(HttpStatusCode.TooManyRequests) {
+				Content = new StringContent("{}", Encoding.UTF8, "application/json")
 			};
 		}
 	}
