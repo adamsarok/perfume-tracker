@@ -175,6 +175,7 @@ if (!string.IsNullOrWhiteSpace(openAiApiKey) && !string.IsNullOrWhiteSpace(assis
 	builder.Services.AddSingleton<OpenAIClient>(_ => new OpenAIClient(openAiApiKey));
 #pragma warning disable OPENAI001 // Responses API is marked experimental in OpenAI 2.13.0.
 	builder.Services.AddSingleton(sp => sp.GetRequiredService<OpenAIClient>().GetResponsesClient());
+	builder.Services.AddSingleton<IResponsesClient, ResponsesClientAdapter>();
 #pragma warning restore OPENAI001
 	builder.Services.AddSingleton<ChatClient>(_ = new ChatClient(model: assistantModel, apiKey: openAiApiKey));
 	builder.Services.AddSingleton<IEncoder, Encoder>();
@@ -211,6 +212,7 @@ builder.Services.AddScoped<ITagNoteGroupIdentifier, TagNoteGroupIdentifier>();
 builder.Services.AddSingleton<ISystemPromptCache, SystemPromptCache>();
 builder.Services.AddScoped<IChatAgent, ChatAgent>();
 builder.Services.AddScoped<IChatAgentTools, ChatAgentTools>();
+builder.Services.AddScoped<IChatSystemPromptBuilder, ChatSystemPromptBuilder>();
 builder.Services.AddScoped<IUserStatsService, UserStatsService>();
 builder.Services.AddCarter();
 

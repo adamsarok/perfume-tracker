@@ -1,0 +1,27 @@
+{
+  "id": "resp_smoke_title",
+  "object": "response",
+  "created_at": 1750000001,
+  "status": "completed",
+  "model": "eval-smoke-fixture",
+  "output": [
+    {
+      "type": "message",
+      "id": "msg_smoke_title",
+      "status": "completed",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Perfume Assistant Capabilities",
+          "annotations": []
+        }
+      ]
+    }
+  ],
+  "parallel_tool_calls": true,
+  "tools": [],
+  "error": null,
+  "incomplete_details": null,
+  "usage": { "input_tokens": 300, "output_tokens": 8, "total_tokens": 308 }
+}

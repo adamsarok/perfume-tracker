@@ -12,8 +12,8 @@
         "qwen-local": {
           "name": "Qwen 3.8 27B",
           "limit": {
-            "context": 32768,
-            "output": 8192
+            "context": 65536,
+            "output": 16384
           }
         }
       }

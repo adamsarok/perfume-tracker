@@ -85,6 +85,7 @@ Key features: `Perfumes/`, `Auth/`, `ChatAgent/`, `Embedding/`, `Tags/`, `Missio
 
 - **Backend:** xUnit v3 with fixture-based setup (`Fixture/`), Moq for mocking, Bogus for fake data, `WebApplicationFactory` for integration tests. Tests run against PostgreSQL with pgvector. Test environment is QA (`.runsettings`).
 - **Frontend:** Vitest with `@testing-library/react`, jsdom environment. Test files are `*.test.tsx` colocated with components.
+- **Chat agent evals:** `PerfumeTracker.Evals/` (console app, see its README) runs the real agent against the test database and scores the trajectory. Deterministic scorers always run; a rubric judge runs when `--judge-model` is given. `--mode replay` reads recorded model responses and needs no API key, `--mode record` captures them. Deterministic, key-free assertions that need no model belong in `PerfumeTracker.xTests` instead.
 
 ## Code Style
 

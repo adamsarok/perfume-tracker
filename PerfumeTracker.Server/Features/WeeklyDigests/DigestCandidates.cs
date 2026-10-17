@@ -12,7 +12,14 @@ public interface IDigestCandidates {
 	Task<object> GetContext(DateTime weekStart, CancellationToken ct);
 }
 
-public class DigestCandidates(PerfumeTrackerContext db) : IDigestCandidates {
+public class DigestCandidates(PerfumeTrackerContext db, TimeProvider? timeProvider = null) : IDigestCandidates {
+	private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
+	private PerfumeRecommender.Seasons CurrentSeason => clock.GetUtcNow().Month switch {
+		12 or 1 or 2 => PerfumeRecommender.Seasons.Winter,
+		3 or 4 or 5 => PerfumeRecommender.Seasons.Spring,
+		6 or 7 or 8 => PerfumeRecommender.Seasons.Summer,
+		_ => PerfumeRecommender.Seasons.Autumn
+	};
 	private static string Clip(string? value, int length) => (value ?? "")[..Math.Min(value?.Length ?? 0, length)];
 
 	public async Task<object> GetContext(DateTime weekStart, CancellationToken ct) {
@@ -22,7 +29,7 @@ public class DigestCandidates(PerfumeTrackerContext db) : IDigestCandidates {
 			.Select(p => new { p.Id, p.House, p.PerfumeName, p.LastWorn }).ToListAsync(ct);
 		var previous = await db.WeeklyDigests.AsNoTracking().Where(d => d.Status == "Completed" && d.WeekStart < weekStart)
 			.OrderByDescending(d => d.WeekStart).Take(4).Select(d => d.Payload).ToListAsync(ct);
-		return new { weekStart, season = PerfumeRecommender.Season.ToString(), profile.MinimumRating,
+		return new { weekStart, season = CurrentSeason.ToString(), profile.MinimumRating,
 			profile.DayFilter, recentWears = recent,
 			previousDigests = previous.Select(p => JsonSerializer.Deserialize<DigestPayload>(p!, DigestJson.Options))
 				.Select(p => new { p!.MoodOrOccasion, categories = p.Categories.Select(c => new { c.Strategy, perfumeIds = c.Picks.Select(p => p.PerfumeId) }) }) };
@@ -49,7 +56,7 @@ public class DigestCandidates(PerfumeTrackerContext db) : IDigestCandidates {
 				case RecommendationStrategy.LongestTimeAgo:
 					ordered = query.OrderBy(p => p.LastWorn != null).ThenBy(p => p.LastWorn); break;
 				case RecommendationStrategy.Seasonal:
-					var words = SeasonalWords(PerfumeRecommender.Season);
+					var words = SeasonalWords(CurrentSeason);
 					ordered = query.OrderByDescending(p => p.PerfumeTags.Count(t => words.Contains(t.Tag.TagName.ToLower()))); break;
 				case RecommendationStrategy.SimilarToLastUsed:
 					var vectors = await db.Perfumes.Where(p => p.LastWorn != null && p.PerfumeDocument != null && p.PerfumeDocument.Embedding != null)
@@ -61,7 +68,7 @@ public class DigestCandidates(PerfumeTrackerContext db) : IDigestCandidates {
 						.ThenBy(p => p.PerfumeDocument!.Embedding!.L2Distance(average)); break;
 				case RecommendationStrategy.Random:
 					// Stable paging, with a different collection permutation each UTC week.
-					var week = WeeklyDigestSchedule.LatestDueWeek(DateTime.UtcNow).Ticks / TimeSpan.TicksPerDay / 7;
+					var week = WeeklyDigestSchedule.LatestDueWeek(clock.GetUtcNow().UtcDateTime).Ticks / TimeSpan.TicksPerDay / 7;
 					var segment = new[] { 0, 9, 14, 19, 24 }[(int)(week % 5)];
 					ordered = query.OrderBy(p => p.Id.ToString().Substring(segment, 8)); break;
 				default:
@@ -70,7 +77,7 @@ public class DigestCandidates(PerfumeTrackerContext db) : IDigestCandidates {
 		}
 		var perfumes = await ordered.ThenBy(p => p.Id).Skip(offset).Take(count)
 			.Select(p => new DigestCandidate(p.Id, p.House, p.PerfumeName, p.Family, p.LatestRating, p.MlLeft, p.WearCount,
-				p.LastWorn, p.PerfumeTags.Select(t => t.Tag.TagName).ToList(),
+				p.LastWorn, p.PerfumeTags.OrderBy(t => t.Tag.TagName).Select(t => t.Tag.TagName).ToList(),
 				p.PerfumeRatings.OrderByDescending(e => e.RatingDate).Select(e => e.Comment).FirstOrDefault()))
 			.ToListAsync(ct);
 		return new(total, offset, perfumes.Select(p => p with { House = Clip(p.House, 160), PerfumeName = Clip(p.PerfumeName, 160),

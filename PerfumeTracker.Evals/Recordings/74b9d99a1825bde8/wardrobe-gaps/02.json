@@ -1,0 +1,20 @@
+{"metadata":{},"temperature":1,"top_logprobs":0,"top_p":0.98,"user":null,"service_tier":"default","model":"gpt-6.1-sol","reasoning":{"effort":"medium","context":"all_turns","mode":"standard"},"background":false,"max_output_tokens":2048,"text":{"format":{"type":"text"},"verbosity":"medium"},"tools":[],"tool_choice":"none","truncation":"disabled","id":"resp_00276b14b68d9cfa016ad32f4de0a487d289a883251f6f0903","object":"response","status":"completed","created_at":1792225101,"error":null,"incomplete_details":null,"output":[{"type":"message","id":"msg_00276b14b68d9cfa016ad32f4e9ffc87d2be7af1e29d248d58","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Perfume Collection Gaps and Exploration Priorities","annotations":[],"logprobs":[]}],"phase":"final_answer"}],"instructions":null,"usage":{"input_tokens":690,"input_tokens_details":{"cached_tokens":0,"cache_write_tokens":0},"output_tokens":13,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":703},"parallel_tool_calls":true,"prompt_cache_retention":"24h","access_programs":null,"billing":{
+    "payer": "developer"
+  },"completed_at":1792225102,"frequency_penalty":0.0,"moderation":null,"presence_penalty":0.0,"store":false,"tool_usage":{
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  }}

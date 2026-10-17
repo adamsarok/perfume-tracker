@@ -38,7 +38,7 @@ public class WeeklyDigestDatabase : IAsyncLifetime {
 		builder.Services.AddHttpContextAccessor();
 		builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 		builder.Services.AddDbContext<PerfumeTrackerContext>(o => o.UseNpgsql(connection, pg => pg.UseVector()));
-		builder.Services.AddOptions<WeeklyDigestOptions>();
+		builder.Services.AddOptions<WeeklyDigestOptions>().Configure(o => { o.RetryBaseDelaySeconds = 0; o.RetryMaxDelaySeconds = 0; });
 		builder.Services.AddOptions<OpenAIOptions>();
 		builder.Services.AddScoped<IDigestCandidates, DigestCandidates>();
 		builder.Services.AddSingleton<IDigestModel>(Model);
@@ -262,7 +262,7 @@ public class WeeklyDigestIntegrationTests(WeeklyDigestDatabase fixture) {
 		var run = await scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>().WeeklyDigests.IgnoreQueryFilters().SingleAsync(d => d.UserId == user, Ct);
 		Assert.Equal("Failed", run.Status);
 		Assert.Equal(3, run.Attempts);
-		Assert.Equal(75_000, run.TokensUsed);
+		Assert.Equal(150_000, run.TokensUsed); // Six physical attempts, including inline retries, retained their allowances.
 	}
 
 	[Fact]

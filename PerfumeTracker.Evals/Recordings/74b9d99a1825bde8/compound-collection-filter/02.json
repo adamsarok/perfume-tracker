@@ -1,0 +1,20 @@
+{"metadata":{},"temperature":1,"top_logprobs":0,"top_p":0.98,"user":null,"service_tier":"default","model":"gpt-6.1-sol","reasoning":{"effort":"medium","context":"all_turns","mode":"standard"},"background":false,"max_output_tokens":2048,"text":{"format":{"type":"text"},"verbosity":"medium"},"tools":[],"tool_choice":"none","truncation":"disabled","id":"resp_0fc5451f49a08974016ad3301aac3c87d2a7d280bda08afa97","object":"response","status":"completed","created_at":1792225306,"error":null,"incomplete_details":null,"output":[{"type":"message","id":"msg_0fc5451f49a08974016ad3301bb7b887d2824a4f7c73d227e9","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Highly Rated Atelier Nord Vetiver Perfumes","annotations":[],"logprobs":[]}],"phase":"final_answer"}],"instructions":null,"usage":{"input_tokens":134,"input_tokens_details":{"cached_tokens":0,"cache_write_tokens":0},"output_tokens":12,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":146},"parallel_tool_calls":true,"prompt_cache_retention":"24h","access_programs":null,"billing":{
+    "payer": "developer"
+  },"completed_at":1792225307,"frequency_penalty":0.0,"moderation":null,"presence_penalty":0.0,"store":false,"tool_usage":{
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  }}

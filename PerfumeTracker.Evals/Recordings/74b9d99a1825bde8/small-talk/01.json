@@ -1,0 +1,20 @@
+{"metadata":{},"temperature":1,"top_logprobs":0,"top_p":0.98,"user":null,"service_tier":"default","model":"gpt-6.1-sol","reasoning":{"effort":"medium","context":"all_turns","mode":"standard"},"background":false,"max_output_tokens":2048,"text":{"format":{"type":"text"},"verbosity":"medium"},"tools":[],"tool_choice":"none","truncation":"disabled","id":"resp_0d5c5c56596df692016ad32fc219c487d28a3597c2e32b1876","object":"response","status":"completed","created_at":1792225218,"error":null,"incomplete_details":null,"output":[{"type":"message","id":"msg_0d5c5c56596df692016ad32fc2e95887d2b314d3902ae33ea1","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Personalized Perfume Collection Help and Recommendations","annotations":[],"logprobs":[]}],"phase":"final_answer"}],"instructions":null,"usage":{"input_tokens":262,"input_tokens_details":{"cached_tokens":0,"cache_write_tokens":0},"output_tokens":12,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":274},"parallel_tool_calls":true,"prompt_cache_retention":"24h","access_programs":null,"billing":{
+    "payer": "developer"
+  },"completed_at":1792225219,"frequency_penalty":0.0,"moderation":null,"presence_penalty":0.0,"store":false,"tool_usage":{
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  }}
