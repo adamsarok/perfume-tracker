@@ -25,7 +25,9 @@ public record PerfumeLlmDto(
 	DateTime? LastWorn,
 	decimal MlLeft,
 	List<string> Tags,
-	string? LastComment);
+	string? LastComment,
+	decimal? Ml = null,
+	decimal? RemainingPercent = null);
 public class ChatAgent(
 	PerfumeTrackerContext context,
 	IResponsesClient responsesClient,

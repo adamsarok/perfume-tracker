@@ -80,6 +80,89 @@
       "expectedOwnedLinks": [ "Atelier Nord - Empty Vetiver" ],
       "judge": true,
       "rubric": "The answer must identify Atelier Nord - Empty Vetiver as having 0 millilitres left and say that specific bottle is not available to wear. It may suggest another owned perfume, including Atelier Nord - Cedar Storm, if tool evidence shows it has liquid remaining. Do not treat other available perfumes containing vetiver as a failure."
+    },
+    {
+      "id": "rebuy-favorites",
+      "category": "rebuy",
+      "message": "Make me a buy list of my favorites that need replenishing. Use your default rebuy criteria, including finished bottles.",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "forbiddenTools": [ "search_marketplace_offers", "search_owned_perfumes_by_characteristics", "check_perfume_ownership" ],
+      "requiredToolArguments": [ { "tool": "filter_owned_perfumes", "arguments": { "remainingPercentBelow": 10, "ratingAbove": 3, "onlyAvailable": false, "orderBy": "rating", "orderDirection": "desc" } } ],
+      "expectedOwnedLinks": [ "Rebuy Lab - Last Amber", "Atelier Nord - Empty Vetiver" ],
+      "forbiddenOwnedLinks": [ "Rebuy Lab - Ten Percent", "Rebuy Lab - Full Sample", "Rebuy Lab - Average Rose", "Rebuy Lab - Unrated Amber", "Rebuy Lab - Unknown Capacity" ],
+      "rubric": "Recommend Last Amber (9/100 ml, 9%, rating 4.3) and Empty Vetiver (0/100 ml, 0%, rating 3.5). Explain strictly below 10% remaining and rating above 3. Do not recommend exactly 10%, rating 3, unrated bottles, or unknown capacity. No marketplace lookup is needed."
+    },
+    {
+      "id": "rebuy-threshold-override",
+      "category": "rebuy",
+      "message": "Which Rebuy Lab favorites rated above 3 should I restock with less than 20% left? Include empty bottles.",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "requiredToolArguments": [ { "tool": "filter_owned_perfumes", "arguments": { "house": "Rebuy Lab", "remainingPercentBelow": 20, "ratingAbove": 3, "onlyAvailable": false } } ],
+      "expectedOwnedLinks": [ "Rebuy Lab - Last Amber", "Rebuy Lab - Ten Percent" ],
+      "forbiddenOwnedLinks": [ "Rebuy Lab - Full Sample", "Rebuy Lab - Average Rose", "Rebuy Lab - Unrated Amber", "Rebuy Lab - Unknown Capacity" ],
+      "rubric": "Use the explicit 20% threshold instead of the default 10%. Return Last Amber and Ten Percent, explaining their remaining percentages."
+    },
+    {
+      "id": "low-volume-any-rating",
+      "category": "rebuy",
+      "message": "List all Rebuy Lab bottles below 10% remaining, regardless of rating, including unrated and empty bottles.",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "requiredToolArguments": [ { "tool": "filter_owned_perfumes", "arguments": { "house": "Rebuy Lab", "remainingPercentBelow": 10, "onlyAvailable": false } } ],
+      "expectedOwnedLinks": [ "Rebuy Lab - Last Amber", "Rebuy Lab - Average Rose", "Rebuy Lab - Unrated Amber" ],
+      "forbiddenOwnedLinks": [ "Rebuy Lab - Ten Percent", "Rebuy Lab - Full Sample", "Rebuy Lab - Unknown Capacity" ],
+      "rubric": "Honor regardless of rating: include Last Amber, Average Rose and Unrated Amber. Do not apply the default favorite-rating cutoff. Exactly 10% and unknown capacity do not qualify."
+    },
+    {
+      "id": "small-sample-not-low",
+      "category": "rebuy",
+      "message": "My Rebuy Lab Full Sample only has 1.9 ml left. Check the bottle size: does it meet your default rebuy criteria?",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "requiredToolArguments": [ { "tool": "filter_owned_perfumes", "arguments": { "house": "Rebuy Lab" } } ],
+      "expectedOwnedLinks": [ "Rebuy Lab - Full Sample" ],
+      "rubric": "Use tool evidence to explain Full Sample has 1.9 of 2 ml left, or 95%, and does not meet the below-10% rebuy rule. Do not infer low supply from absolute millilitres."
+    },
+    {
+      "id": "unknown-bottle-capacity",
+      "category": "collection-facts",
+      "message": "Check Rebuy Lab Unknown Capacity. What percentage is left, and does it need restocking?",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "expectedOwnedLinks": [ "Rebuy Lab - Unknown Capacity" ],
+      "rubric": "Recognize its capacity is unknown/nonpositive and RemainingPercent is null. Report the known 1 ml if useful, but do not invent a percentage or assert that the percentage-based restock threshold is met."
+    },
+    {
+      "id": "neglected-favorites",
+      "category": "collection-facts",
+      "message": "Which available favorites rated above 3 have I not worn in at least 90 days?",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "requiredToolArguments": [ { "tool": "filter_owned_perfumes", "arguments": { "ratingAbove": 3, "notWornInDays": 90 } } ],
+      "expectedOwnedLinks": [ "Nordwind - Sandalwood Ritual", "Casa Aurelia - Vanilla Smoke", "Fleur & Co - Rose Absolue" ],
+      "forbiddenOwnedLinks": [ "Atelier Nord - Empty Vetiver", "Citrus Grove - Winter Wood" ],
+      "rubric": "List available Sandalwood Ritual, Vanilla Smoke and Rose Absolue based on rating above 3 and last-worn dates. Exclude empty Empty Vetiver and Winter Wood rated exactly 3."
+    },
+    {
+      "id": "compound-collection-filter",
+      "category": "collection-facts",
+      "message": "Which available Atelier Nord perfumes tagged vetiver have I rated above 4?",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "requiredToolArguments": [ { "tool": "filter_owned_perfumes", "arguments": { "house": "Atelier Nord", "ratingAbove": 4 } } ],
+      "expectedOwnedLinks": [ "Atelier Nord - Cedar Storm" ],
+      "forbiddenOwnedLinks": [ "Atelier Nord - Empty Vetiver" ],
+      "rubric": "Apply house, vetiver tag, rating above 4 and availability together. Cedar Storm is the match, with rating 4.5 and 41 ml left."
+    },
+    {
+      "id": "collection-no-matches",
+      "category": "collection-facts",
+      "message": "Do I have any available Rebuy Lab perfumes rated above 4.9?",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "requiredToolArguments": [ { "tool": "filter_owned_perfumes", "arguments": { "house": "Rebuy Lab", "ratingAbove": 4.9 } } ],
+      "forbiddenOwnedLinks": [ "Rebuy Lab - Last Amber", "Rebuy Lab - Ten Percent", "Rebuy Lab - Full Sample", "Rebuy Lab - Unknown Capacity" ],
+      "rubric": "Say no perfumes match the requested criteria, based on a tool lookup. Do not invent a match or silently relax the threshold."
+    },
+    {
+      "id": "ambiguous-vetiver",
+      "category": "collection-facts",
+      "message": "Can I actually wear my vetiver perfume right now?",
+      "rubric": "The request does not uniquely name a bottle. Cedar Storm contains vetiver and has 41 ml left, so suggesting it with supporting tool evidence is valid. It is also valid to clarify which bottle is intended. If Empty Vetiver is discussed, it has 0 ml and cannot be worn. Do not require all vetiver-containing perfumes to be unavailable."
     }
   ]
 }

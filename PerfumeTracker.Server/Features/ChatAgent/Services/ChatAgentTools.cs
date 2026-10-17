@@ -130,8 +130,18 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				},
 				"onlyAvailable": {
 					"type": "boolean",
-					"description": "When true, only return perfumes with ml left",
+					"description": "When true, only return perfumes with ml left. Set false for empty bottles or rebuy queries.",
 					"default": true
+				},
+				"remainingPercentBelow": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 100,
+					"description": "Exclusive upper bound on 100 * MlLeft / Ml. Excludes unknown or nonpositive capacity. For rebuy use 10 and onlyAvailable=false."
+				},
+				"ratingAbove": {
+					"type": "number",
+					"description": "Exclusive minimum rating. Default rebuy favorites have ratingAbove=3 on the 1-5 scale."
 				},
 				"family": {
 					"type": "string",
@@ -205,7 +215,7 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 
 	private static ChatTool CreateSearchMarketplaceOffersTool(int maxResultsPerToolCall) => ChatTool.CreateFunctionTool(
 		functionName: "search_marketplace_offers",
-		functionDescription: "Search locally imported marketplace offers. This tool only reads the user's persisted MarketplaceOffers table and never calls external marketplace websites or APIs. Use for buy-list, decant, seller, marketplace, available offer, and sample-shopping requests.",
+		functionDescription: "Search locally imported marketplace offers. This tool only reads the user's persisted MarketplaceOffers table and never calls external marketplace websites or APIs. Use for decant, seller, marketplace, available offer, and sample-shopping requests. Rebuy or restock lists of owned bottles use filter_owned_perfumes instead unless the user also requests offers.",
 		functionParameters: BinaryData.FromString($$"""
 		{
 			"type": "object",
@@ -408,6 +418,12 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 		var query = context.Perfumes.AsNoTracking();
 
 		if (onlyAvailable) query = query.Where(p => p.MlLeft > 0);
+		if (GetOptionalDecimal(arguments, "remainingPercentBelow") is { } remainingPercentBelow) {
+			if (remainingPercentBelow < 0 || remainingPercentBelow > 100)
+				throw new ArgumentException("remainingPercentBelow must be between 0 and 100.");
+			query = query.Where(p => p.Ml > 0 && p.MlLeft * 100m < p.Ml * remainingPercentBelow);
+		}
+		if (GetOptionalDecimal(arguments, "ratingAbove") is { } ratingAbove) query = query.Where(p => p.LatestRating > ratingAbove);
 		if (GetOptionalDecimal(arguments, "minRating") is { } minRating) query = query.Where(p => p.LatestRating >= minRating);
 		if (GetOptionalDecimal(arguments, "maxRating") is { } maxRating) query = query.Where(p => p.LatestRating <= maxRating);
 		if (GetOptionalInt(arguments, "minWearCount") is { } minWearCount) query = query.Where(p => p.WearCount >= minWearCount);
@@ -567,7 +583,9 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 				.Distinct()
 				.OrderBy(t => t)
 				.ToList(),
-			lastComment);
+			lastComment,
+			perfume.Ml,
+			perfume.Ml > 0 ? 100m * perfume.MlLeft / perfume.Ml : null);
 	}
 
 	private static PerfumeLlmDto ToPerfumeLlmDto(PerfumeWithWornStatsDto perfume) {
@@ -581,7 +599,9 @@ public class ChatAgentTools(PerfumeTrackerContext context, IPerfumeRecommender p
 			perfume.Perfume.LastWorn,
 			perfume.Perfume.MlLeft,
 			perfume.Perfume.Tags.Select(t => t.TagName).OrderBy(t => t).ToList(),
-			string.IsNullOrWhiteSpace(perfume.LastComment) ? null : perfume.LastComment);
+			string.IsNullOrWhiteSpace(perfume.LastComment) ? null : perfume.LastComment,
+			perfume.Perfume.Ml,
+			perfume.Perfume.Ml > 0 ? 100m * perfume.Perfume.MlLeft / perfume.Perfume.Ml : null);
 	}
 
 	private static string? GetOptionalString(Dictionary<string, JsonElement> arguments, string key) {

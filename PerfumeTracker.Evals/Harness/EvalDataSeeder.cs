@@ -131,5 +131,9 @@ public static class EvalDataSeeder {
 		}));
 
 		await context.SaveChangesAsync(cancellationToken);
+		// Ml has a database default of 2, so EF omits zero on insert. Preserve unknown-capacity fixtures.
+		var zeroCapacityIds = EvalWardrobe.Perfumes.Where(p => p.Ml == 0).Select(p => p.Id).ToList();
+		await context.Perfumes.Where(p => zeroCapacityIds.Contains(p.Id))
+			.ExecuteUpdateAsync(update => update.SetProperty(p => p.Ml, 0m), cancellationToken);
 	}
 }

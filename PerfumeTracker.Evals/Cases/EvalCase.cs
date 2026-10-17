@@ -23,6 +23,12 @@ public sealed class EvalCase {
 	/// <summary>Owned perfume names ("House - PerfumeName") the answer must link to.</summary>
 	public List<string> ExpectedOwnedLinks { get; set; } = [];
 
+	/// <summary>Owned perfume names that must not be linked in the answer.</summary>
+	public List<string> ForbiddenOwnedLinks { get; set; } = [];
+
+	/// <summary>Each assertion must match at least one call, allowing additional arguments.</summary>
+	public List<ExpectedToolArguments> RequiredToolArguments { get; set; } = [];
+
 	/// <summary>True when the case needs real embeddings / chat calls and cannot be replayed.</summary>
 	public bool RequiresApi { get; set; }
 
@@ -33,4 +39,9 @@ public sealed class EvalCase {
 
 	/// <summary>What a good answer must contain, in plain language, for the LLM judge.</summary>
 	public string? Rubric { get; set; }
+}
+
+public sealed class ExpectedToolArguments {
+	public string Tool { get; set; } = string.Empty;
+	public Dictionary<string, System.Text.Json.JsonElement> Arguments { get; set; } = [];
 }

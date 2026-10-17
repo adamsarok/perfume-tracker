@@ -38,6 +38,8 @@ public static class EvalCaseLoader {
 			if (string.IsNullOrWhiteSpace(c.Id)) throw new InvalidDataException("Every case needs an id.");
 			if (string.IsNullOrWhiteSpace(c.Message)) throw new InvalidDataException($"Case '{c.Id}' needs a message.");
 			if (c.Judge && string.IsNullOrWhiteSpace(c.Rubric)) throw new InvalidDataException($"Case '{c.Id}' enables the judge but has no rubric.");
+			if (c.RequiredToolArguments.Any(expected => string.IsNullOrWhiteSpace(expected.Tool) || expected.Arguments.Count == 0))
+				throw new InvalidDataException($"Case '{c.Id}' has an empty required tool-argument assertion.");
 		}
 	}
 }

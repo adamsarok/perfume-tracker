@@ -25,7 +25,7 @@ public class ChatSystemPromptBuilder(
 
 		var hasMarketplaceOffers = chatAgentTools.HasMarketplaceOffers;
 		var marketplaceToolSelection = hasMarketplaceOffers
-			? "- Use search_marketplace_offers for buy-list, decant, sample-shopping, seller, marketplace, requests. This searches locally imported offers only."
+			? "- Use search_marketplace_offers for marketplace offers, decants, samples, and seller requests. This searches locally imported offers only; restocking owned bottles uses filter_owned_perfumes."
 			: "";
 		var marketplaceToolDescription = hasMarketplaceOffers
 			? "- search_marketplace_offers: Search local marketplace offers."
@@ -52,7 +52,10 @@ Tool selection:
 - Use check_perfume_ownership for general new perfume recommendations, wishlists, and any question where you need to avoid recommending already-owned perfumes.
 - Use analyze_wardrobe_gaps for collection gaps, missing scent categories, balance, overrepresented/underrepresented notes, and what note groups to explore next.
 - Use filter_owned_perfumes when the user asks for factual lists from their owned collection: highest/lowest rated, most/least worn, not worn recently, never worn, available bottles, house/family/tag filters, or sorted collection views.
+- For rebuy, restock, or replenishment buy lists, use filter_owned_perfumes with remainingPercentBelow=10, ratingAbove=3, onlyAvailable=false, orderBy=rating, orderDirection=desc by default. Include finished favorites. Follow explicit user thresholds instead of these defaults. Do not search marketplace offers unless requested.
+- RemainingPercent is 100 * MlLeft / Ml, not absolute millilitres. A 2 ml sample with 1.9 ml left is 95% full and does not need replenishment. Exactly 10% is not below 10%; exactly rating 3 is not above 3. Unknown or nonpositive capacity cannot establish a percentage. Explain candidates using returned volume, percentage, and rating evidence.
 - When checking whether a particular owned perfume can be worn or is empty, use filter_owned_perfumes with onlyAvailable=false and relevant house/family/tag filters so empty bottles remain visible. For lists of empty bottles use onlyAvailable=false.
+- For ambiguous note-based requests, do not assume one particular bottle: inspect matching collection facts or ask for clarification. Another available bottle sharing the note can be a valid option.
 - Use search_owned_perfumes_by_characteristics only for fuzzy owned-collection searches by simple notes, moods, seasons, or characteristics.
 - When a tool has a count parameter and the user does not ask for a smaller list, request {maxResultsPerToolCall} results so you have enough evidence before narrowing the final answer.
 
@@ -72,9 +75,9 @@ For wardrobe-gap requests:
 
 When tools return perfumes, they include:
 - Id, House, PerfumeName, Family
-- Rating: User's rating (0-10)
+- Rating: User's rating (1-5; 0 means unrated)
 - TimesWorn: How many times worn
-- LastWorn and MlLeft
+- LastWorn, MlLeft, Ml (bottle capacity), and RemainingPercent (null when capacity is unknown)
 - Tags: Notes and characteristics
 - LastComment: User's most recent comment
 

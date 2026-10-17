@@ -61,6 +61,7 @@ public sealed class LlmJudgeScorer : IEvalScorer {
 		} else {
 			foreach (var call in trajectory.ToolCalls) {
 				builder.AppendLine($"- {call.Name}({Truncate(call.Arguments, 400)})");
+				builder.AppendLine($"  Returned evidence: {Truncate(call.Result ?? "(no result captured)", 12000)}");
 			}
 		}
 		builder.AppendLine();

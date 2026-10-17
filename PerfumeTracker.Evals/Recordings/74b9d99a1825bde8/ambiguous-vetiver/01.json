@@ -1,0 +1,215 @@
+{"metadata":{},"temperature":1,"top_logprobs":0,"top_p":0.98,"user":null,"service_tier":"default","model":"gpt-6.1-sol","reasoning":{"effort":"medium","context":"all_turns","mode":"standard"},"background":false,"text":{"format":{"type":"text"},"verbosity":"medium"},"tools":[{"type":"function","name":"search_owned_perfumes_by_characteristics","description":"Search ONLY perfumes the user already OWNS by simple characteristics like notes, moods, or seasons. LIMITATIONS: (1) Only searches user's OWNED collection, NOT new perfumes. (2) Only handles simple 1-3 word queries like 'vanilla', 'summer night', 'spicy amber'.","parameters":{
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Simple 1-3 word characteristic to search (e.g., 'vanilla', 'summer', 'woody fresh', 'cozy'). Must be a simple note, mood, or season - NOT a complex question."
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of perfumes to return (1-50)",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 50
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "additionalProperties": false
+      },"strict":false,"output_schema":null},{"type":"function","name":"check_perfume_ownership","description":"Check if user already owns specific perfumes by house and name. Use this BEFORE recommending new perfumes to buy. Returns which perfumes from the list are already owned.","parameters":{
+        "type": "object",
+        "properties": {
+          "perfumes": {
+            "type": "array",
+            "description": "List of perfumes to check ownership for. Use up to 50 candidates when checking new recommendations.",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "properties": {
+                "house": {
+                  "type": "string",
+                  "description": "Perfume house/brand name"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Perfume name"
+                }
+              },
+              "required": [
+                "house",
+                "name"
+              ]
+            }
+          }
+        },
+        "required": [
+          "perfumes"
+        ],
+        "additionalProperties": false
+      },"strict":false,"output_schema":null},{"type":"function","name":"analyze_wardrobe_gaps","description":"Analyze the user's owned perfume wardrobe for underrepresented note groups. Use this when the user asks about wardrobe gaps, missing scent categories, collection balance, or what note groups to explore next.","parameters":{
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },"strict":false,"output_schema":null},{"type":"function","name":"filter_owned_perfumes","description":"Filter and order ONLY perfumes the user already OWNS by structured collection facts. Use this for least worn, highest rated, not worn recently, never worn, specific tags, family, house, or availability queries.","parameters":{
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of perfumes to return (1-50)",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 50
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "Field to order by",
+            "enum": [
+              "rating",
+              "wearCount",
+              "lastWorn",
+              "mlLeft",
+              "house",
+              "perfumeName"
+            ],
+            "default": "rating"
+          },
+          "orderDirection": {
+            "type": "string",
+            "description": "Sort direction",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "minRating": {
+            "type": "number",
+            "description": "Minimum user rating, inclusive"
+          },
+          "maxRating": {
+            "type": "number",
+            "description": "Maximum user rating, inclusive"
+          },
+          "minWearCount": {
+            "type": "integer",
+            "description": "Minimum wear count, inclusive"
+          },
+          "maxWearCount": {
+            "type": "integer",
+            "description": "Maximum wear count, inclusive"
+          },
+          "notWornInDays": {
+            "type": "integer",
+            "description": "Return perfumes never worn or not worn in at least this many days"
+          },
+          "wornWithinDays": {
+            "type": "integer",
+            "description": "Return perfumes worn within this many days"
+          },
+          "neverWorn": {
+            "type": "boolean",
+            "description": "When true, return only perfumes with zero wears"
+          },
+          "onlyAvailable": {
+            "type": "boolean",
+            "description": "When true, only return perfumes with ml left. Set false for empty bottles or rebuy queries.",
+            "default": true
+          },
+          "remainingPercentBelow": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Exclusive upper bound on 100 * MlLeft / Ml. Excludes unknown or nonpositive capacity. For rebuy use 10 and onlyAvailable=false."
+          },
+          "ratingAbove": {
+            "type": "number",
+            "description": "Exclusive minimum rating. Default rebuy favorites have ratingAbove=3 on the 1-5 scale."
+          },
+          "family": {
+            "type": "string",
+            "description": "Case-insensitive family match"
+          },
+          "house": {
+            "type": "string",
+            "description": "Case-insensitive house match"
+          },
+          "tagsAny": {
+            "type": "array",
+            "description": "Return perfumes with at least one of these tags",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tagsAll": {
+            "type": "array",
+            "description": "Return perfumes with all of these tags",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },"strict":false,"output_schema":null},{"type":"function","name":"search_marketplace_offers","description":"Search locally imported marketplace offers. This tool only reads the user's persisted MarketplaceOffers table and never calls external marketplace websites or APIs. Use for decant, seller, marketplace, available offer, and sample-shopping requests. Rebuy or restock lists of owned bottles use filter_owned_perfumes instead unless the user also requests offers.","parameters":{
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Optional text search across brand, product, offer title, description, seller, price, and size."
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of offers to return (1-50)",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 50
+          },
+          "source": {
+            "type": "string",
+            "description": "Optional imported source name, such as a marketplace/site label."
+          },
+          "sellerName": {
+            "type": "string",
+            "description": "Optional seller name filter."
+          },
+          "brandName": {
+            "type": "string",
+            "description": "Optional brand/house filter."
+          },
+          "productName": {
+            "type": "string",
+            "description": "Optional product/perfume name filter."
+          },
+          "status": {
+            "type": "string",
+            "description": "Optional offer status filter.",
+            "default": "Active"
+          },
+          "excludeOwned": {
+            "type": "boolean",
+            "description": "When true, exclude offers that match already-owned perfumes by MatchedPerfumeId or exact brand/product name.",
+            "default": true
+          }
+        },
+        "additionalProperties": false
+      },"strict":false,"output_schema":null}],"tool_choice":"auto","truncation":"disabled","id":"resp_079989af32d0e748016ad3302a621887d2a15a1790f359816c","object":"response","status":"completed","created_at":1792225322,"error":null,"incomplete_details":null,"output":[{"type":"function_call","id":"fc_079989af32d0e748016ad3302b963887d28137e940fb491300","status":"completed","call_id":"call_QITvPmj7ZDIMfkWA5q8EZH0C","name":"filter_owned_perfumes","arguments":"{\"tagsAny\":[\"vetiver\"],\"onlyAvailable\":false,\"count\":50}"}],"instructions":null,"usage":{"input_tokens":2237,"input_tokens_details":{"cached_tokens":2189,"cache_write_tokens":45},"output_tokens":32,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":2269},"parallel_tool_calls":true,"prompt_cache_retention":"24h","access_programs":null,"billing":{
+    "payer": "developer"
+  },"completed_at":1792225323,"frequency_penalty":0.0,"moderation":null,"presence_penalty":0.0,"store":false,"tool_usage":{
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  }}

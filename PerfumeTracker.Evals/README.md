@@ -32,6 +32,40 @@ dotnet run --project PerfumeTracker.Evals -- --mode replay --baseline results/re
 
 `--help` lists every option.
 
+## Collection facts and rebuy coverage
+
+The fixture uses ratings on a 1–5 scale (zero means unrated). Default rebuy candidates have
+**less than 10% remaining and rating above 3**, including finished bottles. A 2 ml sample
+with 1.9 ml remaining is 95% full and does not qualify. Exactly 10% and rating exactly 3
+are excluded. Capacity must be positive to calculate a percentage.
+
+`filter_owned_perfumes` supports `remainingPercentBelow` (exclusive, 0–100), `ratingAbove`
+(exclusive), and `onlyAvailable=false` to include empty bottles. Existing `minRating` and
+`maxRating` remain inclusive. Tool results include `Ml` (capacity), `MlLeft`, and nullable
+`RemainingPercent`. Explicit user thresholds override the default rebuy policy.
+
+Cases cover rebuy boundaries, threshold overrides, any-rating inventory, small samples,
+unknown capacity, neglected favorites, compound filters, no matches, and ambiguous vetiver
+requests. A restock buy list is a collection query; searching marketplace offers requires
+a shopping/offer request.
+
+The judge receives tool arguments and bounded returned results as evidence, not just the final answer.
+
+Case assertions may specify `requiredToolArguments`, a list of `{ "tool": "filter_owned_perfumes",
+"arguments": { "remainingPercentBelow": 10, "onlyAvailable": false } }` objects. Each subset
+must match one complete call; extra arguments are allowed. `forbiddenOwnedLinks` lists owned
+display names that must not be linked. The judge still checks explanations and ambiguity.
+
+```bash
+# Save new recordings after prompt/tool/fixture changes, then replay them
+dotnet run --project PerfumeTracker.Evals -- --mode record --model YOUR_MODEL --filter rebuy --out results/rebuy-recorded
+dotnet run --project PerfumeTracker.Evals -- --mode replay --no-judge --filter rebuy --out results/rebuy-replay
+```
+
+Record the full suite to refresh all cases after these changes. Old fingerprints are intentionally
+not reused. Use a unique `--out` directory for each report you want to retain.
+The application's existing 0–10 API validation is not migrated by this eval expansion.
+
 Requires the same PostgreSQL test database as `PerfumeTracker.xTests`
 (`ConnectionStrings:PerfumeTrackerTest`, database name must contain `test`) and a real
 `OpenAI:AssistantModel` for `real`/`record` modes - the repo default is a placeholder.

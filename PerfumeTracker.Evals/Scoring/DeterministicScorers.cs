@@ -78,6 +78,15 @@ public sealed class ToolArgumentScorer : IEvalScorer {
 			}
 		}
 
+		foreach (var expected in evalCase.RequiredToolArguments) {
+			var matched = trajectory.ToolCalls.Where(call => call.Name == expected.Tool).Any(call => {
+				using var document = JsonDocument.Parse(string.IsNullOrWhiteSpace(call.Arguments) ? "{}" : call.Arguments);
+				return expected.Arguments.All(pair => document.RootElement.TryGetProperty(pair.Key, out var actual)
+					&& JsonElement.DeepEquals(pair.Value, actual));
+			});
+			if (!matched) return Task.FromResult(ScoreResult.Fail(Name,
+				$"no '{expected.Tool}' call matched required arguments {JsonSerializer.Serialize(expected.Arguments)}"));
+		}
 		return Task.FromResult(ScoreResult.Pass(Name, $"{trajectory.ToolCalls.Count} tool call(s) used valid arguments"));
 	}
 }
@@ -107,6 +116,9 @@ public sealed class PerfumeReferenceScorer : IEvalScorer {
 		}
 
 		var linkedNames = linkedIds.Select(id => context.OwnedPerfumeNames[id]).ToList();
+		var forbidden = evalCase.ForbiddenOwnedLinks.Where(name => linkedNames.Contains(name, StringComparer.OrdinalIgnoreCase)).ToList();
+		if (forbidden.Count > 0) return Task.FromResult(ScoreResult.Fail(Name,
+			$"forbidden owned link(s): {string.Join(", ", forbidden)}"));
 		var missing = evalCase.ExpectedOwnedLinks
 			.Where(expected => !linkedNames.Contains(expected, StringComparer.OrdinalIgnoreCase))
 			.ToList();

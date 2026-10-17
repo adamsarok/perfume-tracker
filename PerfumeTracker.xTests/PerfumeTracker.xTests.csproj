@@ -37,10 +37,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PerfumeTracker.Server\PerfumeTracker.Server.csproj" />
+    <ProjectReference Include="..\PerfumeTracker.Evals\PerfumeTracker.Evals.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <None Include="..\PerfumeTracker.Evals\Cases\chat-agent.cases.json" Link="EvalCases\chat-agent.cases.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
