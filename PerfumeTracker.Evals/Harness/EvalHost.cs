@@ -29,15 +29,20 @@ public sealed class EvalHost : IAsyncDisposable {
 
 	public EvalHost(EvalRunOptions options, EvalRecordingStore store) {
 		ResponsesClient = new EvalResponsesClient(options, store);
+		// Minimal-host startup reads these values before ConfigureAppConfiguration callbacks run.
+		var secrets = new ConfigurationBuilder().AddUserSecrets<Program>(optional: true).Build();
+		var apiKey = options.ApiKey
+			?? Environment.GetEnvironmentVariable("OpenAI__ApiKey")
+			?? secrets["OpenAI:ApiKey"];
+		var model = options.Model
+			?? Environment.GetEnvironmentVariable("OpenAI__AssistantModel")
+			?? secrets["OpenAI:AssistantModel"];
 
 		factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder => {
 			// "Test" points the host at ConnectionStrings:PerfumeTrackerTest (see Program.cs).
 			builder.UseEnvironment("Test");
-			builder.ConfigureAppConfiguration((_, config) =>
-				config.AddUserSecrets<Program>(optional: true));
-
-			if (!string.IsNullOrWhiteSpace(options.ApiKey)) builder.UseSetting("OpenAI:ApiKey", options.ApiKey);
-			if (!string.IsNullOrWhiteSpace(options.Model)) builder.UseSetting("OpenAI:AssistantModel", options.Model);
+			if (!string.IsNullOrWhiteSpace(apiKey)) builder.UseSetting("OpenAI:ApiKey", apiKey);
+			if (!string.IsNullOrWhiteSpace(model)) builder.UseSetting("OpenAI:AssistantModel", model);
 			if (options.Mode == EvalMode.Replay) {
 				// Replay never talks to OpenAI, but the container still needs the registrations that
 				// Program.cs gates on a configured key (ChatClient lives inside PerfumeRecommender).

@@ -52,6 +52,7 @@ Tool selection:
 - Use check_perfume_ownership for general new perfume recommendations, wishlists, and any question where you need to avoid recommending already-owned perfumes.
 - Use analyze_wardrobe_gaps for collection gaps, missing scent categories, balance, overrepresented/underrepresented notes, and what note groups to explore next.
 - Use filter_owned_perfumes when the user asks for factual lists from their owned collection: highest/lowest rated, most/least worn, not worn recently, never worn, available bottles, house/family/tag filters, or sorted collection views.
+- When checking whether a particular owned perfume can be worn or is empty, use filter_owned_perfumes with onlyAvailable=false and relevant house/family/tag filters so empty bottles remain visible. For lists of empty bottles use onlyAvailable=false.
 - Use search_owned_perfumes_by_characteristics only for fuzzy owned-collection searches by simple notes, moods, seasons, or characteristics.
 - When a tool has a count parameter and the user does not ask for a smaller list, request {maxResultsPerToolCall} results so you have enough evidence before narrowing the final answer.
 

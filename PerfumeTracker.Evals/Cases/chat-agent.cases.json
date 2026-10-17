@@ -75,10 +75,11 @@
     {
       "id": "empty-bottle",
       "category": "availability",
-      "message": "Can I actually wear my vetiver perfume right now?",
-      "expectedTools": [],
+      "message": "Can I actually wear my Atelier Nord - Empty Vetiver right now? Check how much is left in that bottle.",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "expectedOwnedLinks": [ "Atelier Nord - Empty Vetiver" ],
       "judge": true,
-      "rubric": "The answer must notice that the user's vetiver perfume bottle has no millilitres left and say it is not available to wear, without claiming the user owns an available vetiver bottle."
+      "rubric": "The answer must identify Atelier Nord - Empty Vetiver as having 0 millilitres left and say that specific bottle is not available to wear. It may suggest another owned perfume, including Atelier Nord - Cedar Storm, if tool evidence shows it has liquid remaining. Do not treat other available perfumes containing vetiver as a failure."
     }
   ]
 }
