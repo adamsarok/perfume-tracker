@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "wardrobe-gaps",
+      "category": "tool-selection",
+      "message": "What note groups am I missing in my collection, and where should I explore next?",
+      "expectedTools": [ "analyze_wardrobe_gaps" ],
+      "forbiddenTools": [ "filter_owned_perfumes", "search_owned_perfumes_by_characteristics" ],
+      "judge": true,
+      "rubric": "The answer must be based on note-group coverage of owned perfumes. It must name concrete underrepresented or missing note groups, must not prescribe mandatory purchases, and must not present itself as a full style/performance audit."
+    },
+    {
+      "id": "highest-rated",
+      "category": "owned-recall",
+      "message": "Which of my perfumes do I rate the highest?",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "forbiddenTools": [ "analyze_wardrobe_gaps" ],
+      "expectedOwnedLinks": [ "Maison Lumiere - Velvet Iris" ],
+      "judge": true,
+      "rubric": "The answer must list the highest rated owned perfumes in descending rating order, must include the top rated one, and must not invent perfumes the user does not own."
+    },
+    {
+      "id": "never-worn",
+      "category": "owned-recall",
+      "message": "Do I own anything I have never actually worn?",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "expectedOwnedLinks": [ "Maison Lumiere - Trial Bloom", "Bella Vita - Mystery Musk" ],
+      "judge": true,
+      "rubric": "The answer must identify the never-worn perfumes from the user's collection and must not claim that all perfumes have been worn."
+    },
+    {
+      "id": "least-worn",
+      "category": "owned-recall",
+      "message": "Which perfumes have I worn the least?",
+      "expectedTools": [ "filter_owned_perfumes" ],
+      "judge": true,
+      "rubric": "The answer must list the least worn owned perfumes and must not include perfumes that the user does not own."
+    },
+    {
+      "id": "new-recommendations",
+      "category": "anti-hallucination",
+      "message": "I want to try something new for spring. Recommend perfumes I do not already own.",
+      "expectedTools": [ "check_perfume_ownership" ],
+      "forbiddenTools": [ "filter_owned_perfumes" ],
+      "judge": true,
+      "rubric": "The answer must recommend perfumes the user does not already own. It must not recommend or link perfumes the user already owns (for example Velvet Iris, Cedar Storm or Amber Resin), and it must not link any perfume using the owned-perfume markdown link format."
+    },
+    {
+      "id": "mood-search",
+      "category": "fuzzy-search",
+      "requiresApi": true,
+      "message": "I am in the mood for something cozy and warm. What should I wear?",
+      "expectedTools": [ "search_owned_perfumes_by_characteristics" ],
+      "judge": true,
+      "rubric": "The answer must suggest owned perfumes that fit a cozy, warm mood and must not suggest perfumes the user does not own."
+    },
+    {
+      "id": "marketplace-offers",
+      "category": "marketplace",
+      "message": "Are there any decants or samples for sale that I should look at?",
+      "expectedTools": [ "search_marketplace_offers" ],
+      "judge": true,
+      "rubric": "The answer must describe offers that come from the locally imported marketplace offers. It must not invent offers, sellers, prices or external marketplace websites, and it must not claim to have browsed the internet."
+    },
+    {
+      "id": "small-talk",
+      "category": "tool-selection",
+      "message": "Hi there! What kinds of things can you help me with?",
+      "expectedTools": [],
+      "forbiddenTools": [ "analyze_wardrobe_gaps", "filter_owned_perfumes", "check_perfume_ownership", "search_owned_perfumes_by_characteristics", "search_marketplace_offers" ],
+      "judge": true,
+      "rubric": "The answer must be a short friendly capability overview of a perfume collection assistant and must not run a collection search or invent a list of perfumes."
+    },
+    {
+      "id": "empty-bottle",
+      "category": "availability",
+      "message": "Can I actually wear my vetiver perfume right now?",
+      "expectedTools": [],
+      "judge": true,
+      "rubric": "The answer must notice that the user's vetiver perfume bottle has no millilitres left and say it is not available to wear, without claiming the user owns an available vetiver bottle."
+    }
+  ]
+}

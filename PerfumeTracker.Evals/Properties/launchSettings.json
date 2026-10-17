@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PerfumeTracker.Evals": {
+      "commandName": "Project",
+      "commandLineArgs": "--mode real --model gpt-6.1-sol"
+    }
+  }
+}

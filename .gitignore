@@ -311,3 +311,6 @@ docker-compose.override.yml
 settings.local.json
 
 /scripts
+
+# chat agent eval harness output (Recordings/ and Fixtures/ are committed - they are the fixtures)
+/PerfumeTracker.Evals/results/

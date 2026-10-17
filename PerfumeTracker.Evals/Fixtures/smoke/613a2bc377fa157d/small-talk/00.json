@@ -1,0 +1,27 @@
+{
+  "id": "resp_smoke_chat",
+  "object": "response",
+  "created_at": 1750000000,
+  "status": "completed",
+  "model": "eval-smoke-fixture",
+  "output": [
+    {
+      "type": "message",
+      "id": "msg_smoke_chat",
+      "status": "completed",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Hi! I can help you with your perfume collection: choosing what to wear today, finding your highest rated or least worn bottles, spotting note-group gaps in your wardrobe, checking whether you already own something, and browsing the marketplace offers you imported. What would you like to look at first?",
+          "annotations": []
+        }
+      ]
+    }
+  ],
+  "parallel_tool_calls": true,
+  "tools": [],
+  "error": null,
+  "incomplete_details": null,
+  "usage": { "input_tokens": 1200, "output_tokens": 70, "total_tokens": 1270 }
+}
