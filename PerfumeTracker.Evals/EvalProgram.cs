@@ -31,6 +31,11 @@ internal static class EvalProgram {
 			cancellation.Cancel();
 		};
 		var cancellationToken = cancellation.Token;
+		if (options.Suite == "weekly-digest") {
+			try { return await PerfumeTracker.Evals.WeeklyDigests.DigestEvalSuite.RunAsync(options, cancellationToken); }
+			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { return 130; }
+			catch (Exception ex) { Console.Error.WriteLine($"Could not run digest evals: {ex.Message}"); return 2; }
+		}
 
 		var caseFile = EvalPaths.Resolve(options.CaseFile ?? EvalPaths.DefaultCaseFile);
 		var recordingsDirectory = EvalPaths.Resolve(options.RecordingsDirectory ?? EvalPaths.DefaultRecordingsDirectory);

@@ -12,6 +12,7 @@ public enum EvalMode {
 }
 
 public sealed record EvalRunOptions {
+	public string Suite { get; init; } = "chat";
 	public EvalMode Mode { get; init; } = EvalMode.Replay;
 	public string? Filter { get; init; }
 	public string? CaseFile { get; init; }
@@ -25,16 +26,17 @@ public sealed record EvalRunOptions {
 	public bool FailOnAnyFailure { get; init; } = true;
 
 	public static string Usage => """
-		PerfumeTracker chat agent eval harness.
+		PerfumeTracker chat and weekly digest eval harness.
 
 		Usage:
 		  dotnet run --project PerfumeTracker.Evals -- [options]
 
 		Options:
+		  --suite chat|weekly-digest  Suite to run (default: chat).
 		  --mode real|record|replay   real = call the model, record = call + save responses,
 		                              replay = read responses from disk (default: replay).
-		  --filter <text>             Only run cases whose id or category contains <text>.
-		  --cases <path>              Dataset file (default: Cases/chat-agent.cases.json).
+		  --filter <text>             Only run cases whose id, category, or digest fixture contains <text>.
+		  --cases <path>              Dataset file (default: Cases/<suite>.cases.json; chat uses chat-agent).
 		  --recordings <dir>          Recorded response directory (default: Recordings/).
 		  --out <dir>                 Report directory (default: results/).
 		  --baseline <results.json>   Compare against a previous results.json and report regressions.
@@ -58,6 +60,7 @@ public sealed record EvalRunOptions {
 				return args[++i];
 			}
 			options = arg switch {
+				"--suite" => options with { Suite = ParseSuite(Next(arg)) },
 				"--mode" => options with { Mode = ParseMode(Next(arg)) },
 				"--filter" => options with { Filter = Next(arg) },
 				"--cases" => options with { CaseFile = Next(arg) },
@@ -80,5 +83,11 @@ public sealed record EvalRunOptions {
 		"record" => EvalMode.Record,
 		"replay" => EvalMode.Replay,
 		_ => throw new ArgumentException($"Unknown mode '{value}'. Expected real, record or replay.")
+	};
+
+	private static string ParseSuite(string value) => value.ToLowerInvariant() switch {
+		"chat" => "chat",
+		"weekly-digest" => "weekly-digest",
+		_ => throw new ArgumentException($"Unknown suite '{value}'. Expected chat or weekly-digest.")
 	};
 }

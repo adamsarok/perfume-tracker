@@ -89,14 +89,41 @@ public class WeeklyDigestTests {
 	}
 
 	[Fact]
-	public async Task Agent_AmbiguousNetworkFailureKeepsOutputAllowance() {
+	public async Task Agent_AmbiguousNetworkFailureKeepsOutputAllowanceForEveryAttempt() {
 		var candidates = new FakeCandidates();
 		var run = NewRun();
 		var model = new FakeModel(candidates) { ThrowOnGenerate = true };
 		await Assert.ThrowsAsync<HttpRequestException>(() => Agent(candidates, model).Run(run, _ => Task.CompletedTask, TestContext.Current.CancellationToken));
-		Assert.Equal(25_000, run.TokensUsed);
+		Assert.Equal(100_000, run.TokensUsed);
 		var restored = JsonSerializer.Deserialize<DigestCheckpoint>(run.Checkpoint, DigestJson.Options)!;
 		Assert.Equal(1, restored.ExplorationRequests);
+		Assert.Equal(4, restored.GenerationSteps);
+	}
+
+	[Fact]
+	public async Task Agent_Retries520_CheckpointsEveryAttempt_ThenCompletes() {
+		var candidates = new FakeCandidates();
+		var model = new FakeModel(candidates) { TransientFailures = 2 };
+		var run = NewRun();
+		var reservations = new List<long>();
+		await Agent(candidates, model).Run(run, _ => { reservations.Add(run.TokensUsed); return Task.CompletedTask; }, TestContext.Current.CancellationToken);
+		Assert.Equal(4, model.Requests.Count); // Two failed attempts, exploration success, final answer.
+		Assert.Equal(52_000, run.TokensUsed);
+		Assert.Contains(25_000, reservations);
+		Assert.Contains(50_000, reservations);
+		Assert.Contains(75_000, reservations);
+		Assert.Equal(4, JsonSerializer.Deserialize<DigestCheckpoint>(run.Checkpoint, DigestJson.Options)!.GenerationSteps);
+	}
+
+	[Fact]
+	public async Task Agent_DoesNotRetryWhenTokenReserveIsExhausted() {
+		var candidates = new FakeCandidates();
+		var model = new FakeModel(candidates) { TransientFailures = 10 };
+		var run = NewRun();
+		run.TokensUsed = 100_000;
+		await Assert.ThrowsAsync<DigestApiException>(() => Agent(candidates, model).Run(run, _ => Task.CompletedTask, TestContext.Current.CancellationToken));
+		Assert.Single(model.Requests);
+		Assert.Equal(125_000, run.TokensUsed);
 	}
 
 	[Theory]
@@ -208,7 +235,7 @@ public class WeeklyDigestTests {
 
 	private static WeeklyDigest NewRun() => new() { UserId = Guid.NewGuid(), WeekStart = WeeklyDigestSchedule.LatestDueWeek(DateTime.UtcNow), Model = "test" };
 	private static WeeklyDigestAgent Agent(IDigestCandidates candidates, IDigestModel model) =>
-		new(candidates, model, Options.Create(new WeeklyDigestOptions()), NullLogger<WeeklyDigestAgent>.Instance);
+		new(candidates, model, Options.Create(new WeeklyDigestOptions { RetryBaseDelaySeconds = 0, RetryMaxDelaySeconds = 0 }), NullLogger<WeeklyDigestAgent>.Instance);
 
 	private sealed class FakeCandidates(int count = 6) : IDigestCandidates {
 		public List<DigestCandidate> Perfumes { get; } = Enumerable.Range(0, count).Select(i => new DigestCandidate(Guid.NewGuid(), "House", $"Perfume {i}", "Woody", 8, 10, i, null, ["wood"], null)).ToList();
@@ -222,11 +249,13 @@ public class WeeklyDigestTests {
 		public List<JsonObject> Requests { get; } = [];
 		public bool ExploreTools { get; set; } = true;
 		public bool ThrowOnGenerate { get; set; }
+		public int TransientFailures { get; set; }
 		public bool Incomplete { get; set; }
 		public int InvalidFinals { get; set; }
 		public int TotalUsage { get; set; } = 1000;
 		public Task<JsonObject> Generate(JsonObject request, CancellationToken ct) {
 			Requests.Add((JsonObject)request.DeepClone());
+			if (TransientFailures-- > 0) throw new DigestApiException(520);
 			if (ThrowOnGenerate) throw new HttpRequestException("Network interrupted");
 			var final = request["tool_choice"]!.GetValue<string>() == "none";
 			var output = !final && ExploreTools && Requests.Count == 1

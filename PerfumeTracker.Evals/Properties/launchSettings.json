@@ -2,7 +2,15 @@
   "profiles": {
     "PerfumeTracker.Evals": {
       "commandName": "Project",
-      "commandLineArgs": "--mode real --model gpt-6.1-sol"
+      "commandLineArgs": "--mode real --model gpt-6.1-sol --suite weekly-digest"
+    },
+    "Weekly digest - record": {
+      "commandName": "Project",
+      "commandLineArgs": "--suite weekly-digest --mode record --out results/weekly-digest-recorded"
+    },
+    "Weekly digest - replay": {
+      "commandName": "Project",
+      "commandLineArgs": "--suite weekly-digest --mode replay --no-judge --out results/weekly-digest-replay"
     }
   }
 }

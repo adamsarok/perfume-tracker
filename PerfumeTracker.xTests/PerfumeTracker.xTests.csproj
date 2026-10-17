@@ -43,6 +43,7 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <None Include="..\PerfumeTracker.Evals\Cases\chat-agent.cases.json" Link="EvalCases\chat-agent.cases.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PerfumeTracker.Evals\Cases\weekly-digest.cases.json" Link="EvalCases\weekly-digest.cases.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

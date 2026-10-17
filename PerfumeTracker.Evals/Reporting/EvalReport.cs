@@ -16,12 +16,15 @@ public sealed class CaseResult {
 	public required CaseStatus Status { get; init; }
 	public List<ScoreResult> Scores { get; init; } = [];
 	public CaseTrajectory? Trajectory { get; init; }
+	public PerfumeTracker.Evals.WeeklyDigests.DigestEvalTrajectory? DigestTrajectory { get; init; }
+	public PerfumeTracker.Evals.WeeklyDigests.DigestQualityMetrics? DigestMetrics { get; init; }
 	public string? Note { get; init; }
 
 	public bool IsGood => Status == CaseStatus.Passed || Status == CaseStatus.Skipped;
 }
 
 public sealed class EvalReport {
+	public string Suite { get; init; } = "chat";
 	public string Mode { get; init; } = string.Empty;
 	public string PromptFingerprint { get; init; } = string.Empty;
 	public string? Model { get; init; }

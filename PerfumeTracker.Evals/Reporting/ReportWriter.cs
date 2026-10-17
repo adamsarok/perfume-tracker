@@ -29,7 +29,7 @@ public static class ReportWriter {
 
 	private static string BuildMarkdown(EvalReport report, string resultsPath, IReadOnlyList<string> baselineLines) {
 		var builder = new StringBuilder();
-		builder.AppendLine("# Chat agent eval report");
+		builder.AppendLine(report.Suite == "weekly-digest" ? "# Weekly digest eval report" : "# Chat agent eval report");
 		builder.AppendLine();
 		builder.AppendLine($"- Mode: `{report.Mode}`");
 		builder.AppendLine($"- Prompt fingerprint: `{report.PromptFingerprint}`");
@@ -52,6 +52,17 @@ public static class ReportWriter {
 		}
 		builder.AppendLine();
 
+		if (report.Suite == "weekly-digest") {
+			builder.AppendLine("| Case | Unique perfumes | Houses | Families | Picks | Previous overlap | Stop reason | Repair | Tokens |");
+			builder.AppendLine("| --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+			foreach (var result in report.Cases) {
+				var m = result.DigestMetrics;
+				var t = result.DigestTrajectory;
+				builder.AppendLine($"| {result.CaseId} | {m?.UniquePerfumes} | {m?.UniqueHouses} | {m?.UniqueFamilies} | {m?.TotalPicks} | {m?.PreviouslyPicked} | {t?.Checkpoint?.ExplorationStopReason} | {t?.Checkpoint?.RepairUsed} | {t?.TokensUsed} |");
+			}
+			builder.AppendLine();
+		}
+
 		foreach (var result in report.Cases.Where(c => c.Status is CaseStatus.Failed or CaseStatus.Error)) {
 			builder.AppendLine($"## {result.CaseId}");
 			foreach (var score in result.Scores) {
@@ -61,6 +72,7 @@ public static class ReportWriter {
 				builder.AppendLine($"- Tools: {(result.Trajectory.CalledTools.Count == 0 ? "none" : string.Join(", ", result.Trajectory.CalledTools))}");
 				builder.AppendLine($"- Answer: {Escape(Truncate(result.Trajectory.FinalAnswer, 600))}");
 			}
+			if (result.DigestTrajectory != null) builder.AppendLine($"- Digest: {Escape(Truncate(JsonSerializer.Serialize(result.DigestTrajectory.Payload, JsonOptions), 1200))}");
 			builder.AppendLine();
 		}
 

@@ -133,6 +133,13 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 			return result;
 		}
 		async Task<JsonObject> Generate(JsonObject request, string phase) {
+			var allowance = request["max_output_tokens"]!.GetValue<int>();
+			var retry = DigestGenerationRetry.Create(cfg, () => run.TokensUsed + allowance <= cfg.MaxTokens
+				&& (phase != "Exploration" || CanExplore(run.TokensUsed, cfg)), logger);
+			return await retry.ExecuteAsync(token => new ValueTask<JsonObject>(GenerateAttempt(request, phase, token)), ct);
+		}
+		async Task<JsonObject> GenerateAttempt(JsonObject request, string phase, CancellationToken attemptToken) {
+			attemptToken.ThrowIfCancellationRequested();
 			var outputLimit = request["max_output_tokens"]!.GetValue<int>();
 			var step = ++state.GenerationSteps;
 			logger.LogInformation("Weekly digest step {Step} ({Phase}) started. Tokens used {TokensUsed}/{MaxTokens}, maximum output tokens {MaxOutputTokens}",
@@ -141,7 +148,7 @@ public class WeeklyDigestAgent(IDigestCandidates candidates, IDigestModel model,
 			run.TokensUsed += outputLimit;
 			await Save();
 			JsonObject response;
-			try { response = await model.Generate(request, ct); }
+			try { response = await model.Generate(request, attemptToken); }
 			catch (Exception ex) {
 				logger.LogWarning(ex, "Weekly digest step {Step} ({Phase}) did not finish. Tokens used including retained output allowance {TokensUsed}/{MaxTokens}",
 					step, phase, run.TokensUsed, cfg.MaxTokens);
