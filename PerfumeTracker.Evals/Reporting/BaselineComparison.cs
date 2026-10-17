@@ -6,9 +6,17 @@ namespace PerfumeTracker.Evals.Reporting;
 /// Reads the case ids/statuses out of a previous results.json with a plain JSON reader so a
 /// schema change in the report never breaks the regression check.
 /// </summary>
-public static class BaselineComparison {
-	public static IReadOnlyList<string> Compare(string baselinePath, IReadOnlyList<CaseResult> current) {
-		if (!File.Exists(baselinePath)) return [$"baseline file not found: {baselinePath}"];
+public sealed class BaselineComparison {
+	private readonly IReadOnlyDictionary<string, string> previous;
+	private readonly string? missingPath;
+	private BaselineComparison(IReadOnlyDictionary<string, string> previous, string? missingPath = null) {
+		this.previous = previous;
+		this.missingPath = missingPath;
+	}
+
+	// Load once before any output writes, including incremental digest reports.
+	public static BaselineComparison Load(string baselinePath) {
+		if (!File.Exists(baselinePath)) return new(new Dictionary<string, string>(), baselinePath);
 
 		using var document = JsonDocument.Parse(File.ReadAllText(baselinePath));
 		var previous = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -20,6 +28,13 @@ public static class BaselineComparison {
 			}
 		}
 
+		return new(previous);
+	}
+
+	public static bool HasRegression(IReadOnlyList<string> comparison) => comparison.Any(line => line.StartsWith("REGRESSED:", StringComparison.Ordinal));
+
+	public IReadOnlyList<string> Compare(IReadOnlyList<CaseResult> current) {
+		if (missingPath != null) return [$"baseline file not found: {missingPath}"];
 		var lines = new List<string>();
 		foreach (var result in current) {
 			if (result.Status == CaseStatus.Skipped) continue;

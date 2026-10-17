@@ -92,7 +92,7 @@ dotnet run --project PerfumeTracker.Evals -- --mode replay --recordings Fixtures
 dotnet run --project PerfumeTracker.Evals -- --mode record --model gpt-5 --api-key $OPENAI_API_KEY --out results/recorded
 
 # Compare against a previous run (exits non-zero on a pass -> fail regression)
-dotnet run --project PerfumeTracker.Evals -- --mode replay --baseline results/results.json
+dotnet run --project PerfumeTracker.Evals -- --mode replay --baseline results/baseline/results.json --out results/current
 ```
 
 `--help` lists every option.
@@ -185,7 +185,7 @@ Known limits:
 
 ## Suggested CI wiring (not added yet)
 
-- PR job: `--mode replay --baseline results/results.json` against a Postgres service (no secrets).
+- PR job: `--mode replay --baseline results/baseline/results.json --out results/current` against a Postgres service (no secrets). Supply a known-good report as the baseline artifact.
 - Nightly `schedule` job: `--mode real --model <model> --judge-model <stronger model> --baseline ...`
   with `OpenAI__ApiKey` from secrets, failing on regressions. Reuses the Postgres setup of the
   existing `docker-image.yml` workflow.

@@ -13,14 +13,10 @@ public static class ReportWriter {
 		Converters = { new JsonStringEnumConverter() }
 	};
 
-	public static async Task<string> WriteAsync(EvalReport report, string outputDirectory, string? baselinePath, CancellationToken cancellationToken) {
+	public static async Task<string> WriteAsync(EvalReport report, string outputDirectory, IReadOnlyList<string> baselineLines, CancellationToken cancellationToken) {
 		Directory.CreateDirectory(outputDirectory);
 		var resultsPath = Path.Combine(outputDirectory, "results.json");
 		await File.WriteAllTextAsync(resultsPath, JsonSerializer.Serialize(report, JsonOptions), cancellationToken);
-
-		var baselineLines = string.IsNullOrWhiteSpace(baselinePath)
-			? []
-			: BaselineComparison.Compare(baselinePath, report.Cases);
 
 		var markdown = BuildMarkdown(report, resultsPath, baselineLines);
 		await File.WriteAllTextAsync(Path.Combine(outputDirectory, "summary.md"), markdown, cancellationToken);

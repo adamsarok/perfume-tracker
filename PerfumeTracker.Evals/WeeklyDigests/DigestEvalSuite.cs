@@ -12,7 +12,8 @@ public static class DigestEvalSuite {
 		var cases = await DigestEvalCase.LoadAsync(EvalPaths.Resolve(options.CaseFile ?? "Cases/weekly-digest.cases.json"), options.Filter, ct);
 		var recordings = EvalPaths.Resolve(options.RecordingsDirectory ?? "Recordings/weekly-digest");
 		var output = EvalPaths.Resolve(options.OutputDirectory ?? "results/weekly-digest");
-		var baseline = options.BaselinePath == null ? null : EvalPaths.Resolve(options.BaselinePath);
+		var baseline = string.IsNullOrWhiteSpace(options.BaselinePath) ? null : BaselineComparison.Load(EvalPaths.Resolve(options.BaselinePath));
+		IReadOnlyList<string> comparison = [];
 		using var host = new DigestEvalHost(options);
 		await host.InitializeAsync(ct);
 		using var judgeHttp = new HttpClient { BaseAddress = new Uri("https://api.openai.com/v1/"), Timeout = TimeSpan.FromMinutes(5) };
@@ -43,7 +44,8 @@ public static class DigestEvalSuite {
 		var report = await WriteReport();
 		Console.WriteLine($"Passed {report.Passed} | Failed {report.Failed} | Errored {report.Errored}");
 		Console.WriteLine($"Report: {Path.Combine(output, "summary.md")}");
-		if (baseline != null && BaselineComparison.Compare(baseline, results).Any(line => line.Contains("REGRESSED", StringComparison.Ordinal))) return 1;
+		foreach (var line in comparison) Console.WriteLine(line);
+		if (BaselineComparison.HasRegression(comparison)) return 1;
 		return options.FailOnAnyFailure && (report.Failed > 0 || report.Errored > 0) ? 1 : 0;
 
 		async Task<EvalReport> WriteReport() {
@@ -53,7 +55,8 @@ public static class DigestEvalSuite {
 				Passed = results.Count(r => r.Status == CaseStatus.Passed), Failed = results.Count(r => r.Status == CaseStatus.Failed),
 				Errored = results.Count(r => r.Status == CaseStatus.Error), InputTokens = results.Sum(r => r.DigestTrajectory!.InputTokens),
 				OutputTokens = results.Sum(r => r.DigestTrajectory!.OutputTokens), Cases = results.ToList() };
-			await ReportWriter.WriteAsync(report, output, baseline, ct);
+			comparison = baseline?.Compare(results) ?? [];
+			await ReportWriter.WriteAsync(report, output, comparison, ct);
 			return report;
 		}
 	}

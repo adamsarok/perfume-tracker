@@ -15,7 +15,7 @@ dotnet run --project PerfumeTracker.Evals -- --mode record --model <real-model> 
 Then the key-free regression run:
 
 ```bash
-dotnet run --project PerfumeTracker.Evals -- --mode replay --baseline results/results.json
+dotnet run --project PerfumeTracker.Evals -- --mode replay --baseline results/baseline/results.json --out results/current
 ```
 
 Commit the recordings when they are stable: they are what makes the PR-time replay check possible.

@@ -41,6 +41,7 @@ internal static class EvalProgram {
 		var recordingsDirectory = EvalPaths.Resolve(options.RecordingsDirectory ?? EvalPaths.DefaultRecordingsDirectory);
 		var outputDirectory = EvalPaths.Resolve(options.OutputDirectory ?? EvalPaths.DefaultResultsDirectory);
 		var baselinePath = string.IsNullOrWhiteSpace(options.BaselinePath) ? null : EvalPaths.Resolve(options.BaselinePath);
+		var baseline = baselinePath == null ? null : BaselineComparison.Load(baselinePath);
 
 		List<EvalCase> cases;
 		try {
@@ -150,16 +151,16 @@ internal static class EvalProgram {
 			Cases = results
 		};
 
-		await ReportWriter.WriteAsync(report, outputDirectory, baselinePath, cancellationToken);
+		var comparison = baseline?.Compare(results) ?? [];
+		await ReportWriter.WriteAsync(report, outputDirectory, comparison, cancellationToken);
 		var summaryPath = Path.Combine(outputDirectory, "summary.md");
 
 		Console.WriteLine();
 		Console.WriteLine($"Passed {report.Passed} | Failed {report.Failed} | Errored {report.Errored} | Skipped {report.Skipped}");
 		Console.WriteLine($"Report: {summaryPath}");
 		if (baselinePath != null) {
-			var comparison = BaselineComparison.Compare(baselinePath, results);
 			foreach (var line in comparison) Console.WriteLine(line);
-			if (comparison.Any(line => line.Contains("REGRESSED", StringComparison.Ordinal))) {
+			if (BaselineComparison.HasRegression(comparison)) {
 				Console.Error.WriteLine("Regression detected versus baseline.");
 				return 1;
 			}
