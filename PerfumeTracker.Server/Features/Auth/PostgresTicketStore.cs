@@ -49,6 +49,7 @@ public class PostgresTicketStore(IServiceScopeFactory scopeFactory, IOptions<Ses
 		}
 
 		session.Ticket = TicketSerializer.Default.Serialize(ticket);
+		session.UserId = GetUserId(ticket.Principal);
 		session.ExpiresAt = ComputeExpiry(ticket, session.CreatedAt);
 		await db.SaveChangesAsync(cancellationToken);
 	}

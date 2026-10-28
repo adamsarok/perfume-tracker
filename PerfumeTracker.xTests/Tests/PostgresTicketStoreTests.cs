@@ -95,7 +95,7 @@ public class PostgresTicketStoreTests(PostgresTicketStoreFixture fixture) {
 
 	[Fact]
 	public async Task RenewAsync_UpdatesTicketForSameKey() {
-		var key = await Store.StoreAsync(CreateTicket(idleLifetime: TimeSpan.FromHours(1)), TestContext.Current.CancellationToken);
+		var key = await Store.StoreAsync(CreateTicket(Guid.NewGuid(), idleLifetime: TimeSpan.FromHours(1)), TestContext.Current.CancellationToken);
 		var renewedUserId = Guid.NewGuid();
 
 		await Store.RenewAsync(key, CreateTicket(renewedUserId, idleLifetime: TimeSpan.FromHours(2)), TestContext.Current.CancellationToken);
@@ -105,6 +105,7 @@ public class PostgresTicketStoreTests(PostgresTicketStoreFixture fixture) {
 		Assert.Equal(renewedUserId.ToString(), ticket.Principal.FindFirstValue(ClaimTypes.NameIdentifier));
 		var session = await FindSessionByRawKey(key);
 		Assert.NotNull(session);
+		Assert.Equal(renewedUserId, session.UserId);
 		Assert.True(session.ExpiresAt > DateTime.UtcNow.AddHours(1));
 	}
 
