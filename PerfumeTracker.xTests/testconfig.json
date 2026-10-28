@@ -1,0 +1,12 @@
+{
+  "platformOptions": {
+    "Coverlet": {
+      "include": "[PerfumeTracker.Server]*",
+      "excludeByFile": "**/Migrations/*.cs",
+      "excludeByAttribute": "GeneratedCode,ExcludeFromCodeCoverage,ExcludeFromCodeCoverageAttribute,CompilerGeneratedAttribute",
+      "format": "cobertura",
+      "useSourceLink": true,
+      "excludeAssembliesWithoutSources": "MissingAll"
+    }
+  }
+}

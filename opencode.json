@@ -1,19 +1,30 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "llama.cpp/qwen-local",
+  "model": "strata/qwen3.8-flash-next-iq3_s",
+  "small_model": "strata/qwen3.8-flash-next-iq3_s",
+  "autoupdate": false,
+  "compaction": {
+    "auto": true,
+    "buffer": 60548
+  },
+  "share": "disabled",
   "provider": {
-    "llama.cpp": {
+    "strata": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "Local llama.cpp",
+      "name": "Strata (local)",
       "options": {
-        "baseURL": "http://127.0.0.1:8080/v1"
+        "baseURL": "http://127.0.0.1:8080/v1",
+        "apiKey": "strata-local"
       },
       "models": {
-        "qwen-local": {
-          "name": "Qwen 3.8 27B",
+        "qwen3.8-flash-next-iq3_s": {
+          "name": "Qwen3.8-Flash-Next (local)",
+          "tool_call": true,
+          "reasoning": true,
           "limit": {
-            "context": 65536,
-            "output": 16384
+            "context": 131072,
+            "input": 122880,
+            "output": 8192
           }
         }
       }
