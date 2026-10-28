@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using PerfumeTracker.Server.Features.Auth;
 
 namespace PerfumeTracker.Server.DbContext;
 
-public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUser, PerfumeIdentityRole, Guid> {
+public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUser, PerfumeIdentityRole, Guid>, IDataProtectionKeyContext {
 	public ITenantProvider? TenantProvider { get; set; }
 
 	public PerfumeTrackerContext(ITenantProvider tenantProvider) {
@@ -38,6 +39,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<YearInReviewSnapshot> YearInReviewSnapshots { get; set; }
 	public virtual DbSet<WeeklyDigest> WeeklyDigests { get; set; }
 	public virtual DbSet<AuthSession> AuthSessions { get; set; }
+	public virtual DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 

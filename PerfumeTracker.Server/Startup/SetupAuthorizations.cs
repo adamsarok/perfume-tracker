@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Users;
@@ -61,6 +63,13 @@ public static partial class Startup {
 		services.AddSingleton<IConfigureOptions<CookieAuthenticationOptions>>(sp =>
 			new ConfigureNamedOptions<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options =>
 				options.SessionStore = sp.GetRequiredService<PostgresTicketStore>()));
+
+		// Identity cookies carry an encrypted session key; without a persisted key ring every
+		// container replacement would invalidate all cookies. Keys live in Postgres alongside sessions.
+		// Fixed application name keeps keys decryptable even if host metadata changes between deployments.
+		services.AddDataProtection()
+			.SetApplicationName("PerfumeTracker")
+			.PersistKeysToDbContext<PerfumeTrackerContext>();
 
 		services.AddAuthorization(options => {
 			options.AddPolicy(Policies.READ, p => p.RequireRole(Roles.ADMIN, Roles.DEMO, Roles.USER));

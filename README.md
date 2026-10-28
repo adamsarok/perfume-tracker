@@ -80,6 +80,10 @@ services:
         - 5432:5432
 ```
 
+### Authentication
+
+Login sessions are stored server-side in the `AuthSession` Postgres table; the browser cookie only carries a random session key, encrypted with ASP.NET Core Data Protection keys persisted in the `DataProtectionKeys` Postgres table. Both tables live in the mounted `./postgres` volume, so sessions survive API container replacement and work across multiple API instances. Adjust lifetime with `Session__IdleTimeoutHours` (sliding idle window) and `Session__AbsoluteLifetimeHours` (hard cap since login).
+
 ## Badges
 
 ![Docker Image CI](https://github.com/adamsarok/perfume-tracker/actions/workflows/docker-image.yml/badge.svg)
