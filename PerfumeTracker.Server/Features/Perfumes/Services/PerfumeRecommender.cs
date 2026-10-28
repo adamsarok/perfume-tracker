@@ -33,9 +33,10 @@ public class PerfumeRecommender(PerfumeTrackerContext context,
 			_lastWornPerfumeIds = await context
 				.PerfumeEvents
 				.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn)
-				.OrderByDescending(x => x.EventDate)
-				.Select(x => x.PerfumeId)
-				.Distinct()
+				.GroupBy(x => x.PerfumeId)
+				.OrderByDescending(g => g.Max(x => x.EventDate))
+				.ThenBy(g => g.Key)
+				.Select(g => g.Key)
 				.Take(5)
 				.ToListAsync(cancellationToken);
 		}

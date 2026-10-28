@@ -16,6 +16,7 @@ export default function RecommendationsList() {
     PerfumeRecommendationDTO[]
   >([]);
   const [occasionOrMood, setOccasionOrMood] = useState("");
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [selectedStrategies, setSelectedStrategies] = useState<RecommendationStrategy[]>([
     RecommendationStrategy.ForgottenFavorite,
     RecommendationStrategy.SimilarToLastUsed,
@@ -64,6 +65,7 @@ export default function RecommendationsList() {
       return;
     }
     setRecommendations(result.data);
+    setHasLoaded(true);
   };
 
   const toggleStrategy = (strategy: RecommendationStrategy) => {
@@ -95,6 +97,7 @@ export default function RecommendationsList() {
           return;
         }
         setRecommendations(result.data);
+        setHasLoaded(true);
       } else {
         // Use default strategies if no preferences found
         await refreshList();
@@ -142,6 +145,12 @@ export default function RecommendationsList() {
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-4">
+        {hasLoaded && recommendations.length === 0 && (
+          <p role="status" className="text-sm text-gray-600">
+            No perfumes match these recommendation settings. Try the Random strategy,
+            lower the minimum rating in Settings, or check that your perfumes have some ml left.
+          </p>
+        )}
         {recommendations.map((recommendation) => (
           <PerfumeRecommendationsCard
             key={recommendation.perfume.perfume.id}

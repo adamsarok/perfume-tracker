@@ -43,10 +43,8 @@ services:
         environment:
           - ConnectionStrings__DefaultConnection=Server=db; Port=5432; User Id=postgres; Password=postgres; Database=perfumetracker
           - OpenAi__ApiKey=${OPENAI_API_KEY}
-          - Jwt__Key=${JWT_KEY}
-          - Jwt__Issuer=PerfumeTrackerServer
-          - Jwt__Audience=PerfumeTrackerClient
-          - Jwt__ExpirationHours=24
+          - Session__IdleTimeoutHours=24
+          - Session__AbsoluteLifetimeHours=336
           - Users__AdminUserName=admin
           - Users__AdminEmail=admin@example.com
           - Users__AdminPassword=${ADMIN_PASSWORD}
@@ -81,6 +79,10 @@ services:
       ports:
         - 5432:5432
 ```
+
+### Authentication
+
+Login sessions are stored server-side in the `AuthSession` Postgres table; the browser cookie only carries a random session key, encrypted with ASP.NET Core Data Protection keys persisted in the `DataProtectionKeys` Postgres table. Both tables live in the mounted `./postgres` volume, so sessions survive API container replacement and work across multiple API instances. Adjust lifetime with `Session__IdleTimeoutHours` (sliding idle window) and `Session__AbsoluteLifetimeHours` (hard cap since login).
 
 ## Badges
 

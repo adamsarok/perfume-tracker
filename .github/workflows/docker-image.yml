@@ -13,10 +13,8 @@ jobs:
     env:
       ConnectionStrings__PerfumeTracker: ${{ secrets.POSTGRES_CONNSTR }}
       ConnectionStrings__PerfumeTrackerTest: ${{ secrets.POSTGRES_CONNSTR }}
-      Jwt__Key: DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY_DUMMY_KEY
-      Jwt__Issuer: DUMMY
-      Jwt__Audience: DUMMY
-      Jwt__ExpirationHours: 24
+      Session__IdleTimeoutHours: 24
+      Session__AbsoluteLifetimeHours: 336
       Users__AdminUserName: DummyAdmin
       Users__AdminEmail: admin@example.com
       Users__AdminPassword: 123DummyAdminPass123

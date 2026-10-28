@@ -230,6 +230,44 @@ public class PerfumeRecommenderTests {
 	}
 
 	[Fact]
+	public async Task LongestTimeAgo_ExcludesTheFiveMostRecentlyWornDistinctPerfumes() {
+		using var scope = _fixture.Factory.Services.CreateScope();
+		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
+		var profileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
+		var perfumes = _fixture.GeneratePerfumes(6);
+		foreach (var perfume in perfumes) {
+			perfume.Ml = 50;
+			perfume.MlLeft = 50;
+			perfume.LatestRating = 5;
+			context.Perfumes.Add(perfume);
+		}
+		var now = DateTime.UtcNow.AddDays(10);
+		for (var i = 0; i < perfumes.Count; i++) {
+			context.PerfumeEvents.Add(new PerfumeEvent {
+				PerfumeId = perfumes[i].Id,
+				EventDate = now.AddDays(-i),
+				Type = PerfumeEvent.PerfumeEventType.Worn,
+				UserId = _fixture.TenantProvider.MockTenantId!.Value,
+			});
+		}
+		// Repeated wears must not consume multiple places in the exclusion list.
+		context.PerfumeEvents.Add(new PerfumeEvent {
+			PerfumeId = perfumes[0].Id,
+			EventDate = now.AddHours(1),
+			Type = PerfumeEvent.PerfumeEventType.Worn,
+			UserId = _fixture.TenantProvider.MockTenantId!.Value,
+		});
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+		var recommendations = (await GetRecommender(context, profileService)
+			.GetAllStrategyRecommendations(20, [RecommendationStrategy.LongestTimeAgo], TestContext.Current.CancellationToken)).ToList();
+
+		Assert.All(perfumes.Take(5), perfume =>
+			Assert.DoesNotContain(recommendations, r => r.Perfume.Perfume.Id == perfume.Id));
+		Assert.Contains(recommendations, r => r.Perfume.Perfume.Id == perfumes[5].Id);
+	}
+
+	[Fact]
 	public async Task GetAllStrategyRecommendations_ReturnsRecommendations() {
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
@@ -283,9 +321,10 @@ public class PerfumeRecommenderTests {
 		var requestedCount = Math.Min(3, recommendablePerfumeIds.Count);
 		var lastWornPerfumeIds = await context.PerfumeEvents
 			.Where(e => e.Type == PerfumeEvent.PerfumeEventType.Worn)
-			.OrderByDescending(e => e.EventDate)
-			.Select(e => e.PerfumeId)
-			.Distinct()
+			.GroupBy(e => e.PerfumeId)
+			.OrderByDescending(g => g.Max(e => e.EventDate))
+			.ThenBy(g => g.Key)
+			.Select(g => g.Key)
 			.Take(5)
 			.ToListAsync(TestContext.Current.CancellationToken);
 		var recommendations = await recommender.GetAllStrategyRecommendations(
@@ -532,9 +571,10 @@ public class PerfumeRecommenderTests {
 		// Get the most recently worn perfumes
 		var recentlyWornIds = await context.PerfumeEvents
 			.Where(x => x.Type == PerfumeEvent.PerfumeEventType.Worn)
-			.OrderByDescending(x => x.EventDate)
-			.Select(x => x.PerfumeId)
-			.Distinct()
+			.GroupBy(x => x.PerfumeId)
+			.OrderByDescending(g => g.Max(x => x.EventDate))
+			.ThenBy(g => g.Key)
+			.Select(g => g.Key)
 			.Take(5)
 			.ToListAsync(TestContext.Current.CancellationToken);
 

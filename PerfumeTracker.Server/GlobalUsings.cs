@@ -10,5 +10,4 @@ global using PerfumeTracker.Server.Features.CQRS;
 global using PerfumeTracker.Server.Features.Perfumes;
 global using PerfumeTracker.Server.Options;
 global using System.ComponentModel.DataAnnotations.Schema;
-global using System.IdentityModel.Tokens.Jwt;
 global using System.Text.Json;

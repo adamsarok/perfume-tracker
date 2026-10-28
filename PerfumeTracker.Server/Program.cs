@@ -146,8 +146,8 @@ builder.Services.AddOptionsWithValidateOnStart<CorsConfiguration>()
 builder.Services.AddOptionsWithValidateOnStart<R2Configuration>()
 	.Bind(builder.Configuration.GetSection("R2"))
 	.ValidateDataAnnotations();
-builder.Services.AddOptionsWithValidateOnStart<JwtConfiguration>()
-	.Bind(builder.Configuration.GetSection("Jwt"))
+builder.Services.AddOptionsWithValidateOnStart<SessionConfiguration>()
+	.Bind(builder.Configuration.GetSection("Session"))
 	.ValidateDataAnnotations();
 builder.Services.AddOptionsWithValidateOnStart<RateLimitConfiguration>()
 	.Bind(builder.Configuration.GetSection("RateLimits"))
@@ -165,7 +165,6 @@ builder.Services.AddScoped<IDigestCandidates, DigestCandidates>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
-builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<UpdateMissionProgressHandler>();
 builder.Services.AddScoped<UpdateStreakProgressHandler>();
 

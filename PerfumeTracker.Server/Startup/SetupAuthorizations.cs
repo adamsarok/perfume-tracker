@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using PerfumeTracker.Server.Features.Auth;
 using PerfumeTracker.Server.Features.Users;
 using System.Security.Claims;
@@ -30,17 +32,44 @@ public static partial class Startup {
 			options.User.RequireUniqueEmail = true;
 		});
 
-		var jwtConfig = configuration.GetSection("Jwt").Get<JwtConfiguration>()
-			?? throw new InvalidOperationException("JWT configuration is missing");
+		var sessionConfig = configuration.GetSection("Session").Get<SessionConfiguration>()
+			?? new SessionConfiguration();
 
+		// Identity.Application cookie; the ticket itself lives in Postgres via PostgresTicketStore.
 		services.ConfigureApplicationCookie(options => {
+			options.Cookie.Name = ".PerfumeTracker.Auth";
 			options.Cookie.HttpOnly = true;
-			options.ExpireTimeSpan = TimeSpan.FromHours(jwtConfig.ExpirationHours);
-
-			options.LoginPath = "/api/identity/account/login";
-			options.AccessDeniedPath = "/api/identity/account/access-denied";
+			options.Cookie.SameSite = SameSiteMode.None;
+			options.Cookie.SecurePolicy = Env.IsDevelopment
+				? CookieSecurePolicy.SameAsRequest
+				: CookieSecurePolicy.Always;
+			options.ExpireTimeSpan = sessionConfig.IdleTimeout;
 			options.SlidingExpiration = true;
+			options.Events = new CookieAuthenticationEvents {
+				OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync,
+				OnRedirectToLogin = context => {
+					context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+					return Task.CompletedTask;
+				},
+				OnRedirectToAccessDenied = context => {
+					context.Response.StatusCode = StatusCodes.Status403Forbidden;
+					return Task.CompletedTask;
+				},
+			};
 		});
+
+		services.AddSingleton<PostgresTicketStore>();
+		// Configure<TOptions, TDep> doesn't exist, so register a named-options config resolved from DI.
+		services.AddSingleton<IConfigureOptions<CookieAuthenticationOptions>>(sp =>
+			new ConfigureNamedOptions<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options =>
+				options.SessionStore = sp.GetRequiredService<PostgresTicketStore>()));
+
+		// Identity cookies carry an encrypted session key; without a persisted key ring every
+		// container replacement would invalidate all cookies. Keys live in Postgres alongside sessions.
+		// Fixed application name keeps keys decryptable even if host metadata changes between deployments.
+		services.AddDataProtection()
+			.SetApplicationName("PerfumeTracker")
+			.PersistKeysToDbContext<PerfumeTrackerContext>();
 
 		services.AddAuthorization(options => {
 			options.AddPolicy(Policies.READ, p => p.RequireRole(Roles.ADMIN, Roles.DEMO, Roles.USER));
@@ -48,26 +77,7 @@ public static partial class Startup {
 			options.AddPolicy(Policies.ADMIN, p => p.RequireRole(Roles.ADMIN));
 		});
 
-		var auth = services.AddAuthentication(options => {
-			options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-			options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-		}).AddJwtBearer(options => {
-			options.TokenValidationParameters = new TokenValidationParameters {
-				ValidateIssuer = true,
-				ValidateAudience = true,
-				ValidateLifetime = true,
-				ValidateIssuerSigningKey = true,
-				ValidIssuer = jwtConfig.Issuer,
-				ValidAudience = jwtConfig.Audience,
-				IssuerSigningKey = jwtConfig.GetSecurityKey()
-			};
-			options.Events = new JwtBearerEvents {
-				OnMessageReceived = context => {
-					context.Token = context.Request.Cookies["jwt"];
-					return Task.CompletedTask;
-				}
-			};
-		});
+		var auth = services.AddAuthentication();
 
 		auth.AddCookie("External", opts => {
 			opts.Cookie.Name = "ext.auth";
@@ -120,7 +130,7 @@ public static partial class Startup {
 
 	private static async Task HandleOAuthCallback(TicketReceivedContext context, string provider) {
 		var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<PerfumeIdentityUser>>();
-		var jwtGenerator = context.HttpContext.RequestServices.GetRequiredService<IJwtTokenGenerator>();
+		var signInManager = context.HttpContext.RequestServices.GetRequiredService<SignInManager<PerfumeIdentityUser>>();
 		var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<LoginGoogle>>();
 
 		var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
@@ -139,7 +149,7 @@ public static partial class Startup {
 			return;
 		}
 
-		await jwtGenerator.WriteToken(user, context.HttpContext);
+		await signInManager.SignInAsync(user, isPersistent: true);
 
 		logger.LogInformation("Successfully authenticated user: {Email} via {Provider}", email, provider);
 	}
