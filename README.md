@@ -43,10 +43,8 @@ services:
         environment:
           - ConnectionStrings__DefaultConnection=Server=db; Port=5432; User Id=postgres; Password=postgres; Database=perfumetracker
           - OpenAi__ApiKey=${OPENAI_API_KEY}
-          - Jwt__Key=${JWT_KEY}
-          - Jwt__Issuer=PerfumeTrackerServer
-          - Jwt__Audience=PerfumeTrackerClient
-          - Jwt__ExpirationHours=24
+          - Session__IdleTimeoutHours=24
+          - Session__AbsoluteLifetimeHours=336
           - Users__AdminUserName=admin
           - Users__AdminEmail=admin@example.com
           - Users__AdminPassword=${ADMIN_PASSWORD}

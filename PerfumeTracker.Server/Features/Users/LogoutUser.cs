@@ -1,7 +1,11 @@
-﻿namespace PerfumeTracker.Server.Features.Auth;
+﻿using Microsoft.AspNetCore.Authentication;
+
+namespace PerfumeTracker.Server.Features.Auth;
 public class LogoutEndpoint : ICarterModule {
 	public void AddRoutes(IEndpointRouteBuilder app) {
-		app.MapPost("/api/identity/account/logout", (HttpContext httpContext) => {
+		app.MapPost("/api/identity/account/logout", async (HttpContext httpContext) => {
+			await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+			// Legacy cookies from the JWT auth flow; delete them for returning clients.
 			httpContext.Response.Cookies.Delete("jwt");
 			httpContext.Response.Cookies.Delete("X-Username");
 			httpContext.Response.Cookies.Delete("X-User-Id");

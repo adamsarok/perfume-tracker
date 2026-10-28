@@ -37,6 +37,7 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 	public virtual DbSet<MarketplaceOffer> MarketplaceOffers { get; set; }
 	public virtual DbSet<YearInReviewSnapshot> YearInReviewSnapshots { get; set; }
 	public virtual DbSet<WeeklyDigest> WeeklyDigests { get; set; }
+	public virtual DbSet<AuthSession> AuthSessions { get; set; }
 	protected override void OnModelCreating(ModelBuilder builder) {
 		builder.HasPostgresExtension("vector");
 
@@ -292,6 +293,17 @@ public partial class PerfumeTrackerContext : IdentityDbContext<PerfumeIdentityUs
 				.HasFilter(@"""IsDeleted"" = FALSE")
 				.IsUnique();
 			entity.HasQueryFilter(x => !x.IsDeleted && (TenantProvider == null || x.UserId == TenantProvider.GetCurrentUserId()));
+		});
+
+		builder.Entity<AuthSession>(entity => {
+			entity.HasKey(e => e.Id).HasName("AuthSession_pkey");
+			entity.ToTable("AuthSession");
+			entity.Property(e => e.Id).HasMaxLength(64);
+			entity.Property(e => e.Ticket).IsRequired();
+			entity.Property(e => e.UserAgent).HasMaxLength(512);
+			entity.Property(e => e.IpAddress).HasMaxLength(45);
+			entity.HasIndex(e => e.UserId);
+			entity.HasIndex(e => e.ExpiresAt);
 		});
 
 		base.OnModelCreating(builder);
