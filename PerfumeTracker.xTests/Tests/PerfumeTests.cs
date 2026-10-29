@@ -118,21 +118,30 @@ public class PerfumeTests {
 		Assert.NotNull(response);
 	}
 
-	[Fact]
-	public async Task GetFullText() {
+	[Theory]
+	[InlineData("Amber The", "Amber The")]
+	[InlineData("The", "The")]
+	[InlineData("Amber Woods", "Amb")]
+	public async Task GetFullText(string perfumeName, string search) {
 		// Arrange
 		using var scope = _fixture.Factory.Services.CreateScope();
 		var context = scope.ServiceProvider.GetRequiredService<PerfumeTrackerContext>();
 		var userProfileService = scope.ServiceProvider.GetRequiredService<IUserProfileService>();
 		var handler = new GetPerfumesWithWornHandler(context, new MockPresignedUrlService(), userProfileService);
-		var perfume = await context.Perfumes.FirstAsync(TestContext.Current.CancellationToken);
+		// Keep the test independent of database defaults, random names, and test order.
+		await using var transaction = await context.Database.BeginTransactionAsync(TestContext.Current.CancellationToken);
+		await context.Database.ExecuteSqlRawAsync("SET LOCAL default_text_search_config = 'english'", TestContext.Current.CancellationToken);
+		var perfume = _fixture.GeneratePerfumes(1)[0];
+		perfume.PerfumeName = perfumeName;
+		context.Perfumes.Add(perfume);
+		await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 		// Act
-		var response = await handler.Handle(new GetPerfumesWithWornQuery(perfume.PerfumeName), TestContext.Current.CancellationToken);
+		var response = await handler.Handle(new GetPerfumesWithWornQuery(search), TestContext.Current.CancellationToken);
 
 		// Assert
 		Assert.NotNull(response);
-		Assert.NotEmpty(response);
+		Assert.Contains(response, p => p.Perfume.Id == perfume.Id);
 	}
 
 	[Fact]
