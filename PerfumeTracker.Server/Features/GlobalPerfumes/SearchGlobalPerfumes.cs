@@ -27,7 +27,7 @@ public class SearchGlobalPerfumesHandler(PerfumeTrackerContext context)
 		var results = await context.GlobalPerfumes
 			.Include(x => x.GlobalPerfumeTags)
 			.ThenInclude(x => x.GlobalTag)
-			.Where(p => p.FullText.Matches(EF.Functions.ToTsQuery(tsQuery)))
+			.Where(p => p.FullText.Matches(EF.Functions.ToTsQuery("simple", tsQuery)))
 			.OrderBy(p => p.House)
 			.ThenBy(p => p.PerfumeName)
 			.Take(50)

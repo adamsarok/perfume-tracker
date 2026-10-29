@@ -39,7 +39,7 @@ public class GetPerfumesWithWornHandler(PerfumeTrackerContext context, IPresigne
 			.ThenInclude(x => x.Tag)
 			.Include(x => x.PerfumeRatings)
 			.Where(p => (!hasQuery
-				|| p.FullText.Matches(EF.Functions.ToTsQuery(tsQuery))
+				|| p.FullText.Matches(EF.Functions.ToTsQuery("simple", tsQuery))
 				|| p.PerfumeTags.Any(pt
 					 => EF.Functions.ILike(pt.Tag.TagName, $"%{normalized}%")))
 				&& (!request.MlGreaterZero || p.Ml > 0)

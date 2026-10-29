@@ -156,7 +156,7 @@ public class PerfumeIdentifierBackgroundService(
 		var candidates = await context.GlobalPerfumes
 			.Include(gp => gp.GlobalPerfumeTags)
 			.ThenInclude(gpt => gpt.GlobalTag)
-			.Where(p => p.FullText.Matches(EF.Functions.ToTsQuery(tsQuery)))
+			.Where(p => p.FullText.Matches(EF.Functions.ToTsQuery("simple", tsQuery)))
 			.Take(10) // Increased from 5 to get more candidates
 			.ToListAsync(cancellationToken);
 
